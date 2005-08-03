@@ -408,7 +408,9 @@ check_type
     my $code = <<"_HERE_";
 main () { exit (0); }
 _HERE_
-    my $rc = check_present ($name, $code, $type, $r_clist, $r_config);
+    my $tname = $name;
+    $tname =~ s#_t$#_x#o;  # because grep will find the filename!
+    my $rc = check_present ($tname, $code, $type, $r_clist, $r_config);
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
