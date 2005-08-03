@@ -16,53 +16,8 @@ check_run
     my ($name, $code, $r_val, $r_clist, $r_config, $r_a) = @_;
     my $fh;
 
-    open ($fh, ">$name.c");
-
-    # always include these three if present...
-    foreach my $val ('_hdr_stdio', '_hdr_stdlib', '_sys_types')
-    {
-        if (defined ($$r_config{$val}) &&
-             $$r_config{$val} ne '0')
-        {
-            print $fh "#include <$$r_config{$val}>\n";
-        }
-    }
-
-    foreach my $val (@$r_clist)
-    {
-        if ($val !~ m#^(_hdr_|_sys_)#o)
-        {
-            next;
-        }
-        if ($val eq '_hdr_stdio' ||
-            $val eq '_hdr_stdlib' ||
-            $val eq '_sys_types')
-        {
-            next;
-        }
-        if ($val eq '_hdr_malloc' &&
-            $$r_config{'_include_malloc'} == 0)
-        {
-            next;
-        }
-        if ($val eq '_hdr_strings' &&
-            $$r_config{'_hdr_string'} == 1 &&
-            $$r_config{'_include_string'} == 0)
-        {
-            next;
-        }
-        if ($$r_config{$val} ne '0')
-        {
-            print $fh "#include <$$r_config{$val}>\n";
-        }
-    }
-    print $fh "\n";
-    print $fh $code;
-    close $fh;
-
-    my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} -o $name.exe $name.c $ENV{'LIBS'}";
-    print $LOGFH "##  run test: $cmd\n";
-    my $rc = system ("$cmd >> $LOG 2>&1");
+    my $rc = check_link ($name, $code, $r_clist, $r_config,
+        { 'nounlink' => 1, 'uselibs' => 1, });
     print $LOGFH "##  run test: $rc\n";
     $$r_val = 0;
     if ($rc == 0)
@@ -76,7 +31,7 @@ check_run
             close $fh;
         }
     }
-    unlink "$name";
+    unlink "$name.exe";
     unlink "$name.c";
     unlink "$name.out";
     unlink "$name.o";
@@ -133,7 +88,11 @@ check_link
     print $fh $code;
     close $fh;
 
-    my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} -o $name.exe $name.c $ENV{'LIBS'}";
+    my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} -o $name.exe $name.c";
+    if ($$r_a{'uselibs'} == 1)
+    {
+        $cmd .= " $ENV{'LIBS'}";
+    }
     print $LOGFH "##  link test: $cmd\n";
     my $rc = system ("$cmd >> $LOG 2>&1");
     print $LOGFH "##  link test: $rc\n";
@@ -144,9 +103,12 @@ check_link
             $rc = 1;
         }
     }
-    unlink "$name";
-    unlink "$name.c";
-    unlink "$name.o";
+    if ($$r_a{'nounlink'} == 0)
+    {
+        unlink "$name.exe";
+        unlink "$name.c";
+        unlink "$name.o";
+    }
     return $rc;
 }
 
@@ -456,7 +418,7 @@ _HERE_
 sub
 check_lib
 {
-    my ($name, $func, $r_clist, $r_config) = @_;
+    my ($name, $func, $r_clist, $r_config, $r_a) = @_;
 
     print $LOGFH "## Check if library function $func exists [$name]\n";
     print STDERR "Check if library function $func exists [$name]\n";
@@ -467,7 +429,13 @@ typedef int (*_TEST_fun_)();
 static _TEST_fun_ i=(_TEST_fun_) $func;
 main () {  return (i==0); }
 _HERE_
-    my $rc = check_link ($name, $code, $r_clist, $r_config);
+    my $val = 0;
+    if ($name =~ m#^_mth#o)
+    {
+        $val = 1;
+    }
+    my $rc = check_link ($name, $code, $r_clist, $r_config,
+        { 'nounlink' => 0, 'uselibs' => $val, });
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
@@ -486,7 +454,8 @@ check_setmntent_1arg
     my $code = <<"_HERE_";
 main () { setmntent ("/etc/mnttab"); }
 _HERE_
-    my $rc = check_link ($name, $code, $r_clist, $r_config);
+    my $rc = check_link ($name, $code, $r_clist, $r_config,
+        { 'nounlink' => 0, 'uselibs' => 1, });
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
@@ -505,7 +474,8 @@ check_setmntent_2arg
     my $code = <<"_HERE_";
 main () { setmntent ("/etc/mnttab", "r"); }
 _HERE_
-    my $rc = check_link ($name, $code, $r_clist, $r_config);
+    my $rc = check_link ($name, $code, $r_clist, $r_config,
+        { 'nounlink' => 0, 'uselibs' => 1, });
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
@@ -527,7 +497,8 @@ main () {
     statfs (name, &statBuf);
 }
 _HERE_
-    my $rc = check_link ($name, $code, $r_clist, $r_config);
+    my $rc = check_link ($name, $code, $r_clist, $r_config,
+        { 'nounlink' => 0, 'uselibs' => 1, });
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
@@ -549,7 +520,8 @@ main () {
     statfs (name, &statBuf, sizeof (statBuf));
 }
 _HERE_
-    my $rc = check_link ($name, $code, $r_clist, $r_config);
+    my $rc = check_link ($name, $code, $r_clist, $r_config,
+        { 'nounlink' => 0, 'uselibs' => 1, });
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
@@ -571,7 +543,8 @@ main () {
     statfs (name, &statBuf, sizeof (statBuf), 0);
 }
 _HERE_
-    my $rc = check_link ($name, $code, $r_clist, $r_config);
+    my $rc = check_link ($name, $code, $r_clist, $r_config,
+        { 'nounlink' => 0, 'uselibs' => 1, });
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
@@ -669,15 +642,15 @@ create_config
 
     open ($fh, ">../config.h");
     print $fh <<'_HERE_';
+
 #ifndef _config_H
 #define _config_H 1
-
 _HERE_
 
     my @headlist1 = (
+        [ "_sys_types", "sys/types.h", ],
         [ "_hdr_stdio", "stdio.h", ],
         [ "_hdr_stdlib", "stdlib.h", ],
-        [ "_sys_types", "sys/types.h", ],
         );
     my @headlist2 = (
         [ "_hdr_ctype", "ctype.h", ],
@@ -726,12 +699,13 @@ _HERE_
     check_void ('_key_void', \@clist, \%config);
     check_proto ('_proto_stdc', \@clist, \%config);
 
+    check_command ('_command_msgfmt', 'msgfmt', \@clist, \%config);
+
     foreach my $r_arr (@headlist2)
     {
         check_header ($$r_arr[0], $$r_arr[1], \@clist, \%config);
     }
 
-    check_command ('_command_msgfmt', 'msgfmt', \@clist, \%config);
     check_include_malloc ('_include_malloc', \@clist, \%config);
     check_include_string ('_include_string', \@clist, \%config);
     check_prototype ('_npt_getenv', 'getenv', \@clist, \%config);
@@ -810,7 +784,6 @@ _HERE_
             }
         }
     }
-    print $fh "\n";
 
     print $fh <<'_HERE_';
 
@@ -827,12 +800,12 @@ _HERE_
 #endif
 
 #if _lib_bindtextdomain && \
-	_lib_gettext && \
-	_lib_setlocale && \
-	_lib_textdomain && \
-	_hdr_libintl && \
-	_hdr_locale && \
-	_command_msgfmt
+_lib_gettext && \
+_lib_setlocale && \
+_lib_textdomain && \
+_hdr_libintl && \
+_hdr_locale && \
+_command_msgfmt
 # define _enable_nls 1
 #else
 # define _enable_nls 0
@@ -883,4 +856,6 @@ print $LOGFH "LIBS: $ENV{'LIBS'}\n";
 &create_config;
 
 close $LOGFH;
+
+chdir "..";
 rmdir $TMP;
