@@ -1,0 +1,886 @@
+#!/usr/local/bin/perl
+#
+# $Id$
+#
+
+use strict;
+use Config;
+
+my $LOGFH;
+my $LOG = "../mkconfig.log";
+my $TMP = "_tmp";
+
+sub
+check_run
+{
+    my ($name, $code, $r_val, $r_clist, $r_config, $r_a) = @_;
+    my $fh;
+
+    open ($fh, ">$name.c");
+
+    # always include these three if present...
+    foreach my $val ('_hdr_stdio', '_hdr_stdlib', '_sys_types')
+    {
+        if (defined ($$r_config{$val}) &&
+             $$r_config{$val} ne '0')
+        {
+            print $fh "#include <$$r_config{$val}>\n";
+        }
+    }
+
+    foreach my $val (@$r_clist)
+    {
+        if ($val !~ m#^(_hdr_|_sys_)#o)
+        {
+            next;
+        }
+        if ($val eq '_hdr_stdio' ||
+            $val eq '_hdr_stdlib' ||
+            $val eq '_sys_types')
+        {
+            next;
+        }
+        if ($val eq '_hdr_malloc' &&
+            $$r_config{'_include_malloc'} == 0)
+        {
+            next;
+        }
+        if ($val eq '_hdr_strings' &&
+            $$r_config{'_hdr_string'} == 1 &&
+            $$r_config{'_include_string'} == 0)
+        {
+            next;
+        }
+        if ($$r_config{$val} ne '0')
+        {
+            print $fh "#include <$$r_config{$val}>\n";
+        }
+    }
+    print $fh "\n";
+    print $fh $code;
+    close $fh;
+
+    my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} -o $name.exe $name.c $ENV{'LIBS'}";
+    print $LOGFH "##  run test: $cmd\n";
+    my $rc = system ("$cmd >> $LOG 2>&1");
+    print $LOGFH "##  run test: $rc\n";
+    $$r_val = 0;
+    if ($rc == 0)
+    {
+        $rc = system ("./$name.exe > $name.out");
+        if ($rc == 0)
+        {
+            open ($fh, "<$name.out");
+            $$r_val = <$fh>;
+            chomp $$r_val;
+            close $fh;
+        }
+    }
+    unlink "$name";
+    unlink "$name.c";
+    unlink "$name.out";
+    unlink "$name.o";
+    return $rc;
+}
+
+sub
+check_link
+{
+    my ($name, $code, $r_clist, $r_config, $r_a) = @_;
+    my $fh;
+
+    open ($fh, ">$name.c");
+
+    # always include these three if present...
+    foreach my $val ('_hdr_stdio', '_hdr_stdlib', '_sys_types')
+    {
+        if (defined ($$r_config{$val}) &&
+             $$r_config{$val} ne '0')
+        {
+            print $fh "#include <$$r_config{$val}>\n";
+        }
+    }
+
+    foreach my $val (@$r_clist)
+    {
+        if ($val !~ m#^(_hdr_|_sys_)#o)
+        {
+            next;
+        }
+        if ($val eq '_hdr_stdio' ||
+            $val eq '_hdr_stdlib' ||
+            $val eq '_sys_types')
+        {
+            next;
+        }
+        if ($val eq '_hdr_malloc' &&
+            $$r_config{'_include_malloc'} == 0)
+        {
+            next;
+        }
+        if ($val eq '_hdr_strings' &&
+            $$r_config{'_hdr_string'} == 1 &&
+            $$r_config{'_include_string'} == 0)
+        {
+            next;
+        }
+        if ($$r_config{$val} ne '0')
+        {
+            print $fh "#include <$$r_config{$val}>\n";
+        }
+    }
+    print $fh "\n";
+    print $fh $code;
+    close $fh;
+
+    my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} -o $name.exe $name.c $ENV{'LIBS'}";
+    print $LOGFH "##  link test: $cmd\n";
+    my $rc = system ("$cmd >> $LOG 2>&1");
+    print $LOGFH "##  link test: $rc\n";
+    if ($rc == 0)
+    {
+        if (! -x "$name.exe")  # not executable.
+        {
+            $rc = 1;
+        }
+    }
+    unlink "$name";
+    unlink "$name.c";
+    unlink "$name.o";
+    return $rc;
+}
+
+sub
+check_compile
+{
+    my ($name, $code, $r_clist, $r_config, $r_a) = @_;
+    my $fh;
+
+    open ($fh, ">$name.c");
+
+    # always include these three if present...
+    foreach my $val ('_hdr_stdio', '_hdr_stdlib', '_sys_types')
+    {
+        if (defined ($$r_config{$val}) &&
+             $$r_config{$val} ne '0')
+        {
+            print $fh "#include <$$r_config{$val}>\n";
+        }
+    }
+
+    if ($$r_a{'incheaders'} == 1)
+    {
+        foreach my $val (@$r_clist)
+        {
+            if ($val !~ m#^(_hdr_|_sys_)#o)
+            {
+                next;
+            }
+            if ($val eq '_hdr_stdio' ||
+                $val eq '_hdr_stdlib' ||
+                $val eq '_sys_types')
+            {
+                next;
+            }
+            if ($val eq '_hdr_malloc' &&
+                $$r_config{'_include_malloc'} == 0)
+            {
+                next;
+            }
+            if ($val eq '_hdr_strings' &&
+                $$r_config{'_hdr_string'} == 1 &&
+                $$r_config{'_include_string'} == 0)
+            {
+                next;
+            }
+            if ($$r_config{$val} ne '0')
+            {
+                print $fh "#include <$$r_config{$val}>\n";
+            }
+        }
+        print $fh "\n";
+    }
+    print $fh $code;
+    close $fh;
+
+    my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} -c $name.c";
+    print $LOGFH "##  compile test: $cmd\n";
+    my $rc = system ("$cmd >> $LOG 2>&1");
+    print $LOGFH "##  compile test: $rc\n";
+    unlink "$name.c";
+    unlink "$name.o";
+    return $rc;
+}
+
+sub
+check_present
+{
+    my ($name, $code, $value, $r_clist, $r_config) = @_;
+    my $fh;
+
+    open ($fh, ">$name.c");
+
+    # always include these three if present...
+    foreach my $val ('_hdr_stdio', '_hdr_stdlib', '_sys_types')
+    {
+        if (defined ($$r_config{$val}) &&
+             $$r_config{$val} ne '0')
+        {
+            print $fh "#include <$$r_config{$val}>\n";
+        }
+    }
+
+    foreach my $val (@$r_clist)
+    {
+        if ($val !~ m#^(_hdr_|_sys_)#o)
+        {
+            next;
+        }
+        if ($val eq '_hdr_stdio' ||
+            $val eq '_hdr_stdlib' ||
+            $val eq '_sys_types')
+        {
+            next;
+        }
+        if ($val eq '_hdr_malloc' &&
+            $$r_config{'_include_malloc'} == 0)
+        {
+            next;
+        }
+        if ($val eq '_hdr_strings' &&
+            $$r_config{'_hdr_string'} == 1 &&
+            $$r_config{'_include_string'} == 0)
+        {
+            next;
+        }
+        if ($$r_config{$val} ne '0')
+        {
+            print $fh "#include <$$r_config{$val}>\n";
+        }
+    }
+    print $fh "\n";
+    print $fh $code;
+    close $fh;
+
+    my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} -E $name.c | grep $value";
+    print $LOGFH "##  compile test: $cmd\n";
+    my $rc = system ("$cmd >> $LOG 2>&1");
+    print $LOGFH "##  compile test: $rc\n";
+    unlink "$name.c";
+    unlink "$name.o";
+    return $rc;
+}
+
+sub
+check_header
+{
+    my ($name, $file, $r_clist, $r_config) = @_;
+    my $fh;
+
+    print $LOGFH "## Check for header $file [$name]\n";
+    print STDERR "Check for header $file [$name]\n";
+    my $code = <<"_HERE_";
+#include <${file}>
+main () { exit (0); }
+_HERE_
+    my $rc = check_compile ($name, $code, $r_clist, $r_config,
+        { 'incheaders' => 0, });
+    my $val = 0;
+    if ($rc == 0)
+    {
+        $val = $file;
+    }
+    push @$r_clist, $name;
+    $$r_config{$name} = $val;
+}
+
+sub
+check_void
+{
+    my ($name, $r_clist, $r_config) = @_;
+    my $fh;
+
+    print $LOGFH "## Check for void [$name]\n";
+    print STDERR "Check for void [$name]\n";
+    my $code = <<"_HERE_";
+main () { void *x; x = (char *) NULL; exit (0); }
+_HERE_
+    my $rc = check_compile ($name, $code, $r_clist, $r_config,
+        { 'incheaders' => 1, });
+    push @$r_clist, $name;
+    $$r_config{$name} = 0;
+    if ($rc == 0)
+    {
+        $$r_config{$name} = 1;
+    }
+}
+
+sub
+check_proto
+{
+    my ($name, $r_clist, $r_config) = @_;
+    my $fh;
+
+    print $LOGFH "## Check for prototypes [$name]\n";
+    print STDERR "Check for prototypes [$name]\n";
+    my $code = <<"_HERE_";
+extern int foo (int, int);
+bar () { foo (1,1); }
+_HERE_
+    my $rc = check_compile ($name, $code, $r_clist, $r_config,
+        { 'incheaders' => 1, });
+    push @$r_clist, $name;
+    $$r_config{$name} = 0;
+    if ($rc == 0)
+    {
+        $$r_config{$name} = 1;
+    }
+}
+
+sub
+check_command
+{
+    my ($name, $cmd, $r_clist, $r_config) = @_;
+    my $fh;
+
+    print $LOGFH "## Check for command $cmd [$name]\n";
+    print STDERR "Check for command $cmd [$name]\n";
+
+    push @$r_clist, $name;
+    $$r_config{$name} = 0;
+    foreach my $p (split /$Config{'path_sep'}/o, $ENV{'PATH'})
+    {
+        if (-x "$p/$cmd")
+        {
+            $$r_config{$name} = 1;
+        }
+    }
+}
+
+sub
+check_include_malloc
+{
+    my ($name, $r_clist, $r_config) = @_;
+
+    push @$r_clist, $name;
+    $$r_config{$name} = 0;
+    if ($$r_config{'_hdr_malloc'} ne '0')
+    {
+        print $LOGFH "## Check if ok to include malloc.h [$name]\n";
+        print STDERR "Check if ok to include malloc.h [$name]\n";
+
+        my $code = <<"_HERE_";
+#include <malloc.h>
+main ()
+{
+    char *x; x = malloc (20);
+}
+_HERE_
+        my $rc = check_compile ($name, $code, $r_clist, $r_config,
+                { 'incheaders' => 0, });
+        if ($rc == 0)
+        {
+            $$r_config{$name} = 1;
+        }
+    }
+}
+
+sub
+check_include_string
+{
+    my ($name, $r_clist, $r_config) = @_;
+
+    push @$r_clist, $name;
+    $$r_config{$name} = 0;
+    if ($$r_config{'_hdr_string'} ne '0' &&
+        $$r_config{'_hdr_strings'} ne '0')
+    {
+        print $LOGFH "## Check if ok to include both string.h & strings.h [$name]\n";
+        print STDERR "Check if ok to include both string.h & strings.h [$name]\n";
+
+        my $code = <<"_HERE_";
+#include <string.h>
+#include <strings.h>
+main ()
+{
+    char *x; x = malloc (20);
+}
+_HERE_
+        my $rc = check_compile ($name, $code, $r_clist, $r_config,
+                { 'incheaders' => 0, });
+        if ($rc == 0)
+        {
+            $$r_config{$name} = 1;
+        }
+    }
+}
+
+sub
+check_prototype
+{
+    my ($name, $proto, $r_clist, $r_config) = @_;
+
+    print $LOGFH "## Check if prototype for $proto exists [$name]\n";
+    print STDERR "Check if prototype for $proto exists [$name]\n";
+    push @$r_clist, $name;
+    $$r_config{$name} = 0;
+    my $code = <<"_HERE_";
+main () { exit (0); }
+_HERE_
+    my $rc = check_present ($name, $code, $proto, $r_clist, $r_config);
+    if ($rc != 0)
+    {
+        $$r_config{$name} = 1;
+    }
+}
+
+sub
+check_type
+{
+    my ($name, $type, $r_clist, $r_config) = @_;
+
+    print $LOGFH "## Check if type $type exists [$name]\n";
+    print STDERR "Check if type $type exists [$name]\n";
+    push @$r_clist, $name;
+    $$r_config{$name} = 0;
+    my $code = <<"_HERE_";
+main () { exit (0); }
+_HERE_
+    my $rc = check_present ($name, $code, $type, $r_clist, $r_config);
+    if ($rc == 0)
+    {
+        $$r_config{$name} = 1;
+    }
+}
+
+sub
+check_lib
+{
+    my ($name, $func, $r_clist, $r_config) = @_;
+
+    print $LOGFH "## Check if library function $func exists [$name]\n";
+    print STDERR "Check if library function $func exists [$name]\n";
+    push @$r_clist, $name;
+    $$r_config{$name} = 0;
+    my $code = <<"_HERE_";
+typedef int (*_TEST_fun_)();
+static _TEST_fun_ i=(_TEST_fun_) $func;
+main () {  return (i==0); }
+_HERE_
+    my $rc = check_link ($name, $code, $r_clist, $r_config);
+    if ($rc == 0)
+    {
+        $$r_config{$name} = 1;
+    }
+}
+
+sub
+check_setmntent_1arg
+{
+    my ($name, $r_clist, $r_config) = @_;
+
+    print $LOGFH "## Check if setmntent() takes 1 argument [$name]\n";
+    print STDERR "Check if setmntent() takes 1 argument [$name]\n";
+    push @$r_clist, $name;
+    $$r_config{$name} = 0;
+    my $code = <<"_HERE_";
+main () { setmntent ("/etc/mnttab"); }
+_HERE_
+    my $rc = check_link ($name, $code, $r_clist, $r_config);
+    if ($rc == 0)
+    {
+        $$r_config{$name} = 1;
+    }
+}
+
+sub
+check_setmntent_2arg
+{
+    my ($name, $r_clist, $r_config) = @_;
+
+    print $LOGFH "## Check if setmntent() takes 2 arguments [$name]\n";
+    print STDERR "Check if setmntent() takes 2 arguments [$name]\n";
+    push @$r_clist, $name;
+    $$r_config{$name} = 0;
+    my $code = <<"_HERE_";
+main () { setmntent ("/etc/mnttab", "r"); }
+_HERE_
+    my $rc = check_link ($name, $code, $r_clist, $r_config);
+    if ($rc == 0)
+    {
+        $$r_config{$name} = 1;
+    }
+}
+
+sub
+check_statfs_2arg
+{
+    my ($name, $r_clist, $r_config) = @_;
+
+    print $LOGFH "## Check if statfs() takes 2 arguments [$name]\n";
+    print STDERR "Check if statfs() takes 2 arguments [$name]\n";
+    push @$r_clist, $name;
+    $$r_config{$name} = 0;
+    my $code = <<"_HERE_";
+main () {
+    struct statfs statBuf; char *name; name = "/";
+    statfs (name, &statBuf);
+}
+_HERE_
+    my $rc = check_link ($name, $code, $r_clist, $r_config);
+    if ($rc == 0)
+    {
+        $$r_config{$name} = 1;
+    }
+}
+
+sub
+check_statfs_3arg
+{
+    my ($name, $r_clist, $r_config) = @_;
+
+    print $LOGFH "## Check if statfs() takes 3 arguments [$name]\n";
+    print STDERR "Check if statfs() takes 3 arguments [$name]\n";
+    push @$r_clist, $name;
+    $$r_config{$name} = 0;
+    my $code = <<"_HERE_";
+main () {
+    struct statfs statBuf; char *name; name = "/";
+    statfs (name, &statBuf, sizeof (statBuf));
+}
+_HERE_
+    my $rc = check_link ($name, $code, $r_clist, $r_config);
+    if ($rc == 0)
+    {
+        $$r_config{$name} = 1;
+    }
+}
+
+sub
+check_statfs_4arg
+{
+    my ($name, $r_clist, $r_config) = @_;
+
+    print $LOGFH "## Check if statfs() takes 4 arguments [$name]\n";
+    print STDERR "Check if statfs() takes 4 arguments [$name]\n";
+    push @$r_clist, $name;
+    $$r_config{$name} = 0;
+    my $code = <<"_HERE_";
+main () {
+    struct statfs statBuf; char *name; name = "/";
+    statfs (name, &statBuf, sizeof (statBuf), 0);
+}
+_HERE_
+    my $rc = check_link ($name, $code, $r_clist, $r_config);
+    if ($rc == 0)
+    {
+        $$r_config{$name} = 1;
+    }
+}
+
+sub
+check_size
+{
+    my ($name, $type, $r_clist, $r_config) = @_;
+
+    print $LOGFH "## Check size of $type [$name]\n";
+    print STDERR "Check sizeof $type [$name]\n";
+    push @$r_clist, $name;
+    $$r_config{$name} = 0;
+    my $code = <<"_HERE_";
+main () {
+	printf("%u\\n", sizeof($type));
+    exit (0);
+    }
+_HERE_
+    my $val;
+    my $rc = check_run ($name, $code, \$val, $r_clist, $r_config);
+    if ($rc == 0)
+    {
+        $$r_config{$name} = $val;
+    }
+}
+
+sub
+check_member
+{
+    my ($name, $struct, $member, $r_clist, $r_config) = @_;
+
+    print $LOGFH "## Check if $struct.$member exists [$name]\n";
+    print STDERR "Check if $struct.$member exists [$name]\n";
+    push @$r_clist, $name;
+    $$r_config{$name} = 0;
+    my $code = <<"_HERE_";
+main () { struct $struct s; int i; i = sizeof (s.$member); }
+_HERE_
+    my $rc = check_compile ($name, $code, $r_clist, $r_config,
+            { 'incheaders' => 1, });
+    if ($rc == 0)
+    {
+        $$r_config{$name} = 1;
+    }
+}
+
+sub
+check_int_declare
+{
+    my ($name, $function, $r_clist, $r_config) = @_;
+
+    print $LOGFH "## Check if $function is declared [$name]\n";
+    print STDERR "Check if $function is declared [$name]\n";
+    push @$r_clist, $name;
+    $$r_config{$name} = 0;
+    my $code = <<"_HERE_";
+    main () { int x; x = $function; }
+_HERE_
+    my $rc = check_compile ($name, $code, $r_clist, $r_config,
+            { 'incheaders' => 1, });
+    if ($rc == 0)
+    {
+        $$r_config{$name} = 1;
+    }
+}
+
+sub
+check_ptr_declare
+{
+    my ($name, $function, $r_clist, $r_config) = @_;
+
+    print $LOGFH "## Check if $function is declared [$name]\n";
+    print STDERR "Check if $function is declared [$name]\n";
+    push @$r_clist, $name;
+    $$r_config{$name} = 0;
+    my $code = <<"_HERE_";
+    main () { void *x; x = $function; }
+_HERE_
+    my $rc = check_compile ($name, $code, $r_clist, $r_config,
+            { 'incheaders' => 1, });
+    if ($rc == 0)
+    {
+        $$r_config{$name} = 1;
+    }
+}
+
+
+sub
+create_config
+{
+    my ($fh, @clist, %config);
+
+    open ($fh, ">../config.h");
+    print $fh <<'_HERE_';
+#ifndef _config_H
+#define _config_H 1
+
+_HERE_
+
+    my @headlist1 = (
+        [ "_hdr_stdio", "stdio.h", ],
+        [ "_hdr_stdlib", "stdlib.h", ],
+        [ "_sys_types", "sys/types.h", ],
+        );
+    my @headlist2 = (
+        [ "_hdr_ctype", "ctype.h", ],
+        [ "_hdr_errno", "errno.h", ],
+        [ "_hdr_fshelp", "fshelp.h", ],
+        [ "_hdr_getopt", "getopt.h", ],
+        [ "_hdr_kernel_fs_info", "kernel/fs_info.h", ],
+        [ "_hdr_limits", "limits.h", ],
+        [ "_hdr_libintl", "libintl.h", ],
+        [ "_hdr_locale", "locale.h", ],
+        [ "_hdr_malloc", "malloc.h", ],
+        [ "_hdr_math", "math.h", ],
+        [ "_hdr_memory", "memory.h", ],
+        [ "_hdr_mntent", "mntent.h", ],
+        [ "_hdr_mnttab", "mnttab.h", ],
+        [ "_hdr_storage_Directory", "storage/Directory.h", ],
+        [ "_hdr_storage_Entry", "storage/Entry.h", ],
+        [ "_hdr_storage_Path", "storage/Path.h", ],
+        [ "_hdr_string", "string.h", ],
+        [ "_hdr_strings", "strings.h", ],
+        [ "_hdr_time", "time.h", ],
+        [ "_hdr_unistd", "unistd.h", ],
+        [ "_hdr_windows", "windows.h", ],
+        [ "_sys_fs_types", "sys/fs_types.h", ],
+        [ "_sys_fstyp", "sys/fstyp.h", ],
+        [ "_sys_fstypes", "sys/fstypes.h", ],
+        [ "_sys_mntctl", "sys/mntctl.h", ],
+        [ "_sys_mntent", "sys/mntent.h", ],
+        [ "_sys_mnttab", "sys/mnttab.h", ],
+        [ "_sys_mount", "sys/mount.h", ],
+        [ "_sys_param", "sys/param.h", ],
+        [ "_sys_stat", "sys/stat.h", ],
+        [ "_sys_statfs", "sys/statfs.h", ],
+        [ "_sys_statvfs", "sys/statvfs.h", ],
+        [ "_sys_time", "sys/time.h", ],
+        [ "_sys_vfs", "sys/vfs.h", ],
+        [ "_sys_vfstab", "sys/vfstab.h", ],
+        [ "_sys_vmount", "sys/vmount.h", ],
+        );
+
+    foreach my $r_arr (@headlist1)
+    {
+        check_header ($$r_arr[0], $$r_arr[1], \@clist, \%config);
+    }
+
+    check_void ('_key_void', \@clist, \%config);
+    check_proto ('_proto_stdc', \@clist, \%config);
+
+    foreach my $r_arr (@headlist2)
+    {
+        check_header ($$r_arr[0], $$r_arr[1], \@clist, \%config);
+    }
+
+    check_command ('_command_msgfmt', 'msgfmt', \@clist, \%config);
+    check_include_malloc ('_include_malloc', \@clist, \%config);
+    check_include_string ('_include_string', \@clist, \%config);
+    check_prototype ('_npt_getenv', 'getenv', \@clist, \%config);
+    check_prototype ('_npt_statfs', 'statfs', \@clist, \%config);
+    check_type ('_typ_statvfs_t', 'statvfs_t', \@clist, \%config);
+    check_type ('_typ_size_t', 'size_t', \@clist, \%config);
+    check_lib ('_lib_bcopy', 'bcopy', \@clist, \%config);
+    check_lib ('_lib_bindtextdomain', 'bindtextdomain', \@clist, \%config);
+    check_lib ('_lib_bzero', 'bzero', \@clist, \%config);
+    check_lib ('_lib_endmntent', 'endmntent', \@clist, \%config);
+    check_lib ('_lib_fmod', 'fmod', \@clist, \%config);
+    check_lib ('_lib_fs_stat_dev', 'fs_stat_dev', \@clist, \%config);
+    check_lib ('_lib_fshelp', 'fshelp', \@clist, \%config);
+    check_lib ('_lib_GetDiskFreeSpace', 'GetDiskFreeSpace', \@clist, \%config);
+    check_lib ('_lib_GetDiskFreeSpaceEx', 'GetDiskFreeSpaceEx', \@clist, \%config);
+    check_lib ('_lib_GetDriveType', 'GetDriveType', \@clist, \%config);
+    check_lib ('_lib_GetLogicalDriveStrings', 'GetLogicalDriveStrings', \@clist, \%config);
+    check_lib ('_lib_GetVolumeInformation', 'GetVolumeInformation', \@clist, \%config);
+    check_lib ('_lib_getfsstat', 'getfsstat', \@clist, \%config);
+    check_lib ('_lib_getmnt', 'getmnt', \@clist, \%config);
+    check_lib ('_lib_getmntent', 'getmntent', \@clist, \%config);
+    check_lib ('_lib_getmntinfo', 'getmntinfo', \@clist, \%config);
+    check_lib ('_lib_getopt', 'getopt', \@clist, \%config);
+    check_lib ('_lib_gettext', 'gettext', \@clist, \%config);
+    check_lib ('_lib_hasmntopt', 'hasmntopt', \@clist, \%config);
+    check_lib ('_lib_memcpy', 'memcpy', \@clist, \%config);
+    check_lib ('_lib_memset', 'memset', \@clist, \%config);
+    check_lib ('_lib_mntctl', 'mntctl', \@clist, \%config);
+    check_lib ('_lib_setlocale', 'setlocale', \@clist, \%config);
+    check_lib ('_lib_setmntent', 'setmntent', \@clist, \%config);
+    check_lib ('_lib_snprintf', 'snprintf', \@clist, \%config);
+    check_lib ('_lib_statfs', 'statfs', \@clist, \%config);
+    check_lib ('_lib_statvfs', 'statvfs', \@clist, \%config);
+    check_lib ('_lib_sysfs', 'sysfs', \@clist, \%config);
+    check_lib ('_lib_textdomain', 'textdomain', \@clist, \%config);
+    # there's no distinction in this program between _lib_fmod and _mth_fmod.
+    check_lib ('_mth_fmod', 'fmod', \@clist, \%config);
+
+    check_setmntent_1arg ('_setmntent_1arg', \@clist, \%config);
+    check_setmntent_2arg ('_setmntent_2arg', \@clist, \%config);
+    check_statfs_2arg ('_statfs_2arg', \@clist, \%config);
+    check_statfs_3arg ('_statfs_3arg', \@clist, \%config);
+    check_statfs_4arg ('_statfs_4arg', \@clist, \%config);
+
+    check_int_declare ('_dcl_errno', 'errno', \@clist, \%config);
+    check_int_declare ('_dcl_optind', 'optind', \@clist, \%config);
+    check_ptr_declare ('_dcl_optarg', 'optarg', \@clist, \%config);
+
+    check_member ('_mem_f_bsize_statfs', 'statfs', 'f_bsize', \@clist, \%config);
+    check_member ('_mem_f_fsize_statfs', 'statfs', 'f_fsize', \@clist, \%config);
+    check_member ('_mem_f_iosize_statfs', 'statfs', 'f_iosize', \@clist, \%config);
+    check_member ('_mem_f_frsize_statfs', 'statfs', 'f_frsize', \@clist, \%config);
+    check_member ('_mem_f_fstypename_statfs', 'statfs', 'f_fstypename', \@clist, \%config);
+    check_member ('_mem_mount_info_statfs', 'statfs', 'mount_info', \@clist, \%config);
+    check_member ('_mem_f_type_statfs', 'statfs', 'f_type', \@clist, \%config);
+    check_member ('_mem_mnt_time_mnttab', 'mnttab', 'mnt_time', \@clist, \%config);
+    check_member ('_mem_vmt_time_vmount', 'vmount', 'vmt_time', \@clist, \%config);
+
+    check_size ('_siz_long_long', 'long long', \@clist, \%config);
+
+    foreach my $val (@clist)
+    {
+        if ($config{$val} eq '0')
+        {
+            print $fh "#undef $val\n";
+        }
+        else
+        {
+            if ($val =~ m#^_siz_#o)
+            {
+                print $fh "#define $val $config{$val}\n";
+            }
+            else
+            {
+                print $fh "#define $val 1\n";
+            }
+        }
+    }
+    print $fh "\n";
+
+    print $fh <<'_HERE_';
+
+#if ! _key_void || ! _proto_stdc
+# define void int
+#endif
+
+#ifndef _
+# if _proto_stdc
+#  define _(args) args
+# else
+#  define _(args) ()
+# endif
+#endif
+
+#if _lib_bindtextdomain && \
+	_lib_gettext && \
+	_lib_setlocale && \
+	_lib_textdomain && \
+	_hdr_libintl && \
+	_hdr_locale && \
+	_command_msgfmt
+# define _enable_nls 1
+#else
+# define _enable_nls 0
+#endif
+
+#if _typ_statvfs_t
+# define Statvfs_t statvfs_t
+#else
+# define Statvfs_t struct statvfs
+#endif
+
+#if _typ_size_t
+# define Size_t size_t
+#else
+# define Size_t unsigned int
+#endif
+
+#if _lib_snprintf
+# define Snprintf snprintf
+# define SPF(a1,a2,a3)      a1,a2,a3
+#else
+# define Snprintf sprintf
+# define SPF(a1,a2,a3)      a1,a3
+#endif
+
+#define _config_by_iffe_ 0
+#define _config_by_mkconfig_pl_ 1
+
+#endif
+_HERE_
+
+    close $fh;
+}
+
+
+##
+
+if (! -d $TMP) { mkdir $TMP };
+chdir $TMP;
+
+unlink $LOG;
+open ($LOGFH, ">>$LOG");
+print $LOGFH "CC: $ENV{'CC'}\n";
+print $LOGFH "CFLAGS: $ENV{'CFLAGS'}\n";
+print $LOGFH "LDFLAGS: $ENV{'LDFLAGS'}\n";
+print $LOGFH "LIBS: $ENV{'LIBS'}\n";
+
+&create_config;
+
+close $LOGFH;
+rmdir $TMP;
