@@ -17,7 +17,7 @@ check_run
     my $fh;
 
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'nounlink' => 1, 'uselibs' => 1, });
+        { 'nounlink' => 1, 'uselibs' => 1, 'tryextern' => 0, });
     print $LOGFH "##  run test: $rc\n";
     $$r_val = 0;
     if ($rc == 0)
@@ -47,7 +47,7 @@ check_link
     open ($fh, ">$name.c");
 
     # always include these three if present...
-    foreach my $val ('_hdr_stdio', '_hdr_stdlib', '_sys_types')
+    foreach my $val ('_hdr_stdio', '_hdr_stdlib', '_sys_types', '_sys_param')
     {
         if (defined ($$r_config{$val}) &&
              $$r_config{$val} ne '0')
@@ -64,7 +64,8 @@ check_link
         }
         if ($val eq '_hdr_stdio' ||
             $val eq '_hdr_stdlib' ||
-            $val eq '_sys_types')
+            $val eq '_sys_types' ||
+            $val eq '_sys_param')
         {
             next;
         }
@@ -94,7 +95,14 @@ check_link
         $cmd .= " $ENV{'LIBS'}";
     }
     print $LOGFH "##  link test: $cmd\n";
+    system ("cat $name.c >> $LOG");
     my $rc = system ("$cmd >> $LOG 2>&1");
+    if ($rc != 0)
+    {
+        print $LOGFH "##  link test fail: try w/extern\n";
+        $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} -D_TRY_extern_ -o $name.exe $name.c";
+        $rc = system ("$cmd >> $LOG 2>&1");
+    }
     print $LOGFH "##  link test: $rc\n";
     if ($rc == 0)
     {
@@ -121,7 +129,7 @@ check_compile
     open ($fh, ">$name.c");
 
     # always include these three if present...
-    foreach my $val ('_hdr_stdio', '_hdr_stdlib', '_sys_types')
+    foreach my $val ('_hdr_stdio', '_hdr_stdlib', '_sys_types', '_sys_param')
     {
         if (defined ($$r_config{$val}) &&
              $$r_config{$val} ne '0')
@@ -140,7 +148,8 @@ check_compile
             }
             if ($val eq '_hdr_stdio' ||
                 $val eq '_hdr_stdlib' ||
-                $val eq '_sys_types')
+                $val eq '_sys_types' ||
+                $val eq '_sys_param')
             {
                 next;
             }
@@ -167,65 +176,7 @@ check_compile
 
     my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} -c $name.c";
     print $LOGFH "##  compile test: $cmd\n";
-    my $rc = system ("$cmd >> $LOG 2>&1");
-    print $LOGFH "##  compile test: $rc\n";
-    unlink "$name.c";
-    unlink "$name.o";
-    return $rc;
-}
-
-sub
-check_present
-{
-    my ($name, $code, $value, $r_clist, $r_config) = @_;
-    my $fh;
-
-    open ($fh, ">$name.c");
-
-    # always include these three if present...
-    foreach my $val ('_hdr_stdio', '_hdr_stdlib', '_sys_types')
-    {
-        if (defined ($$r_config{$val}) &&
-             $$r_config{$val} ne '0')
-        {
-            print $fh "#include <$$r_config{$val}>\n";
-        }
-    }
-
-    foreach my $val (@$r_clist)
-    {
-        if ($val !~ m#^(_hdr_|_sys_)#o)
-        {
-            next;
-        }
-        if ($val eq '_hdr_stdio' ||
-            $val eq '_hdr_stdlib' ||
-            $val eq '_sys_types')
-        {
-            next;
-        }
-        if ($val eq '_hdr_malloc' &&
-            $$r_config{'_include_malloc'} == 0)
-        {
-            next;
-        }
-        if ($val eq '_hdr_strings' &&
-            $$r_config{'_hdr_string'} == 1 &&
-            $$r_config{'_include_string'} == 0)
-        {
-            next;
-        }
-        if ($$r_config{$val} ne '0')
-        {
-            print $fh "#include <$$r_config{$val}>\n";
-        }
-    }
-    print $fh "\n";
-    print $fh $code;
-    close $fh;
-
-    my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} -E $name.c | grep $value";
-    print $LOGFH "##  compile test: $cmd\n";
+    system ("cat $name.c >> $LOG");
     my $rc = system ("$cmd >> $LOG 2>&1");
     print $LOGFH "##  compile test: $rc\n";
     unlink "$name.c";
@@ -378,7 +329,7 @@ _HERE_
 }
 
 sub
-check_prototype
+check_dcl
 {
     my ($name, $proto, $r_clist, $r_config) = @_;
 
@@ -387,10 +338,27 @@ check_prototype
     push @$r_clist, $name;
     $$r_config{$name} = 0;
     my $code = <<"_HERE_";
-main () { exit (0); }
+#undef $proto
+#if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
+#define _ARG_(x)	x
+#else
+#define _ARG_(x)	()
+#endif
+#if defined(__cplusplus)
+#define _BEGIN_EXTERNS_	extern "C" {
+#define _END_EXTERNS_	}
+#else
+#define _BEGIN_EXTERNS_
+#define _END_EXTERNS_
+#endif
+_BEGIN_EXTERNS_
+struct _TEST_struct { int _TEST_member; };
+extern struct _TEST_struct* $proto _ARG_((struct _TEST_struct*));
+_END_EXTERNS_
 _HERE_
-    my $rc = check_present ($name, $code, $proto, $r_clist, $r_config);
-    if ($rc != 0)
+    my $rc = check_compile ($name, $code, $r_clist, $r_config,
+            { 'incheaders' => 1, });
+    if ($rc == 0)
     {
         $$r_config{$name} = 1;
     }
@@ -406,11 +374,14 @@ check_type
     push @$r_clist, $name;
     $$r_config{$name} = 0;
     my $code = <<"_HERE_";
-main () { exit (0); }
+#undef $type
+struct xxx { $type mem; };
+static struct xxx v;
+struct xxx* f() { return &v; }
+main () { f(); exit (0); }
 _HERE_
-    my $tname = $name;
-    $tname =~ s#_t$#_x#o;  # because grep will find the filename!
-    my $rc = check_present ($tname, $code, $type, $r_clist, $r_config);
+    my $rc = check_compile ($name, $code, $r_clist, $r_config,
+            { 'incheaders' => 1, });
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
@@ -427,7 +398,20 @@ check_lib
     push @$r_clist, $name;
     $$r_config{$name} = 0;
     my $code = <<"_HERE_";
+#undef $func
+#if defined(__cplusplus)
+#define _BEGIN_EXTERNS_ extern "C" {
+#define _END_EXTERNS_   }
+#else
+#define _BEGIN_EXTERNS_
+#define _END_EXTERNS_
+#endif
 typedef int (*_TEST_fun_)();
+#ifdef _TRY_extern_
+_BEGIN_EXTERNS_
+extern int $func();
+_END_EXTERNS_
+#endif
 static _TEST_fun_ i=(_TEST_fun_) $func;
 main () {  return (i==0); }
 _HERE_
@@ -437,7 +421,7 @@ _HERE_
         $val = 1;
     }
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'nounlink' => 0, 'uselibs' => $val, });
+        { 'nounlink' => 0, 'uselibs' => $val, 'tryextern' => 1, });
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
@@ -457,7 +441,7 @@ check_setmntent_1arg
 main () { setmntent ("/etc/mnttab"); }
 _HERE_
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'nounlink' => 0, 'uselibs' => 1, });
+        { 'nounlink' => 0, 'uselibs' => 1, 'tryextern' => 0, });
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
@@ -477,7 +461,7 @@ check_setmntent_2arg
 main () { setmntent ("/etc/mnttab", "r"); }
 _HERE_
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'nounlink' => 0, 'uselibs' => 1, });
+        { 'nounlink' => 0, 'uselibs' => 1, 'tryextern' => 0, });
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
@@ -500,7 +484,7 @@ main () {
 }
 _HERE_
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'nounlink' => 0, 'uselibs' => 1, });
+        { 'nounlink' => 0, 'uselibs' => 1, 'tryextern' => 0, });
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
@@ -523,7 +507,7 @@ main () {
 }
 _HERE_
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'nounlink' => 0, 'uselibs' => 1, });
+        { 'nounlink' => 0, 'uselibs' => 1, 'tryextern' => 0, });
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
@@ -546,7 +530,7 @@ main () {
 }
 _HERE_
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'nounlink' => 0, 'uselibs' => 1, });
+        { 'nounlink' => 0, 'uselibs' => 1, 'tryextern' => 0, });
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
@@ -649,10 +633,12 @@ create_config
 #define _config_H 1
 _HERE_
 
+    # FreeBSD has buggy headers, requires sys/param.h as a required include.
     my @headlist1 = (
         [ "_sys_types", "sys/types.h", ],
         [ "_hdr_stdio", "stdio.h", ],
         [ "_hdr_stdlib", "stdlib.h", ],
+        [ "_sys_param", "sys/param.h", ],
         );
     my @headlist2 = (
         [ "_hdr_ctype", "ctype.h", ],
@@ -683,7 +669,6 @@ _HERE_
         [ "_sys_mntent", "sys/mntent.h", ],
         [ "_sys_mnttab", "sys/mnttab.h", ],
         [ "_sys_mount", "sys/mount.h", ],
-        [ "_sys_param", "sys/param.h", ],
         [ "_sys_stat", "sys/stat.h", ],
         [ "_sys_statfs", "sys/statfs.h", ],
         [ "_sys_statvfs", "sys/statvfs.h", ],
@@ -710,8 +695,8 @@ _HERE_
 
     check_include_malloc ('_include_malloc', \@clist, \%config);
     check_include_string ('_include_string', \@clist, \%config);
-    check_prototype ('_npt_getenv', 'getenv', \@clist, \%config);
-    check_prototype ('_npt_statfs', 'statfs', \@clist, \%config);
+    check_dcl ('_npt_getenv', 'getenv', \@clist, \%config);
+    check_dcl ('_npt_statfs', 'statfs', \@clist, \%config);
     check_type ('_typ_statvfs_t', 'statvfs_t', \@clist, \%config);
     check_type ('_typ_size_t', 'size_t', \@clist, \%config);
     check_lib ('_lib_bcopy', 'bcopy', \@clist, \%config);
