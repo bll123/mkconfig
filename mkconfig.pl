@@ -90,9 +90,15 @@ check_link
     close $fh;
 
     my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} -o $name.exe $name.c";
-    if ($$r_a{'uselibs'} == 1)
+    $cmd .= " $ENV{'LIBS'}";
+    if ($$r_a{'uselibs'} == 0)
     {
-        $cmd .= " $ENV{'LIBS'}";
+        $cmd =~ s/-lm//o;
+    }
+    if ($$r_a{'uselibs'} == 0 &&
+        $name =~ /^_mth/o)
+    {
+        $cmd .= ' -lm';
     }
     print $LOGFH "##  link test: $cmd\n";
     system ("cat $name.c >> $LOG");
