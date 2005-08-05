@@ -90,7 +90,7 @@ check_link
     close $fh;
 
     my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} -o $name.exe $name.c";
-    $cmd .= " $ENV{'LIBS'}";
+    $cmd .= " $ENV{'LDFLAGS'} $ENV{'LIBS'}";
     if ($$r_a{'uselibs'} == 0)
     {
         $cmd =~ s/-lm//o;
@@ -838,6 +838,7 @@ chdir $TMP;
 
 unlink $LOG;
 open ($LOGFH, ">>$LOG");
+$ENV{'CFLAGS'} = $ENV{'CFLAGS'} . ' ' . $ENV{'CINCLUDES'};
 print $LOGFH "CC: $ENV{'CC'}\n";
 print $LOGFH "CFLAGS: $ENV{'CFLAGS'}\n";
 print $LOGFH "LDFLAGS: $ENV{'LDFLAGS'}\n";
