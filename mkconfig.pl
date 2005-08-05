@@ -46,7 +46,7 @@ check_link
 
     open ($fh, ">$name.c");
 
-    # always include these three if present...
+    # always include these four if present...
     foreach my $val ('_hdr_stdio', '_hdr_stdlib', '_sys_types', '_sys_param')
     {
         if (defined ($$r_config{$val}) &&
@@ -128,7 +128,7 @@ check_compile
 
     open ($fh, ">$name.c");
 
-    # always include these three if present...
+    # always include these four if present...
     foreach my $val ('_hdr_stdio', '_hdr_stdlib', '_sys_types', '_sys_param')
     {
         if (defined ($$r_config{$val}) &&
