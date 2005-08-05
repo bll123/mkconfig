@@ -2,6 +2,8 @@
 #
 # $Id$
 #
+# Copyright 2005 Brad Lanam Walnut Creek, CA USA
+#
 
 use strict;
 use Config;
