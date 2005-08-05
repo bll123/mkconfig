@@ -338,7 +338,6 @@ check_dcl
     push @$r_clist, $name;
     $$r_config{$name} = 0;
     my $code = <<"_HERE_";
-#undef $proto
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
 #define _ARG_(x)	x
 #else
@@ -374,7 +373,6 @@ check_type
     push @$r_clist, $name;
     $$r_config{$name} = 0;
     my $code = <<"_HERE_";
-#undef $type
 struct xxx { $type mem; };
 static struct xxx v;
 struct xxx* f() { return &v; }
@@ -398,7 +396,6 @@ check_lib
     push @$r_clist, $name;
     $$r_config{$name} = 0;
     my $code = <<"_HERE_";
-#undef $func
 #if defined(__cplusplus)
 #define _BEGIN_EXTERNS_ extern "C" {
 #define _END_EXTERNS_   }
