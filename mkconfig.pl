@@ -722,6 +722,7 @@ _HERE_
     check_lib ('_lib_getmntinfo', 'getmntinfo', \@clist, \%config);
     check_lib ('_lib_getopt', 'getopt', \@clist, \%config);
     check_lib ('_lib_gettext', 'gettext', \@clist, \%config);
+    check_lib ('_lib_getvfsstat', 'getvfsstat', \@clist, \%config);
     check_lib ('_lib_hasmntopt', 'hasmntopt', \@clist, \%config);
     check_lib ('_lib_memcpy', 'memcpy', \@clist, \%config);
     check_lib ('_lib_memset', 'memset', \@clist, \%config);
