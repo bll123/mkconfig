@@ -48,7 +48,7 @@ check_link
 
     open ($fh, ">$name.c");
 
-    # always include these four if present...
+    # always include these four if present ...
     foreach my $val ('_hdr_stdio', '_hdr_stdlib', '_sys_types', '_sys_param')
     {
         if (defined ($$r_config{$val}) &&
@@ -136,7 +136,7 @@ check_compile
 
     open ($fh, ">$name.c");
 
-    # always include these four if present...
+    # always include these four if present ...
     foreach my $val ('_hdr_stdio', '_hdr_stdlib', '_sys_types', '_sys_param')
     {
         if (defined ($$r_config{$val}) &&
@@ -198,8 +198,8 @@ check_header
     my ($name, $file, $r_clist, $r_config) = @_;
     my $fh;
 
-    print $LOGFH "## Check for header $file [$name]\n";
-    print STDERR "Check for header $file [$name]\n";
+    print $LOGFH "## [$name] header: $file ... \n";
+    print STDERR "header: $file ... ";
     my $code = <<"_HERE_";
 #include <${file}>
 main () { exit (0); }
@@ -210,6 +210,13 @@ _HERE_
     if ($rc == 0)
     {
         $val = $file;
+        print $LOGFH "## [$name] yes\n";
+        print STDERR "yes\n";
+    }
+    else
+    {
+        print $LOGFH "## [$name] no\n";
+        print STDERR "no\n";
     }
     push @$r_clist, $name;
     $$r_config{$name} = $val;
@@ -221,8 +228,8 @@ check_void
     my ($name, $r_clist, $r_config) = @_;
     my $fh;
 
-    print $LOGFH "## Check for void [$name]\n";
-    print STDERR "Check for void [$name]\n";
+    print $LOGFH "## [$name] supported: void ... \n";
+    print STDERR "supported: void ... ";
     my $code = <<"_HERE_";
 main () { void *x; x = (char *) NULL; exit (0); }
 _HERE_
@@ -233,6 +240,13 @@ _HERE_
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
+        print $LOGFH "## [$name] yes\n";
+        print STDERR "yes\n";
+    }
+    else
+    {
+        print $LOGFH "## [$name] no\n";
+        print STDERR "no\n";
     }
 }
 
@@ -242,8 +256,8 @@ check_proto
     my ($name, $r_clist, $r_config) = @_;
     my $fh;
 
-    print $LOGFH "## Check for prototypes [$name]\n";
-    print STDERR "Check for prototypes [$name]\n";
+    print $LOGFH "## [$name] supported: prototypes ... \n";
+    print STDERR "supported: prototypes ... ";
     my $code = <<"_HERE_";
 extern int foo (int, int);
 bar () { foo (1,1); }
@@ -255,6 +269,13 @@ _HERE_
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
+        print $LOGFH "## [$name] yes\n";
+        print STDERR "yes\n";
+    }
+    else
+    {
+        print $LOGFH "## [$name] no\n";
+        print STDERR "no\n";
     }
 }
 
@@ -264,8 +285,8 @@ check_command
     my ($name, $cmd, $r_clist, $r_config) = @_;
     my $fh;
 
-    print $LOGFH "## Check for command $cmd [$name]\n";
-    print STDERR "Check for command $cmd [$name]\n";
+    print $LOGFH "## [$name] command $cmd ... \n";
+    print STDERR "command: $cmd ... ";
 
     push @$r_clist, $name;
     $$r_config{$name} = 0;
@@ -274,7 +295,14 @@ check_command
         if (-x "$p/$cmd")
         {
             $$r_config{$name} = 1;
+            print $LOGFH "## [$name] yes\n";
+            print STDERR "yes\n";
         }
+    }
+    if (! defined ($$r_config{$name}))
+    {
+        print $LOGFH "## [$name] no\n";
+        print STDERR "no\n";
     }
 }
 
@@ -287,8 +315,8 @@ check_include_malloc
     $$r_config{$name} = 0;
     if ($$r_config{'_hdr_malloc'} ne '0')
     {
-        print $LOGFH "## Check if ok to include malloc.h [$name]\n";
-        print STDERR "Check if ok to include malloc.h [$name]\n";
+        print $LOGFH "## [$name] header: include malloc.h ... \n";
+        print STDERR "header: include malloc.h ... ";
 
         my $code = <<"_HERE_";
 #include <malloc.h>
@@ -302,6 +330,13 @@ _HERE_
         if ($rc == 0)
         {
             $$r_config{$name} = 1;
+            print $LOGFH "## [$name] yes\n";
+            print STDERR "yes\n";
+        }
+        else
+        {
+            print $LOGFH "## [$name] no\n";
+            print STDERR "no\n";
         }
     }
 }
@@ -316,8 +351,8 @@ check_include_string
     if ($$r_config{'_hdr_string'} ne '0' &&
         $$r_config{'_hdr_strings'} ne '0')
     {
-        print $LOGFH "## Check if ok to include both string.h & strings.h [$name]\n";
-        print STDERR "Check if ok to include both string.h & strings.h [$name]\n";
+        print $LOGFH "## [$name] header: include both string.h & strings.h ... \n";
+        print STDERR "header: include both string.h & strings.h ... ";
 
         my $code = <<"_HERE_";
 #include <string.h>
@@ -332,6 +367,13 @@ _HERE_
         if ($rc == 0)
         {
             $$r_config{$name} = 1;
+            print $LOGFH "## [$name] yes\n";
+            print STDERR "yes\n";
+        }
+        else
+        {
+            print $LOGFH "## [$name] no\n";
+            print STDERR "no\n";
         }
     }
 }
@@ -341,8 +383,8 @@ check_dcl
 {
     my ($name, $proto, $r_clist, $r_config) = @_;
 
-    print $LOGFH "## Check if prototype for $proto exists [$name]\n";
-    print STDERR "Check if prototype for $proto exists [$name]\n";
+    print $LOGFH "## [$name] need prototype: $proto ... \n";
+    print STDERR "need prototype: $proto ... ";
     push @$r_clist, $name;
     $$r_config{$name} = 0;
     my $code = <<"_HERE_";
@@ -368,6 +410,13 @@ _HERE_
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
+        print $LOGFH "## [$name] yes\n";
+        print STDERR "yes\n";
+    }
+    else
+    {
+        print $LOGFH "## [$name] no\n";
+        print STDERR "no\n";
     }
 }
 
@@ -376,8 +425,8 @@ check_type
 {
     my ($name, $type, $r_clist, $r_config) = @_;
 
-    print $LOGFH "## Check if type $type exists [$name]\n";
-    print STDERR "Check if type $type exists [$name]\n";
+    print $LOGFH "## [$name] type $type ... \n";
+    print STDERR "type $type ... ";
     push @$r_clist, $name;
     $$r_config{$name} = 0;
     my $code = <<"_HERE_";
@@ -391,6 +440,13 @@ _HERE_
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
+        print $LOGFH "## [$name] yes\n";
+        print STDERR "yes\n";
+    }
+    else
+    {
+        print $LOGFH "## [$name] no\n";
+        print STDERR "no\n";
     }
 }
 
@@ -399,8 +455,8 @@ check_lib
 {
     my ($name, $func, $r_clist, $r_config, $r_a) = @_;
 
-    print $LOGFH "## Check if library function $func exists [$name]\n";
-    print STDERR "Check if library function $func exists [$name]\n";
+    print $LOGFH "## [$name] function: $func ... \n";
+    print STDERR "function: $func ... ";
     push @$r_clist, $name;
     $$r_config{$name} = 0;
     my $code = <<"_HERE_";
@@ -430,6 +486,13 @@ _HERE_
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
+        print $LOGFH "## [$name] yes\n";
+        print STDERR "yes\n";
+    }
+    else
+    {
+        print $LOGFH "## [$name] no\n";
+        print STDERR "no\n";
     }
 }
 
@@ -438,8 +501,8 @@ check_setmntent_1arg
 {
     my ($name, $r_clist, $r_config) = @_;
 
-    print $LOGFH "## Check if setmntent() takes 1 argument [$name]\n";
-    print STDERR "Check if setmntent() takes 1 argument [$name]\n";
+    print $LOGFH "## [$name] setmntent(): 1 argument ... \n";
+    print STDERR "setmntent(): 1 argument ... ";
     push @$r_clist, $name;
     $$r_config{$name} = 0;
     my $code = <<"_HERE_";
@@ -450,6 +513,13 @@ _HERE_
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
+        print $LOGFH "## [$name] yes\n";
+        print STDERR "yes\n";
+    }
+    else
+    {
+        print $LOGFH "## [$name] no\n";
+        print STDERR "no\n";
     }
 }
 
@@ -458,8 +528,8 @@ check_setmntent_2arg
 {
     my ($name, $r_clist, $r_config) = @_;
 
-    print $LOGFH "## Check if setmntent() takes 2 arguments [$name]\n";
-    print STDERR "Check if setmntent() takes 2 arguments [$name]\n";
+    print $LOGFH "## [$name] setmntent(): 2 arguments ... \n";
+    print STDERR "setmntent(): 2 arguments ... ";
     push @$r_clist, $name;
     $$r_config{$name} = 0;
     my $code = <<"_HERE_";
@@ -470,6 +540,13 @@ _HERE_
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
+        print $LOGFH "## [$name] yes\n";
+        print STDERR "yes\n";
+    }
+    else
+    {
+        print $LOGFH "## [$name] no\n";
+        print STDERR "no\n";
     }
 }
 
@@ -478,8 +555,8 @@ check_statfs_2arg
 {
     my ($name, $r_clist, $r_config) = @_;
 
-    print $LOGFH "## Check if statfs() takes 2 arguments [$name]\n";
-    print STDERR "Check if statfs() takes 2 arguments [$name]\n";
+    print $LOGFH "## [$name] statfs(): 2 arguments ... \n";
+    print STDERR "statfs(): 2 arguments ... ";
     push @$r_clist, $name;
     $$r_config{$name} = 0;
     my $code = <<"_HERE_";
@@ -493,6 +570,13 @@ _HERE_
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
+        print $LOGFH "## [$name] yes\n";
+        print STDERR "yes\n";
+    }
+    else
+    {
+        print $LOGFH "## [$name] no\n";
+        print STDERR "no\n";
     }
 }
 
@@ -501,8 +585,8 @@ check_statfs_3arg
 {
     my ($name, $r_clist, $r_config) = @_;
 
-    print $LOGFH "## Check if statfs() takes 3 arguments [$name]\n";
-    print STDERR "Check if statfs() takes 3 arguments [$name]\n";
+    print $LOGFH "## [$name] statfs(): 3 arguments ... \n";
+    print STDERR "statfs(): 3 arguments ... ";
     push @$r_clist, $name;
     $$r_config{$name} = 0;
     my $code = <<"_HERE_";
@@ -516,6 +600,13 @@ _HERE_
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
+        print $LOGFH "## [$name] yes\n";
+        print STDERR "yes\n";
+    }
+    else
+    {
+        print $LOGFH "## [$name] no\n";
+        print STDERR "no\n";
     }
 }
 
@@ -524,8 +615,8 @@ check_statfs_4arg
 {
     my ($name, $r_clist, $r_config) = @_;
 
-    print $LOGFH "## Check if statfs() takes 4 arguments [$name]\n";
-    print STDERR "Check if statfs() takes 4 arguments [$name]\n";
+    print $LOGFH "## [$name] statfs(): 4 arguments ... \n";
+    print STDERR "statfs(): 4 arguments ... ";
     push @$r_clist, $name;
     $$r_config{$name} = 0;
     my $code = <<"_HERE_";
@@ -539,6 +630,13 @@ _HERE_
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
+        print $LOGFH "## [$name] yes\n";
+        print STDERR "yes\n";
+    }
+    else
+    {
+        print $LOGFH "## [$name] no\n";
+        print STDERR "no\n";
     }
 }
 
@@ -547,8 +645,8 @@ check_size
 {
     my ($name, $type, $r_clist, $r_config) = @_;
 
-    print $LOGFH "## Check size of $type [$name]\n";
-    print STDERR "Check sizeof $type [$name]\n";
+    print $LOGFH "## [$name] sizeof: $type ... \n";
+    print STDERR "sizeof: $type ... ";
     push @$r_clist, $name;
     $$r_config{$name} = 0;
     my $code = <<"_HERE_";
@@ -562,6 +660,13 @@ _HERE_
     if ($rc == 0)
     {
         $$r_config{$name} = $val;
+        print $LOGFH "## [$name] yes\n";
+        print STDERR "yes\n";
+    }
+    else
+    {
+        print $LOGFH "## [$name] no\n";
+        print STDERR "no\n";
     }
 }
 
@@ -570,8 +675,8 @@ check_member
 {
     my ($name, $struct, $member, $r_clist, $r_config) = @_;
 
-    print $LOGFH "## Check if $struct.$member exists [$name]\n";
-    print STDERR "Check if $struct.$member exists [$name]\n";
+    print $LOGFH "## [$name] exists: $struct.$member ... \n";
+    print STDERR "exists: $struct.$member ... ";
     push @$r_clist, $name;
     $$r_config{$name} = 0;
     my $code = <<"_HERE_";
@@ -582,6 +687,13 @@ _HERE_
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
+        print $LOGFH "## [$name] yes\n";
+        print STDERR "yes\n";
+    }
+    else
+    {
+        print $LOGFH "## [$name] no\n";
+        print STDERR "no\n";
     }
 }
 
@@ -590,8 +702,8 @@ check_int_declare
 {
     my ($name, $function, $r_clist, $r_config) = @_;
 
-    print $LOGFH "## Check if $function is declared [$name]\n";
-    print STDERR "Check if $function is declared [$name]\n";
+    print $LOGFH "## [$name] declared: $function ... \n";
+    print STDERR "declared: $function ... ";
     push @$r_clist, $name;
     $$r_config{$name} = 0;
     my $code = <<"_HERE_";
@@ -602,6 +714,13 @@ _HERE_
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
+        print $LOGFH "## [$name] yes\n";
+        print STDERR "yes\n";
+    }
+    else
+    {
+        print $LOGFH "## [$name] no\n";
+        print STDERR "no\n";
     }
 }
 
@@ -610,8 +729,8 @@ check_ptr_declare
 {
     my ($name, $function, $r_clist, $r_config) = @_;
 
-    print $LOGFH "## Check if $function is declared [$name]\n";
-    print STDERR "Check if $function is declared [$name]\n";
+    print $LOGFH "## [$name] declared: $function ... \n";
+    print STDERR "declared: $function ... ";
     push @$r_clist, $name;
     $$r_config{$name} = 0;
     my $code = <<"_HERE_";
@@ -622,6 +741,13 @@ _HERE_
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
+        print $LOGFH "## [$name] yes\n";
+        print STDERR "yes\n";
+    }
+    else
+    {
+        print $LOGFH "## [$name] no\n";
+        print STDERR "no\n";
     }
 }
 
