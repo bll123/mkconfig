@@ -973,7 +973,7 @@ _HERE_
 
 ##
 
-if (! -d $TMP) { mkdir $TMP, 002; }
+if (! -d $TMP) { mkdir $TMP, 0777; }
 chdir $TMP;
 
 unlink $LOG;
