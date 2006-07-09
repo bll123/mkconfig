@@ -499,9 +499,8 @@ check_include_malloc
         my $code = <<"_HERE_";
 main ()
 {
-    char x[20];
-    char y[20];
-    memcpy (y, x, 20);
+    char *x;
+    x = (char *) malloc (20);
 }
 _HERE_
         my $rc = check_compile ($name, $code, $r_clist, $r_config,
@@ -622,8 +621,6 @@ check_lib
 {
     my ($name, $func, $r_clist, $r_config, $r_a) = @_;
 
-    print LOGFH "## [$name] function: $func ... \n";
-    print STDERR "function: $func ... ";
     push @$r_clist, $name;
     $$r_config{$name} = 0;
     my $code = <<"_HERE_";
@@ -641,6 +638,18 @@ _HERE_
     {
         $val = '-lm';
     }
+
+    if ($val ne '')
+    {
+        print LOGFH "## [$name] function: $func [$val] ... \n";
+        print STDERR "function: $func [$val] ... ";
+    }
+    else
+    {
+        print LOGFH "## [$name] function: $func ... \n";
+        print STDERR "function: $func ... ";
+    }
+
     my $rc = check_link ($name, $code, $r_clist, $r_config,
         { 'incheaders' => 'all', 'nounlink' => 0, 'otherlibs' => $val, 'tryextern' => 1, });
     if ($rc == 0)
@@ -950,6 +959,7 @@ _HERE_
         exit 1;
     }
 
+    my $inheaders = 1;
     while (my $line = <DATAIN>)
     {
         chomp $line;
@@ -958,14 +968,25 @@ _HERE_
             next;
         }
 
+        if ($inheaders && $line !~ m#^(hdr|sys)#o)
+        {
+            if ($config{'_hdr_malloc'} ne '0')
+            {
+                check_include_malloc ('_include_malloc', \@clist, \%config);
+            }
+            $inheaders = 0;
+        }
+
         if ($line =~ m#^(hdr|sys)\s+(.*)#o)
         {
             my $typ = $1;
             my $hdr = $2;
-            my $nm = "_${typ}_" . $hdr;
+            my $nm = "_${typ}_";
+            # all this rigamarole is to match what iffe does.
+            my @h = split (/\//, $hdr);
+            $h[0] = lc $h[0];
+            $nm .= join ('_', @h);
             $nm =~ s,\.h$,,o;
-            $nm =~ s,/,_,go;
-            $nm = lc $nm;
             if ($typ eq 'sys')
             {
                 $hdr = 'sys/' . $hdr;
@@ -974,6 +995,12 @@ _HERE_
                 $config{$nm} eq '0')
             {
                 check_header ($nm, $hdr, \@clist, \%config);
+                if ((($hdr eq 'strings.h' && $config{'_hdr_string'} ne '0') ||
+                     ($hdr eq 'string.h' && $config{'_hdr_strings'} ne '0')) &&
+                    ! defined ($config{'_include_string'}))
+                {
+                    check_include_string ('_include_string', \@clist, \%config);
+                }
             }
         }
         elsif ($line =~ m#^command\s+(.*)#o)
@@ -1011,7 +1038,7 @@ _HERE_
                 check_type ($nm, $tnm, \@clist, \%config);
             }
         }
-        elsif ($line =~ m#^(lib|mth)\s+([^\s]+)(.*)?#o)
+        elsif ($line =~ m#^(lib|mth)\s+([^\s]+)\s*(.*)?#o)
         {
             my $typ = $1;
             my $func = $2;
@@ -1057,7 +1084,7 @@ _HERE_
         {
             my $struct = $1;
             my $member = $2;
-            my $nm = "_mem_" . lc $struct . '_' . lc $member;
+            my $nm = "_mem_" . lc $member . '_' . lc $struct;
             if (! defined ($config{$nm}) ||
                 $config{$nm} eq '0')
             {
@@ -1081,12 +1108,6 @@ _HERE_
             print "unknown command: $line\n";
             print LOGFH "unknown command: $line\n";
         }
-    }
-
-    if ($config{'_hdr_malloc'} ne '0' &&
-        $config{'_lib_memcpy'} ne '0')
-    {
-        check_include_malloc ('_include_malloc', \@clist, \%config);
     }
 
     foreach my $val (@clist)
