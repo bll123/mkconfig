@@ -35,7 +35,7 @@ check_run
     my ($name, $code, $r_val, $r_clist, $r_config, $r_a) = @_;
 
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'includes' => 1, 'nounlink' => 1, 'tryextern' => 0, %$r_a, });
+        { 'incheaders' => 'all', 'nounlink' => 1, 'tryextern' => 0, %$r_a, });
     print LOGFH "##  run test: $rc\n";
     $$r_val = 0;
     if ($rc == 0)
@@ -71,7 +71,8 @@ check_link
 
     print CLFH $precc;
 
-    if ($$r_a{'includes'} == 1)
+    if ($$r_a{'incheaders'} eq 'all' ||
+        $$r_a{'incheaders'} eq 'std')
     {
         # always include these four if present ...
         foreach my $val ('_hdr_stdio', '_hdr_stdlib', '_sys_types', '_sys_param')
@@ -82,7 +83,10 @@ check_link
                 print CLFH "#include <$$r_config{$val}>\n";
             }
         }
+    }
 
+    if ($$r_a{'incheaders'} eq 'all')
+    {
         foreach my $val (@$r_clist)
         {
             if ($val !~ m#^(_hdr_|_sys_)#o)
@@ -97,13 +101,13 @@ check_link
                 next;
             }
             if ($val eq '_hdr_malloc' &&
-                $$r_config{'_include_malloc'} == 0)
+                $$r_config{'_include_malloc'} eq '0')
             {
                 next;
             }
             if ($val eq '_hdr_strings' &&
-                $$r_config{'_hdr_string'} == 1 &&
-                $$r_config{'_include_string'} == 0)
+                $$r_config{'_hdr_string'} ne '0' &&
+                $$r_config{'_include_string'} eq '0')
             {
                 next;
             }
@@ -204,17 +208,21 @@ check_compile
 
     print CCFH $precc;
 
-    # always include these four if present ...
-    foreach my $val ('_hdr_stdio', '_hdr_stdlib', '_sys_types', '_sys_param')
+    if ($$r_a{'incheaders'} eq 'std' ||
+        $$r_a{'incheaders'} eq 'all')
     {
-        if (defined ($$r_config{$val}) &&
-             $$r_config{$val} ne '0')
+        # always include these four if present ...
+        foreach my $val ('_hdr_stdio', '_hdr_stdlib', '_sys_types', '_sys_param')
         {
-            print CCFH "#include <$$r_config{$val}>\n";
+            if (defined ($$r_config{$val}) &&
+                 $$r_config{$val} ne '0')
+            {
+                print CCFH "#include <$$r_config{$val}>\n";
+            }
         }
     }
 
-    if ($$r_a{'incheaders'} == 1)
+    if ($$r_a{'incheaders'} eq 'all')
     {
         foreach my $val (@$r_clist)
         {
@@ -230,13 +238,13 @@ check_compile
                 next;
             }
             if ($val eq '_hdr_malloc' &&
-                $$r_config{'_include_malloc'} == 0)
+                $$r_config{'_include_malloc'} eq '0')
             {
                 next;
             }
             if ($val eq '_hdr_strings' &&
-                $$r_config{'_hdr_string'} == 1 &&
-                $$r_config{'_include_string'} == 0)
+                $$r_config{'_hdr_string'} ne '0' &&
+                $$r_config{'_include_string'} eq '0')
             {
                 next;
             }
@@ -261,6 +269,100 @@ check_compile
 }
 
 sub
+check_cpp
+{
+    my ($name, $code, $r_clist, $r_config, $r_a) = @_;
+
+    open (CCFH, ">$name.c");
+
+    print CCFH $precc;
+
+    if ($$r_a{'incheaders'} eq 'std' ||
+        $$r_a{'incheaders'} eq 'all')
+    {
+        # always include these four if present ...
+        foreach my $val ('_hdr_stdio', '_hdr_stdlib', '_sys_types', '_sys_param')
+        {
+            if (defined ($$r_config{$val}) &&
+                 $$r_config{$val} ne '0')
+            {
+                print CCFH "#include <$$r_config{$val}>\n";
+            }
+        }
+    }
+
+    if ($$r_a{'incheaders'} eq 'all')
+    {
+        foreach my $val (@$r_clist)
+        {
+            if ($val !~ m#^(_hdr_|_sys_)#o)
+            {
+                next;
+            }
+            if ($val eq '_hdr_stdio' ||
+                $val eq '_hdr_stdlib' ||
+                $val eq '_sys_types' ||
+                $val eq '_sys_param')
+            {
+                next;
+            }
+            if ($val eq '_hdr_malloc' &&
+                $$r_config{'_include_malloc'} eq '0')
+            {
+                next;
+            }
+            if ($val eq '_hdr_strings' &&
+                $$r_config{'_hdr_string'} ne '0' &&
+                $$r_config{'_include_string'} eq '0')
+            {
+                next;
+            }
+            if ($$r_config{$val} ne '0')
+            {
+                print CCFH "#include <$$r_config{$val}>\n";
+            }
+        }
+        print CCFH "\n";
+    }
+    print CCFH $code;
+    close CCFH;
+
+    my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} -E $name.c > /dev/null 2>&1";
+    print LOGFH "##  cpp test: $cmd\n";
+    system ("cat $name.c >> $LOG");
+    my $rc = system ("$cmd >> $LOG 2>&1");
+    print LOGFH "##  cpp test: $rc\n";
+    unlink "$name.c";
+    return $rc;
+}
+
+sub
+check_dashe
+{
+    my ($name, $r_clist, $r_config) = @_;
+
+    print LOGFH "## [$name] supports: cc -E ... \n";
+    print STDERR "supports: cc -E ... ";
+    my $code = <<"_HERE_";
+main () { exit (0); }
+_HERE_
+    my $rc = 1;
+    $rc = check_cpp ($name, $code, $r_clist, $r_config,
+        { 'incheaders' => 'none', });
+    if ($rc == 0)
+    {
+        print LOGFH "## [$name] yes\n";
+        print STDERR "yes\n";
+    }
+    else
+    {
+        print LOGFH "## [$name] no\n";
+        print STDERR "no\n";
+    }
+    $$r_config{$name} = $rc;
+}
+
+sub
 check_header
 {
     my ($name, $file, $r_clist, $r_config) = @_;
@@ -271,8 +373,17 @@ check_header
 #include <${file}>
 main () { exit (0); }
 _HERE_
-    my $rc = check_compile ($name, $code, $r_clist, $r_config,
-        { 'incheaders' => 0, });
+    my $rc = 1;
+    if ($$r_config{'_supports_dash_e'} eq '1')
+    {
+        $rc = check_cpp ($name, $code, $r_clist, $r_config,
+            { 'incheaders' => 'std', });
+    }
+    else
+    {
+        $rc = check_compile ($name, $code, $r_clist, $r_config,
+            { 'incheaders' => 'std', });
+    }
     my $val = 0;
     if ($rc == 0)
     {
@@ -300,7 +411,7 @@ check_void
 main () { void *x; x = (char *) NULL; exit (0); }
 _HERE_
     my $rc = check_compile ($name, $code, $r_clist, $r_config,
-        { 'incheaders' => 1, });
+        { 'incheaders' => 'std', });
     push @$r_clist, $name;
     $$r_config{$name} = 0;
     if ($rc == 0)
@@ -330,7 +441,7 @@ _END_EXTERNS_
 int bar () { int rc; rc = foo (1,1); return 0; }
 _HERE_
     my $rc = check_compile ($name, $code, $r_clist, $r_config,
-        { 'incheaders' => 1, });
+        { 'incheaders' => 'all', });
     push @$r_clist, $name;
     $$r_config{$name} = 0;
     if ($rc == 0)
@@ -372,6 +483,7 @@ check_command
     }
 }
 
+# malloc.h conflicts w/string.h on some systems.
 sub
 check_include_malloc
 {
@@ -385,14 +497,15 @@ check_include_malloc
         print STDERR "header: include malloc.h ... ";
 
         my $code = <<"_HERE_";
-#include <malloc.h>
 main ()
 {
-    char *x; x = (char *) malloc (20);
+    char x[20];
+    char y[20];
+    memcpy (y, x, 20);
 }
 _HERE_
         my $rc = check_compile ($name, $code, $r_clist, $r_config,
-                { 'incheaders' => 0, });
+                { 'incheaders' => 'all', });
         if ($rc == 0)
         {
             $$r_config{$name} = 1;
@@ -425,11 +538,11 @@ check_include_string
 #include <strings.h>
 main ()
 {
-    char *x; x = malloc (20);
+    char *x; x = "xyz"; strcat (x, "abc");
 }
 _HERE_
         my $rc = check_compile ($name, $code, $r_clist, $r_config,
-                { 'incheaders' => 0, });
+                { 'incheaders' => 'std', });
         if ($rc == 0)
         {
             $$r_config{$name} = 1;
@@ -445,7 +558,7 @@ _HERE_
 }
 
 sub
-check_dcl
+check_npt
 {
     my ($name, $proto, $r_clist, $r_config) = @_;
 
@@ -460,7 +573,7 @@ extern struct _TEST_struct* $proto _ARG_((struct _TEST_struct*));
 _END_EXTERNS_
 _HERE_
     my $rc = check_compile ($name, $code, $r_clist, $r_config,
-            { 'incheaders' => 1, });
+            { 'incheaders' => 'all', });
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
@@ -490,7 +603,7 @@ struct xxx* f() { return &v; }
 main () { struct xxx *tmp; tmp = f(); exit (0); }
 _HERE_
     my $rc = check_compile ($name, $code, $r_clist, $r_config,
-            { 'incheaders' => 1, });
+            { 'incheaders' => 'all', });
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
@@ -515,7 +628,6 @@ check_lib
     $$r_config{$name} = 0;
     my $code = <<"_HERE_";
 typedef int (*_TEST_fun_)();
-#undef $func
 #ifdef _TRY_extern_
 _BEGIN_EXTERNS_
 extern int $func();
@@ -530,7 +642,7 @@ _HERE_
         $val = '-lm';
     }
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'includes' => 0, 'nounlink' => 0, 'otherlibs' => $val, 'tryextern' => 1, });
+        { 'incheaders' => 'all', 'nounlink' => 0, 'otherlibs' => $val, 'tryextern' => 1, });
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
@@ -557,7 +669,7 @@ check_setmntent_1arg
 main () { setmntent ("/etc/mnttab"); }
 _HERE_
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'includes' => 1, 'nounlink' => 0, 'otherlibs' => undef, 'tryextern' => 0, });
+        { 'incheaders' => 'all', 'nounlink' => 0, 'otherlibs' => undef, 'tryextern' => 0, });
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
@@ -584,7 +696,7 @@ check_setmntent_2arg
 main () { setmntent ("/etc/mnttab", "r"); }
 _HERE_
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'includes' => 1, 'nounlink' => 0, 'otherlibs' => undef, 'tryextern' => 0, });
+        { 'incheaders' => 'all', 'nounlink' => 0, 'otherlibs' => undef, 'tryextern' => 0, });
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
@@ -614,7 +726,7 @@ main () {
 }
 _HERE_
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'includes' => 1, 'nounlink' => 0, 'otherlibs' => undef, 'tryextern' => 0, });
+        { 'incheaders' => 'all', 'nounlink' => 0, 'otherlibs' => undef, 'tryextern' => 0, });
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
@@ -644,7 +756,7 @@ main () {
 }
 _HERE_
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'includes' => 1, 'nounlink' => 0, 'otherlibs' => undef, 'tryextern' => 0, });
+        { 'incheaders' => 'all', 'nounlink' => 0, 'otherlibs' => undef, 'tryextern' => 0, });
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
@@ -674,7 +786,7 @@ main () {
 }
 _HERE_
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'includes' => 1, 'nounlink' => 0, 'otherlibs' => undef, 'tryextern' => 0, });
+        { 'incheaders' => 'all', 'nounlink' => 0, 'otherlibs' => undef, 'tryextern' => 0, });
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
@@ -731,7 +843,7 @@ check_member
 main () { struct $struct s; int i; i = sizeof (s.$member); }
 _HERE_
     my $rc = check_compile ($name, $code, $r_clist, $r_config,
-            { 'incheaders' => 1, });
+            { 'incheaders' => 'all', });
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
@@ -758,7 +870,7 @@ check_int_declare
     main () { int x; x = $function; }
 _HERE_
     my $rc = check_compile ($name, $code, $r_clist, $r_config,
-            { 'incheaders' => 1, });
+            { 'incheaders' => 'all', });
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
@@ -785,7 +897,7 @@ check_ptr_declare
 main () { _VOID_ *x; x = $function; }
 _HERE_
     my $rc = check_compile ($name, $code, $r_clist, $r_config,
-            { 'incheaders' => 1, });
+            { 'incheaders' => 'all', });
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
@@ -814,6 +926,8 @@ create_config
 #define _config_H 1
 _HERE_
 
+    check_dashe ('_supports_dash_e', \@clist, \%config);
+
     # FreeBSD has buggy headers, requires sys/param.h as a required include.
     # always check for these headers.
     my @headlist1 = (
@@ -830,7 +944,7 @@ _HERE_
     check_void ('_key_void', \@clist, \%config);
     check_proto ('_proto_stdc', \@clist, \%config);
 
-    if (! open (DATAIN, $ARGV[0]))
+    if (! open (DATAIN, '../' . $ARGV[0]))
     {
         print STDERR "$ARGV[0]: $!\n";
         exit 1;
@@ -856,43 +970,43 @@ _HERE_
             {
                 $hdr = 'sys/' . $hdr;
             }
-            if (! defined ($config{$nm}))
+            if (! defined ($config{$nm}) ||
+                $config{$nm} eq '0')
             {
                 check_header ($nm, $hdr, \@clist, \%config);
-                if ($hdr eq 'malloc.h')
-                {
-                    check_include_malloc ('_include_malloc', \@clist, \%config);
-                }
-                if (($hdr eq 'string.h' && defined $config{'_hdr_strings'} ||
-                    ($hdr eq 'strings.h') && defined $config{'_hdr_string'}))
-                {
-                    check_include_string ('_include_string', \@clist, \%config);
-                }
             }
         }
         elsif ($line =~ m#^command\s+(.*)#o)
         {
             my $cmd = $1;
             my $nm = "_command_" . lc $cmd;
-            if (! defined ($config{$nm}))
+            if (! defined ($config{$nm}) ||
+                $config{$nm} eq '0')
             {
                 check_command ($nm, $cmd, \@clist, \%config);
             }
         }
-        elsif ($line =~ m#^npt\s+(.*)#o)
+        elsif ($line =~ m#^npt\s+([^\s]*)\s*(.*)#o)
         {
             my $func = $1;
-            my $nm = "_npt_" . lc $func;
-            if (! defined ($config{$nm}))
+            my $req = $2;
+            if (! defined ($req) ||
+                $config{$req} ne '0')
             {
-                check_dcl ($nm, $func, \@clist, \%config);
+                my $nm = "_npt_" . lc $func;
+                if (! defined ($config{$nm}) ||
+                    $config{$nm} eq '0')
+                {
+                    check_npt ($nm, $func, \@clist, \%config);
+                }
             }
         }
         elsif ($line =~ m#^typ\s+(.*)#o)
         {
             my $tnm = $1;
             my $nm = "_typ_" . lc $tnm;
-            if (! defined ($config{$nm}))
+            if (! defined ($config{$nm}) ||
+                $config{$nm} eq '0')
             {
                 check_type ($nm, $tnm, \@clist, \%config);
             }
@@ -903,16 +1017,17 @@ _HERE_
             my $func = $2;
             my $libs = $3 || '';
             my $nm = "_${typ}_" . $func;
-            if (! defined ($config{$nm}))
+            if (! defined ($config{$nm}) ||
+                $config{$nm} eq '0')
             {
                 check_lib ($nm, $func, \@clist, \%config,
                        { 'otherlibs' => $libs, });
-                if ($func eq 'setmntent' && $config{$nm} == 1)
+                if ($func eq 'setmntent' && $config{$nm} ne '0')
                 {
                     check_setmntent_1arg ('_setmntent_1arg', \@clist, \%config);
                     check_setmntent_2arg ('_setmntent_2arg', \@clist, \%config);
                 }
-                if ($func eq 'statfs' && $config{$nm} == 1)
+                if ($func eq 'statfs' && $config{$nm} ne '0')
                 {
                     check_statfs_2arg ('_statfs_2arg', \@clist, \%config);
                     check_statfs_3arg ('_statfs_3arg', \@clist, \%config);
@@ -920,12 +1035,13 @@ _HERE_
                 }
             }
         }
-        elsif ($line =~ m#^dcl\s+(.*)\s+(.*)#o)
+        elsif ($line =~ m#^dcl\s+([^\s]*)\s+(.*)#o)
         {
             my $type = $1;
             my $var = $2;
             my $nm = "_dcl_" . lc $var;
-            if (! defined ($config{$nm}))
+            if (! defined ($config{$nm}) ||
+                $config{$nm} eq '0')
             {
                 if ($type eq 'int')
                 {
@@ -942,7 +1058,8 @@ _HERE_
             my $struct = $1;
             my $member = $2;
             my $nm = "_mem_" . lc $struct . '_' . lc $member;
-            if (! defined ($config{$nm}))
+            if (! defined ($config{$nm}) ||
+                $config{$nm} eq '0')
             {
                 check_member ($nm, $struct, $member, \@clist, \%config);
             }
@@ -953,7 +1070,8 @@ _HERE_
             $typ =~ s/\s*$//o;
             my $nm = "_siz_" . lc $typ;
             $nm =~ s, ,_,go;
-            if (! defined ($config{$nm}))
+            if (! defined ($config{$nm}) ||
+                $config{$nm} eq '0')
             {
                 check_size ($nm, $typ, \@clist, \%config);
             }
@@ -963,6 +1081,12 @@ _HERE_
             print "unknown command: $line\n";
             print LOGFH "unknown command: $line\n";
         }
+    }
+
+    if ($config{'_hdr_malloc'} ne '0' &&
+        $config{'_lib_memcpy'} ne '0')
+    {
+        check_include_malloc ('_include_malloc', \@clist, \%config);
     }
 
     foreach my $val (@clist)
@@ -983,12 +1107,6 @@ _HERE_
             }
         }
     }
-
-    my $r_hash = $config{'reqlibs'};
-    print CCOFH "\n";
-    print CCOFH "#define REQUIRED_LIBS \"" .
-        join (' ', keys %$r_hash) . "\"\n";
-    print CCOFH "\n";
 
     print CCOFH <<'_HERE_';
 
@@ -1055,6 +1173,12 @@ _command_msgfmt
 _HERE_
 
     close CCOFH;
+
+    open (RLIBFH, ">../reqlibs.txt");
+
+    my $r_hash = $config{'reqlibs'};
+    print RLIBFH join (' ', keys %$r_hash) . "\n";
+    close RLIBFH;
 }
 
 
