@@ -5,7 +5,7 @@
 # Copyright 2005 Brad Lanam Walnut Creek, CA USA
 #
 
-use strict;
+eval { use strict; };
 use Config;
 require 5.005;
 
