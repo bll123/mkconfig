@@ -5,8 +5,9 @@
 # Copyright 2005 Brad Lanam Walnut Creek, CA USA
 #
 
-eval { use strict; };
-use Config;
+# HP-UX doesn't have these installed.
+# use strict;
+# use Config;
 require 5.005;
 
 my $LOG = "../mkconfig.log";
@@ -467,7 +468,7 @@ check_command
 
     push @$r_clist, $name;
     $$r_config{$name} = 0;
-    foreach my $p (split /$Config{'path_sep'}/o, $ENV{'PATH'})
+    foreach my $p (split /[;:]/o, $ENV{'PATH'})
     {
         if (-x "$p/$cmd")
         {
@@ -634,10 +635,6 @@ static _TEST_fun_ i=(_TEST_fun_) $func;
 main () {  return (i==0); }
 _HERE_
     my $val = $$r_a{'otherlibs'} || '';
-    if ($name =~ m#^_mth#o)
-    {
-        $val = '-lm';
-    }
 
     if ($val ne '')
     {
@@ -1038,12 +1035,11 @@ _HERE_
                 check_type ($nm, $tnm, \@clist, \%config);
             }
         }
-        elsif ($line =~ m#^(lib|mth)\s+([^\s]+)\s*(.*)?#o)
+        elsif ($line =~ m#^lib\s+([^\s]+)\s*(.*)?#o)
         {
-            my $typ = $1;
-            my $func = $2;
-            my $libs = $3 || '';
-            my $nm = "_${typ}_" . $func;
+            my $func = $1;
+            my $libs = $2 || '';
+            my $nm = "_lib_" . $func;
             if (! defined ($config{$nm}) ||
                 $config{$nm} eq '0')
             {
