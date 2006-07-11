@@ -31,6 +31,13 @@ my $precc = <<'_HERE_';
 _HERE_
 
 sub
+exitmkconfig
+{
+    my $rc = shift;
+    exit 1;
+}
+
+sub
 check_run
 {
     my ($name, $code, $r_val, $r_clist, $r_config, $r_a) = @_;
@@ -42,6 +49,7 @@ check_run
     if ($rc == 0)
     {
         $rc = system ("./$name.exe > $name.out");
+        if ($rc & 127) { exitmkconfig ($rc); }
         if ($rc == 0)
         {
             open (CRFH, "<$name.out");
@@ -123,7 +131,9 @@ check_link
     close CLFH;
 
     system ("cat $name.c >> $LOG");
+    if ($rc & 127) { exitmkconfig ($rc); }
 
+    my $dlibs = '';
     my $rc = _check_link ($name, {} );
     if ($rc != 0)
     {
@@ -138,6 +148,7 @@ check_link
                 {
                     if ($val eq '') { next; }
                     $$r_hash{$val} = 1;
+                    $dlibs .= $val . ' ';
                 }
             }
         }
@@ -156,11 +167,14 @@ check_link
                     {
                         if ($val eq '') { next; }
                         $$r_hash{$val} = 1;
+                        $dlibs .= $val . ' ';
                     }
                 }
             }
         }
     }
+
+    $$r_a{'dlibs'} = $dlibs;
 
     if ($$r_a{'nounlink'} == 0)
     {
@@ -189,6 +203,7 @@ _check_link
     }
     print LOGFH "##  link test: $cmd\n";
     my $rc = system ("$cmd >> $LOG 2>&1");
+    if ($rc & 127) { exitmkconfig ($rc); }
     print LOGFH "##      link test: $rc\n";
     if ($rc == 0)
     {
@@ -261,8 +276,10 @@ check_compile
 
     my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} -c $name.c";
     print LOGFH "##  compile test: $cmd\n";
-    system ("cat $name.c >> $LOG");
-    my $rc = system ("$cmd >> $LOG 2>&1");
+    my $rc = system ("cat $name.c >> $LOG");
+    if ($rc & 127) { exitmkconfig ($rc); }
+    $rc = system ("$cmd >> $LOG 2>&1");
+    if ($rc & 127) { exitmkconfig ($rc); }
     print LOGFH "##  compile test: $rc\n";
     unlink "$name.c";
     unlink "$name.o";
@@ -330,8 +347,10 @@ check_cpp
 
     my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} -E $name.c > /dev/null 2>&1";
     print LOGFH "##  cpp test: $cmd\n";
-    system ("cat $name.c >> $LOG");
-    my $rc = system ("$cmd >> $LOG 2>&1");
+    my $rc = system ("cat $name.c >> $LOG");
+    if ($rc & 127) { exitmkconfig ($rc); }
+    $rc = system ("$cmd >> $LOG 2>&1");
+    if ($rc & 127) { exitmkconfig ($rc); }
     print LOGFH "##  cpp test: $rc\n";
     unlink "$name.c";
     return $rc;
@@ -647,13 +666,25 @@ _HERE_
         print STDERR "function: $func ... ";
     }
 
-    my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'incheaders' => 'all', 'nounlink' => 0, 'otherlibs' => $val, 'tryextern' => 1, });
+    my %a = (
+         'incheaders' => 'all',
+         'nounlink' => 0,
+         'otherlibs' => $val,
+         'tryextern' => 1,
+         );
+    my $rc = check_link ($name, $code, $r_clist, $r_config, \%a);
     if ($rc == 0)
     {
         $$r_config{$name} = 1;
-        print LOGFH "## [$name] yes\n";
-        print STDERR "yes\n";
+        print LOGFH "## [$name] yes";
+        print STDERR "yes";
+        if ($a{'dlibs'} ne '')
+        {
+            print LOGFH " with $a{'dlibs'}";
+            print STDERR " with $a{'dlibs'}";
+        }
+        print LOGFH "\n";
+        print STDERR "\n";
     }
     else
     {
@@ -992,8 +1023,13 @@ _HERE_
                 $config{$nm} eq '0')
             {
                 check_header ($nm, $hdr, \@clist, \%config);
-                if ((($hdr eq 'strings.h' && $config{'_hdr_string'} ne '0') ||
-                     ($hdr eq 'string.h' && $config{'_hdr_strings'} ne '0')) &&
+
+                if ((($hdr eq 'strings.h' &&
+                      defined ($config{'_hdr_string'}) &&
+                      $config{'_hdr_string'} ne '0') ||
+                     ($hdr eq 'string.h' &&
+                      defined ($config{'_hdr_strings'}) &&
+                      $config{'_hdr_strings'} ne '0')) &&
                     ! defined ($config{'_include_string'}))
                 {
                     check_include_string ('_include_string', \@clist, \%config);
@@ -1200,6 +1236,13 @@ _HERE_
 
 
 ##
+
+if (! defined ($ARGV[0]) ||
+    ! -f $ARGV[0])
+{
+    print STDERR "Usage: $0 <config-file>\n";
+    exit 1;
+}
 
 if (! -d $TMP) { mkdir $TMP, 0777; }
 chdir $TMP;
