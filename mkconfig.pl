@@ -2,7 +2,7 @@
 #
 # $Id$
 #
-# Copyright 2005 Brad Lanam Walnut Creek, CA USA
+# Copyright 2006 Brad Lanam Walnut Creek, CA USA
 #
 
 # HP-UX doesn't have these installed.
