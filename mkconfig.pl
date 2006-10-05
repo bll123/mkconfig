@@ -964,23 +964,6 @@ create_config
 
 _HERE_
 
-    my $headfname = $ARGV[0];
-    $headfname =~ s/\.dat$/.head/o;
-    print LOGFH "##  check for ../$headfname\n";
-    if (-f "../${headfname}")
-    {
-        print LOGFH "##  found $headfname\n";
-        if (open (HEADIN, "../${headfname}"))
-        {
-            my $ors = $/;
-            $/ = undef;
-            my $head = <HEADIN>;
-            $/ = $ors;
-            print CCOFH $head;
-            close HEADIN;
-        }
-    }
-
     check_dashe ('_supports_dash_e', \@clist, \%config);
 
     # FreeBSD has buggy headers, requires sys/param.h as a required include.
@@ -1006,10 +989,12 @@ _HERE_
     }
 
     my $inheaders = 1;
+    my $ininclude = 0;
+    my $include = '';
     while (my $line = <DATAIN>)
     {
         chomp $line;
-        if ($line =~ /^#/o || $line eq '')
+        if ($ininclude == 0 && ($line =~ /^#/o || $line eq ''))
         {
             next;
         }
@@ -1023,7 +1008,21 @@ _HERE_
             $inheaders = 0;
         }
 
-        if ($line =~ m#^(hdr|sys)\s+(.*)#o)
+        if ($ininclude == 1 && $line =~ m#^endinclude$#o)
+        {
+            print LOGFH "end include\n";
+            $ininclude = 0;
+        }
+        elsif ($ininclude == 1)
+        {
+            $include .= $line . "\n";
+        }
+        elsif ($line =~ m#^include$#o)
+        {
+            print LOGFH "start include\n";
+            $ininclude = 1;
+        }
+        elsif ($line =~ m#^(hdr|sys)\s+(.*)#o)
         {
             my $typ = $1;
             my $hdr = $2;
@@ -1196,27 +1195,9 @@ _HERE_
 
 _HERE_
 
-    my $tailfname = $ARGV[0];
-    $tailfname =~ s/\.dat$/.tail/o;
-    print LOGFH "##  check for ../$tailfname\n";
-    if (-f "../${tailfname}")
-    {
-        print LOGFH "##  found $tailfname\n";
-        if (open (TAILIN, "../${tailfname}"))
-        {
-            my $ors = $/;
-            $/ = undef;
-            my $tail = <TAILIN>;
-            $/ = $ors;
-            print CCOFH $tail;
-            close TAILIN;
-        }
-    }
+    print CCOFH $include;
 
     print CCOFH <<'_HERE_';
-
-#define _config_by_iffe_ 0
-#define _config_by_mkconfig_pl_ 1
 
 #endif /* _config_H */
 _HERE_
