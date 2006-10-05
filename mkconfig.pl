@@ -961,7 +961,25 @@ create_config
 
 #ifndef _config_H
 #define _config_H 1
+
 _HERE_
+
+    my $headfname = $ARGV[0];
+    $headfname =~ s/\.dat$/.head/o;
+    print LOGFH "##  check for ../$headfname\n";
+    if (-f "../${headfname}")
+    {
+        print LOGFH "##  found $headfname\n";
+        if (open (HEADIN, "../${headfname}"))
+        {
+            my $ors = $/;
+            $/ = undef;
+            my $head = <HEADIN>;
+            $/ = $ors;
+            print CCOFH $head;
+            close HEADIN;
+        }
+    }
 
     check_dashe ('_supports_dash_e', \@clist, \%config);
 
@@ -1161,6 +1179,7 @@ _HERE_
         }
     }
 
+    # standard tail -- always needed; non specific
     print CCOFH <<'_HERE_';
 
 #if ! _key_void || ! _proto_stdc
@@ -1175,56 +1194,32 @@ _HERE_
 # endif
 #endif
 
-#if _lib_bindtextdomain && \
-_lib_gettext && \
-_lib_setlocale && \
-_lib_textdomain && \
-_hdr_libintl && \
-_hdr_locale && \
-_command_msgfmt
-# define _enable_nls 1
-#else
-# define _enable_nls 0
-#endif
+_HERE_
 
-#if _typ_statvfs_t
-# define Statvfs_t statvfs_t
-#else
-# define Statvfs_t struct statvfs
-#endif
+    my $tailfname = $ARGV[0];
+    $tailfname =~ s/\.dat$/.tail/o;
+    print LOGFH "##  check for ../$tailfname\n";
+    if (-f "../${tailfname}")
+    {
+        print LOGFH "##  found $tailfname\n";
+        if (open (TAILIN, "../${tailfname}"))
+        {
+            my $ors = $/;
+            $/ = undef;
+            my $tail = <TAILIN>;
+            $/ = $ors;
+            print CCOFH $tail;
+            close TAILIN;
+        }
+    }
 
-#if _typ_size_t
-# define Size_t size_t
-#else
-# define Size_t unsigned int
-#endif
-
-#if _typ_uint_t
-# define Uint_t uint_t
-#else
-# define Uint_t unsigned int
-#endif
-
-#if _typ_uid_t
-# define Uid_t uid_t
-#else
-# define Uid_t int
-#endif
-
-#if _lib_snprintf
-# define Snprintf snprintf
-# define SPF(a1,a2,a3)      a1,a2,a3
-#else
-# define Snprintf sprintf
-# define SPF(a1,a2,a3)      a1,a3
-#endif
+    print CCOFH <<'_HERE_';
 
 #define _config_by_iffe_ 0
 #define _config_by_mkconfig_pl_ 1
 
-#endif
+#endif /* _config_H */
 _HERE_
-
     close CCOFH;
 
     open (RLIBFH, ">../reqlibs.txt");
@@ -1233,7 +1228,6 @@ _HERE_
     print RLIBFH join (' ', keys %$r_hash) . "\n";
     close RLIBFH;
 }
-
 
 ##
 
