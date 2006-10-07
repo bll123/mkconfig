@@ -489,7 +489,7 @@ check_command
     $$r_config{$name} = 0;
     foreach my $p (split /[;:]/o, $ENV{'PATH'})
     {
-        if (-x "$p/$cmd")
+        if (-x "$p/$cmd" && ! defined ($$r_config{$name}))
         {
             $$r_config{$name} = 1;
             print LOGFH "## [$name] yes\n";
