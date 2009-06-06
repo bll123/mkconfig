@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/perl
 #
 # $Id$
 #
@@ -71,30 +71,30 @@ check_link
     my ($name, $code, $r_clist, $r_config, $r_a) = @_;
 
     my $otherlibs = '';
-    if (defined ($$r_a{'otherlibs'}))
+    if (defined ($r_a->{'otherlibs'}))
     {
-        $otherlibs = $$r_a{'otherlibs'};
+        $otherlibs = $r_a->{'otherlibs'};
     }
 
     open (CLFH, ">$name.c");
 
     print CLFH $precc;
 
-    if ($$r_a{'incheaders'} eq 'all' ||
-        $$r_a{'incheaders'} eq 'std')
+    if ($r_a->{'incheaders'} eq 'all' ||
+        $r_a->{'incheaders'} eq 'std')
     {
         # always include these four if present ...
         foreach my $val ('_hdr_stdio', '_hdr_stdlib', '_sys_types', '_sys_param')
         {
-            if (defined ($$r_config{$val}) &&
-                 $$r_config{$val} ne '0')
+            if (defined ($r_config->{$val}) &&
+                 $r_config->{$val} ne '0')
             {
-                print CLFH "#include <$$r_config{$val}>\n";
+                print CLFH "#include <" . $r_config->{$val} . ">\n";
             }
         }
     }
 
-    if ($$r_a{'incheaders'} eq 'all')
+    if ($r_a->{'incheaders'} eq 'all')
     {
         foreach my $val (@$r_clist)
         {
@@ -110,19 +110,19 @@ check_link
                 next;
             }
             if ($val eq '_hdr_malloc' &&
-                $$r_config{'_include_malloc'} eq '0')
+                $r_config->{'_include_malloc'} eq '0')
             {
                 next;
             }
             if ($val eq '_hdr_strings' &&
-                $$r_config{'_hdr_string'} ne '0' &&
-                $$r_config{'_include_string'} eq '0')
+                $r_config->{'_hdr_string'} ne '0' &&
+                $r_config->{'_include_string'} eq '0')
             {
                 next;
             }
-            if ($$r_config{$val} ne '0')
+            if ($r_config->{$val} ne '0')
             {
-                print CLFH "#include <$$r_config{$val}>\n";
+                print CLFH "#include <" . $r_config->{$val} . ">\n";
             }
         }
         print CLFH "\n";
@@ -137,46 +137,52 @@ check_link
     my $rc = _check_link ($name, {} );
     if ($rc != 0)
     {
-        if ($otherlibs ne '')
+      if ($otherlibs ne '')
+      {
+        my @olibs = split (/\s+/, $otherlibs);
+        $oliblist = '';
+        foreach my $olib (@olibs)
         {
-            $rc = _check_link ($name, { 'otherlibs' => $otherlibs, } );
-            if ($rc == 0)
-            {
-                my $r_hash = $$r_config{'reqlibs'};
-                my @vals = split (/\s+/, $otherlibs);
-                foreach my $val (@vals)
-                {
-                    if ($val eq '') { next; }
-                    $$r_hash{$val} = 1;
-                    $dlibs .= $val . ' ';
-                }
-            }
+          $oliblist = $oliblist . ' ' . $olib;
+          $rc = _check_link ($name, { 'otherlibs' => $oliblist, } );
+          if ($rc == 0)
+          {
+              my $r_hash = $r_config->{'reqlibs'};
+              my @vals = split (/\s+/, $oliblist);
+              $dlibs = '';
+              foreach my $val (@vals)
+              {
+                  if ($val eq '') { next; }
+                  $r_hash->{$val} = 1;
+                  $dlibs .= $val . ' ';
+              }
+              last;
+          }
         }
-        if ($rc != 0 && $$r_a{'tryextern'} == 1)
+      }
+
+      if ($rc != 0 && $r_a->{'tryextern'} == 1)
+      {
+        $rc = _check_link ($name, { 'cflags' => '-D_TRY_extern_=1',
+            'otherlibs' => $otherlibs, } );
+        if ($rc == 0)
         {
-            $rc = _check_link ($name, { 'cflags' => '-D_TRY_extern_', } );
-            if ($rc != 0 && $otherlibs ne '')
-            {
-                $rc = _check_link ($name, { 'cflags' => '-D_TRY_extern_',
-                    'otherlibs' => $otherlibs, } );
-                if ($rc == 0)
-                {
-                    my $r_hash = $$r_config{'reqlibs'};
-                    my @vals = split (/\s+/, $otherlibs);
-                    foreach my $val (@vals)
-                    {
-                        if ($val eq '') { next; }
-                        $$r_hash{$val} = 1;
-                        $dlibs .= $val . ' ';
-                    }
-                }
-            }
+          my $r_hash = $r_config->{'reqlibs'};
+          my @vals = split (/\s+/, $otherlibs);
+          $dlibs = '';
+          foreach my $val (@vals)
+          {
+              if ($val eq '') { next; }
+              $r_hash->{$val} = 1;
+              $dlibs .= $val . ' ';
+          }
         }
+      }
     }
 
-    $$r_a{'dlibs'} = $dlibs;
+    $r_a->{'dlibs'} = $dlibs;
 
-    if ($$r_a{'nounlink'} == 0)
+    if ($r_a->{'nounlink'} == 0)
     {
         unlink "$name.exe";
         unlink "$name.c";
@@ -191,15 +197,15 @@ _check_link
     my ($name, $r_a) = @_;
 
     my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} ";
-    if (defined ($$r_a{'cflags'}))
+    if (defined ($r_a->{'cflags'}))
     {
-        $cmd .= ' ' . $$r_a{'cflags'} . ' ';
+        $cmd .= ' ' . $r_a->{'cflags'} . ' ';
     }
     $cmd .= "-o $name.exe $name.c";
     $cmd .= " $ENV{'LDFLAGS'} $ENV{'LIBS'}";
-    if (defined ($$r_a{'otherlibs'}) && $$r_a{'otherlibs'} ne undef)
+    if (defined ($r_a->{'otherlibs'}) && $r_a->{'otherlibs'} ne undef)
     {
-        $cmd .= ' ' . $$r_a{'otherlibs'} . ' ';
+        $cmd .= ' ' . $r_a->{'otherlibs'} . ' ';
     }
     print LOGFH "##  link test: $cmd\n";
     my $rc = system ("$cmd >> $LOG 2>&1");
@@ -224,21 +230,21 @@ check_compile
 
     print CCFH $precc;
 
-    if ($$r_a{'incheaders'} eq 'std' ||
-        $$r_a{'incheaders'} eq 'all')
+    if ($r_a->{'incheaders'} eq 'std' ||
+        $r_a->{'incheaders'} eq 'all')
     {
         # always include these four if present ...
         foreach my $val ('_hdr_stdio', '_hdr_stdlib', '_sys_types', '_sys_param')
         {
-            if (defined ($$r_config{$val}) &&
-                 $$r_config{$val} ne '0')
+            if (defined ($r_config->{$val}) &&
+                 $r_config->{$val} ne '0')
             {
-                print CCFH "#include <$$r_config{$val}>\n";
+                print CCFH "#include <" . $r_config->{$val} . ">\n";
             }
         }
     }
 
-    if ($$r_a{'incheaders'} eq 'all')
+    if ($r_a->{'incheaders'} eq 'all')
     {
         foreach my $val (@$r_clist)
         {
@@ -254,19 +260,19 @@ check_compile
                 next;
             }
             if ($val eq '_hdr_malloc' &&
-                $$r_config{'_include_malloc'} eq '0')
+                $r_config->{'_include_malloc'} eq '0')
             {
                 next;
             }
             if ($val eq '_hdr_strings' &&
-                $$r_config{'_hdr_string'} ne '0' &&
-                $$r_config{'_include_string'} eq '0')
+                $r_config->{'_hdr_string'} ne '0' &&
+                $r_config->{'_include_string'} eq '0')
             {
                 next;
             }
-            if ($$r_config{$val} ne '0')
+            if ($r_config->{$val} ne '0')
             {
-                print CCFH "#include <$$r_config{$val}>\n";
+                print CCFH "#include <" . $r_config->{$val} . ">\n";
             }
         }
         print CCFH "\n";
@@ -295,21 +301,21 @@ check_cpp
 
     print CCFH $precc;
 
-    if ($$r_a{'incheaders'} eq 'std' ||
-        $$r_a{'incheaders'} eq 'all')
+    if ($r_a->{'incheaders'} eq 'std' ||
+        $r_a->{'incheaders'} eq 'all')
     {
         # always include these four if present ...
         foreach my $val ('_hdr_stdio', '_hdr_stdlib', '_sys_types', '_sys_param')
         {
-            if (defined ($$r_config{$val}) &&
-                 $$r_config{$val} ne '0')
+            if (defined ($r_config->{$val}) &&
+                 $r_config->{$val} ne '0')
             {
-                print CCFH "#include <$$r_config{$val}>\n";
+                print CCFH "#include <" . $r_config->{$val} . ">\n";
             }
         }
     }
 
-    if ($$r_a{'incheaders'} eq 'all')
+    if ($r_a->{'incheaders'} eq 'all')
     {
         foreach my $val (@$r_clist)
         {
@@ -325,19 +331,19 @@ check_cpp
                 next;
             }
             if ($val eq '_hdr_malloc' &&
-                $$r_config{'_include_malloc'} eq '0')
+                $r_config->{'_include_malloc'} eq '0')
             {
                 next;
             }
             if ($val eq '_hdr_strings' &&
-                $$r_config{'_hdr_string'} ne '0' &&
-                $$r_config{'_include_string'} eq '0')
+                $r_config->{'_hdr_string'} ne '0' &&
+                $r_config->{'_include_string'} eq '0')
             {
                 next;
             }
-            if ($$r_config{$val} ne '0')
+            if ($r_config->{$val} ne '0')
             {
-                print CCFH "#include <$$r_config{$val}>\n";
+                print CCFH "#include <" . $r_config->{$val} . ">\n";
             }
         }
         print CCFH "\n";
@@ -379,7 +385,7 @@ _HERE_
         print LOGFH "## [$name] no\n";
         print STDERR "no\n";
     }
-    $$r_config{$name} = $rc;
+    $r_config->{$name} = $rc;
 }
 
 sub
@@ -394,7 +400,7 @@ check_header
 main () { exit (0); }
 _HERE_
     my $rc = 1;
-    if ($$r_config{'_supports_dash_e'} eq '1')
+    if ($r_config->{'_supports_dash_e'} eq '1')
     {
         $rc = check_cpp ($name, $code, $r_clist, $r_config,
             { 'incheaders' => 'std', });
@@ -417,7 +423,7 @@ _HERE_
         print STDERR "no\n";
     }
     push @$r_clist, $name;
-    $$r_config{$name} = $val;
+    $r_config->{$name} = $val;
 }
 
 sub
@@ -433,10 +439,10 @@ _HERE_
     my $rc = check_compile ($name, $code, $r_clist, $r_config,
         { 'incheaders' => 'std', });
     push @$r_clist, $name;
-    $$r_config{$name} = 0;
+    $r_config->{$name} = 0;
     if ($rc == 0)
     {
-        $$r_config{$name} = 1;
+        $r_config->{$name} = 1;
         print LOGFH "## [$name] yes\n";
         print STDERR "yes\n";
     }
@@ -463,10 +469,10 @@ _HERE_
     my $rc = check_compile ($name, $code, $r_clist, $r_config,
         { 'incheaders' => 'all', });
     push @$r_clist, $name;
-    $$r_config{$name} = 0;
+    $r_config->{$name} = 0;
     if ($rc == 0)
     {
-        $$r_config{$name} = 1;
+        $r_config->{$name} = 1;
         print LOGFH "## [$name] yes\n";
         print STDERR "yes\n";
     }
@@ -486,17 +492,17 @@ check_command
     print STDERR "command: $cmd ... ";
 
     push @$r_clist, $name;
-    $$r_config{$name} = 0;
+    $r_config->{$name} = 0;
     foreach my $p (split /[;:]/o, $ENV{'PATH'})
     {
-        if (-x "$p/$cmd" && $$r_config{$name} == 0)
+        if (-x "$p/$cmd" && $r_config->{$name} == 0)
         {
-            $$r_config{$name} = 1;
+            $r_config->{$name} = 1;
             print LOGFH "## [$name] yes\n";
             print STDERR "yes\n";
         }
     }
-    if ($$r_config{$name} == 0)
+    if ($r_config->{$name} == 0)
     {
         print LOGFH "## [$name] no\n";
         print STDERR "no\n";
@@ -510,8 +516,8 @@ check_include_malloc
     my ($name, $r_clist, $r_config) = @_;
 
     push @$r_clist, $name;
-    $$r_config{$name} = 0;
-    if ($$r_config{'_hdr_malloc'} ne '0')
+    $r_config->{$name} = 0;
+    if ($r_config->{'_hdr_malloc'} ne '0')
     {
         print LOGFH "## [$name] header: include malloc.h ... \n";
         print STDERR "header: include malloc.h ... ";
@@ -527,7 +533,7 @@ _HERE_
                 { 'incheaders' => 'all', });
         if ($rc == 0)
         {
-            $$r_config{$name} = 1;
+            $r_config->{$name} = 1;
             print LOGFH "## [$name] yes\n";
             print STDERR "yes\n";
         }
@@ -545,9 +551,9 @@ check_include_string
     my ($name, $r_clist, $r_config) = @_;
 
     push @$r_clist, $name;
-    $$r_config{$name} = 0;
-    if ($$r_config{'_hdr_string'} ne '0' &&
-        $$r_config{'_hdr_strings'} ne '0')
+    $r_config->{$name} = 0;
+    if ($r_config->{'_hdr_string'} ne '0' &&
+        $r_config->{'_hdr_strings'} ne '0')
     {
         print LOGFH "## [$name] header: include both string.h & strings.h ... \n";
         print STDERR "header: include both string.h & strings.h ... ";
@@ -564,7 +570,7 @@ _HERE_
                 { 'incheaders' => 'std', });
         if ($rc == 0)
         {
-            $$r_config{$name} = 1;
+            $r_config->{$name} = 1;
             print LOGFH "## [$name] yes\n";
             print STDERR "yes\n";
         }
@@ -584,7 +590,7 @@ check_npt
     print LOGFH "## [$name] need prototype: $proto ... \n";
     print STDERR "need prototype: $proto ... ";
     push @$r_clist, $name;
-    $$r_config{$name} = 0;
+    $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 _BEGIN_EXTERNS_
 struct _TEST_struct { int _TEST_member; };
@@ -595,7 +601,7 @@ _HERE_
             { 'incheaders' => 'all', });
     if ($rc == 0)
     {
-        $$r_config{$name} = 1;
+        $r_config->{$name} = 1;
         print LOGFH "## [$name] yes\n";
         print STDERR "yes\n";
     }
@@ -614,7 +620,7 @@ check_type
     print LOGFH "## [$name] type $type ... \n";
     print STDERR "type $type ... ";
     push @$r_clist, $name;
-    $$r_config{$name} = 0;
+    $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 struct xxx { $type mem; };
 static struct xxx v;
@@ -625,7 +631,7 @@ _HERE_
             { 'incheaders' => 'all', });
     if ($rc == 0)
     {
-        $$r_config{$name} = 1;
+        $r_config->{$name} = 1;
         print LOGFH "## [$name] yes\n";
         print STDERR "yes\n";
     }
@@ -642,7 +648,7 @@ check_lib
     my ($name, $func, $r_clist, $r_config, $r_a) = @_;
 
     push @$r_clist, $name;
-    $$r_config{$name} = 0;
+    $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 typedef int (*_TEST_fun_)();
 #ifdef _TRY_extern_
@@ -653,7 +659,7 @@ _END_EXTERNS_
 static _TEST_fun_ i=(_TEST_fun_) $func;
 main () {  return (i==0); }
 _HERE_
-    my $val = $$r_a{'otherlibs'} || '';
+    my $val = $r_a->{'otherlibs'} || '';
 
     if ($val ne '')
     {
@@ -670,26 +676,26 @@ _HERE_
          'incheaders' => 'all',
          'nounlink' => 0,
          'otherlibs' => $val,
-         'tryextern' => 1,
+         'tryextern' => 0,
          );
     my $rc = check_link ($name, $code, $r_clist, $r_config, \%a);
     if ($rc == 0)
     {
-        $$r_config{$name} = 1;
-        print LOGFH "## [$name] yes";
-        print STDERR "yes";
-        if ($a{'dlibs'} ne '')
-        {
-            print LOGFH " with $a{'dlibs'}";
-            print STDERR " with $a{'dlibs'}";
-        }
-        print LOGFH "\n";
-        print STDERR "\n";
+      $r_config->{$name} = 1;
+      print LOGFH "## [$name] yes";
+      print STDERR "yes";
+      if ($a{'dlibs'} ne '')
+      {
+          print LOGFH " with $a{'dlibs'}";
+          print STDERR " with $a{'dlibs'}";
+      }
+      print LOGFH "\n";
+      print STDERR "\n";
     }
     else
     {
-        print LOGFH "## [$name] no\n";
-        print STDERR "no\n";
+      print LOGFH "## [$name] no\n";
+      print STDERR "no\n";
     }
 }
 
@@ -701,7 +707,7 @@ check_setmntent_1arg
     print LOGFH "## [$name] setmntent(): 1 argument ... \n";
     print STDERR "setmntent(): 1 argument ... ";
     push @$r_clist, $name;
-    $$r_config{$name} = 0;
+    $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 main () { setmntent ("/etc/mnttab"); }
 _HERE_
@@ -709,7 +715,7 @@ _HERE_
         { 'incheaders' => 'all', 'nounlink' => 0, 'otherlibs' => undef, 'tryextern' => 0, });
     if ($rc == 0)
     {
-        $$r_config{$name} = 1;
+        $r_config->{$name} = 1;
         print LOGFH "## [$name] yes\n";
         print STDERR "yes\n";
     }
@@ -728,7 +734,7 @@ check_setmntent_2arg
     print LOGFH "## [$name] setmntent(): 2 arguments ... \n";
     print STDERR "setmntent(): 2 arguments ... ";
     push @$r_clist, $name;
-    $$r_config{$name} = 0;
+    $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 main () { setmntent ("/etc/mnttab", "r"); }
 _HERE_
@@ -736,7 +742,7 @@ _HERE_
         { 'incheaders' => 'all', 'nounlink' => 0, 'otherlibs' => undef, 'tryextern' => 0, });
     if ($rc == 0)
     {
-        $$r_config{$name} = 1;
+        $r_config->{$name} = 1;
         print LOGFH "## [$name] yes\n";
         print STDERR "yes\n";
     }
@@ -755,7 +761,7 @@ check_statfs_2arg
     print LOGFH "## [$name] statfs(): 2 arguments ... \n";
     print STDERR "statfs(): 2 arguments ... ";
     push @$r_clist, $name;
-    $$r_config{$name} = 0;
+    $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 main () {
     struct statfs statBuf; char *name; name = "/";
@@ -766,7 +772,7 @@ _HERE_
         { 'incheaders' => 'all', 'nounlink' => 0, 'otherlibs' => undef, 'tryextern' => 0, });
     if ($rc == 0)
     {
-        $$r_config{$name} = 1;
+        $r_config->{$name} = 1;
         print LOGFH "## [$name] yes\n";
         print STDERR "yes\n";
     }
@@ -785,7 +791,7 @@ check_statfs_3arg
     print LOGFH "## [$name] statfs(): 3 arguments ... \n";
     print STDERR "statfs(): 3 arguments ... ";
     push @$r_clist, $name;
-    $$r_config{$name} = 0;
+    $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 main () {
     struct statfs statBuf; char *name; name = "/";
@@ -796,7 +802,7 @@ _HERE_
         { 'incheaders' => 'all', 'nounlink' => 0, 'otherlibs' => undef, 'tryextern' => 0, });
     if ($rc == 0)
     {
-        $$r_config{$name} = 1;
+        $r_config->{$name} = 1;
         print LOGFH "## [$name] yes\n";
         print STDERR "yes\n";
     }
@@ -815,7 +821,7 @@ check_statfs_4arg
     print LOGFH "## [$name] statfs(): 4 arguments ... \n";
     print STDERR "statfs(): 4 arguments ... ";
     push @$r_clist, $name;
-    $$r_config{$name} = 0;
+    $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 main () {
     struct statfs statBuf; char *name; name = "/";
@@ -826,7 +832,7 @@ _HERE_
         { 'incheaders' => 'all', 'nounlink' => 0, 'otherlibs' => undef, 'tryextern' => 0, });
     if ($rc == 0)
     {
-        $$r_config{$name} = 1;
+        $r_config->{$name} = 1;
         print LOGFH "## [$name] yes\n";
         print STDERR "yes\n";
     }
@@ -845,7 +851,7 @@ check_size
     print LOGFH "## [$name] sizeof: $type ... \n";
     print STDERR "sizeof: $type ... ";
     push @$r_clist, $name;
-    $$r_config{$name} = 0;
+    $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 main () {
 	printf("%u\\n", sizeof($type));
@@ -856,7 +862,7 @@ _HERE_
     my $rc = check_run ($name, $code, \$val, $r_clist, $r_config, {});
     if ($rc == 0)
     {
-        $$r_config{$name} = $val;
+        $r_config->{$name} = $val;
         print LOGFH "## [$name] $val\n";
         print STDERR "$val\n";
     }
@@ -875,7 +881,7 @@ check_member
     print LOGFH "## [$name] exists: $struct.$member ... \n";
     print STDERR "exists: $struct.$member ... ";
     push @$r_clist, $name;
-    $$r_config{$name} = 0;
+    $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 main () { struct $struct s; int i; i = sizeof (s.$member); }
 _HERE_
@@ -883,7 +889,7 @@ _HERE_
             { 'incheaders' => 'all', });
     if ($rc == 0)
     {
-        $$r_config{$name} = 1;
+        $r_config->{$name} = 1;
         print LOGFH "## [$name] yes\n";
         print STDERR "yes\n";
     }
@@ -902,7 +908,7 @@ check_int_declare
     print LOGFH "## [$name] declared: $function ... \n";
     print STDERR "declared: $function ... ";
     push @$r_clist, $name;
-    $$r_config{$name} = 0;
+    $r_config->{$name} = 0;
     my $code = <<"_HERE_";
     main () { int x; x = $function; }
 _HERE_
@@ -910,7 +916,7 @@ _HERE_
             { 'incheaders' => 'all', });
     if ($rc == 0)
     {
-        $$r_config{$name} = 1;
+        $r_config->{$name} = 1;
         print LOGFH "## [$name] yes\n";
         print STDERR "yes\n";
     }
@@ -929,7 +935,7 @@ check_ptr_declare
     print LOGFH "## [$name] declared: $function ... \n";
     print STDERR "declared: $function ... ";
     push @$r_clist, $name;
-    $$r_config{$name} = 0;
+    $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 main () { _VOID_ *x; x = $function; }
 _HERE_
@@ -937,7 +943,7 @@ _HERE_
             { 'incheaders' => 'all', });
     if ($rc == 0)
     {
-        $$r_config{$name} = 1;
+        $r_config->{$name} = 1;
         print LOGFH "## [$name] yes\n";
         print STDERR "yes\n";
     }
@@ -1230,7 +1236,7 @@ print LOGFH "CFLAGS: $ENV{'CFLAGS'}\n";
 print LOGFH "LDFLAGS: $ENV{'LDFLAGS'}\n";
 print LOGFH "LIBS: $ENV{'LIBS'}\n";
 
-&create_config;
+create_config;
 
 close LOGFH;
 
