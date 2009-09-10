@@ -367,8 +367,8 @@ check_dashe
 {
     my ($name, $r_clist, $r_config) = @_;
 
-    print LOGFH "## [$name] supports: cc -E ... \n";
-    print STDERR "supports: cc -E ... ";
+    print LOGFH "## [$name] $ENV{'CC'} supports -E ... \n";
+    print STDERR "$ENV{'CC'} supports -E ... ";
     my $code = <<"_HERE_";
 main () { exit (0); }
 _HERE_
