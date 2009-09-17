@@ -426,21 +426,22 @@ _HERE_
     $r_config->{$name} = $val;
 }
 
+# if the keyword is reserved, the compile will fail.
 sub
-check_void
+check_keyword
 {
-    my ($name, $r_clist, $r_config) = @_;
+    my ($name, $keyword, $r_clist, $r_config) = @_;
 
-    print LOGFH "## [$name] supported: void ... \n";
-    print STDERR "supported: void ... ";
+    print LOGFH "## [$name] keyword: $keyword ... \n";
+    print STDERR "keyword: $keyword ... ";
+    $r_config->{$name} = 0;
     my $code = <<"_HERE_";
-main () { void *x; x = (char *) NULL; exit (0); }
+main () { int ${keyword}; ${keyword} = 1; exit (0); }
 _HERE_
     my $rc = check_compile ($name, $code, $r_clist, $r_config,
         { 'incheaders' => 'std', });
     push @$r_clist, $name;
-    $r_config->{$name} = 0;
-    if ($rc == 0)
+    if ($rc != 0)  # failure means it is reserved...
     {
         $r_config->{$name} = 1;
         print LOGFH "## [$name] yes\n";
@@ -617,8 +618,8 @@ check_type
 {
     my ($name, $type, $r_clist, $r_config) = @_;
 
-    print LOGFH "## [$name] type $type ... \n";
-    print STDERR "type $type ... ";
+    print LOGFH "## [$name] type: $type ... \n";
+    print STDERR "type: $type ... ";
     push @$r_clist, $name;
     $r_config->{$name} = 0;
     my $code = <<"_HERE_";
@@ -985,7 +986,8 @@ _HERE_
     {
         check_header ($$r_arr[0], $$r_arr[1], \@clist, \%config);
     }
-    check_void ('_key_void', \@clist, \%config);
+    check_keyword ('_key_void', 'void', \@clist, \%config);
+    check_keyword ('_key_const', 'const', \@clist, \%config);
     check_proto ('_proto_stdc', \@clist, \%config);
 
     if (! open (DATAIN, '../' . $ARGV[0]))
@@ -1082,6 +1084,16 @@ _HERE_
                 {
                     check_npt ($nm, $func, \@clist, \%config);
                 }
+            }
+        }
+        elsif ($line =~ m#^key\s+(.*)#o)
+        {
+            my $tnm = $1;
+            my $nm = "_key_" . lc $tnm;
+            if (! defined ($config{$nm}) ||
+                $config{$nm} eq '0')
+            {
+                check_keyword ($nm, $tnm, \@clist, \%config);
             }
         }
         elsif ($line =~ m#^typ\s+(.*)#o)
@@ -1189,6 +1201,9 @@ _HERE_
 
 #if ! _key_void || ! _proto_stdc
 # define void int
+#endif
+#if ! _key_const || ! _proto_stdc
+# define const
 #endif
 
 #ifndef _
