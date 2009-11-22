@@ -77,56 +77,10 @@ check_link
     }
 
     open (CLFH, ">$name.c");
-
     print CLFH $precc;
 
-    if ($r_a->{'incheaders'} eq 'all' ||
-        $r_a->{'incheaders'} eq 'std')
-    {
-        # always include these four if present ...
-        foreach my $val ('_hdr_stdio', '_hdr_stdlib', '_sys_types', '_sys_param')
-        {
-            if (defined ($r_config->{$val}) &&
-                 $r_config->{$val} ne '0')
-            {
-                print CLFH "#include <" . $r_config->{$val} . ">\n";
-            }
-        }
-    }
-
-    if ($r_a->{'incheaders'} eq 'all')
-    {
-        foreach my $val (@$r_clist)
-        {
-            if ($val !~ m#^(_hdr_|_sys_)#o)
-            {
-                next;
-            }
-            if ($val eq '_hdr_stdio' ||
-                $val eq '_hdr_stdlib' ||
-                $val eq '_sys_types' ||
-                $val eq '_sys_param')
-            {
-                next;
-            }
-            if ($val eq '_hdr_malloc' &&
-                $r_config->{'_include_malloc'} eq '0')
-            {
-                next;
-            }
-            if ($val eq '_hdr_strings' &&
-                $r_config->{'_hdr_string'} ne '0' &&
-                $r_config->{'_include_string'} eq '0')
-            {
-                next;
-            }
-            if ($r_config->{$val} ne '0')
-            {
-                print CLFH "#include <" . $r_config->{$val} . ">\n";
-            }
-        }
-        print CLFH "\n";
-    }
+    my $hdrs = print_headers ($r_a, $r_clist, $r_config);
+    print CLFH $hdrs;
     print CLFH $code;
     close CLFH;
 
@@ -230,53 +184,8 @@ check_compile
 
     print CCFH $precc;
 
-    if ($r_a->{'incheaders'} eq 'std' ||
-        $r_a->{'incheaders'} eq 'all')
-    {
-        # always include these four if present ...
-        foreach my $val ('_hdr_stdio', '_hdr_stdlib', '_sys_types', '_sys_param')
-        {
-            if (defined ($r_config->{$val}) &&
-                 $r_config->{$val} ne '0')
-            {
-                print CCFH "#include <" . $r_config->{$val} . ">\n";
-            }
-        }
-    }
-
-    if ($r_a->{'incheaders'} eq 'all')
-    {
-        foreach my $val (@$r_clist)
-        {
-            if ($val !~ m#^(_hdr_|_sys_)#o)
-            {
-                next;
-            }
-            if ($val eq '_hdr_stdio' ||
-                $val eq '_hdr_stdlib' ||
-                $val eq '_sys_types' ||
-                $val eq '_sys_param')
-            {
-                next;
-            }
-            if ($val eq '_hdr_malloc' &&
-                $r_config->{'_include_malloc'} eq '0')
-            {
-                next;
-            }
-            if ($val eq '_hdr_strings' &&
-                $r_config->{'_hdr_string'} ne '0' &&
-                $r_config->{'_include_string'} eq '0')
-            {
-                next;
-            }
-            if ($r_config->{$val} ne '0')
-            {
-                print CCFH "#include <" . $r_config->{$val} . ">\n";
-            }
-        }
-        print CCFH "\n";
-    }
+    my $hdrs = print_headers ($r_a, $r_clist, $r_config);
+    print CCFH $hdrs;
     print CCFH $code;
     close CCFH;
 
@@ -300,54 +209,8 @@ check_cpp
     open (CCFH, ">$name.c");
 
     print CCFH $precc;
-
-    if ($r_a->{'incheaders'} eq 'std' ||
-        $r_a->{'incheaders'} eq 'all')
-    {
-        # always include these four if present ...
-        foreach my $val ('_hdr_stdio', '_hdr_stdlib', '_sys_types', '_sys_param')
-        {
-            if (defined ($r_config->{$val}) &&
-                 $r_config->{$val} ne '0')
-            {
-                print CCFH "#include <" . $r_config->{$val} . ">\n";
-            }
-        }
-    }
-
-    if ($r_a->{'incheaders'} eq 'all')
-    {
-        foreach my $val (@$r_clist)
-        {
-            if ($val !~ m#^(_hdr_|_sys_)#o)
-            {
-                next;
-            }
-            if ($val eq '_hdr_stdio' ||
-                $val eq '_hdr_stdlib' ||
-                $val eq '_sys_types' ||
-                $val eq '_sys_param')
-            {
-                next;
-            }
-            if ($val eq '_hdr_malloc' &&
-                $r_config->{'_include_malloc'} eq '0')
-            {
-                next;
-            }
-            if ($val eq '_hdr_strings' &&
-                $r_config->{'_hdr_string'} ne '0' &&
-                $r_config->{'_include_string'} eq '0')
-            {
-                next;
-            }
-            if ($r_config->{$val} ne '0')
-            {
-                print CCFH "#include <" . $r_config->{$val} . ">\n";
-            }
-        }
-        print CCFH "\n";
-    }
+    my $hdrs = print_headers ($r_a, $r_clist, $r_config);
+    print CCFH $hdrs;
     print CCFH $code;
     close CCFH;
 
@@ -391,11 +254,19 @@ _HERE_
 sub
 check_header
 {
-    my ($name, $file, $r_clist, $r_config) = @_;
+    my ($name, $file, $r_clist, $r_config, $r_a) = @_;
 
     print LOGFH "## [$name] header: $file ... \n";
     print STDERR "header: $file ... ";
-    my $code = <<"_HERE_";
+    my $r_rh = $r_a->{'reqhdr'} || [];
+    my $code = '';
+    foreach my $reqhdr (@$r_rh)
+    {
+        $code .= <<"_HERE_";
+#include <$reqhdr>
+_HERE_
+    }
+    $code .= <<"_HERE_";
 #include <${file}>
 main () { exit (0); }
 _HERE_
@@ -424,6 +295,115 @@ _HERE_
     }
     push @$r_clist, $name;
     $r_config->{$name} = $val;
+}
+
+sub
+print_headers
+{
+    my ($r_a, $r_clist, $r_config) = @_;
+    my $txt;
+
+    $txt = '';
+
+    if ($r_a->{'incheaders'} eq 'all' ||
+        $r_a->{'incheaders'} eq 'std')
+    {
+        # always include these four if present ...
+        foreach my $val ('_hdr_stdio', '_hdr_stdlib', '_sys_types', '_sys_param')
+        {
+            if (defined ($r_config->{$val}) &&
+                 $r_config->{$val} ne '0')
+            {
+                $txt .= "#include <" . $r_config->{$val} . ">\n";
+            }
+        }
+    }
+
+    if ($r_a->{'incheaders'} eq 'all')
+    {
+        foreach my $val (@$r_clist)
+        {
+            if ($val !~ m#^(_hdr_|_sys_)#o)
+            {
+                next;
+            }
+            if ($val eq '_hdr_stdio' ||
+                $val eq '_hdr_stdlib' ||
+                $val eq '_sys_types' ||
+                $val eq '_sys_param')
+            {
+                next;
+            }
+            if ($val eq '_hdr_malloc' &&
+                $r_config->{'_include_malloc'} eq '0')
+            {
+                next;
+            }
+            if ($val eq '_hdr_strings' &&
+                $r_config->{'_hdr_string'} ne '0' &&
+                $r_config->{'_include_string'} eq '0')
+            {
+                next;
+            }
+            if ($r_config->{$val} ne '0')
+            {
+                $txt .= "#include <" . $r_config->{$val} . ">\n";
+            }
+        }
+        $txt .= "\n";
+    }
+
+    return $txt;
+}
+
+sub
+check_class
+{
+    my ($name, $class, $r_clist, $r_config, $r_a) = @_;
+
+    push @$r_clist, $name;
+    $r_config->{$name} = 0;
+    my $code = <<"_HERE_";
+main () { $class testclass; }
+_HERE_
+    my $val = $r_a->{'otherlibs'} || '';
+
+    if ($val ne '')
+    {
+        print LOGFH "## [$name] class: $class [$val] ... \n";
+        print STDERR "class: $class [$val] ... ";
+    }
+    else
+    {
+        print LOGFH "## [$name] class: $class ... \n";
+        print STDERR "class: $class ... ";
+    }
+
+    my %a = (
+         'incheaders' => 'all',
+         'nounlink' => 0,
+         'otherlibs' => $val,
+         'tryextern' => 0,
+         );
+    my $rc = check_link ($name, $code, $r_clist, $r_config, \%a);
+    if ($rc == 0)
+    {
+      $r_config->{$name} = 1;
+      print LOGFH "## [$name] yes";
+      print STDERR "yes";
+      if ($a{'dlibs'} ne '')
+      {
+          print LOGFH " with $a{'dlibs'}";
+          print STDERR " with $a{'dlibs'}";
+      }
+      print LOGFH "\n";
+      print STDERR "\n";
+    }
+    else
+    {
+      print LOGFH "## [$name] no\n";
+      print STDERR "no\n";
+    }
 }
 
 # if the keyword is reserved, the compile will fail.
@@ -984,7 +964,8 @@ _HERE_
 
     foreach my $r_arr (@headlist1)
     {
-        check_header ($$r_arr[0], $$r_arr[1], \@clist, \%config);
+        check_header ($$r_arr[0], $$r_arr[1], \@clist, \%config,
+                { 'reqhdr' => [], });
     }
     check_keyword ('_key_void', 'void', \@clist, \%config);
     check_keyword ('_key_const', 'const', \@clist, \%config);
@@ -1030,24 +1011,30 @@ _HERE_
             print LOGFH "start include\n";
             $ininclude = 1;
         }
-        elsif ($line =~ m#^(hdr|sys)\s+(.*)#o)
+        elsif ($line =~ m#^(hdr|sys)\s+([^\s]+)\s*(.*)#o)
         {
             my $typ = $1;
             my $hdr = $2;
+            my $reqhdr = $3;
             my $nm = "_${typ}_";
-            # all this rigamarole is to match what iffe does.
+            # create the standard header name for config.h
             my @h = split (/\//, $hdr);
             $h[0] = lc $h[0];
             $nm .= join ('_', @h);
             $nm =~ s,\.h$,,o;
+            $nm =~ s,:,_,go;
             if ($typ eq 'sys')
             {
                 $hdr = 'sys/' . $hdr;
             }
+            $reqhdr =~ s/^\s*//o;
+            $reqhdr =~ s/\s*$//o;
+            my @oh = split (/\s+/, $reqhdr);
             if (! defined ($config{$nm}) ||
                 $config{$nm} eq '0')
             {
-                check_header ($nm, $hdr, \@clist, \%config);
+                check_header ($nm, $hdr, \@clist, \%config,
+                    { 'reqhdr' => \@oh, });
 
                 if ((($hdr eq 'strings.h' &&
                       defined ($config{'_hdr_string'}) &&
@@ -1094,6 +1081,19 @@ _HERE_
                 $config{$nm} eq '0')
             {
                 check_keyword ($nm, $tnm, \@clist, \%config);
+            }
+        }
+        elsif ($line =~ m#^class\s+([^\s]+)\s*(.*)?#o)
+        {
+            my $class = $1;
+            my $libs = $2 || '';
+            my $nm = "_class_" . $class;
+            $nm =~ s,:,_,go;
+            if (! defined ($config{$nm}) ||
+                $config{$nm} eq '0')
+            {
+                check_class ($nm, $class, \@clist, \%config,
+                       { 'otherlibs' => $libs, });
             }
         }
         elsif ($line =~ m#^typ\s+(.*)#o)
