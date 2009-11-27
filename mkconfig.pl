@@ -44,12 +44,13 @@ check_run
 
     my $rc = check_link ($name, $code, $r_clist, $r_config,
         { 'incheaders' => 'all', 'nounlink' => 1, 'tryextern' => 0, %$r_a, });
-    print LOGFH "##  run test: $rc\n";
+    print LOGFH "##  run test: link: $rc\n";
     $$r_val = 0;
     if ($rc == 0)
     {
         $rc = system ("./$name.exe > $name.out");
         if ($rc & 127) { exitmkconfig ($rc); }
+        print LOGFH "##  run test: run: $rc\n";
         if ($rc == 0)
         {
             open (CRFH, "<$name.out");
@@ -202,56 +203,6 @@ check_compile
 }
 
 sub
-check_cpp
-{
-    my ($name, $code, $r_clist, $r_config, $r_a) = @_;
-
-    open (CCFH, ">$name.c");
-
-    print CCFH $precc;
-    my $hdrs = print_headers ($r_a, $r_clist, $r_config);
-    print CCFH $hdrs;
-    print CCFH $code;
-    close CCFH;
-
-    my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} -E $name.c > /dev/null 2>&1";
-    print LOGFH "##  cpp test: $cmd\n";
-    my $rc = system ("cat $name.c >> $LOG");
-    if ($rc & 127) { exitmkconfig ($rc); }
-    $rc = system ("$cmd >> $LOG 2>&1");
-    if ($rc & 127) { exitmkconfig ($rc); }
-    print LOGFH "##  cpp test: $rc\n";
-    unlink "$name.c";
-    return $rc;
-}
-
-sub
-check_dashe
-{
-    my ($name, $r_clist, $r_config) = @_;
-
-    print LOGFH "## [$name] $ENV{'CC'} supports -E ... \n";
-    print STDERR "$ENV{'CC'} supports -E ... ";
-    my $code = <<"_HERE_";
-main () { exit (0); }
-_HERE_
-    my $rc = 1;
-    $rc = check_cpp ($name, $code, $r_clist, $r_config,
-        { 'incheaders' => 'none', });
-    if ($rc == 0)
-    {
-        print LOGFH "## [$name] yes\n";
-        print STDERR "yes\n";
-    }
-    else
-    {
-        print LOGFH "## [$name] no\n";
-        print STDERR "no\n";
-    }
-    $r_config->{$name} = $rc;
-}
-
-sub
 check_header
 {
     my ($name, $file, $r_clist, $r_config, $r_a) = @_;
@@ -271,16 +222,8 @@ _HERE_
 main () { exit (0); }
 _HERE_
     my $rc = 1;
-    if ($r_config->{'_supports_dash_e'} eq '1')
-    {
-        $rc = check_cpp ($name, $code, $r_clist, $r_config,
-            { 'incheaders' => 'std', });
-    }
-    else
-    {
-        $rc = check_compile ($name, $code, $r_clist, $r_config,
-            { 'incheaders' => 'std', });
-    }
+    $rc = check_compile ($name, $code, $r_clist, $r_config,
+        { 'incheaders' => 'std', });
     my $val = 0;
     if ($rc == 0)
     {
@@ -951,8 +894,6 @@ create_config
 
 _HERE_
 
-    check_dashe ('_supports_dash_e', \@clist, \%config);
-
     # FreeBSD has buggy headers, requires sys/param.h as a required include.
     # always check for these headers.
     my @headlist1 = (
@@ -990,10 +931,8 @@ _HERE_
 
         if ($inheaders && $line !~ m#^(hdr|sys)#o)
         {
-            if ($config{'_hdr_malloc'} ne '0')
-            {
-                check_include_malloc ('_include_malloc', \@clist, \%config);
-            }
+            check_include_malloc ('_include_malloc', \@clist, \%config);
+            check_include_string ('_include_string', \@clist, \%config);
             $inheaders = 0;
         }
 
@@ -1035,17 +974,6 @@ _HERE_
             {
                 check_header ($nm, $hdr, \@clist, \%config,
                     { 'reqhdr' => \@oh, });
-
-                if ((($hdr eq 'strings.h' &&
-                      defined ($config{'_hdr_string'}) &&
-                      $config{'_hdr_string'} ne '0') ||
-                     ($hdr eq 'string.h' &&
-                      defined ($config{'_hdr_strings'}) &&
-                      $config{'_hdr_strings'} ne '0')) &&
-                    ! defined ($config{'_include_string'}))
-                {
-                    check_include_string ('_include_string', \@clist, \%config);
-                }
             }
         }
         elsif ($line =~ m#^command\s+(.*)#o)
@@ -1181,7 +1109,7 @@ _HERE_
     {
         if ($config{$val} eq '0')
         {
-            print CCOFH "#undef $val\n";
+            print CCOFH "#undef  $val\n";
         }
         else
         {
