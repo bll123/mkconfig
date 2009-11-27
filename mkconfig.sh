@@ -1,4 +1,9 @@
 #!/bin/sh
+#
+# $Id$
+#
+# Copyright 2009 Brad Lanam Walnut Creek, CA USA
+#
 
 LOG="../mkconfig.log"
 TMP="_tmp"
@@ -31,7 +36,8 @@ exitmkconfig () {
 
 cleardata () {
     prefix=$1
-    for tval in eval \${di_${prefix}_vars}
+    cmd="echo \${di_${prefix}_vars}"
+    for tval in `eval $cmd`
     do
         eval unset di_${prefix}_${tval}
     done
@@ -142,7 +148,7 @@ check_link () {
     then
         while test $ocounter -lt $ocount
         do
-            ocounter=`calc $ocounter + 1`
+            ocounter=`expr $ocounter + 1`
             set -- $clotherlibs
             tcounter=0
             olibs=""
@@ -150,7 +156,7 @@ check_link () {
             do
                 olibs="${olibs} $1"
                 shift
-                tcounter=`calc $tcounter + 1`
+                tcounter=`expr $tcounter + 1`
             done
             dlibs="${olibs}"
             setdata args otherlibs "$olibs"
