@@ -1158,9 +1158,10 @@ if (! defined ($ARGV[0]) ||
 }
 
 if (-d $TMP) { system ("rm -rf $TMP"); }
-if (! -d $TMP) { mkdir $TMP, 0777; }
+mkdir $TMP, 0777;
 chdir $TMP;
 
+print "$0 from $ARGV[0]\n";
 unlink $LOG;
 open (LOGFH, ">>$LOG");
 $ENV{'CFLAGS'} = $ENV{'CFLAGS'} . ' ' . $ENV{'CINCLUDES'};
