@@ -43,7 +43,7 @@ check_run
     my ($name, $code, $r_val, $r_clist, $r_config, $r_a) = @_;
 
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'incheaders' => 'all', 'nounlink' => 1, 'tryextern' => 0, %$r_a, });
+        { 'incheaders' => 'all', 'tryextern' => 0, %$r_a, });
     print LOGFH "##  run test: link: $rc\n";
     $$r_val = 0;
     if ($rc == 0)
@@ -59,10 +59,6 @@ check_run
             close CRFH;
         }
     }
-    unlink "$name.exe";
-    unlink "$name.c";
-    unlink "$name.out";
-    unlink "$name.o";
     return $rc;
 }
 
@@ -137,12 +133,6 @@ check_link
 
     $r_a->{'dlibs'} = $dlibs;
 
-    if ($r_a->{'nounlink'} == 0)
-    {
-        unlink "$name.exe";
-        unlink "$name.c";
-        unlink "$name.o";
-    }
     return $rc;
 }
 
@@ -197,8 +187,6 @@ check_compile
     $rc = system ("$cmd >> $LOG 2>&1");
     if ($rc & 127) { exitmkconfig ($rc); }
     print LOGFH "##  compile test: $rc\n";
-    unlink "$name.c";
-    unlink "$name.o";
     return $rc;
 }
 
@@ -324,7 +312,6 @@ _HERE_
 
     my %a = (
          'incheaders' => 'all',
-         'nounlink' => 0,
          'otherlibs' => $val,
          'tryextern' => 0,
          );
@@ -598,7 +585,6 @@ _HERE_
 
     my %a = (
          'incheaders' => 'all',
-         'nounlink' => 0,
          'otherlibs' => $val,
          'tryextern' => 0,
          );
@@ -636,7 +622,7 @@ check_setmntent_1arg
 main () { setmntent ("/etc/mnttab"); }
 _HERE_
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'incheaders' => 'all', 'nounlink' => 0, 'otherlibs' => undef, 'tryextern' => 0, });
+        { 'incheaders' => 'all', 'otherlibs' => undef, 'tryextern' => 0, });
     if ($rc == 0)
     {
         $r_config->{$name} = 1;
@@ -663,7 +649,7 @@ check_setmntent_2arg
 main () { setmntent ("/etc/mnttab", "r"); }
 _HERE_
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'incheaders' => 'all', 'nounlink' => 0, 'otherlibs' => undef, 'tryextern' => 0, });
+        { 'incheaders' => 'all', 'otherlibs' => undef, 'tryextern' => 0, });
     if ($rc == 0)
     {
         $r_config->{$name} = 1;
@@ -693,7 +679,7 @@ main () {
 }
 _HERE_
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'incheaders' => 'all', 'nounlink' => 0, 'otherlibs' => undef, 'tryextern' => 0, });
+        { 'incheaders' => 'all', 'otherlibs' => undef, 'tryextern' => 0, });
     if ($rc == 0)
     {
         $r_config->{$name} = 1;
@@ -723,7 +709,7 @@ main () {
 }
 _HERE_
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'incheaders' => 'all', 'nounlink' => 0, 'otherlibs' => undef, 'tryextern' => 0, });
+        { 'incheaders' => 'all', 'otherlibs' => undef, 'tryextern' => 0, });
     if ($rc == 0)
     {
         $r_config->{$name} = 1;
@@ -753,7 +739,7 @@ main () {
 }
 _HERE_
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'incheaders' => 'all', 'nounlink' => 0, 'otherlibs' => undef, 'tryextern' => 0, });
+        { 'incheaders' => 'all', 'otherlibs' => undef, 'tryextern' => 0, });
     if ($rc == 0)
     {
         $r_config->{$name} = 1;
@@ -1148,6 +1134,9 @@ _HERE_
 
     print CCOFH <<'_HERE_';
 
+#define _di_build_sh 0
+#define _di_build_pl 1
+
 #endif /* _config_H */
 _HERE_
     close CCOFH;
@@ -1168,6 +1157,7 @@ if (! defined ($ARGV[0]) ||
     exit 1;
 }
 
+if (-d $TMP) { system ("rm -rf $TMP"); }
 if (! -d $TMP) { mkdir $TMP, 0777; }
 chdir $TMP;
 
@@ -1184,4 +1174,5 @@ create_config;
 close LOGFH;
 
 chdir "..";
-rmdir $TMP;
+if (-d $TMP) { system ("rm -rf $TMP"); }
+exit 0;
