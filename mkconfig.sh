@@ -108,7 +108,6 @@ check_run () {
             exitmkconfig $rc
         fi
     fi
-    rm -f ${name}.exe ${name}.c ${name}.out ${name}.o > /dev/null 2>&1
     echo $rval
     return $rc
 }
@@ -221,7 +220,6 @@ check_compile () {
     eval ${cmd} >> $LOG 2>&1
     rc=$?
     echo "##  compile test: $rc" >> $LOG
-    rm -f ${name}.c ${name}.o ${name}.obj > /dev/null 2>&1
     return $rc
 }
 
@@ -379,7 +377,6 @@ check_setmntent_1arg () {
     code="main () { setmntent (\"/etc/mnttab\"); }"
     cleardata args
     setdata args incheaders all
-    setdata args nounlink 0
     setdata args otherlibs ""
     setdata args tryextern 0
     check_link "${name}" "${code}" > /dev/null
@@ -406,7 +403,6 @@ check_setmntent_2arg () {
     code="main () { setmntent (\"/etc/mnttab\", \"r\"); }"
     cleardata args
     setdata args incheaders all
-    setdata args nounlink 0
     setdata args otherlibs ""
     setdata args tryextern 0
     check_link "${name}" "${code}" > /dev/null
@@ -438,7 +434,6 @@ main () {
 "
     cleardata args
     setdata args incheaders all
-    setdata args nounlink 0
     setdata args otherlibs ""
     setdata args tryextern 0
     check_link "${name}" "${code}" > /dev/null
@@ -470,7 +465,6 @@ main () {
 "
     cleardata args
     setdata args incheaders all
-    setdata args nounlink 0
     setdata args otherlibs ""
     setdata args tryextern 0
     check_link "${name}" "${code}" > /dev/null
@@ -502,7 +496,6 @@ main () {
 "
     cleardata args
     setdata args incheaders all
-    setdata args nounlink 0
     setdata args otherlibs ""
     setdata args tryextern 0
     check_link "${name}" "${code}" > /dev/null
@@ -672,7 +665,6 @@ main () {  return (i==0); }
 
     cleardata args
     setdata args incheaders all
-    setdata args nounlink 0
     setdata args otherlibs "${otherlibs}"
     setdata args tryextern 0
     dlibs=`check_link "${name}" "${code}"`
@@ -716,7 +708,6 @@ check_class () {
 
     cleardata args
     setdata args incheaders all
-    setdata args nounlink 0
     setdata args otherlibs "${otherlibs}"
     setdata args tryextern 0
     check_link "${name}" "${code}" > /dev/null
@@ -972,7 +963,7 @@ ${tdatline}"
                 ininclude=1
                 ;;
         esac
-    done < $configfile
+    done < ../${configfile}
 
     for cfgvar in ${di_cfg_vars}
     do
@@ -1018,6 +1009,9 @@ _HERE_
 
     cat << _HERE_ >> ${CONFH}
 
+#define _di_build_sh 1
+#define _di_build_pl 0
+
 #endif /* _config_H */
 _HERE_
 
@@ -1043,6 +1037,7 @@ test -d $TMP && rm -rf $TMP > /dev/null 2>&1
 mkdir $TMP
 cd $TMP
 
+echo "$0 from $configfile"
 rm -f $LOG > /dev/null 2>&1
 CFLAGS="${CFLAGS} ${CINCLUDES}"
 echo "CC: ${CC}" >> $LOG
@@ -1053,5 +1048,5 @@ echo "LIBS: ${LIBS}" >> $LOG
 create_config $configfile
 
 cd ..
-#test -d $TMP && rm -rf $TMP > /dev/null 2>&1
+test -d $TMP && rm -rf $TMP > /dev/null 2>&1
 exit 0
