@@ -2,9 +2,6 @@
 
 LOG="../mkconfig.log"
 TMP="_tmp"
-ARGS="args.tmp"
-VALUE="value.tmp"
-CFG="config.tmp"
 CONFH="../config.h"
 REQLIB="../reqlibs.txt"
 EN='-n'
@@ -33,44 +30,40 @@ exitmkconfig () {
 }
 
 cleardata () {
-    cdfile=$1
-    > $cdfile
+    prefix=$1
+    for tval in eval \${di_${prefix}_vars}
+    do
+        eval unset di_${prefix}_${tval}
+    done
+    eval "di_${prefix}_vars="
 }
 
 setdata () {
-    sdfile=$1
+    prefix=$1
     sdname=$2
     sdval=$3
 
-    cat $sdfile | egrep -v "^${sdname} " > ${sdfile}.tmp 2>/dev/null
-    mv -f ${sdfile}.tmp ${sdfile}
-    echo "${sdname} ${sdval}" >> ${sdfile}
+    cmd="di_${prefix}_vars=\"\${di_${prefix}_vars} ${sdname}\""
+    eval "$cmd"
+    eval "di_${prefix}_${sdname}=\"${sdval}\""
 }
 
 getdata () {
-    gdfile=$1
+    prefix=$1
     gdname=$2
 
-    tgdval=`egrep "^${gdname} " ${gdfile}`
-    rc=$?
-    gdval=""
-    if [ $rc -eq 0 ]
-    then
-        set $tgdval
-        gdval=$2
-    fi
-    echo ${gdval}
+    gdval=`eval echo "\\${di_${prefix}_${gdname}}"`
+    echo $gdval
 }
 
 print_headers () {
 
-    incheaders=`getdata $ARGS incheaders`
-
+    incheaders=`getdata args incheaders`
     if [ "${incheaders}" = "all" -o "${incheaders}" = "std" ]
     then
         for tnm in '_hdr_stdio' '_hdr_stdlib' '_sys_types' '_sys_param'
         do
-            tval=`getdata $CFG $tnm`
+            tval=`getdata cfg ${tnm}`
             if [ "${tval}" != "0" -a "${tval}" != "" ]
             then
                 echo "#include <${tval}>"
@@ -80,22 +73,20 @@ print_headers () {
 
     if [ "${incheaders}" = "all" ]
     then
-        while read thdline
+        for cfgvar in ${di_cfg_vars}
         do
-            set $thdline
-            hdnm=$1
-            hdval=$2
-            case ${hdnm} in
+            case ${cfgvar} in
                 _hdr_stdio|_hdr_stdlib|_sys_types|_sys_param)
                     ;;
                 _hdr_*|_sys_*)
+                    hdval=`getdata cfg ${cfgvar}`
                     if [ "${hdval}" != "0" -a "${hdval}" != "" ]
                     then
                         echo "#include <${hdval}>"
                     fi
                     ;;
             esac
-        done < $CFG
+        done
     fi
 }
 
@@ -103,7 +94,7 @@ check_run () {
     name=$1
     code=$2
 
-    dlibs=`check_link "${name}" "${code}"`
+    check_link "${name}" "${code}" > /dev/null
     rc=$?
     echo "##  run test: link: $rc" >> $LOG
     rval=0
@@ -128,10 +119,10 @@ check_link () {
     shift;shift
 
     ocounter=0
-    clotherlibs=`getdata $ARGS otherlibs`
+    clotherlibs=`getdata args otherlibs`
     if [ "${clotherlibs}" != "" ]
     then
-        set $clotherlibs
+        set -- $clotherlibs
         ocount=$#
     else
         ocount=0
@@ -144,7 +135,7 @@ check_link () {
     cat ${name}.c >> $LOG
 
     dlibs=""
-    setdata $ARGS otherlibs ""
+    setdata args otherlibs ""
     _check_link $name
     rc=$?
     echo "##      link test (none): $rc" >> $LOG
@@ -152,25 +143,26 @@ check_link () {
     then
         while test $ocounter -lt $ocount
         do
-            ocounter=`eval $ocounter + 1`
-            set $clotherlibs
+            ocounter=`calc $ocounter + 1`
+            set -- $clotherlibs
             tcounter=0
             olibs=""
             while test $tcounter -lt $ocounter
             do
                 olibs="${olibs} $1"
                 shift
+                tcounter=`calc $tcounter + 1`
             done
             dlibs="${olibs}"
-            setdata $ARGS otherlibs "$olibs"
+            setdata args otherlibs "$olibs"
             _check_link $name
-            echo "##      link test (${olibs}): $rc" >> $LOG
             rc=$?
+            echo "##      link test (${olibs}): $rc" >> $LOG
             if [ $rc -eq 0 ]
             then
-                reqlibs=`getdata $CFG reqlibs`
+                reqlibs=`getdata data reqlibs`
                 reqlibs="${reqlibs} ${olibs}"
-                setdata $CFG reqlibs $reqlibs
+                setdata data reqlibs "${reqlibs}"
                 break
             fi
         done
@@ -183,14 +175,14 @@ _check_link () {
     name=$1
 
     cmd="${CC} ${CFLAGS} "
-    cflags=`getdata $ARGS cflags`
+    cflags=`getdata args cflags`
     if [ "${cflags}" != "" ]
     then
         cmd="${cmd} ${cflags} "
     fi
     cmd="${cmd} -o ${name}.exe ${name}.c "
     cmd="${cmd} ${LDFLAGS} ${LIBS} "
-    _clotherlibs=`getdata $ARGS otherlibs`
+    _clotherlibs=`getdata args otherlibs`
     if [ "${_clotherlibs}" != "" ]
     then
         cmd="${cmd} ${_clotherlibs} "
@@ -238,9 +230,9 @@ check_header () {
     name=$1
     file=$2
 
-    echo "## [${name}] header: ${file} ..." >> $LOG
-    echo ${EN} "header: ${file} ...${EC}"
-    reqhdr=`getdata $ARGS reqhdr`
+    echo "## [${name}] header: ${file} ... " >> $LOG
+    echo ${EN} "header: ${file} ... ${EC}"
+    reqhdr=`getdata args reqhdr`
     code=""
     if [ "${reqhdr}" != "" ]
     then
@@ -258,8 +250,8 @@ check_header () {
 main () { exit (0); }
 "
     rc=1
-    cleardata $ARGS
-    setdata $ARGS incheaders std
+    cleardata args
+    setdata args incheaders std
     check_compile "${name}" "${code}"
     rc=$?
     val="0"
@@ -272,7 +264,7 @@ main () { exit (0); }
         echo "## [${name}] no" >> $LOG
         echo "no"
     fi
-    setdata $CFG "${name}" "${val}"
+    setdata cfg "${name}" "${val}"
 }
 
 check_keyword () {
@@ -283,7 +275,7 @@ check_keyword () {
     echo ${EN} "keyword: $keyword ... ${EC}"
     trc=0
     code="main () { int ${keyword}; ${keyword} = 1; exit (0); }"
-    setdata $ARGS incheaders std
+    setdata args incheaders std
     check_compile "${name}" "${code}"
     rc=$?
     if [ $rc -ne 0 ]  # failure means it is reserved...
@@ -295,7 +287,7 @@ check_keyword () {
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata $CFG ${name} $trc
+    setdata cfg ${name} $trc
 }
 
 check_proto () {
@@ -309,7 +301,7 @@ extern int foo (int, int);
 _END_EXTERNS_
 int bar () { int rc; rc = foo (1,1); return 0; }
 '
-    setdata $ARGS incheaders all
+    setdata args incheaders all
     check_compile "${name}" "${code}"
     rc=$?
     trc=0
@@ -322,7 +314,7 @@ int bar () { int rc; rc = foo (1,1); return 0; }
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata $CFG $name $trc
+    setdata cfg $name $trc
 }
 
 check_type () {
@@ -338,8 +330,8 @@ static struct xxx v;
 struct xxx* f() { return &v; }
 main () { struct xxx *tmp; tmp = f(); exit (0); }
 "
-    cleardata $ARGS
-    setdata $ARGS incheaders all
+    cleardata args
+    setdata args incheaders all
     check_compile "${name}" "${code}"
     rc=$?
     if [ $rc -eq 0 ]
@@ -351,7 +343,7 @@ main () { struct xxx *tmp; tmp = f(); exit (0); }
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata $CFG $name $trc
+    setdata cfg $name $trc
 }
 
 check_member () {
@@ -363,8 +355,8 @@ check_member () {
     echo ${EN} "exists: $struct.$member ... ${EC}"
     trc=0
     code="main () { struct ${struct} s; int i; i = sizeof (s.${member}); }"
-    cleardata $ARGS
-    setdata $ARGS incheaders all
+    cleardata args
+    setdata args incheaders all
     check_compile "${name}" "${code}"
     if [ $rc -eq 0 ]
     then
@@ -375,7 +367,7 @@ check_member () {
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata $CFG $name $trc
+    setdata cfg $name $trc
 }
 
 check_setmntent_1arg () {
@@ -385,12 +377,12 @@ check_setmntent_1arg () {
     echo ${EN} "setmntent(): 1 argument ... ${EC}"
     trc=0
     code="main () { setmntent (\"/etc/mnttab\"); }"
-    cleardata $ARGS
-    setdata $ARGS incheaders all
-    setdata $ARGS nounlink 0
-    setdata $ARGS otherlibs ""
-    setdata $ARGS tryextern 0
-    check_link "${name}" "${code}"
+    cleardata args
+    setdata args incheaders all
+    setdata args nounlink 0
+    setdata args otherlibs ""
+    setdata args tryextern 0
+    check_link "${name}" "${code}" > /dev/null
     rc=$?
     if [ $rc -eq 0 ]
     then
@@ -401,7 +393,7 @@ check_setmntent_1arg () {
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata $CFG $name $trc
+    setdata cfg $name $trc
 }
 
 check_setmntent_2arg () {
@@ -412,12 +404,12 @@ check_setmntent_2arg () {
 
     trc=0
     code="main () { setmntent (\"/etc/mnttab\", \"r\"); }"
-    cleardata $ARGS
-    setdata $ARGS incheaders all
-    setdata $ARGS nounlink 0
-    setdata $ARGS otherlibs ""
-    setdata $ARGS tryextern 0
-    check_link "${name}" "${code}"
+    cleardata args
+    setdata args incheaders all
+    setdata args nounlink 0
+    setdata args otherlibs ""
+    setdata args tryextern 0
+    check_link "${name}" "${code}" > /dev/null
     rc=$?
     if [ $rc -eq 0 ]
     then
@@ -428,7 +420,7 @@ check_setmntent_2arg () {
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata $CFG $name $trc
+    setdata cfg $name $trc
 }
 
 check_statfs_2arg () {
@@ -444,12 +436,12 @@ main () {
     statfs (name, &statBuf);
 }
 "
-    cleardata $ARGS
-    setdata $ARGS incheaders all
-    setdata $ARGS nounlink 0
-    setdata $ARGS otherlibs ""
-    setdata $ARGS tryextern 0
-    check_link "${name}" "${code}"
+    cleardata args
+    setdata args incheaders all
+    setdata args nounlink 0
+    setdata args otherlibs ""
+    setdata args tryextern 0
+    check_link "${name}" "${code}" > /dev/null
     rc=$?
     if [ $rc -eq 0 ]
     then
@@ -460,7 +452,7 @@ main () {
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata $CFG $name $trc
+    setdata cfg $name $trc
 }
 
 check_statfs_3arg () {
@@ -476,12 +468,12 @@ main () {
     statfs (name, &statBuf, sizeof (statBuf));
 }
 "
-    cleardata $ARGS
-    setdata $ARGS incheaders all
-    setdata $ARGS nounlink 0
-    setdata $ARGS otherlibs ""
-    setdata $ARGS tryextern 0
-    check_link "${name}" "${code}"
+    cleardata args
+    setdata args incheaders all
+    setdata args nounlink 0
+    setdata args otherlibs ""
+    setdata args tryextern 0
+    check_link "${name}" "${code}" > /dev/null
     rc=$?
     if [ $rc -eq 0 ]
     then
@@ -492,7 +484,7 @@ main () {
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata $CFG $name $trc
+    setdata cfg $name $trc
 }
 
 check_statfs_4arg () {
@@ -508,12 +500,12 @@ main () {
     statfs (name, &statBuf, sizeof (statBuf), 0);
 }
 "
-    cleardata $ARGS
-    setdata $ARGS incheaders all
-    setdata $ARGS nounlink 0
-    setdata $ARGS otherlibs ""
-    setdata $ARGS tryextern 0
-    check_link "${name}" "${code}"
+    cleardata args
+    setdata args incheaders all
+    setdata args nounlink 0
+    setdata args otherlibs ""
+    setdata args tryextern 0
+    check_link "${name}" "${code}" > /dev/null
     rc=$?
     if [ $rc -eq 0 ]
     then
@@ -524,7 +516,7 @@ main () {
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata $CFG $name $trc
+    setdata cfg $name $trc
 }
 
 
@@ -534,7 +526,7 @@ check_size () {
 
     echo "## [$name] sizeof: $type ... " >> $LOG
     echo ${EN} "sizeof: $type ... ${EC}"
-    code="main () { printf(\"%u\\\\n\", sizeof(${type})); exit (0); }"
+    code="main () { printf(\"%u\", sizeof(${type})); exit (0); }"
     val=0
     val=`check_run "${name}" "${code}"`
     rc=$?
@@ -546,7 +538,7 @@ check_size () {
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata $CFG "${name}" "${val}"
+    setdata cfg "${name}" "${val}"
 }
 
 check_int_declare () {
@@ -557,8 +549,8 @@ check_int_declare () {
     echo ${EN} "declared: $function ... ${EC}"
     trc=0
     code="main () { int x; x = ${function}; }"
-    cleardata $ARGS
-    setdata $ARGS incheaders all
+    cleardata args
+    setdata args incheaders all
     check_compile "${name}" "${code}"
     rc=$?
     if [ $rc -eq 0 ]
@@ -570,7 +562,7 @@ check_int_declare () {
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata $CFG $name $trc
+    setdata cfg $name $trc
 }
 
 check_ptr_declare () {
@@ -581,8 +573,8 @@ check_ptr_declare () {
     echo ${EN} "declared: $function ... ${EC}"
     trc=0
     code="main () { _VOID_ *x; x = ${function}; }"
-    cleardata $ARGS
-    setdata $ARGS incheaders all
+    cleardata args
+    setdata args incheaders all
     check_compile "${name}" "${code}"
     rc=$?
     if [ $rc -eq 0 ]
@@ -594,7 +586,7 @@ check_ptr_declare () {
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata $CFG $name $trc
+    setdata cfg $name $trc
 }
 
 check_npt () {
@@ -610,8 +602,8 @@ struct _TEST_struct { int _TEST_member; };
 extern struct _TEST_struct* ${proto} _ARG_((struct _TEST_struct*));
 _END_EXTERNS_
 "
-    cleardata $ARGS
-    setdata $ARGS incheaders all
+    cleardata args
+    setdata args incheaders all
     check_compile "${name}" "${code}"
     rc=$?
     if [ $rc -eq 0 ]
@@ -623,7 +615,7 @@ _END_EXTERNS_
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata $CFG $name $trc
+    setdata cfg $name $trc
 }
 
 check_command () {
@@ -649,7 +641,7 @@ check_command () {
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata $CFG $name $trc
+    setdata cfg $name $trc
 }
 
 check_lib () {
@@ -667,7 +659,7 @@ _END_EXTERNS_
 static _TEST_fun_ i=(_TEST_fun_) ${func};
 main () {  return (i==0); }
 "
-    otherlibs=`getdata $ARGS otherlibs`
+    otherlibs=`getdata args otherlibs`
 
     if [ "${otherlibs}" != "" ]
     then
@@ -678,11 +670,11 @@ main () {  return (i==0); }
         echo ${EN} "function: $func ... ${EC}"
     fi
 
-    cleardata $ARGS
-    setdata $ARGS incheaders all
-    setdata $ARGS nounlink 0
-    setdata $ARGS otherlibs "${otherlibs}"
-    setdata $ARGS tryextern 0
+    cleardata args
+    setdata args incheaders all
+    setdata args nounlink 0
+    setdata args otherlibs "${otherlibs}"
+    setdata args tryextern 0
     dlibs=`check_link "${name}" "${code}"`
     rc=$?
     if [ $rc -eq 0 ]
@@ -701,7 +693,7 @@ main () {  return (i==0); }
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata $CFG $name $trc
+    setdata cfg $name $trc
     return $trc
 }
 
@@ -711,23 +703,23 @@ check_class () {
 
     trc=0
     code=" main () { ${class} testclass; } "
-    otherlibs=`getdata $ARGS otherlibs`
+    otherlibs=`getdata args otherlibs`
 
     if [ "$otherlibs" != "" ]
     then
-        echo "## [$name] class: $class [$val] ... " >> $LOG
-        echo ${EN} "class: $class [$val] ... ${EC}"
+        echo "## [$name] class: $class [$otherlibs] ... " >> $LOG
+        echo ${EN} "class: $class [$otherlibs] ... ${EC}"
     else
         echo "## [$name] class: $class ... " >> $LOG
         echo ${EN} "class: $class ... ${EC}"
     fi
 
-    cleardata $ARGS
-    setdata $ARGS incheaders all
-    setdata $ARGS nounlink 0
-    setdata $ARGS otherlibs "${otherlibs}"
-    setdata $ARGS tryextern 0
-    dlibs=`check_link ${name} ${code}`
+    cleardata args
+    setdata args incheaders all
+    setdata args nounlink 0
+    setdata args otherlibs "${otherlibs}"
+    setdata args tryextern 0
+    check_link "${name}" "${code}" > /dev/null
     rc=$?
     if [ $rc -eq 0 ]
     then
@@ -745,7 +737,7 @@ check_class () {
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata $CFG $name $trc
+    setdata cfg $name $trc
 }
 
 # malloc.h conflicts w/string.h on some systems.
@@ -753,8 +745,8 @@ check_include_malloc () {
     name=$1
 
     trc=0
-    _hdr_malloc=`getdata $CFG _hdr_malloc`
-    _hdr_string=`getdata $CFG _hdr_string`
+    _hdr_malloc=`getdata cfg _hdr_malloc`
+    _hdr_string=`getdata cfg _hdr_string`
     if [ "${_hdr_string}" = "string.h" -a "${_hdr_malloc}" = "malloc.h" ]
     then
         echo "## [$name] header: include malloc.h ... " >> $LOG
@@ -764,8 +756,8 @@ check_include_malloc () {
 #include <string.h>
 #include <malloc.h>
 main () { char *x; x = (char *) malloc (20); }"
-        cleardata $ARGS
-        setdata $ARGS incheaders std
+        cleardata args
+        setdata args incheaders std
         check_compile "${name}" "${code}"
         rc=$?
         if [ $rc -eq 0 ]
@@ -778,15 +770,15 @@ main () { char *x; x = (char *) malloc (20); }"
             echo "no"
         fi
     fi
-    setdata $CFG "${name}" $trc
+    setdata cfg "${name}" $trc
 }
 
 check_include_string () {
     name=$1
 
     trc=0
-    _hdr_string=`getdata $CFG _hdr_string`
-    _hdr_strings=`getdata $CFG _hdr_strings`
+    _hdr_string=`getdata cfg _hdr_string`
+    _hdr_strings=`getdata cfg _hdr_strings`
     if [ "${_hdr_string}" = "string.h" -a "${_hdr_strings}" = "strings.h" ]
     then
         echo "## [$name] header: include both string.h & strings.h ... " >> $LOG
@@ -796,8 +788,8 @@ check_include_string () {
 #include <strings.h>
 main () { char *x; x = \"xyz\"; strcat (x, \"abc\"); }
 "
-        cleardata $ARGS
-        setdata $ARGS incheaders std
+        cleardata args
+        setdata args incheaders std
         check_compile "${name}" "${code}"
         rc=$?
         if [ $rc -eq 0 ]
@@ -810,13 +802,14 @@ main () { char *x; x = \"xyz\"; strcat (x, \"abc\"); }
             echo "no"
         fi
     fi
-    setdata $CFG $name $trc
+    setdata cfg $name $trc
 }
 
 create_config () {
     configfile=$1
-    cleardata $CFG
-    setdata $CFG reqlibs ""
+    cleardata cfg
+    cleardata data
+    setdata data reqlibs ""
 
     > $CONFH
     cat <<_HERE_ >> $CONFH
@@ -826,8 +819,8 @@ create_config () {
 
 _HERE_
 
-    cleardata $ARGS
-    setdata $ARGS reqhdr ""
+    cleardata args
+    setdata args reqhdr ""
     check_header "_hdr_stdlib" "stdlib.h"
     check_header "_hdr_stdio" "stdio.h"
     check_header "_sys_types" "sys/types.h"
@@ -891,7 +884,7 @@ ${tdatline}"
                         hdr="sys/${hdr}"
                         ;;
                 esac
-                setdata $ARGS reqhdr "$reqhdr"
+                setdata args reqhdr "$reqhdr"
                 check_header $nm $hdr
                 ;;
             typ*)
@@ -908,6 +901,8 @@ ${tdatline}"
                 shift;shift
                 libs=$*
                 nm="_lib_${func}"
+                cleardata args
+                setdata args otherlibs "${libs}"
                 check_lib $nm "${func}"
                 rc=$?
                 if [ $func = 'setmntent' -a $rc -eq 1 ]
@@ -928,15 +923,15 @@ ${tdatline}"
                 shift;shift
                 libs="$*"
                 nm=`echo "_class_${class}" | sed 's/:/_/g'`
-                cleardata $ARGS
-                setdata $ARGS otherlibs "${libs}"
-                check_class $nm "${class}"
+                cleardata args
+                setdata args otherlibs "${libs}"
+                check_class "${nm}" "${class}"
                 ;;
             command*)
                 set $tdatline
                 cmd=$2
                 nm=`echo "_command_${cmd}" | tr '[A-Z]' '[a-z]'`
-                check_command $nm $cmd
+                check_command "${nm}" "${cmd}"
                 ;;
             npt*)
                 set $tdatline
@@ -979,29 +974,26 @@ ${tdatline}"
         esac
     done < $configfile
 
-    while read tline
+    for cfgvar in ${di_cfg_vars}
     do
-        set ${tline}
-        nm=$1
-        val=$2
+        val=`getdata cfg $cfgvar`
         if [ "${val}" = "0" ]
         then
-            echo "#undef ${nm}" >> $CONFH
+            echo "#undef  ${cfgvar}" >> $CONFH
         else
-            case ${nm} in
-                reqlibs)
-                    echo > $REQLIB
-                    echo "${val}" >> $REQLIB
-                    ;;
+            case ${cfgvar} in
                 _siz_*)
-                    echo "#define ${nm} ${val}" >> $CONFH
+                    echo "#define ${cfgvar} ${val}" >> $CONFH
                     ;;
                 *)
-                    echo "#define ${nm} 1" >> $CONFH
+                    echo "#define ${cfgvar} 1" >> $CONFH
                     ;;
             esac
         fi
-    done < $CFG
+    done
+
+    > $REQLIB
+    echo `getdata data reqlibs` >> $REQLIB
 
     cat << _HERE_ >> $CONFH
 
