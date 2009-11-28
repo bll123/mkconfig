@@ -1064,5 +1064,5 @@ echo "LIBS: ${LIBS}" >> $LOG
 create_config $configfile
 
 cd ..
-#test -d $TMP && rm -rf $TMP > /dev/null 2>&1
+test -d $TMP && rm -rf $TMP > /dev/null 2>&1
 exit 0
