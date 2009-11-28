@@ -855,8 +855,8 @@ create_config
     open (CCOFH, ">../config.h");
     print CCOFH <<'_HERE_';
 
-#ifndef _config_H
-#define _config_H 1
+#ifndef __INC_CONFIG_H
+#define __INC_CONFIG_H 1
 
 _HERE_
 
@@ -1117,7 +1117,7 @@ _HERE_
 #define _mkconfig_sh 0
 #define _mkconfig_pl 1
 
-#endif /* _config_H */
+#endif /* __INC_CONFIG_H */
 _HERE_
     close CCOFH;
 
