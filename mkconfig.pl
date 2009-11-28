@@ -1114,8 +1114,8 @@ _HERE_
 
     print CCOFH <<'_HERE_';
 
-#define _di_build_sh 0
-#define _di_build_pl 1
+#define _mkconfig_sh 0
+#define _mkconfig_pl 1
 
 #endif /* _config_H */
 _HERE_
