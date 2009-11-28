@@ -43,7 +43,7 @@ check_run
     my ($name, $code, $r_val, $r_clist, $r_config, $r_a) = @_;
 
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'incheaders' => 'all', 'tryextern' => 0, %$r_a, });
+        { 'incheaders' => 'all', %$r_a, });
     print LOGFH "##  run test: link: $rc\n";
     $$r_val = 0;
     if ($rc == 0)
@@ -108,24 +108,6 @@ check_link
                   $dlibs .= $val . ' ';
               }
               last;
-          }
-        }
-      }
-
-      if ($rc != 0 && $r_a->{'tryextern'} == 1)
-      {
-        $rc = _check_link ($name, { 'cflags' => '-D_TRY_extern_=1',
-            'otherlibs' => $otherlibs, } );
-        if ($rc == 0)
-        {
-          my $r_hash = $r_config->{'reqlibs'};
-          my @vals = split (/\s+/, $otherlibs);
-          $dlibs = '';
-          foreach my $val (@vals)
-          {
-              if ($val eq '') { next; }
-              $r_hash->{$val} = 1;
-              $dlibs .= $val . ' ';
           }
         }
       }
@@ -313,7 +295,6 @@ _HERE_
     my %a = (
          'incheaders' => 'all',
          'otherlibs' => $val,
-         'tryextern' => 0,
          );
     my $rc = check_link ($name, $code, $r_clist, $r_config, \%a);
     if ($rc == 0)
@@ -586,7 +567,6 @@ _HERE_
     my %a = (
          'incheaders' => 'all',
          'otherlibs' => $val,
-         'tryextern' => 0,
          );
     my $rc = check_link ($name, $code, $r_clist, $r_config, \%a);
     if ($rc == 0)
@@ -622,7 +602,7 @@ check_setmntent_1arg
 main () { setmntent ("/etc/mnttab"); }
 _HERE_
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'incheaders' => 'all', 'otherlibs' => undef, 'tryextern' => 0, });
+        { 'incheaders' => 'all', 'otherlibs' => undef, });
     if ($rc == 0)
     {
         $r_config->{$name} = 1;
@@ -649,7 +629,7 @@ check_setmntent_2arg
 main () { setmntent ("/etc/mnttab", "r"); }
 _HERE_
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'incheaders' => 'all', 'otherlibs' => undef, 'tryextern' => 0, });
+        { 'incheaders' => 'all', 'otherlibs' => undef, });
     if ($rc == 0)
     {
         $r_config->{$name} = 1;
@@ -679,7 +659,7 @@ main () {
 }
 _HERE_
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'incheaders' => 'all', 'otherlibs' => undef, 'tryextern' => 0, });
+        { 'incheaders' => 'all', 'otherlibs' => undef, });
     if ($rc == 0)
     {
         $r_config->{$name} = 1;
@@ -709,7 +689,7 @@ main () {
 }
 _HERE_
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'incheaders' => 'all', 'otherlibs' => undef, 'tryextern' => 0, });
+        { 'incheaders' => 'all', 'otherlibs' => undef, });
     if ($rc == 0)
     {
         $r_config->{$name} = 1;
@@ -739,7 +719,7 @@ main () {
 }
 _HERE_
     my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'incheaders' => 'all', 'otherlibs' => undef, 'tryextern' => 0, });
+        { 'incheaders' => 'all', 'otherlibs' => undef, });
     if ($rc == 0)
     {
         $r_config->{$name} = 1;
