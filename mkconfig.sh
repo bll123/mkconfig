@@ -6,10 +6,11 @@
 #
 
 LOG="../mkconfig.log"
-VARFILESUFFIX=".vars"
-TMP="_tmp"
 CONFH="../config.h"
 REQLIB="../reqlibs.txt"
+TMP="_tmp"
+INC="include.txt"
+VARFILESUFFIX=".vars"
 EN='-n'
 EC=''
 
@@ -52,12 +53,12 @@ setdata () {
     sdval=$3
 
     cmd="di_${prefix}_vars=\"\${di_${prefix}_vars} ${sdname}\""
-echo "###cmd:$cmd:"
     eval "$cmd"
     cmd="di_${prefix}_${sdname}=\"${sdval}\""
-echo "###cmd:$cmd:"
     eval "$cmd"
-    set | egrep "^di_${prefix}" > "${prefix}${VARFILESUFFIX}"
+    set | egrep "^di_${prefix}" | \
+        sed "s/=/='/" | sed "s/$/'/" | \
+        sed "s/''/'/g" > "${prefix}${VARFILESUFFIX}"
 }
 
 getdata () {
@@ -816,8 +817,8 @@ create_config () {
     > $CONFH
     cat <<_HERE_ >> $CONFH
 
-#ifndef _config_H
-#define _config_H 1
+#ifndef __INC_CONFIG_H
+#define __INC_CONFIG_H 1
 
 _HERE_
 
@@ -834,26 +835,9 @@ _HERE_
 
     ininclude=0
     inheaders=1
-    include=""
+    > $INC
     while read tdatline
     do
-        case ${tdatline} in
-            "")
-                ;;
-            \#*)
-                ;;
-            hdr*|sys*)
-                ;;
-            *)
-                if [ $inheaders -eq 1 ]
-                then
-                    check_include_malloc '_include_malloc'
-                    check_include_string '_include_string'
-                fi
-                inheaders=0
-                ;;
-        esac
-
         if [ $ininclude -eq 1 ]
         then
             if [ "${tdatline}" = "endinclude" ]
@@ -861,16 +845,28 @@ _HERE_
                 echo "end include" >> $LOG
                 ininclude=0
             else
-                include="${include}
-${tdatline}"
+                echo "${tdatline}" >> $INC
             fi
+        else
+            case ${tdatline} in
+                "")
+                    ;;
+                \#*)
+                    ;;
+                hdr*|sys*)
+                    ;;
+                *)
+                    if [ $inheaders -eq 1 ]
+                    then
+                        check_include_malloc '_include_malloc'
+                        check_include_string '_include_string'
+                    fi
+                    inheaders=0
+                    ;;
+            esac
         fi
 
         case ${tdatline} in
-            "")
-                ;;
-            \#*)
-                ;;
             hdr*|sys*)
                 set $tdatline
                 type=$1
@@ -1025,14 +1021,14 @@ ${tdatline}"
 
 _HERE_
 
-    echo "${include}" >> ${CONFH}
+    cat $INC >> ${CONFH}
 
     cat << _HERE_ >> ${CONFH}
 
-#define _di_build_sh 1
-#define _di_build_pl 0
+#define _mkconfig_sh 1
+#define _mkconfig_pl 0
 
-#endif /* _config_H */
+#endif /* __INC_CONFIG_H */
 _HERE_
 
 }
