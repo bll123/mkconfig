@@ -6,6 +6,7 @@
 #
 
 LOG="../mkconfig.log"
+VARFILESUFFIX=".vars"
 TMP="_tmp"
 CONFH="../config.h"
 REQLIB="../reqlibs.txt"
@@ -36,6 +37,7 @@ exitmkconfig () {
 
 cleardata () {
     prefix=$1
+    > "${prefix}${VARFILESUFFIX}"
     cmd="echo \${di_${prefix}_vars}"
     for tval in `eval $cmd`
     do
@@ -50,9 +52,12 @@ setdata () {
     sdval=$3
 
     cmd="di_${prefix}_vars=\"\${di_${prefix}_vars} ${sdname}\""
+echo "###cmd:$cmd:"
     eval "$cmd"
     cmd="di_${prefix}_${sdname}=\"${sdval}\""
+echo "###cmd:$cmd:"
     eval "$cmd"
+    set | egrep "^di_${prefix}" > "${prefix}${VARFILESUFFIX}"
 }
 
 getdata () {
@@ -290,7 +295,7 @@ check_keyword () {
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata cfg ${name} $trc
+    setdata cfg "${name}" "${trc}"
 }
 
 check_proto () {
@@ -318,7 +323,7 @@ int bar () { int rc; rc = foo (1,1); return 0; }
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata cfg $name $trc
+    setdata cfg "${name}" "${trc}"
 }
 
 check_type () {
@@ -347,7 +352,7 @@ main () { struct xxx *tmp; tmp = f(); exit (0); }
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata cfg $name $trc
+    setdata cfg "${name}" "${trc}"
 }
 
 check_member () {
@@ -371,7 +376,7 @@ check_member () {
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata cfg $name $trc
+    setdata cfg "${name}" "${trc}"
 }
 
 check_setmntent_1arg () {
@@ -395,7 +400,7 @@ check_setmntent_1arg () {
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata cfg $name $trc
+    setdata cfg "${name}" "${trc}"
 }
 
 check_setmntent_2arg () {
@@ -420,7 +425,7 @@ check_setmntent_2arg () {
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata cfg $name $trc
+    setdata cfg "${name}" "${trc}"
 }
 
 check_statfs_2arg () {
@@ -450,7 +455,7 @@ main () {
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata cfg $name $trc
+    setdata cfg "${name}" "${trc}"
 }
 
 check_statfs_3arg () {
@@ -480,7 +485,7 @@ main () {
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata cfg $name $trc
+    setdata cfg "${name}" "${trc}"
 }
 
 check_statfs_4arg () {
@@ -510,7 +515,7 @@ main () {
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata cfg $name $trc
+    setdata cfg "${name}" "${trc}"
 }
 
 
@@ -556,7 +561,7 @@ check_int_declare () {
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata cfg $name $trc
+    setdata cfg "${name}" "${trc}"
 }
 
 check_ptr_declare () {
@@ -580,7 +585,7 @@ check_ptr_declare () {
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata cfg $name $trc
+    setdata cfg "${name}" "${trc}"
 }
 
 check_npt () {
@@ -609,7 +614,7 @@ _END_EXTERNS_
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata cfg $name $trc
+    setdata cfg "${name}" "${trc}"
 }
 
 check_command () {
@@ -635,7 +640,7 @@ check_command () {
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata cfg $name $trc
+    setdata cfg "${name}" "${trc}"
 }
 
 check_lib () {
@@ -688,7 +693,7 @@ main () {  return (i==0); }
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata cfg $name $trc
+    setdata cfg "${name}" "${trc}"
     return $trc
 }
 
@@ -723,6 +728,9 @@ check_class () {
         then
             echo ${EN} " with ${dlibs}${EC}" >> $LOG
             echo ${EN} " with ${dlibs}${EC}"
+            reqlibs=`getdata data reqlibs`
+            reqlibs="${reqlibs} ${dlibs}"
+            setdata data reqlibs "${reqlibs}"
         fi
         echo "" >> $LOG
         echo ""
@@ -730,7 +738,7 @@ check_class () {
         echo "## [$name] no" >> $LOG
         echo "no"
     fi
-    setdata cfg $name $trc
+    setdata cfg "${name}" "${trc}"
 }
 
 # malloc.h conflicts w/string.h on some systems.
@@ -763,7 +771,7 @@ main () { char *x; x = (char *) malloc (20); }"
             echo "no"
         fi
     fi
-    setdata cfg "${name}" $trc
+    setdata cfg "${name}" "${trc}"
 }
 
 check_include_string () {
@@ -795,13 +803,14 @@ main () { char *x; x = \"xyz\"; strcat (x, \"abc\"); }
             echo "no"
         fi
     fi
-    setdata cfg $name $trc
+    setdata cfg "${name}" "${trc}"
 }
 
 create_config () {
     configfile=$1
     cleardata cfg
     cleardata data
+
     setdata data reqlibs ""
 
     > $CONFH
@@ -967,6 +976,8 @@ ${tdatline}"
         esac
     done < ../${configfile}
 
+    . "./cfg${VARFILESUFFIX}"
+
     for cfgvar in ${di_cfg_vars}
     do
         val=`getdata cfg $cfgvar`
@@ -984,6 +995,8 @@ ${tdatline}"
             esac
         fi
     done
+
+    . "./data${VARFILESUFFIX}"
 
     > $REQLIB
     val=`getdata data reqlibs`
@@ -1055,5 +1068,5 @@ echo "LIBS: ${LIBS}" >> $LOG
 create_config $configfile
 
 cd ..
-test -d $TMP && rm -rf $TMP > /dev/null 2>&1
+#test -d $TMP && rm -rf $TMP > /dev/null 2>&1
 exit 0
