@@ -51,7 +51,8 @@ setdata () {
 
     cmd="di_${prefix}_vars=\"\${di_${prefix}_vars} ${sdname}\""
     eval "$cmd"
-    eval "di_${prefix}_${sdname}=\"${sdval}\""
+    cmd="di_${prefix}_${sdname}=\"${sdval}\""
+    eval "$cmd"
 }
 
 getdata () {
@@ -165,9 +166,6 @@ check_link () {
             echo "##      link test (${olibs}): $rc" >> $LOG
             if [ $rc -eq 0 ]
             then
-                reqlibs=`getdata data reqlibs`
-                reqlibs="${reqlibs} ${olibs}"
-                setdata data reqlibs "${reqlibs}"
                 break
             fi
         done
@@ -279,6 +277,7 @@ check_keyword () {
     echo ${EN} "keyword: $keyword ... ${EC}"
     trc=0
     code="main () { int ${keyword}; ${keyword} = 1; exit (0); }"
+    cleardata args
     setdata args incheaders std
     check_compile "${name}" "${code}"
     rc=$?
@@ -305,6 +304,7 @@ extern int foo (int, int);
 _END_EXTERNS_
 int bar () { int rc; rc = foo (1,1); return 0; }
 '
+    cleardata args
     setdata args incheaders all
     check_compile "${name}" "${code}"
     rc=$?
@@ -384,7 +384,6 @@ check_setmntent_1arg () {
     cleardata args
     setdata args incheaders all
     setdata args otherlibs ""
-    setdata args tryextern 0
     check_link "${name}" "${code}" > /dev/null
     rc=$?
     if [ $rc -eq 0 ]
@@ -410,7 +409,6 @@ check_setmntent_2arg () {
     cleardata args
     setdata args incheaders all
     setdata args otherlibs ""
-    setdata args tryextern 0
     check_link "${name}" "${code}" > /dev/null
     rc=$?
     if [ $rc -eq 0 ]
@@ -441,7 +439,6 @@ main () {
     cleardata args
     setdata args incheaders all
     setdata args otherlibs ""
-    setdata args tryextern 0
     check_link "${name}" "${code}" > /dev/null
     rc=$?
     if [ $rc -eq 0 ]
@@ -472,7 +469,6 @@ main () {
     cleardata args
     setdata args incheaders all
     setdata args otherlibs ""
-    setdata args tryextern 0
     check_link "${name}" "${code}" > /dev/null
     rc=$?
     if [ $rc -eq 0 ]
@@ -503,7 +499,6 @@ main () {
     cleardata args
     setdata args incheaders all
     setdata args otherlibs ""
-    setdata args tryextern 0
     check_link "${name}" "${code}" > /dev/null
     rc=$?
     if [ $rc -eq 0 ]
@@ -672,7 +667,6 @@ main () {  return (i==0); }
     cleardata args
     setdata args incheaders all
     setdata args otherlibs "${otherlibs}"
-    setdata args tryextern 0
     dlibs=`check_link "${name}" "${code}"`
     rc=$?
     if [ $rc -eq 0 ]
@@ -684,6 +678,9 @@ main () {  return (i==0); }
         then
             echo ${EN} " with ${dlibs} ${EC}" >> $LOG
             echo ${EN} " with ${dlibs} ${EC}"
+            reqlibs=`getdata data reqlibs`
+            reqlibs="${reqlibs} ${dlibs}"
+            setdata data reqlibs "${reqlibs}"
         fi
         echo "" >> $LOG
         echo ""
@@ -715,7 +712,6 @@ check_class () {
     cleardata args
     setdata args incheaders all
     setdata args otherlibs "${otherlibs}"
-    setdata args tryextern 0
     check_link "${name}" "${code}" > /dev/null
     rc=$?
     if [ $rc -eq 0 ]
@@ -990,7 +986,12 @@ ${tdatline}"
     done
 
     > $REQLIB
-    echo `getdata data reqlibs` >> $REQLIB
+    val=`getdata data reqlibs`
+    val=`for tval in $val
+    do
+        echo $tval
+    done | sort | uniq`
+    echo $val >> $REQLIB
 
     cat << _HERE_ >> $CONFH
 
