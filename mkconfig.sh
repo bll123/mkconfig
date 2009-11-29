@@ -935,8 +935,16 @@ _HERE_
                 set $tdatline
                 func=$2
                 req=$3
-                nm=`echo "_npt_${func}" | tr '[A-Z]' '[a-z]'`
-                check_npt "${nm}" "${func}"
+                has=1
+                if [ "${req}" != "" ]
+                then
+                    has=`getdata cfg "${req}"`
+                fi
+                if [ ${has} -eq 1 ]
+                then
+                    nm=`echo "_npt_${func}" | tr '[A-Z]' '[a-z]'`
+                    check_npt "${nm}" "${func}"
+                fi
                 ;;
             dcl*)
                 set $tdatline
@@ -1053,7 +1061,7 @@ test -d $TMP && rm -rf $TMP > /dev/null 2>&1
 mkdir $TMP
 cd $TMP
 
-echo "$0 from $configfile"
+echo "$0 using $configfile"
 rm -f $LOG > /dev/null 2>&1
 CFLAGS="${CFLAGS} ${CINCLUDES}"
 echo "CC: ${CC}" >> $LOG
