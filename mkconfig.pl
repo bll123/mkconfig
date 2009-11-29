@@ -909,6 +909,7 @@ _HERE_
         }
         elsif ($ininclude == 1)
         {
+            $line =~ s,\\\\,\\,go;
             $include .= $line . "\n";
         }
         elsif ($line =~ m#^include$#o)
@@ -1141,7 +1142,7 @@ if (-d $TMP) { system ("rm -rf $TMP"); }
 mkdir $TMP, 0777;
 chdir $TMP;
 
-print "$0 from $ARGV[0]\n";
+print "$0 using $ARGV[0]\n";
 unlink $LOG;
 open (LOGFH, ">>$LOG");
 $ENV{'CFLAGS'} = $ENV{'CFLAGS'} . ' ' . $ENV{'CINCLUDES'};
