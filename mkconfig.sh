@@ -56,7 +56,7 @@ setdata () {
     eval "$cmd"
     cmd="di_${prefix}_${sdname}=\"${sdval}\""
     eval "$cmd"
-    set | egrep "^di_${prefix}" | \
+    set | grep "^di_${prefix}" | \
         sed "s/=/='/" | sed "s/$/'/" | \
         sed "s/''/'/g" > "${prefix}${VARFILESUFFIX}"
 }
@@ -1049,7 +1049,7 @@ then
     exit 1
 fi
 configfile=$1
-echo -n 'test' | egrep -- '-n' # > /dev/null 2>&1
+echo -n 'test' | grep -- '-n' # > /dev/null 2>&1
 rc=$?
 if [ $rc -eq 0 ]
 then
