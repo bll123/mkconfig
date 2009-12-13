@@ -1049,7 +1049,7 @@ then
     exit 1
 fi
 configfile=$1
-echo -n 'test' | grep -- '-n' # > /dev/null 2>&1
+echo -n 'test' | grep -- '-n' > /dev/null 2>&1
 rc=$?
 if [ $rc -eq 0 ]
 then
