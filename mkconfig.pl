@@ -1074,21 +1074,19 @@ _HERE_
 
     foreach my $val (@clist)
     {
-        if ($config{$val} eq '0')
-        {
-            print CCOFH "#undef  $val\n";
-        }
-        else
-        {
-            if ($val =~ m#^_siz_#o)
-            {
-                print CCOFH "#define $val $config{$val}\n";
-            }
-            else
-            {
-                print CCOFH "#define $val 1\n";
-            }
-        }
+      my $tval = 0;
+      if ($config{$val} ne "0")
+      {
+          $tval = 1;
+      }
+      if ($val =~ m#^_siz#o)
+      {
+        print CCOFH "#define $val $config{$val}\n";
+      }
+      else
+      {
+        print CCOFH "#define $val $tval\n";
+      }
     }
 
     # standard tail -- always needed; non specific
