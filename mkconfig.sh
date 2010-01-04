@@ -56,9 +56,15 @@ setdata () {
     eval "$cmd"
     cmd="di_${prefix}_${sdname}=\"${sdval}\""
     eval "$cmd"
+    # And save the data for re-use.
+    # Some shells don't quote the values in the set
+    # command like bash does.  So we do it.
+    # Then we have to undo it for bash.
+    # And then there's: x='', which gets munged.
     set | grep "^di_${prefix}" | \
         sed "s/=/='/" | sed "s/$/'/" | \
-        sed "s/''/'/g" > "${prefix}${VARFILESUFFIX}"
+        sed "s/''/'/g" | sed "s/='$/=''/" \
+        > "${prefix}${VARFILESUFFIX}"
 }
 
 getdata () {
@@ -70,7 +76,6 @@ getdata () {
 }
 
 print_headers () {
-
     incheaders=`getdata args incheaders`
     if [ "${incheaders}" = "all" -o "${incheaders}" = "std" ]
     then
@@ -814,8 +819,8 @@ create_config () {
 
     setdata data reqlibs ""
 
-    > $CONFH
-    cat <<_HERE_ >> $CONFH
+    > ${CONFH}
+    cat <<_HERE_ >> ${CONFH}
 
 #ifndef __INC_CONFIG_H
 #define __INC_CONFIG_H 1
@@ -836,6 +841,9 @@ _HERE_
     ininclude=0
     inheaders=1
     > $INC
+    # This while loop reads data from stdin, so it has
+    # a subshell of its own.  This requires us to save the
+    # configuration data in files for re-use.  See setdata()
     while read tdatline
     do
         if [ $ininclude -eq 1 ]
@@ -980,26 +988,28 @@ _HERE_
         esac
     done < ../${configfile}
 
+    # refetch the configuration data
     . "./cfg${VARFILESUFFIX}"
 
     for cfgvar in ${di_cfg_vars}
     do
         val=`getdata cfg $cfgvar`
-        if [ "${val}" = "0" ]
+        tval=0
+        if [ "$val" != "0" ]
         then
-            echo "#undef  ${cfgvar}" >> $CONFH
-        else
-            case ${cfgvar} in
-                _siz_*)
-                    echo "#define ${cfgvar} ${val}" >> $CONFH
-                    ;;
-                *)
-                    echo "#define ${cfgvar} 1" >> $CONFH
-                    ;;
-            esac
+          tval=1
         fi
+        case ${cfgvar} in
+            _siz_*)
+                echo "#define ${cfgvar} ${val}" >> ${CONFH}
+                ;;
+            *)
+                echo "#define ${cfgvar} ${tval}" >> ${CONFH}
+                ;;
+        esac
     done
 
+    # refetch the required libs
     . "./data${VARFILESUFFIX}"
 
     > $REQLIB
@@ -1010,7 +1020,8 @@ _HERE_
     done | sort | uniq`
     echo $val >> $REQLIB
 
-    cat << _HERE_ >> $CONFH
+    # standard header for all...
+    cat << _HERE_ >> ${CONFH}
 
 #if ! _key_void || ! _proto_stdc
 # define void int
