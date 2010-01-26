@@ -10,9 +10,10 @@ CONFH="../config.h"
 REQLIB="../reqlibs.txt"
 TMP="_tmp"
 INC="include.txt"
-VARFILESUFFIX=".vars"
+CACHEFILE="../mkconfig.cache"
 EN='-n'
 EC=''
+datachg=0
 
 precc='
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
@@ -36,9 +37,26 @@ exitmkconfig () {
     exit 1
 }
 
+savedata () {
+    # And save the data for re-use.
+    # Some shells don't quote the values in the set
+    # command like bash does.  So we do it.
+    # Then we have to undo it for bash.
+    # And then there's: x='', which gets munged.
+    if [ $datachg -eq 1 ]
+    then
+      set | grep "^di_cfg" | \
+        sed "s/=/='/" | \
+        sed "s/$/'/" | \
+        sed "s/''/'/g" | \
+        sed "s/='$/=''/" \
+        > "${CACHEFILE}"
+      datachg=0
+    fi
+}
+
 cleardata () {
     prefix=$1
-    > "${prefix}${VARFILESUFFIX}"
     cmd="echo \${di_${prefix}_vars}"
     for tval in `eval $cmd`
     do
@@ -52,19 +70,19 @@ setdata () {
     sdname=$2
     sdval=$3
 
-    cmd="di_${prefix}_vars=\"\${di_${prefix}_vars} ${sdname}\""
+    if [ "$prefix" != "args" ]; then datachg=1; fi
+
+    cmd="echo \$di_${prefix}_vars | grep ${sdname} > /dev/null 2>&1"
     eval "$cmd"
+    rc=$?
+    # if already in the list of vars, don't add it again.
+    if [ $rc -ne 0 ]
+    then
+      cmd="di_${prefix}_vars=\"\${di_${prefix}_vars} ${sdname}\""
+      eval "$cmd"
+    fi
     cmd="di_${prefix}_${sdname}=\"${sdval}\""
     eval "$cmd"
-    # And save the data for re-use.
-    # Some shells don't quote the values in the set
-    # command like bash does.  So we do it.
-    # Then we have to undo it for bash.
-    # And then there's: x='', which gets munged.
-    set | grep "^di_${prefix}" | \
-        sed "s/=/='/" | sed "s/$/'/" | \
-        sed "s/''/'/g" | sed "s/='$/=''/" \
-        > "${prefix}${VARFILESUFFIX}"
 }
 
 getdata () {
@@ -74,6 +92,68 @@ getdata () {
     gdval=`eval echo "\\${di_${prefix}_${gdname}}"`
     echo $gdval
 }
+
+printlabel () {
+  tname="$1"
+  tlabel="$2"
+
+  echo "## [${tname}] ${tlabel} ... " >> $LOG
+  echo ${EN} "${tlabel} ... ${EC}"
+}
+
+printyesno_val () {
+  ynname=$1
+  ynval=$2
+  yntag="${3:-}"
+
+  if [ "$ynval" != "0" ]
+  then
+    echo "## [${ynname}] $ynval ${yntag}" >> $LOG
+    echo "$ynval ${yntag}"
+  else
+    echo "## [${ynname}] no ${yntag}" >> $LOG
+    echo "no ${yntag}"
+  fi
+}
+
+printyesno () {
+    ynname=$1
+    ynval=$2
+    yntag="${3:-}"
+
+    if [ "$ynval" != "0" ]
+    then
+      ynval="yes"
+    fi
+    printyesno_val $ynname $ynval "$yntag"
+}
+
+checkcache_val () {
+  tname=$1
+
+  tval=`getdata cfg $tname`
+  rc=1
+  if [ "$tval" != "" ]
+  then
+    printyesno_val $tname $tval " (cached)"
+    rc=0
+  fi
+  return $rc
+}
+
+checkcache () {
+  tname=$1
+
+  tval=`getdata cfg $tname`
+  rc=1
+  if [ "$tval" != "" ]
+  then
+    printyesno $tname $tval " (cached)"
+    rc=0
+  fi
+  return $rc
+}
+
 
 print_headers () {
     incheaders=`getdata args incheaders`
@@ -243,8 +323,10 @@ check_header () {
     name=$1
     file=$2
 
-    echo "## [${name}] header: ${file} ... " >> $LOG
-    echo ${EN} "header: ${file} ... ${EC}"
+    printlabel $name "header: ${file}"
+    checkcache $name
+    if [ $rc -eq 0 ]; then return; fi
+
     reqhdr=`getdata args reqhdr`
     code=""
     if [ "${reqhdr}" != "" ]
@@ -271,12 +353,8 @@ main () { exit (0); }
     if [ $rc -eq 0 ]
     then
         val=${file}
-        echo "## [${name}] yes" >> $LOG
-        echo "yes"
-    else
-        echo "## [${name}] no" >> $LOG
-        echo "no"
     fi
+    printyesno $name $val
     setdata cfg "${name}" "${val}"
 }
 
@@ -284,8 +362,10 @@ check_keyword () {
     name=$1
     keyword=$2
 
-    echo "## [$name] keyword: $keyword ... " >> $LOG
-    echo ${EN} "keyword: $keyword ... ${EC}"
+    printlabel $name "keyword: ${keyword}"
+    checkcache $name
+    if [ $rc -eq 0 ]; then return; fi
+
     trc=0
     code="main () { int ${keyword}; ${keyword} = 1; exit (0); }"
     cleardata args
@@ -294,21 +374,19 @@ check_keyword () {
     rc=$?
     if [ $rc -ne 0 ]  # failure means it is reserved...
     then
-        trc=1
-        echo "## [$name] yes" >> $LOG
-        echo "yes"
-    else
-        echo "## [$name] no" >> $LOG
-        echo "no"
+      trc=1
     fi
+    printyesno $name $trc
     setdata cfg "${name}" "${trc}"
 }
 
 check_proto () {
     name=$1
 
-    echo "## [$name] supported: prototypes ... " >> $LOG
-    echo ${EN} "supported: prototypes ... ${EC}"
+    printlabel $name "supported: prototypes"
+    checkcache $name
+    if [ $rc -eq 0 ]; then return; fi
+
     code='
 _BEGIN_EXTERNS_
 extern int foo (int, int);
@@ -323,12 +401,8 @@ int bar () { int rc; rc = foo (1,1); return 0; }
     if [ $rc -eq 0 ]
     then
         trc=1
-        echo "## [$name] yes" >> $LOG
-        echo "yes"
-    else
-        echo "## [$name] no" >> $LOG
-        echo "no"
     fi
+    printyesno $name $trc
     setdata cfg "${name}" "${trc}"
 }
 
@@ -336,8 +410,10 @@ check_type () {
     name=$1
     type=$2
 
-    echo "## [$name] type: $type ... " >> $LOG
-    echo ${EN} "type: $type ... ${EC}"
+    printlabel $name "type: ${type}"
+    checkcache $name
+    if [ $rc -eq 0 ]; then return; fi
+
     trc=0
     code="
 struct xxx { ${type} mem; };
@@ -352,12 +428,8 @@ main () { struct xxx *tmp; tmp = f(); exit (0); }
     if [ $rc -eq 0 ]
     then
         trc=1
-        echo "## [$name] yes" >> $LOG
-        echo "yes"
-    else
-        echo "## [$name] no" >> $LOG
-        echo "no"
     fi
+    printyesno $name $trc
     setdata cfg "${name}" "${trc}"
 }
 
@@ -366,8 +438,10 @@ check_member () {
     struct=$2
     member=$3
 
-    echo "## [$name] exists: $struct.$member ... " >> $LOG
-    echo ${EN} "exists: $struct.$member ... ${EC}"
+    printlabel $name "exists: ${struct}.${member}"
+    checkcache $name
+    if [ $rc -eq 0 ]; then return; fi
+
     trc=0
     code="main () { struct ${struct} s; int i; i = sizeof (s.${member}); }"
     cleardata args
@@ -376,20 +450,18 @@ check_member () {
     if [ $rc -eq 0 ]
     then
         trc=1
-        echo "## [$name] yes" >> $LOG
-        echo "yes"
-    else
-        echo "## [$name] no" >> $LOG
-        echo "no"
     fi
+    printyesno $name $trc
     setdata cfg "${name}" "${trc}"
 }
 
 check_setmntent_1arg () {
     name=$1
 
-    echo "## [$name] setmntent(): 1 argument ... " >> $LOG
-    echo ${EN} "setmntent(): 1 argument ... ${EC}"
+    printlabel $name "setmntent(): 1 argument"
+    checkcache $name
+    if [ $rc -eq 0 ]; then return; fi
+
     trc=0
     code="main () { setmntent (\"/etc/mnttab\"); }"
     cleardata args
@@ -400,20 +472,17 @@ check_setmntent_1arg () {
     if [ $rc -eq 0 ]
     then
         trc=1
-        echo "## [$name] yes" >> $LOG
-        echo "yes"
-    else
-        echo "## [$name] no" >> $LOG
-        echo "no"
     fi
+    printyesno $name $trc
     setdata cfg "${name}" "${trc}"
 }
 
 check_setmntent_2arg () {
     name=$1
 
-    echo "## [$name] setmntent(): 2 arguments ... " >> $LOG
-    echo ${EN} "setmntent(): 2 arguments ... ${EC}"
+    printlabel $name "setmntent(): 2 arguments"
+    checkcache $name
+    if [ $rc -eq 0 ]; then return; fi
 
     trc=0
     code="main () { setmntent (\"/etc/mnttab\", \"r\"); }"
@@ -425,20 +494,17 @@ check_setmntent_2arg () {
     if [ $rc -eq 0 ]
     then
         trc=1
-        echo "## [$name] yes" >> $LOG
-        echo "yes"
-    else
-        echo "## [$name] no" >> $LOG
-        echo "no"
     fi
+    printyesno $name $trc
     setdata cfg "${name}" "${trc}"
 }
 
 check_statfs_2arg () {
     name=$1
 
-    echo "## [$name] statfs(): 2 arguments ... " >> $LOG
-    echo ${EN} "statfs(): 2 arguments ... ${EC}"
+    printlabel $name "statfs(): 2 arguments"
+    checkcache $name
+    if [ $rc -eq 0 ]; then return; fi
 
     trc=0
     code="
@@ -455,20 +521,17 @@ main () {
     if [ $rc -eq 0 ]
     then
         trc=1
-        echo "## [$name] yes" >> $LOG
-        echo "yes"
-    else
-        echo "## [$name] no" >> $LOG
-        echo "no"
     fi
+    printyesno $name $trc
     setdata cfg "${name}" "${trc}"
 }
 
 check_statfs_3arg () {
     name=$1
 
-    echo "## [$name] statfs(): 3 arguments ... " >> $LOG
-    echo ${EN} "statfs(): 3 arguments ... ${EC}"
+    printlabel $name "statfs(): 3 arguments"
+    checkcache $name
+    if [ $rc -eq 0 ]; then return; fi
 
     trc=0
     code="
@@ -485,20 +548,17 @@ main () {
     if [ $rc -eq 0 ]
     then
         trc=1
-        echo "## [$name] yes" >> $LOG
-        echo "yes"
-    else
-        echo "## [$name] no" >> $LOG
-        echo "no"
     fi
+    printyesno $name $trc
     setdata cfg "${name}" "${trc}"
 }
 
 check_statfs_4arg () {
     name=$1
 
-    echo "## [$name] statfs(): 4 arguments ... " >> $LOG
-    echo ${EN} "statfs(): 4 arguments ... ${EC}"
+    printlabel $name "statfs(): 4 arguments"
+    checkcache $name
+    if [ $rc -eq 0 ]; then return; fi
 
     trc=0
     code="
@@ -515,12 +575,8 @@ main () {
     if [ $rc -eq 0 ]
     then
         trc=1
-        echo "## [$name] yes" >> $LOG
-        echo "yes"
-    else
-        echo "## [$name] no" >> $LOG
-        echo "no"
     fi
+    printyesno $name $trc
     setdata cfg "${name}" "${trc}"
 }
 
@@ -529,20 +585,14 @@ check_size () {
     name=$1
     type=$2
 
-    echo "## [$name] sizeof: $type ... " >> $LOG
-    echo ${EN} "sizeof: $type ... ${EC}"
+    printlabel $name "sizeof: ${type}"
+    checkcache_val $name
+    if [ $rc -eq 0 ]; then return; fi
+
     code="main () { printf(\"%u\", sizeof(${type})); exit (0); }"
     val=0
     val=`check_run "${name}" "${code}"`
-    rc=$?
-    if [ $rc -eq 0 ]
-    then
-        echo "## [$name] $val" >> $LOG
-        echo "$val"
-    else
-        echo "## [$name] no" >> $LOG
-        echo "no"
-    fi
+    printyesno_val $name $val
     setdata cfg "${name}" "${val}"
 }
 
@@ -550,8 +600,10 @@ check_int_declare () {
     name=$1
     function=$2
 
-    echo "## [$name] declared: $function ... " >> $LOG
-    echo ${EN} "declared: $function ... ${EC}"
+    printlabel $name "declared: ${function}"
+    checkcache $name
+    if [ $rc -eq 0 ]; then return; fi
+
     trc=0
     code="main () { int x; x = ${function}; }"
     cleardata args
@@ -561,12 +613,8 @@ check_int_declare () {
     if [ $rc -eq 0 ]
     then
         trc=1
-        echo "## [$name] yes" >> $LOG
-        echo "yes"
-    else
-        echo "## [$name] no" >> $LOG
-        echo "no"
     fi
+    printyesno $name $trc
     setdata cfg "${name}" "${trc}"
 }
 
@@ -574,8 +622,10 @@ check_ptr_declare () {
     name=$1
     function=$2
 
-    echo "## [$name] declared: $function ... " >> $LOG
-    echo ${EN} "declared: $function ... ${EC}"
+    printlabel $name "declared: ${function}"
+    checkcache $name
+    if [ $rc -eq 0 ]; then return; fi
+
     trc=0
     code="main () { _VOID_ *x; x = ${function}; }"
     cleardata args
@@ -585,12 +635,8 @@ check_ptr_declare () {
     if [ $rc -eq 0 ]
     then
         trc=1
-        echo "## [$name] yes" >> $LOG
-        echo "yes"
-    else
-        echo "## [$name] no" >> $LOG
-        echo "no"
     fi
+    printyesno $name $trc
     setdata cfg "${name}" "${trc}"
 }
 
@@ -598,8 +644,10 @@ check_npt () {
     name=$1
     proto=$2
 
-    echo "## [$name] need prototype: $proto ... " >> $LOG
-    echo ${EN} "need prototype: $proto ... ${EC}"
+    printlabel $name "need prototype: ${proto}"
+    checkcache $name
+    if [ $rc -eq 0 ]; then return; fi
+
     trc=0
     code="
 _BEGIN_EXTERNS_
@@ -614,12 +662,8 @@ _END_EXTERNS_
     if [ $rc -eq 0 ]
     then
         trc=1
-        echo "## [$name] yes" >> $LOG
-        echo "yes"
-    else
-        echo "## [$name] no" >> $LOG
-        echo "no"
     fi
+    printyesno $name $trc
     setdata cfg "${name}" "${trc}"
 }
 
@@ -627,31 +671,38 @@ check_command () {
     name=$1
     cmd=$2
 
-    echo "## [$name] command $cmd ... " >> $LOG
-    echo ${EN} "command: $cmd ... ${EC}"
+    printlabel $name "command: ${cmd}"
+    checkcache $name
+    if [ $rc -eq 0 ]; then return; fi
 
     trc=0
     pth="`echo ${PATH} | sed 's/[;:]/ /g'`"
     for p in $pth
     do
-        if [ $trc -eq  0 -a -x "$p/$cmd" ]
+        if [ -x "$p/$cmd" ]
         then
-            trc=1
-            echo "## [$name] yes" >> $LOG
-            echo "yes"
+            trc="$p/$cmd"
+            break
         fi
     done
-    if [ $trc -eq 0 ]
-    then
-        echo "## [$name] no" >> $LOG
-        echo "no"
-    fi
+    printyesno $name $trc
     setdata cfg "${name}" "${trc}"
 }
 
 check_lib () {
     name=$1
     func=$2
+
+    otherlibs=`getdata args otherlibs`
+
+    if [ "${otherlibs}" != "" ]
+    then
+        printlabel $name "function: ${func} [${otherlibs}]"
+    else
+        printlabel $name "function: ${func}"
+        checkcache $name
+        if [ $rc -eq 0 ]; then return; fi
+    fi
 
     trc=0
     code="
@@ -664,16 +715,6 @@ _END_EXTERNS_
 static _TEST_fun_ i=(_TEST_fun_) ${func};
 main () {  return (i==0); }
 "
-    otherlibs=`getdata args otherlibs`
-
-    if [ "${otherlibs}" != "" ]
-    then
-        echo "## [$name] function: $func [$otherlibs] ... " >> $LOG
-        echo ${EN} "function: $func [$otherlibs] ... ${EC}"
-    else
-        echo "## [$name] function: $func ... " >> $LOG
-        echo ${EN} "function: $func ... ${EC}"
-    fi
 
     cleardata args
     setdata args incheaders all
@@ -683,22 +724,16 @@ main () {  return (i==0); }
     if [ $rc -eq 0 ]
     then
         trc=1
-        echo ${EN} "## [$name] yes${EC}" >> $LOG
-        echo ${EN} "yes${EC}"
-        if [ "$dlibs" != "" ]
-        then
-            echo ${EN} " with ${dlibs} ${EC}" >> $LOG
-            echo ${EN} " with ${dlibs} ${EC}"
-            reqlibs=`getdata data reqlibs`
-            reqlibs="${reqlibs} ${dlibs}"
-            setdata data reqlibs "${reqlibs}"
-        fi
-        echo "" >> $LOG
-        echo ""
-    else
-        echo "## [$name] no" >> $LOG
-        echo "no"
     fi
+    tag=""
+    if [ $rc -eq 0 -a "$dlibs" != "" ]
+    then
+      tag=" with ${dlibs}"
+      reqlibs=`getdata data reqlibs`
+      reqlibs="${reqlibs} ${dlibs}"
+      setdata data reqlibs "${reqlibs}"
+    fi
+    printyesno $name $trc "$tag"
     setdata cfg "${name}" "${trc}"
     return $trc
 }
@@ -713,11 +748,11 @@ check_class () {
 
     if [ "$otherlibs" != "" ]
     then
-        echo "## [$name] class: $class [$otherlibs] ... " >> $LOG
-        echo ${EN} "class: $class [$otherlibs] ... ${EC}"
+        printlabel $name "class: ${class} [${otherlibs}]"
     else
-        echo "## [$name] class: $class ... " >> $LOG
-        echo ${EN} "class: $class ... ${EC}"
+        printlabel $name "class: ${class}"
+        checkcache $name
+        if [ $rc -eq 0 ]; then return; fi
     fi
 
     cleardata args
@@ -728,22 +763,16 @@ check_class () {
     if [ $rc -eq 0 ]
     then
         trc=1
-        echo ${EN} "## [$name] yes${EC}" >> $LOG
-        echo ${EN} "yes${EC}"
-        if [ "${dlibs}" != "" ]
-        then
-            echo ${EN} " with ${dlibs}${EC}" >> $LOG
-            echo ${EN} " with ${dlibs}${EC}"
-            reqlibs=`getdata data reqlibs`
-            reqlibs="${reqlibs} ${dlibs}"
-            setdata data reqlibs "${reqlibs}"
-        fi
-        echo "" >> $LOG
-        echo ""
-    else
-        echo "## [$name] no" >> $LOG
-        echo "no"
     fi
+    tag=""
+    if [ $rc -eq 0 -a "${dlibs}" != "" ]
+    then
+        tag=" with ${dlibs}"
+        reqlibs=`getdata data reqlibs`
+        reqlibs="${reqlibs} ${dlibs}"
+        setdata data reqlibs "${reqlibs}"
+    fi
+    printyesno $name $trc "$tag"
     setdata cfg "${name}" "${trc}"
 }
 
@@ -756,8 +785,9 @@ check_include_malloc () {
     _hdr_string=`getdata cfg _hdr_string`
     if [ "${_hdr_string}" = "string.h" -a "${_hdr_malloc}" = "malloc.h" ]
     then
-        echo "## [$name] header: include malloc.h ... " >> $LOG
-        echo ${EN} "header: include malloc.h ... ${EC}"
+        printlabel $name "header: include malloc.h"
+        checkcache $name
+        if [ $rc -eq 0 ]; then return; fi
 
         code="
 #include <string.h>
@@ -770,12 +800,8 @@ main () { char *x; x = (char *) malloc (20); }"
         if [ $rc -eq 0 ]
         then
             trc=1
-            echo "## [$name] yes" >> $LOG
-            echo "yes"
-        else
-            echo "## [$name] no" >> $LOG
-            echo "no"
         fi
+        printyesno $name $trc
     fi
     setdata cfg "${name}" "${trc}"
 }
@@ -788,8 +814,9 @@ check_include_string () {
     _hdr_strings=`getdata cfg _hdr_strings`
     if [ "${_hdr_string}" = "string.h" -a "${_hdr_strings}" = "strings.h" ]
     then
-        echo "## [$name] header: include both string.h & strings.h ... " >> $LOG
-        echo ${EN} "header: include both string.h & strings.h ... ${EC}"
+        printlabel $name "header: include both string.h & strings.h"
+        checkcache $name
+        if [ $rc -eq 0 ]; then return; fi
 
         code="#include <string.h>
 #include <strings.h>
@@ -802,12 +829,8 @@ main () { char *x; x = \"xyz\"; strcat (x, \"abc\"); }
         if [ $rc -eq 0 ]
         then
             trc=1
-            echo "## [$name] yes" >> $LOG
-            echo "yes"
-        else
-            echo "## [$name] no" >> $LOG
-            echo "no"
         fi
+        printyesno $name $trc
     fi
     setdata cfg "${name}" "${trc}"
 }
@@ -815,17 +838,21 @@ main () { char *x; x = \"xyz\"; strcat (x, \"abc\"); }
 create_config () {
     configfile=$1
     cleardata cfg
-    cleardata data
 
     setdata data reqlibs ""
 
     > ${CONFH}
     cat <<_HERE_ >> ${CONFH}
-
 #ifndef __INC_CONFIG_H
 #define __INC_CONFIG_H 1
 
 _HERE_
+
+    if [ -f $CACHEFILE ]
+    then
+      . $CACHEFILE
+    fi
+    cleardata data          # don't use cache for required libs
 
     cleardata args
     setdata args reqhdr ""
@@ -986,10 +1013,11 @@ _HERE_
                 ininclude=1
                 ;;
         esac
+        savedata
     done < ../${configfile}
 
     # refetch the configuration data
-    . "./cfg${VARFILESUFFIX}"
+    . ${CACHEFILE}
 
     for cfgvar in ${di_cfg_vars}
     do
@@ -1009,15 +1037,12 @@ _HERE_
         esac
     done
 
-    # refetch the required libs
-    . "./data${VARFILESUFFIX}"
-
     > $REQLIB
     val=`getdata data reqlibs`
     val=`for tval in $val
-    do
-        echo $tval
-    done | sort | uniq`
+        do
+            echo $tval
+        done | sort | uniq`
     echo $val >> $REQLIB
 
     # standard header for all...

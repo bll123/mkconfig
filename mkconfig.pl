@@ -12,6 +12,7 @@ require 5.005;
 
 my $LOG = "../mkconfig.log";
 my $TMP = "_tmp";
+my $CACHEFILE = "../mkconfig.cache";
 
 my $precc = <<'_HERE_';
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
@@ -81,17 +82,17 @@ check_link
     print CLFH $code;
     close CLFH;
 
-    system ("cat $name.c >> $LOG");
+    my $rc = system ("cat $name.c >> $LOG");
     if ($rc & 127) { exitmkconfig ($rc); }
 
     my $dlibs = '';
-    my $rc = _check_link ($name, {} );
+    $rc = _check_link ($name, {} );
     if ($rc != 0)
     {
       if ($otherlibs ne '')
       {
         my @olibs = split (/\s+/, $otherlibs);
-        $oliblist = '';
+        my $oliblist = '';
         foreach my $olib (@olibs)
         {
           $oliblist = $oliblist . ' ' . $olib;
@@ -173,41 +174,97 @@ check_compile
 }
 
 sub
-check_header
+printlabel
 {
-    my ($name, $file, $r_clist, $r_config, $r_a) = @_;
+    my ($name, $label) = @_;
+    print LOGFH "## [$name] $label ... \n";
+    print STDOUT "$label ... ";
+}
 
-    print LOGFH "## [$name] header: $file ... \n";
-    print STDERR "header: $file ... ";
-    my $r_rh = $r_a->{'reqhdr'} || [];
-    my $code = '';
-    foreach my $reqhdr (@$r_rh)
+sub
+printyesno_val
+{
+    my ($name, $val, $tag) = @_;
+
+    if ($val ne "0")
     {
-        $code .= <<"_HERE_";
-#include <$reqhdr>
-_HERE_
-    }
-    $code .= <<"_HERE_";
-#include <${file}>
-main () { exit (0); }
-_HERE_
-    my $rc = 1;
-    $rc = check_compile ($name, $code, $r_clist, $r_config,
-        { 'incheaders' => 'std', });
-    my $val = 0;
-    if ($rc == 0)
-    {
-        $val = $file;
-        print LOGFH "## [$name] yes\n";
-        print STDERR "yes\n";
+        print LOGFH "## [$name] $val $tag\n";
+        print STDOUT "$val $tag\n";
     }
     else
     {
-        print LOGFH "## [$name] no\n";
-        print STDERR "no\n";
+        print LOGFH "## [$name] no $tag\n";
+        print STDOUT "no $tag\n";
     }
-    push @$r_clist, $name;
-    $r_config->{$name} = $val;
+}
+
+sub
+printyesno
+{
+    my ($name, $val, $tag) = @_;
+
+    if ($val ne "0")
+    {
+        $val = "yes";
+    }
+    printyesno_val $name, $val, $tag;
+}
+
+sub
+savecache
+{
+    my ($r_clist, $r_config) = @_;
+
+    open (MKCC, ">$CACHEFILE");
+    foreach my $val (sort @{$r_clist->{'list'}})
+    {
+      print MKCC "di_cfg_${val}='" . $r_config->{$val} . "'\n";
+    }
+    my $vals = join (' ', @{$r_clist->{'list'}});
+    print MKCC "di_cfg_vars=' ${vals}'\n";
+    close (MKCC);
+}
+
+sub
+checkcache_val
+{
+  my ($name, $r_config) = @_;
+
+  my $val = $r_config->{$name};
+  my $rc = 1;
+  if (defined ($r_config->{$name}) && $val ne "" )
+  {
+    printyesno_val $name, $val, " (cached)";
+    $rc = 0;
+  }
+  return $rc;
+}
+
+sub
+checkcache
+{
+  my ($name, $r_config) = @_;
+
+  my $val = $r_config->{$name};
+  my $rc = 1;
+  if (defined ($r_config->{$name}) && $val ne "" )
+  {
+    printyesno $name, $val, " (cached)";
+    $rc = 0;
+  }
+  return $rc;
+}
+
+sub
+setlist
+{
+    my ($r_clist, $name) = @_;
+    my $r_hash = $r_clist->{'hash'};
+    if (! defined ($r_hash->{$name}))
+    {
+      push @{$r_clist->{'list'}}, $name;
+      $r_hash->{$name} = 1;
+    }
 }
 
 sub
@@ -234,7 +291,7 @@ print_headers
 
     if ($r_a->{'incheaders'} eq 'all')
     {
-        foreach my $val (@$r_clist)
+        foreach my $val (@{$r_clist->{'list'}})
         {
             if ($val !~ m#^(_hdr_|_sys_)#o)
             {
@@ -270,51 +327,39 @@ print_headers
 }
 
 sub
-check_class
+check_header
 {
-    my ($name, $class, $r_clist, $r_config, $r_a) = @_;
+    my ($name, $file, $r_clist, $r_config, $r_a) = @_;
 
-    push @$r_clist, $name;
-    $r_config->{$name} = 0;
-    my $code = <<"_HERE_";
-main () { $class testclass; }
+    printlabel $name, "header: $file";
+    if (checkcache ($name, $r_config) == 0)
+    {
+        return;
+    }
+
+    my $r_rh = $r_a->{'reqhdr'} || [];
+    my $code = '';
+    foreach my $reqhdr (@$r_rh)
+    {
+        $code .= <<"_HERE_";
+#include <$reqhdr>
 _HERE_
-    my $val = $r_a->{'otherlibs'} || '';
-
-    if ($val ne '')
-    {
-        print LOGFH "## [$name] class: $class [$val] ... \n";
-        print STDERR "class: $class [$val] ... ";
     }
-    else
-    {
-        print LOGFH "## [$name] class: $class ... \n";
-        print STDERR "class: $class ... ";
-    }
-
-    my %a = (
-         'incheaders' => 'all',
-         'otherlibs' => $val,
-         );
-    my $rc = check_link ($name, $code, $r_clist, $r_config, \%a);
+    $code .= <<"_HERE_";
+#include <${file}>
+main () { exit (0); }
+_HERE_
+    my $rc = 1;
+    $rc = check_compile ($name, $code, $r_clist, $r_config,
+        { 'incheaders' => 'std', });
+    my $val = 0;
     if ($rc == 0)
     {
-      $r_config->{$name} = 1;
-      print LOGFH "## [$name] yes";
-      print STDERR "yes";
-      if ($a{'dlibs'} ne '')
-      {
-          print LOGFH " with $a{'dlibs'}";
-          print STDERR " with $a{'dlibs'}";
-      }
-      print LOGFH "\n";
-      print STDERR "\n";
+        $val = $file;
     }
-    else
-    {
-      print LOGFH "## [$name] no\n";
-      print STDERR "no\n";
-    }
+    printyesno $name, $val;
+    setlist $r_clist, $name;
+    $r_config->{$name} = $val;
 }
 
 # if the keyword is reserved, the compile will fail.
@@ -323,26 +368,24 @@ check_keyword
 {
     my ($name, $keyword, $r_clist, $r_config) = @_;
 
-    print LOGFH "## [$name] keyword: $keyword ... \n";
-    print STDERR "keyword: $keyword ... ";
+    printlabel $name, "keyword: $keyword";
+    if (checkcache ($name, $r_config) == 0)
+    {
+        return;
+    }
+
     $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 main () { int ${keyword}; ${keyword} = 1; exit (0); }
 _HERE_
     my $rc = check_compile ($name, $code, $r_clist, $r_config,
         { 'incheaders' => 'std', });
-    push @$r_clist, $name;
+    setlist $r_clist, $name;
     if ($rc != 0)  # failure means it is reserved...
     {
         $r_config->{$name} = 1;
-        print LOGFH "## [$name] yes\n";
-        print STDERR "yes\n";
     }
-    else
-    {
-        print LOGFH "## [$name] no\n";
-        print STDERR "no\n";
-    }
+    printyesno $name, $r_config->{$name};
 }
 
 sub
@@ -350,8 +393,12 @@ check_proto
 {
     my ($name, $r_clist, $r_config) = @_;
 
-    print LOGFH "## [$name] supported: prototypes ... \n";
-    print STDERR "supported: prototypes ... ";
+    printlabel $name, "supported: prototypes";
+    if (checkcache ($name, $r_config) == 0)
+    {
+        return;
+    }
+
     my $code = <<"_HERE_";
 _BEGIN_EXTERNS_
 extern int foo (int, int);
@@ -360,19 +407,13 @@ int bar () { int rc; rc = foo (1,1); return 0; }
 _HERE_
     my $rc = check_compile ($name, $code, $r_clist, $r_config,
         { 'incheaders' => 'all', });
-    push @$r_clist, $name;
+    setlist $r_clist, $name;
     $r_config->{$name} = 0;
     if ($rc == 0)
     {
         $r_config->{$name} = 1;
-        print LOGFH "## [$name] yes\n";
-        print STDERR "yes\n";
     }
-    else
-    {
-        print LOGFH "## [$name] no\n";
-        print STDERR "no\n";
-    }
+    printyesno $name, $r_config->{$name};
 }
 
 sub
@@ -380,25 +421,23 @@ check_command
 {
     my ($name, $cmd, $r_clist, $r_config) = @_;
 
-    print LOGFH "## [$name] command $cmd ... \n";
-    print STDERR "command: $cmd ... ";
+    printlabel $name, "command: $cmd";
+    if (checkcache ($name, $r_config) == 0)
+    {
+        return;
+    }
 
-    push @$r_clist, $name;
+    setlist $r_clist, $name;
     $r_config->{$name} = 0;
     foreach my $p (split /[;:]/o, $ENV{'PATH'})
     {
-        if (-x "$p/$cmd" && $r_config->{$name} == 0)
+        if (-x "$p/$cmd")
         {
-            $r_config->{$name} = 1;
-            print LOGFH "## [$name] yes\n";
-            print STDERR "yes\n";
+            $r_config->{$name} = "$p/$cmd";
+            last;
         }
     }
-    if ($r_config->{$name} == 0)
-    {
-        print LOGFH "## [$name] no\n";
-        print STDERR "no\n";
-    }
+    printyesno $name, $r_config->{$name};
 }
 
 # malloc.h conflicts w/string.h on some systems.
@@ -407,13 +446,16 @@ check_include_malloc
 {
     my ($name, $r_clist, $r_config) = @_;
 
-    push @$r_clist, $name;
-    $r_config->{$name} = 0;
+    setlist $r_clist, $name;
     if ($r_config->{'_hdr_malloc'} ne '0')
     {
-        print LOGFH "## [$name] header: include malloc.h ... \n";
-        print STDERR "header: include malloc.h ... ";
+        printlabel $name, "header: include malloc.h";
+        if (checkcache ($name, $r_config) == 0)
+        {
+            return;
+        }
 
+        $r_config->{$name} = 0;
         my $code = <<"_HERE_";
 main ()
 {
@@ -426,14 +468,10 @@ _HERE_
         if ($rc == 0)
         {
             $r_config->{$name} = 1;
-            print LOGFH "## [$name] yes\n";
-            print STDERR "yes\n";
         }
-        else
-        {
-            print LOGFH "## [$name] no\n";
-            print STDERR "no\n";
-        }
+        printyesno $name, $r_config->{$name};
+    } else {
+        $r_config->{$name} = 0;
     }
 }
 
@@ -442,14 +480,17 @@ check_include_string
 {
     my ($name, $r_clist, $r_config) = @_;
 
-    push @$r_clist, $name;
-    $r_config->{$name} = 0;
+    setlist $r_clist, $name;
     if ($r_config->{'_hdr_string'} ne '0' &&
         $r_config->{'_hdr_strings'} ne '0')
     {
-        print LOGFH "## [$name] header: include both string.h & strings.h ... \n";
-        print STDERR "header: include both string.h & strings.h ... ";
+        printlabel $name, "header: include both string.h & strings.h";
+        if (checkcache ($name, $r_config) == 0)
+        {
+            return;
+        }
 
+        $r_config->{$name} = 0;
         my $code = <<"_HERE_";
 #include <string.h>
 #include <strings.h>
@@ -463,14 +504,10 @@ _HERE_
         if ($rc == 0)
         {
             $r_config->{$name} = 1;
-            print LOGFH "## [$name] yes\n";
-            print STDERR "yes\n";
         }
-        else
-        {
-            print LOGFH "## [$name] no\n";
-            print STDERR "no\n";
-        }
+        printyesno $name, $r_config->{$name};
+    } else {
+        $r_config->{$name} = 0;
     }
 }
 
@@ -479,9 +516,13 @@ check_npt
 {
     my ($name, $proto, $r_clist, $r_config) = @_;
 
-    print LOGFH "## [$name] need prototype: $proto ... \n";
-    print STDERR "need prototype: $proto ... ";
-    push @$r_clist, $name;
+    printlabel $name, "need prototype: $proto";
+    if (checkcache ($name, $r_config) == 0)
+    {
+        return;
+    }
+
+    setlist $r_clist, $name;
     $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 _BEGIN_EXTERNS_
@@ -494,14 +535,8 @@ _HERE_
     if ($rc == 0)
     {
         $r_config->{$name} = 1;
-        print LOGFH "## [$name] yes\n";
-        print STDERR "yes\n";
     }
-    else
-    {
-        print LOGFH "## [$name] no\n";
-        print STDERR "no\n";
-    }
+    printyesno $name, $r_config->{$name};
 }
 
 sub
@@ -509,9 +544,13 @@ check_type
 {
     my ($name, $type, $r_clist, $r_config) = @_;
 
-    print LOGFH "## [$name] type: $type ... \n";
-    print STDERR "type: $type ... ";
-    push @$r_clist, $name;
+    printlabel $name, "type: $type";
+    if (checkcache ($name, $r_config) == 0)
+    {
+        return;
+    }
+
+    setlist $r_clist, $name;
     $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 struct xxx { $type mem; };
@@ -524,14 +563,8 @@ _HERE_
     if ($rc == 0)
     {
         $r_config->{$name} = 1;
-        print LOGFH "## [$name] yes\n";
-        print STDERR "yes\n";
     }
-    else
-    {
-        print LOGFH "## [$name] no\n";
-        print STDERR "no\n";
-    }
+    printyesno $name, $r_config->{$name};
 }
 
 sub
@@ -539,7 +572,22 @@ check_lib
 {
     my ($name, $func, $r_clist, $r_config, $r_a) = @_;
 
-    push @$r_clist, $name;
+    setlist $r_clist, $name;
+    my $val = $r_a->{'otherlibs'} || '';
+
+    if ($val ne '')
+    {
+        printlabel $name, "function: $func [$val]";
+    }
+    else
+    {
+        printlabel $name, "function: $func";
+        if (checkcache ($name, $r_config) == 0)
+        {
+            return;
+        }
+    }
+
     $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 typedef int (*_TEST_fun_)();
@@ -551,42 +599,65 @@ _END_EXTERNS_
 static _TEST_fun_ i=(_TEST_fun_) $func;
 main () {  return (i==0); }
 _HERE_
-    my $val = $r_a->{'otherlibs'} || '';
-
-    if ($val ne '')
-    {
-        print LOGFH "## [$name] function: $func [$val] ... \n";
-        print STDERR "function: $func [$val] ... ";
-    }
-    else
-    {
-        print LOGFH "## [$name] function: $func ... \n";
-        print STDERR "function: $func ... ";
-    }
 
     my %a = (
          'incheaders' => 'all',
          'otherlibs' => $val,
          );
     my $rc = check_link ($name, $code, $r_clist, $r_config, \%a);
+    my $tag = '';
     if ($rc == 0)
     {
       $r_config->{$name} = 1;
-      print LOGFH "## [$name] yes";
-      print STDERR "yes";
       if ($a{'dlibs'} ne '')
       {
-          print LOGFH " with $a{'dlibs'}";
-          print STDERR " with $a{'dlibs'}";
+          $tag = " with $a{'dlibs'}";
       }
-      print LOGFH "\n";
-      print STDERR "\n";
+    }
+    printyesno $name, $r_config->{$name}, $tag;
+}
+
+sub
+check_class
+{
+    my ($name, $class, $r_clist, $r_config, $r_a) = @_;
+
+    setlist $r_clist, $name;
+    my $val = $r_a->{'otherlibs'} || '';
+
+    if ($val ne '')
+    {
+        printlabel $name, "class: $class [$val]";
     }
     else
     {
-      print LOGFH "## [$name] no\n";
-      print STDERR "no\n";
+        printlabel $name, "class: $class";
+        if (checkcache ($name, $r_config) == 0)
+        {
+            return;
+        }
     }
+
+    $r_config->{$name} = 0;
+    my $code = <<"_HERE_";
+main () { $class testclass; }
+_HERE_
+
+    my %a = (
+         'incheaders' => 'all',
+         'otherlibs' => $val,
+         );
+    my $rc = check_link ($name, $code, $r_clist, $r_config, \%a);
+    my $tag = '';
+    if ($rc == 0)
+    {
+      $r_config->{$name} = 1;
+      if ($a{'dlibs'} ne '')
+      {
+          $tag = " with $a{'dlibs'}";
+      }
+    }
+    printyesno $name, $r_config->{$name}, $tag;
 }
 
 sub
@@ -594,9 +665,13 @@ check_setmntent_1arg
 {
     my ($name, $r_clist, $r_config) = @_;
 
-    print LOGFH "## [$name] setmntent(): 1 argument ... \n";
-    print STDERR "setmntent(): 1 argument ... ";
-    push @$r_clist, $name;
+    printlabel $name, "setmntent(): 1 argument";
+    if (checkcache ($name, $r_config) == 0)
+    {
+        return;
+    }
+
+    setlist $r_clist, $name;
     $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 main () { setmntent ("/etc/mnttab"); }
@@ -606,14 +681,8 @@ _HERE_
     if ($rc == 0)
     {
         $r_config->{$name} = 1;
-        print LOGFH "## [$name] yes\n";
-        print STDERR "yes\n";
     }
-    else
-    {
-        print LOGFH "## [$name] no\n";
-        print STDERR "no\n";
-    }
+    printyesno $name, $r_config->{$name};
 }
 
 sub
@@ -621,9 +690,13 @@ check_setmntent_2arg
 {
     my ($name, $r_clist, $r_config) = @_;
 
-    print LOGFH "## [$name] setmntent(): 2 arguments ... \n";
-    print STDERR "setmntent(): 2 arguments ... ";
-    push @$r_clist, $name;
+    printlabel $name, "setmntent(): 2 arguments";
+    if (checkcache ($name, $r_config) == 0)
+    {
+        return;
+    }
+
+    setlist $r_clist, $name;
     $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 main () { setmntent ("/etc/mnttab", "r"); }
@@ -633,14 +706,8 @@ _HERE_
     if ($rc == 0)
     {
         $r_config->{$name} = 1;
-        print LOGFH "## [$name] yes\n";
-        print STDERR "yes\n";
     }
-    else
-    {
-        print LOGFH "## [$name] no\n";
-        print STDERR "no\n";
-    }
+    printyesno $name, $r_config->{$name};
 }
 
 sub
@@ -648,9 +715,13 @@ check_statfs_2arg
 {
     my ($name, $r_clist, $r_config) = @_;
 
-    print LOGFH "## [$name] statfs(): 2 arguments ... \n";
-    print STDERR "statfs(): 2 arguments ... ";
-    push @$r_clist, $name;
+    printlabel $name, "statfs(): 2 arguments";
+    if (checkcache ($name, $r_config) == 0)
+    {
+        return;
+    }
+
+    setlist $r_clist, $name;
     $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 main () {
@@ -663,14 +734,8 @@ _HERE_
     if ($rc == 0)
     {
         $r_config->{$name} = 1;
-        print LOGFH "## [$name] yes\n";
-        print STDERR "yes\n";
     }
-    else
-    {
-        print LOGFH "## [$name] no\n";
-        print STDERR "no\n";
-    }
+    printyesno $name, $r_config->{$name};
 }
 
 sub
@@ -678,9 +743,13 @@ check_statfs_3arg
 {
     my ($name, $r_clist, $r_config) = @_;
 
-    print LOGFH "## [$name] statfs(): 3 arguments ... \n";
-    print STDERR "statfs(): 3 arguments ... ";
-    push @$r_clist, $name;
+    printlabel $name, "statfs(): 3 arguments";
+    if (checkcache ($name, $r_config) == 0)
+    {
+        return;
+    }
+
+    setlist $r_clist, $name;
     $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 main () {
@@ -693,14 +762,8 @@ _HERE_
     if ($rc == 0)
     {
         $r_config->{$name} = 1;
-        print LOGFH "## [$name] yes\n";
-        print STDERR "yes\n";
     }
-    else
-    {
-        print LOGFH "## [$name] no\n";
-        print STDERR "no\n";
-    }
+    printyesno $name, $r_config->{$name};
 }
 
 sub
@@ -708,9 +771,13 @@ check_statfs_4arg
 {
     my ($name, $r_clist, $r_config) = @_;
 
-    print LOGFH "## [$name] statfs(): 4 arguments ... \n";
-    print STDERR "statfs(): 4 arguments ... ";
-    push @$r_clist, $name;
+    printlabel $name, "statfs(): 4 arguments";
+    if (checkcache ($name, $r_config) == 0)
+    {
+        return;
+    }
+
+    setlist $r_clist, $name;
     $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 main () {
@@ -723,14 +790,8 @@ _HERE_
     if ($rc == 0)
     {
         $r_config->{$name} = 1;
-        print LOGFH "## [$name] yes\n";
-        print STDERR "yes\n";
     }
-    else
-    {
-        print LOGFH "## [$name] no\n";
-        print STDERR "no\n";
-    }
+    printyesno $name, $r_config->{$name};
 }
 
 sub
@@ -738,9 +799,13 @@ check_size
 {
     my ($name, $type, $r_clist, $r_config) = @_;
 
-    print LOGFH "## [$name] sizeof: $type ... \n";
-    print STDERR "sizeof: $type ... ";
-    push @$r_clist, $name;
+    printlabel $name, "sizeof: $type";
+    if (checkcache ($name, $r_config) == 0)
+    {
+        return;
+    }
+
+    setlist $r_clist, $name;
     $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 main () {
@@ -753,14 +818,8 @@ _HERE_
     if ($rc == 0)
     {
         $r_config->{$name} = $val;
-        print LOGFH "## [$name] $val\n";
-        print STDERR "$val\n";
     }
-    else
-    {
-        print LOGFH "## [$name] no\n";
-        print STDERR "no\n";
-    }
+    printyesno_val $name, $r_config->{$name};
 }
 
 sub
@@ -768,9 +827,13 @@ check_member
 {
     my ($name, $struct, $member, $r_clist, $r_config) = @_;
 
-    print LOGFH "## [$name] exists: $struct.$member ... \n";
-    print STDERR "exists: $struct.$member ... ";
-    push @$r_clist, $name;
+    printlabel $name, "exists: $struct.$member";
+    if (checkcache ($name, $r_config) == 0)
+    {
+        return;
+    }
+
+    setlist $r_clist, $name;
     $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 main () { struct $struct s; int i; i = sizeof (s.$member); }
@@ -780,14 +843,8 @@ _HERE_
     if ($rc == 0)
     {
         $r_config->{$name} = 1;
-        print LOGFH "## [$name] yes\n";
-        print STDERR "yes\n";
     }
-    else
-    {
-        print LOGFH "## [$name] no\n";
-        print STDERR "no\n";
-    }
+    printyesno $name, $r_config->{$name};
 }
 
 sub
@@ -795,9 +852,13 @@ check_int_declare
 {
     my ($name, $function, $r_clist, $r_config) = @_;
 
-    print LOGFH "## [$name] declared: $function ... \n";
-    print STDERR "declared: $function ... ";
-    push @$r_clist, $name;
+    printlabel $name, "declared: $function";
+    if (checkcache ($name, $r_config) == 0)
+    {
+        return;
+    }
+
+    setlist $r_clist, $name;
     $r_config->{$name} = 0;
     my $code = <<"_HERE_";
     main () { int x; x = $function; }
@@ -807,14 +868,8 @@ _HERE_
     if ($rc == 0)
     {
         $r_config->{$name} = 1;
-        print LOGFH "## [$name] yes\n";
-        print STDERR "yes\n";
     }
-    else
-    {
-        print LOGFH "## [$name] no\n";
-        print STDERR "no\n";
-    }
+    printyesno $name, $r_config->{$name};
 }
 
 sub
@@ -822,9 +877,13 @@ check_ptr_declare
 {
     my ($name, $function, $r_clist, $r_config) = @_;
 
-    print LOGFH "## [$name] declared: $function ... \n";
-    print STDERR "declared: $function ... ";
-    push @$r_clist, $name;
+    printlabel $name, "declared: $function";
+    if (checkcache ($name, $r_config) == 0)
+    {
+        return;
+    }
+
+    setlist $r_clist, $name;
     $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 main () { _VOID_ *x; x = $function; }
@@ -834,31 +893,52 @@ _HERE_
     if ($rc == 0)
     {
         $r_config->{$name} = 1;
-        print LOGFH "## [$name] yes\n";
-        print STDERR "yes\n";
     }
-    else
-    {
-        print LOGFH "## [$name] no\n";
-        print STDERR "no\n";
-    }
+    printyesno $name, $r_config->{$name};
 }
 
 
 sub
 create_config
 {
-    my (@clist, %config);
+    my (%clist, %config);
 
+    $clist{'list'} = ();
+    $clist{'hash'} = ();
     $config{'reqlibs'} = {};
 
     open (CCOFH, ">../config.h");
     print CCOFH <<'_HERE_';
-
 #ifndef __INC_CONFIG_H
 #define __INC_CONFIG_H 1
 
 _HERE_
+
+    if (-f $CACHEFILE)
+    {
+      open (MKCC, "<$CACHEFILE");
+      while (my $line = <MKCC>)
+      {
+        chomp $line;
+        if ($line =~ m/^di_cfg_(.*)='(.*)'/o)
+        {
+          my $name = $1;
+          my $val = $2;
+          if ($name eq 'vars') {
+            $val =~ s/^ *//;
+            @{$clist{'list'}} = split (/ +/, $val);
+            foreach my $var (@{$clist{'list'}})
+            {
+               $clist{'hash'}->{$var} = 1;
+            }
+          } else {
+            $config{$name} = $val;
+          }
+        }
+      }
+      close (MKCC);
+    }
+
 
     # FreeBSD has buggy headers, requires sys/param.h as a required include.
     # always check for these headers.
@@ -871,16 +951,16 @@ _HERE_
 
     foreach my $r_arr (@headlist1)
     {
-        check_header ($$r_arr[0], $$r_arr[1], \@clist, \%config,
+        check_header ($$r_arr[0], $$r_arr[1], \%clist, \%config,
                 { 'reqhdr' => [], });
     }
-    check_keyword ('_key_void', 'void', \@clist, \%config);
-    check_keyword ('_key_const', 'const', \@clist, \%config);
-    check_proto ('_proto_stdc', \@clist, \%config);
+    check_keyword ('_key_void', 'void', \%clist, \%config);
+    check_keyword ('_key_const', 'const', \%clist, \%config);
+    check_proto ('_proto_stdc', \%clist, \%config);
 
     if (! open (DATAIN, '../' . $ARGV[0]))
     {
-        print STDERR "$ARGV[0]: $!\n";
+        print STDOUT "$ARGV[0]: $!\n";
         exit 1;
     }
 
@@ -897,8 +977,8 @@ _HERE_
 
         if ($inheaders && $line !~ m#^(hdr|sys)#o)
         {
-            check_include_malloc ('_include_malloc', \@clist, \%config);
-            check_include_string ('_include_string', \@clist, \%config);
+            check_include_malloc ('_include_malloc', \%clist, \%config);
+            check_include_string ('_include_string', \%clist, \%config);
             $inheaders = 0;
         }
 
@@ -939,7 +1019,7 @@ _HERE_
             if (! defined ($config{$nm}) ||
                 $config{$nm} eq '0')
             {
-                check_header ($nm, $hdr, \@clist, \%config,
+                check_header ($nm, $hdr, \%clist, \%config,
                     { 'reqhdr' => \@oh, });
             }
         }
@@ -950,7 +1030,7 @@ _HERE_
             if (! defined ($config{$nm}) ||
                 $config{$nm} eq '0')
             {
-                check_command ($nm, $cmd, \@clist, \%config);
+                check_command ($nm, $cmd, \%clist, \%config);
             }
         }
         elsif ($line =~ m#^npt\s+([^\s]*)\s*(.*)#o)
@@ -964,7 +1044,7 @@ _HERE_
                 if (! defined ($config{$nm}) ||
                     $config{$nm} eq '0')
                 {
-                    check_npt ($nm, $func, \@clist, \%config);
+                    check_npt ($nm, $func, \%clist, \%config);
                 }
             }
         }
@@ -975,7 +1055,7 @@ _HERE_
             if (! defined ($config{$nm}) ||
                 $config{$nm} eq '0')
             {
-                check_keyword ($nm, $tnm, \@clist, \%config);
+                check_keyword ($nm, $tnm, \%clist, \%config);
             }
         }
         elsif ($line =~ m#^class\s+([^\s]+)\s*(.*)?#o)
@@ -987,7 +1067,7 @@ _HERE_
             if (! defined ($config{$nm}) ||
                 $config{$nm} eq '0')
             {
-                check_class ($nm, $class, \@clist, \%config,
+                check_class ($nm, $class, \%clist, \%config,
                        { 'otherlibs' => $libs, });
             }
         }
@@ -998,7 +1078,7 @@ _HERE_
             if (! defined ($config{$nm}) ||
                 $config{$nm} eq '0')
             {
-                check_type ($nm, $tnm, \@clist, \%config);
+                check_type ($nm, $tnm, \%clist, \%config);
             }
         }
         elsif ($line =~ m#^lib\s+([^\s]+)\s*(.*)?#o)
@@ -1009,18 +1089,18 @@ _HERE_
             if (! defined ($config{$nm}) ||
                 $config{$nm} eq '0')
             {
-                check_lib ($nm, $func, \@clist, \%config,
+                check_lib ($nm, $func, \%clist, \%config,
                        { 'otherlibs' => $libs, });
                 if ($func eq 'setmntent' && $config{$nm} ne '0')
                 {
-                    check_setmntent_1arg ('_setmntent_1arg', \@clist, \%config);
-                    check_setmntent_2arg ('_setmntent_2arg', \@clist, \%config);
+                    check_setmntent_1arg ('_setmntent_1arg', \%clist, \%config);
+                    check_setmntent_2arg ('_setmntent_2arg', \%clist, \%config);
                 }
                 if ($func eq 'statfs' && $config{$nm} ne '0')
                 {
-                    check_statfs_2arg ('_statfs_2arg', \@clist, \%config);
-                    check_statfs_3arg ('_statfs_3arg', \@clist, \%config);
-                    check_statfs_4arg ('_statfs_4arg', \@clist, \%config);
+                    check_statfs_2arg ('_statfs_2arg', \%clist, \%config);
+                    check_statfs_3arg ('_statfs_3arg', \%clist, \%config);
+                    check_statfs_4arg ('_statfs_4arg', \%clist, \%config);
                 }
             }
         }
@@ -1034,11 +1114,11 @@ _HERE_
             {
                 if ($type eq 'int')
                 {
-                    check_int_declare ($nm, $var, \@clist, \%config);
+                    check_int_declare ($nm, $var, \%clist, \%config);
                 }
                 elsif ($type eq 'ptr')
                 {
-                    check_ptr_declare ($nm, $var, \@clist, \%config);
+                    check_ptr_declare ($nm, $var, \%clist, \%config);
                 }
             }
         }
@@ -1050,7 +1130,7 @@ _HERE_
             if (! defined ($config{$nm}) ||
                 $config{$nm} eq '0')
             {
-                check_member ($nm, $struct, $member, \@clist, \%config);
+                check_member ($nm, $struct, $member, \%clist, \%config);
             }
         }
         elsif ($line =~ m#^size\s+(.*)#o)
@@ -1062,17 +1142,18 @@ _HERE_
             if (! defined ($config{$nm}) ||
                 $config{$nm} eq '0')
             {
-                check_size ($nm, $typ, \@clist, \%config);
+                check_size ($nm, $typ, \%clist, \%config);
             }
         }
         else
         {
-            print "unknown command: $line\n";
             print LOGFH "unknown command: $line\n";
+            print STDOUT "unknown command: $line\n";
         }
+        savecache (\%clist, \%config);
     }
 
-    foreach my $val (@clist)
+    foreach my $val (@{$clist{'list'}})
     {
       my $tval = 0;
       if ($config{$val} ne "0")
@@ -1125,6 +1206,8 @@ _HERE_
     my $r_hash = $config{'reqlibs'};
     print RLIBFH join (' ', keys %$r_hash) . "\n";
     close RLIBFH;
+
+    savecache (\%clist, \%config);
 }
 
 ##
@@ -1132,7 +1215,7 @@ _HERE_
 if (! defined ($ARGV[0]) ||
     ! -f $ARGV[0])
 {
-    print STDERR "Usage: $0 <config-file>\n";
+    print STDOUT "Usage: $0 <config-file>\n";
     exit 1;
 }
 
@@ -1140,7 +1223,7 @@ if (-d $TMP) { system ("rm -rf $TMP"); }
 mkdir $TMP, 0777;
 chdir $TMP;
 
-print "$0 using $ARGV[0]\n";
+print STDOUT "$0 using $ARGV[0]\n";
 unlink $LOG;
 open (LOGFH, ">>$LOG");
 $ENV{'CFLAGS'} = $ENV{'CFLAGS'} . ' ' . $ENV{'CINCLUDES'};
