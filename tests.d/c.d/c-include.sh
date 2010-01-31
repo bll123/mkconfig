@@ -1,7 +1,10 @@
 #!/bin/sh
 
-../mkconfig.sh test_01.dat
-diff -b test_01.expected config.h
+script=$1
+
+echo ${EN} "include${EC}" >&3
+../${script} test_01.dat
+diff -b test_01.configh config.h
 rc=$?
 echo "## config.h"
 cat config.h
