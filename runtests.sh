@@ -53,6 +53,8 @@ do
     echo "## === mkconfig.sh " >> ${tlog}
     arg="mkconfig.sh"
   fi
+  echo "## env" >> ${tlog}
+  env | sort >> ${tlog}
   echo "## stdout" >> ${tlog}
   echo ${EN} "$tf ... ${arg} ${EC}"
   if [ -f $tconfig ]; then
@@ -80,6 +82,8 @@ do
   if [ -f $tmkconfig ]; then
     echo ${EN} "$tf ... mkconfig.pl ${EC}"
     echo "## === mkconfig.pl " >> ${tlog}
+    echo "## env" >> ${tlog}
+    env | sort >> ${tlog}
     echo "## stdout" >> ${tlog}
     if [ -f $tconfig ]; then
       cat $tconfig | sed 's/_mkconfig_sh 1/_mkconfig_sh 0/' |
