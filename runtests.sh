@@ -50,12 +50,12 @@ do
   grc=0
   arg=""
   if [ -f $tmkconfig ]; then
-    echo "## === mkconfig.sh " >> ${tlog}
+    echo "##==== mkconfig.sh " >> ${tlog}
     arg="mkconfig.sh"
   fi
-  echo "## env" >> ${tlog}
+  echo "##== env" >> ${tlog}
   env | sort >> ${tlog}
-  echo "## stdout" >> ${tlog}
+  echo "##== stdout" >> ${tlog}
   echo ${EN} "$tf ... ${arg} ${EC}"
   if [ -f $tconfig ]; then
     cp -pf $tconfig $tconfh
@@ -63,7 +63,7 @@ do
   ./$tf $arg >> ${tlog} 2>&1
   rc=$?
   if [ -f mkconfig.log ]; then
-    echo "## mkconfig.log" >> ${tlog}
+    echo "##== mkconfig.log" >> ${tlog}
     cat mkconfig.log >> ${tlog}
   fi
   if [ $rc -ne 0 ]; then
@@ -81,17 +81,17 @@ do
 
   if [ -f $tmkconfig ]; then
     echo ${EN} "$tf ... mkconfig.pl ${EC}"
-    echo "## === mkconfig.pl " >> ${tlog}
-    echo "## env" >> ${tlog}
+    echo "##==== mkconfig.pl " >> ${tlog}
+    echo "##== env" >> ${tlog}
     env | sort >> ${tlog}
-    echo "## stdout" >> ${tlog}
+    echo "##== stdout" >> ${tlog}
     if [ -f $tconfig ]; then
       cat $tconfig | sed 's/_mkconfig_sh 1/_mkconfig_sh 0/' |
         sed 's/_mkconfig_pl 0/_mkconfig_pl 1/' > $tconfh
     fi
     ./$tf mkconfig.pl >> ${tlog} 2>&1
     rc=$?
-    echo "## mkconfig.log" >> ${tlog}
+    echo "##== mkconfig.log" >> ${tlog}
     cat mkconfig.log >> ${tlog}
     if [ $rc -ne 0 ]; then
       echo " ... failed"
