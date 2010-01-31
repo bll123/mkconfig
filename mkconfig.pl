@@ -2,7 +2,7 @@
 #
 # $Id$
 #
-# Copyright 2006-2009 Brad Lanam Walnut Creek, CA USA
+# Copyright 2006-2010 Brad Lanam Walnut Creek, CA USA
 #
 
 # HP-UX doesn't have these installed.
@@ -10,9 +10,11 @@
 # use Config;
 require 5.005;
 
-my $LOG = "../mkconfig.log";
-my $TMP = "_tmp";
-my $CACHEFILE = "../mkconfig.cache";
+my $CONFH = "config.h";
+my $LOG = "mkconfig.log";
+my $TMP = "_tmp_mkconfig";
+my $CACHEFILE = "mkconfig.cache";
+my $REQLIB = "reqlibs.txt";
 
 my $precc = <<'_HERE_';
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
@@ -447,7 +449,10 @@ check_include_malloc
     my ($name, $r_clist, $r_config) = @_;
 
     setlist $r_clist, $name;
-    if ($r_config->{'_hdr_malloc'} ne '0')
+    if (defined ($r_config->{'_hdr_malloc'}) &&
+        $r_config->{'_hdr_malloc'} ne '0' &&
+        defined ($r_config->{'_hdr_string'}) &&
+        $r_config->{'_hdr_string'} ne '0')
     {
         printlabel $name, "header: include malloc.h";
         if (checkcache ($name, $r_config) == 0)
@@ -481,7 +486,9 @@ check_include_string
     my ($name, $r_clist, $r_config) = @_;
 
     setlist $r_clist, $name;
-    if ($r_config->{'_hdr_string'} ne '0' &&
+    if (defined ($r_config->{'_hdr_string'}) &&
+        $r_config->{'_hdr_string'} ne '0' &&
+        defined ($r_config->{'_hdr_strings'}) &&
         $r_config->{'_hdr_strings'} ne '0')
     {
         printlabel $name, "header: include both string.h & strings.h";
@@ -901,13 +908,14 @@ _HERE_
 sub
 create_config
 {
+    my ($configfile) = @_;
     my (%clist, %config);
 
     $clist{'list'} = ();
     $clist{'hash'} = ();
     $config{'reqlibs'} = {};
 
-    open (CCOFH, ">../config.h");
+    open (CCOFH, ">$CONFH");
     print CCOFH <<'_HERE_';
 #ifndef __INC_CONFIG_H
 #define __INC_CONFIG_H 1
@@ -958,9 +966,9 @@ _HERE_
     check_keyword ('_key_const', 'const', \%clist, \%config);
     check_proto ('_proto_stdc', \%clist, \%config);
 
-    if (! open (DATAIN, '../' . $ARGV[0]))
+    if (! open (DATAIN, "<../$configfile"))
     {
-        print STDOUT "$ARGV[0]: $!\n";
+        print STDOUT "$configfile: $!\n";
         exit 1;
     }
 
@@ -1037,15 +1045,15 @@ _HERE_
         {
             my $func = $1;
             my $req = $2;
-            if (! defined ($req) ||
-                $config{$req} ne '0')
+            my $nm = "_npt_" . lc $func;
+            if (! defined ($req) || $config{$req} ne '0')
             {
-                my $nm = "_npt_" . lc $func;
-                if (! defined ($config{$nm}) ||
-                    $config{$nm} eq '0')
+                if (! defined ($config{$nm}) || $config{$nm} eq '0')
                 {
                     check_npt ($nm, $func, \%clist, \%config);
                 }
+            } else {
+              $config{$nm} = 0;
             }
         }
         elsif ($line =~ m#^key\s+(.*)#o)
@@ -1201,7 +1209,7 @@ _HERE_
 _HERE_
     close CCOFH;
 
-    open (RLIBFH, ">../reqlibs.txt");
+    open (RLIBFH, ">$REQLIB");
 
     my $r_hash = $config{'reqlibs'};
     print RLIBFH join (' ', keys %$r_hash) . "\n";
@@ -1210,20 +1218,79 @@ _HERE_
     savecache (\%clist, \%config);
 }
 
-##
-
-if (! defined ($ARGV[0]) ||
-    ! -f $ARGV[0])
+sub
+usage
 {
-    print STDOUT "Usage: $0 <config-file>\n";
-    exit 1;
+  print STDOUT "Usage: $0 [-c <cache-file>] [-o <output-file>]";
+  print STDOUT "       [-l <log-file>] [-t <tmp-dir>] [-r <reqlib-file>]";
+  print STDOUT "       <config-file>";
+  print STDOUT "<tmp-dir> must not exist.";
+  print STDOUT "defaults:";
+  print STDOUT "  <output-file>: config.h";
+  print STDOUT "  <cache-file> : mkconfig.cache";
+  print STDOUT "  <log-file>   : mkconfig.log";
+  print STDOUT "  <tmp-dir>    : _tmp_mkconfig";
+  print STDOUT "  <reqlib-file>: reqlibs.txt";
 }
+
+# main
+
+while ($#ARGV > 0)
+{
+  if ($ARGV[0] eq "-c")
+  {
+      shift @ARGV;
+      $CACHEFILE = $ARGV[0];
+      shift @ARGV;
+  }
+  if ($ARGV[0] eq "-o")
+  {
+      shift @ARGV;
+      $CONFH = $ARGV[0];
+      shift @ARGV;
+  }
+  if ($ARGV[0] eq "-l")
+  {
+      shift @ARGV;
+      $LOG = $ARGV[0];
+      shift @ARGV;
+  }
+  if ($ARGV[0] eq "-t")
+  {
+      shift @ARGV;
+      $TMP = $ARGV[0];
+      shift @ARGV;
+  }
+  if ($ARGV[0] eq "-r")
+  {
+      shift @ARGV;
+      $REQLIB = $ARGV[0];
+      shift @ARGV;
+  }
+}
+
+my $configfile = $ARGV[0];
+if (! defined ($configfile) || ! -f $configfile)
+{
+  usage;
+  exit 1;
+}
+if (-d $TMP && $TMP ne "_tmp_mkconfig")
+{
+  usage;
+  exit 1;
+}
+
+$LOG = "../$LOG";
+$CONFH = "../$CONFH";
+$REQLIB = "../$REQLIB";
+$CACHEFILE = "../$CACHEFILE";
 
 if (-d $TMP) { system ("rm -rf $TMP"); }
 mkdir $TMP, 0777;
 chdir $TMP;
 
-print STDOUT "$0 using $ARGV[0]\n";
+print STDOUT "$0 using $configfile\n";
 unlink $LOG;
 open (LOGFH, ">>$LOG");
 $ENV{'CFLAGS'} = $ENV{'CFLAGS'} . ' ' . $ENV{'CINCLUDES'};
@@ -1232,7 +1299,7 @@ print LOGFH "CFLAGS: $ENV{'CFLAGS'}\n";
 print LOGFH "LDFLAGS: $ENV{'LDFLAGS'}\n";
 print LOGFH "LIBS: $ENV{'LIBS'}\n";
 
-create_config;
+create_config $configfile;
 
 close LOGFH;
 

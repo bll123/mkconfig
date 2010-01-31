@@ -2,15 +2,17 @@
 #
 # $Id$
 #
-# Copyright 2009 Brad Lanam Walnut Creek, CA USA
+# Copyright 2009-2010 Brad Lanam Walnut Creek, CA USA
 #
 
-LOG="../mkconfig.log"
-CONFH="../config.h"
-REQLIB="../reqlibs.txt"
-TMP="_tmp"
-INC="include.txt"
-CACHEFILE="../mkconfig.cache"
+LOG="mkconfig.log"
+CONFH="config.h"
+REQLIB="reqlibs.txt"
+TMP="_tmp_mkconfig"
+CACHEFILE="mkconfig.cache"
+datafile=""
+
+INC="include.txt"                   # temporary
 EN='-n'
 EC=''
 datachg=0
@@ -175,6 +177,21 @@ print_headers () {
         do
             case ${cfgvar} in
                 _hdr_stdio|_hdr_stdlib|_sys_types|_sys_param)
+                    ;;
+                _hdr_malloc)
+                    imval=`getdata cfg '_include_malloc'`
+                    if [ "${imval}" != "0" ]
+                    then
+                      echo "#include <${hdval}>"
+                    fi
+                    ;;
+                _hdr_strings)
+                    hsval=`getdata cfg '_hdr_string'`
+                    isval=`getdata cfg '_include_string'`
+                    if [ "${hsval}" = "0" -o "${isval}" != "0" ]
+                    then
+                      echo "#include <${hdval}>"
+                    fi
                     ;;
                 _hdr_*|_sys_*)
                     hdval=`getdata cfg ${cfgvar}`
@@ -979,10 +996,12 @@ _HERE_
                 then
                     has=`getdata cfg "${req}"`
                 fi
+                nm=`echo "_npt_${func}" | tr '[A-Z]' '[a-z]'`
                 if [ ${has} -eq 1 ]
                 then
-                    nm=`echo "_npt_${func}" | tr '[A-Z]' '[a-z]'`
                     check_npt "${nm}" "${func}"
+                else
+                    setdata cfg "${nm}" "0"
                 fi
                 ;;
             dcl*)
@@ -1084,14 +1103,69 @@ _HERE_
 
 }
 
+usage () {
+  echo "Usage: $0 [-c <cache-file>] [-o <output-file>]"
+  echo "       [-l <log-file>] [-t <tmp-dir>] [-r <reqlib-file>]"
+  echo "       <config-file>"
+  echo "<tmp-dir> must not exist."
+  echo "defaults:"
+  echo "  <output-file>: config.h"
+  echo "  <cache-file> : mkconfig.cache"
+  echo "  <log-file>   : mkconfig.log"
+  echo "  <tmp-dir>    : _tmp_mkconfig"
+  echo "  <reqlib-file>: reqlibs.txt"
+}
+
 # main
 
-if [ $# -ne 1 ]
-then
-    echo "Usage: $0 <config-file>"
-    exit 1
-fi
+while test $# -gt 1
+do
+  case "$1" in
+    -c)
+      shift
+      CACHEFILE="$1"
+      shift
+      ;;
+    -o)
+      shift
+      CONFH="$1"
+      shift
+      ;;
+    -l)
+      shift
+      LOG="$1"
+      shift
+      ;;
+    -t)
+      shift
+      TMP="$1"
+      shift
+      ;;
+    -r)
+      shift
+      REQLIB="$1"
+      shift
+      ;;
+  esac
+done
+
 configfile=$1
+if [ $# -ne 1 -o ! -f $configfile ]
+then
+  usage
+  exit 1
+fi
+if [ -d $TMP -a $TMP != "_tmp_mkconfig" ]
+then
+  usage
+  exit 1
+fi
+
+LOG="../$LOG"
+CONFH="../$CONFH"
+REQLIB="../$REQLIB"
+CACHEFILE="../$CACHEFILE"
+
 echo -n 'test' | grep -- '-n' > /dev/null 2>&1
 rc=$?
 if [ $rc -eq 0 ]
