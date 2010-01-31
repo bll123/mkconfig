@@ -26,6 +26,7 @@ for tf in test_??.sh
 do
   tbase=`echo $tf | sed 's/\.sh$//'`
   tlog="${tbase}.log"
+  tmkconfig="${tbase}.mkconfig"
   tconfig="${tbase}.config"
   tconfh="${tbase}.configh"
 
@@ -39,17 +40,24 @@ do
     continue
   fi
 
+  > ${tlog}
   grc=0
-  echo "## === mkconfig.sh " > ${tlog}
+  arg=""
+  if [ -f $tmkconfig ]; then
+    echo "## === mkconfig.sh " >> ${tlog}
+    arg="mkconfig.sh"
+  fi
   echo "## stdout" >> ${tlog}
-  echo ${EN} "$tf ... mkconfig.sh: ${EC}"
+  echo ${EN} "$tf ... ${arg} ${EC}"
   if [ -f $tconfig ]; then
     cp -pf $tconfig $tconfh
   fi
-  ./$tf mkconfig.sh >> ${tlog} 2>&1
+  ./$tf $arg >> ${tlog} 2>&1
   rc=$?
-  echo "## mkconfig.log" >> ${tlog}
-  cat mkconfig.log >> ${tlog}
+  if [ -f mkconfig.log ]; then
+    echo "## mkconfig.log" >> ${tlog}
+    cat mkconfig.log >> ${tlog}
+  fi
   if [ $rc -ne 0 ]; then
     echo " ... failed"
     fcount=`expr $fcount + 1`
@@ -60,29 +68,30 @@ do
   clean $tbase
   count=`expr $count + 1`
 
-  echo ${EN} "$tf ... mkconfig.pl: ${EC}"
-  echo "## === mkconfig.pl " >> ${tlog}
-  echo "## stdout" >> ${tlog}
-  if [ -f $tconfig ]; then
-    cat $tconfig | sed 's/_mkconfig_sh 1/_mkconfig_sh 0/' |
-      sed 's/_mkconfig_pl 0/_mkconfig_pl 1/' > $tconfh
-  fi
-  ./$tf mkconfig.pl >> ${tlog} 2>&1
-  rc=$?
-  echo "## mkconfig.log" >> ${tlog}
-  cat mkconfig.log >> ${tlog}
-  if [ $rc -ne 0 ]; then
-    echo " ... failed"
-    fcount=`expr $fcount + 1`
-  else
-    echo " ... success"
-    if [ $grc -eq 0 ]; then
-      rm -f ${tlog}
+  if [ -f $tmkconfig ]; then
+    echo ${EN} "$tf ... mkconfig.pl ${EC}"
+    echo "## === mkconfig.pl " >> ${tlog}
+    echo "## stdout" >> ${tlog}
+    if [ -f $tconfig ]; then
+      cat $tconfig | sed 's/_mkconfig_sh 1/_mkconfig_sh 0/' |
+        sed 's/_mkconfig_pl 0/_mkconfig_pl 1/' > $tconfh
     fi
+    ./$tf mkconfig.pl >> ${tlog} 2>&1
+    rc=$?
+    echo "## mkconfig.log" >> ${tlog}
+    cat mkconfig.log >> ${tlog}
+    if [ $rc -ne 0 ]; then
+      echo " ... failed"
+      fcount=`expr $fcount + 1`
+    else
+      echo " ... success"
+      if [ $grc -eq 0 ]; then
+        rm -f ${tlog}
+      fi
+    fi
+    clean $tbase
+    count=`expr $count + 1`
   fi
-  clean $tbase
-
-  count=`expr $count + 1`
 done
 
 echo "$count tests $fcount failures"
