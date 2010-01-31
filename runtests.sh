@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export CC=cc
+export CC=${CC:-cc}
 
 export EN='-n'
 export EC=''
