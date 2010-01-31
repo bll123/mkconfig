@@ -1,4 +1,10 @@
 #!/bin/sh
+#
+# $Id$
+# $Source$
+#
+# Copyright 1994-2010 Brad Lanam, Walnut Creek, CA
+#
 
 export CC=${CC:-cc}
 
