@@ -989,7 +989,7 @@ _HERE_
         }
         elsif ($ininclude == 1)
         {
-            $line =~ s,\\\\,\\,go;
+            $line =~ s,\\(.),$1,g;
             $include .= $line . "\n";
         }
         elsif ($line =~ m#^include$#o)
