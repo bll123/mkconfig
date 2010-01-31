@@ -1,2 +1,3 @@
 hdr test03b.h
+hdr test03c.h
 lib test03b -ltest03b -ltest03c
