@@ -1,9 +1,9 @@
 #!/bin/sh
 
-script=$1
+script=$@
 
 echo ${EN} "include${EC}" >&3
-../${script} -C test_01.dat
+eval "${script} -C test_01.dat"
 diff -b test_01.configh config.h
 rc=$?
 echo "## config.h"

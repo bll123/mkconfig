@@ -1,6 +1,6 @@
 #!/bin/sh
 
-script=$1
+script=$@
 echo ${EN} "lib w/multiple req${EC}" >&3
 
 grc=0
@@ -54,7 +54,7 @@ ar cq libtest03c.a test03c.o
 
 cd ..
 
-../${script} -C test_03.dat
+eval "${script} -C test_03.dat"
 diff -b test_03.configh config.h
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
