@@ -867,6 +867,7 @@ _HERE_
 
     ininclude=0
     inheaders=1
+    OIFS="$IFS"
     > $INC
     # This while loop reads data from stdin, so it has
     # a subshell of its own.  This requires us to save the
@@ -879,6 +880,7 @@ _HERE_
             then
                 echo "end include" >> $LOG
                 ininclude=0
+                IFS="$OIFS"
             else
                 echo "${tdatline}" >> $INC
             fi
@@ -901,7 +903,9 @@ _HERE_
             esac
         fi
 
-        case ${tdatline} in
+        if [ $ininclude -eq 0 ]
+        then
+          case ${tdatline} in
             hdr*|sys*)
                 set $tdatline
                 type=$1
@@ -1011,9 +1015,12 @@ _HERE_
             include*)
                 echo "start include" >> $LOG
                 ininclude=1
+                IFS="
+"
                 ;;
-        esac
-        savedata
+          esac
+          savedata
+        fi
     done < ../${configfile}
 
     # refetch the configuration data
