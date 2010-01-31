@@ -1,0 +1,2 @@
+hdr test03b.h
+lib test03b -ltest03b -ltest03c

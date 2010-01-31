@@ -1,0 +1,2 @@
+hdr math.h
+lib atanh -lm
