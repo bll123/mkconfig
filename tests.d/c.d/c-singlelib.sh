@@ -5,7 +5,7 @@ echo ${EN} "lib w/req${EC}" >&3
 
 grc=0
 
-../${script} test_02.dat
+../${script} -C test_02.dat
 diff -b test_02.configh config.h
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
