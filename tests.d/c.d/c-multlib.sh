@@ -5,8 +5,8 @@ echo ${EN} "lib w/multiple req${EC}" >&3
 
 grc=0
 
-export CFLAGS="-I. -I.."
-export LDFLAGS="-L.."
+export CFLAGS="-I. -I.. ${CFLAGS}"
+export LDFLAGS="-L.. ${LDFLAGS}"
 
 rm -f libtest03?.* test03?.* > /dev/null 2>&1
 
