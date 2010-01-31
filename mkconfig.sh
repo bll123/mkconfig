@@ -45,8 +45,7 @@ savedata () {
     # command like bash does.  So we do it.
     # Then we have to undo it for bash.
     # And then there's: x='', which gets munged.
-    if [ $datachg -eq 1 ]
-    then
+    if [ $datachg -eq 1 ]; then
       set | grep "^di_cfg" | \
         sed "s/=/='/" | \
         sed "s/$/'/" | \
@@ -60,8 +59,7 @@ savedata () {
 cleardata () {
     prefix=$1
     cmd="echo \${di_${prefix}_vars}"
-    for tval in `eval $cmd`
-    do
+    for tval in `eval $cmd`; do
         eval unset di_${prefix}_${tval}
     done
     eval "di_${prefix}_vars="
@@ -78,8 +76,7 @@ setdata () {
     eval "$cmd"
     rc=$?
     # if already in the list of vars, don't add it again.
-    if [ $rc -ne 0 ]
-    then
+    if [ $rc -ne 0 ]; then
       cmd="di_${prefix}_vars=\"\${di_${prefix}_vars} ${sdname}\""
       eval "$cmd"
     fi
@@ -108,8 +105,7 @@ printyesno_val () {
   ynval=$2
   yntag="${3:-}"
 
-  if [ "$ynval" != "0" ]
-  then
+  if [ "$ynval" != "0" ]; then
     echo "## [${ynname}] $ynval ${yntag}" >> $LOG
     echo "$ynval ${yntag}"
   else
@@ -123,8 +119,7 @@ printyesno () {
     ynval=$2
     yntag="${3:-}"
 
-    if [ "$ynval" != "0" ]
-    then
+    if [ "$ynval" != "0" ]; then
       ynval="yes"
     fi
     printyesno_val $ynname $ynval "$yntag"
@@ -135,8 +130,7 @@ checkcache_val () {
 
   tval=`getdata cfg $tname`
   rc=1
-  if [ "$tval" != "" ]
-  then
+  if [ "$tval" != "" ]; then
     printyesno_val $tname $tval " (cached)"
     rc=0
   fi
@@ -148,8 +142,7 @@ checkcache () {
 
   tval=`getdata cfg $tname`
   rc=1
-  if [ "$tval" != "" ]
-  then
+  if [ "$tval" != "" ]; then
     printyesno $tname $tval " (cached)"
     rc=0
   fi
@@ -159,44 +152,36 @@ checkcache () {
 
 print_headers () {
     incheaders=`getdata args incheaders`
-    if [ "${incheaders}" = "all" -o "${incheaders}" = "std" ]
-    then
-        for tnm in '_hdr_stdio' '_hdr_stdlib' '_sys_types' '_sys_param'
-        do
+    if [ "${incheaders}" = "all" -o "${incheaders}" = "std" ]; then
+        for tnm in '_hdr_stdio' '_hdr_stdlib' '_sys_types' '_sys_param'; do
             tval=`getdata cfg ${tnm}`
-            if [ "${tval}" != "0" -a "${tval}" != "" ]
-            then
+            if [ "${tval}" != "0" -a "${tval}" != "" ]; then
                 echo "#include <${tval}>"
             fi
         done
     fi
 
-    if [ "${incheaders}" = "all" ]
-    then
-        for cfgvar in ${di_cfg_vars}
-        do
+    if [ "${incheaders}" = "all" ]; then
+        for cfgvar in ${di_cfg_vars}; do
             case ${cfgvar} in
                 _hdr_stdio|_hdr_stdlib|_sys_types|_sys_param)
                     ;;
                 _hdr_malloc)
                     imval=`getdata cfg '_include_malloc'`
-                    if [ "${imval}" != "0" ]
-                    then
+                    if [ "${imval}" != "0" ]; then
                       echo "#include <${hdval}>"
                     fi
                     ;;
                 _hdr_strings)
                     hsval=`getdata cfg '_hdr_string'`
                     isval=`getdata cfg '_include_string'`
-                    if [ "${hsval}" = "0" -o "${isval}" != "0" ]
-                    then
+                    if [ "${hsval}" = "0" -o "${isval}" != "0" ]; then
                       echo "#include <${hdval}>"
                     fi
                     ;;
                 _hdr_*|_sys_*)
                     hdval=`getdata cfg ${cfgvar}`
-                    if [ "${hdval}" != "0" -a "${hdval}" != "" ]
-                    then
+                    if [ "${hdval}" != "0" -a "${hdval}" != "" ]; then
                         echo "#include <${hdval}>"
                     fi
                     ;;
@@ -213,13 +198,11 @@ check_run () {
     rc=$?
     echo "##  run test: link: $rc" >> $LOG
     rval=0
-    if [ $rc -eq 0 ]
-    then
+    if [ $rc -eq 0 ]; then
         rval=`./${name}.exe`
         rc=$?
         echo "##  run test: run: $rc" >> $LOG
-        if [ $rc -lt 0 ]
-        then
+        if [ $rc -lt 0 ]; then
             exitmkconfig $rc
         fi
     fi
@@ -234,8 +217,7 @@ check_link () {
 
     ocounter=0
     clotherlibs=`getdata args otherlibs`
-    if [ "${clotherlibs}" != "" ]
-    then
+    if [ "${clotherlibs}" != "" ]; then
         set -- $clotherlibs
         ocount=$#
     else
@@ -253,16 +235,13 @@ check_link () {
     _check_link $name
     rc=$?
     echo "##      link test (none): $rc" >> $LOG
-    if [ $rc -ne 0 ]
-    then
-        while test $ocounter -lt $ocount
-        do
+    if [ $rc -ne 0 ]; then
+        while test $ocounter -lt $ocount; do
             ocounter=`expr $ocounter + 1`
             set -- $clotherlibs
             tcounter=0
             olibs=""
-            while test $tcounter -lt $ocounter
-            do
+            while test $tcounter -lt $ocounter; do
                 olibs="${olibs} $1"
                 shift
                 tcounter=`expr $tcounter + 1`
@@ -272,8 +251,7 @@ check_link () {
             _check_link $name
             rc=$?
             echo "##      link test (${olibs}): $rc" >> $LOG
-            if [ $rc -eq 0 ]
-            then
+            if [ $rc -eq 0 ]; then
                 break
             fi
         done
@@ -287,31 +265,26 @@ _check_link () {
 
     cmd="${CC} ${CFLAGS} "
     cflags=`getdata args cflags`
-    if [ "${cflags}" != "" ]
-    then
+    if [ "${cflags}" != "" ]; then
         cmd="${cmd} ${cflags} "
     fi
     cmd="${cmd} -o ${name}.exe ${name}.c "
     cmd="${cmd} ${LDFLAGS} ${LIBS} "
     _clotherlibs=`getdata args otherlibs`
-    if [ "${_clotherlibs}" != "" ]
-    then
+    if [ "${_clotherlibs}" != "" ]; then
         cmd="${cmd} ${_clotherlibs} "
     fi
     echo "##  _link test: $cmd" >> $LOG
     eval $cmd >> $LOG 2>&1
     rc=$?
-    if [ $rc -lt 0 ]
-    then
+    if [ $rc -lt 0 ]; then
         exitmkconfig $rc
     fi
     echo "##      _link test: $rc" >> $LOG
-    if [ $rc -eq 0 ]
-    then
-        if [ ! -x "${name}.exe" ]  # not executable.
-        then
-            rc=1
-        fi
+    if [ $rc -eq 0 ]; then
+      if [ ! -x "${name}.exe" ]; then  # not executable
+        rc=1
+      fi
     fi
     return $rc
 }
@@ -346,11 +319,9 @@ check_header () {
 
     reqhdr=`getdata args reqhdr`
     code=""
-    if [ "${reqhdr}" != "" ]
-    then
+    if [ "${reqhdr}" != "" ]; then
         set ${reqhdr}
-        while test $# -gt 0
-        do
+        while test $# -gt 0; do
             code="${code}
 #include <$1>
 "
@@ -367,8 +338,7 @@ main () { exit (0); }
     check_compile "${name}" "${code}"
     rc=$?
     val="0"
-    if [ $rc -eq 0 ]
-    then
+    if [ $rc -eq 0 ]; then
         val=${file}
     fi
     printyesno $name $val
@@ -389,8 +359,7 @@ check_keyword () {
     setdata args incheaders std
     check_compile "${name}" "${code}"
     rc=$?
-    if [ $rc -ne 0 ]  # failure means it is reserved...
-    then
+    if [ $rc -ne 0 ]; then  # failure means it is reserved...
       trc=1
     fi
     printyesno $name $trc
@@ -415,8 +384,7 @@ int bar () { int rc; rc = foo (1,1); return 0; }
     check_compile "${name}" "${code}"
     rc=$?
     trc=0
-    if [ $rc -eq 0 ]
-    then
+    if [ $rc -eq 0 ]; then
         trc=1
     fi
     printyesno $name $trc
@@ -442,8 +410,7 @@ main () { struct xxx *tmp; tmp = f(); exit (0); }
     setdata args incheaders all
     check_compile "${name}" "${code}"
     rc=$?
-    if [ $rc -eq 0 ]
-    then
+    if [ $rc -eq 0 ]; then
         trc=1
     fi
     printyesno $name $trc
@@ -464,8 +431,7 @@ check_member () {
     cleardata args
     setdata args incheaders all
     check_compile "${name}" "${code}"
-    if [ $rc -eq 0 ]
-    then
+    if [ $rc -eq 0 ]; then
         trc=1
     fi
     printyesno $name $trc
@@ -486,8 +452,7 @@ check_setmntent_1arg () {
     setdata args otherlibs ""
     check_link "${name}" "${code}" > /dev/null
     rc=$?
-    if [ $rc -eq 0 ]
-    then
+    if [ $rc -eq 0 ]; then
         trc=1
     fi
     printyesno $name $trc
@@ -508,8 +473,7 @@ check_setmntent_2arg () {
     setdata args otherlibs ""
     check_link "${name}" "${code}" > /dev/null
     rc=$?
-    if [ $rc -eq 0 ]
-    then
+    if [ $rc -eq 0 ]; then
         trc=1
     fi
     printyesno $name $trc
@@ -535,8 +499,7 @@ main () {
     setdata args otherlibs ""
     check_link "${name}" "${code}" > /dev/null
     rc=$?
-    if [ $rc -eq 0 ]
-    then
+    if [ $rc -eq 0 ]; then
         trc=1
     fi
     printyesno $name $trc
@@ -562,8 +525,7 @@ main () {
     setdata args otherlibs ""
     check_link "${name}" "${code}" > /dev/null
     rc=$?
-    if [ $rc -eq 0 ]
-    then
+    if [ $rc -eq 0 ]; then
         trc=1
     fi
     printyesno $name $trc
@@ -589,8 +551,7 @@ main () {
     setdata args otherlibs ""
     check_link "${name}" "${code}" > /dev/null
     rc=$?
-    if [ $rc -eq 0 ]
-    then
+    if [ $rc -eq 0 ]; then
         trc=1
     fi
     printyesno $name $trc
@@ -627,8 +588,7 @@ check_int_declare () {
     setdata args incheaders all
     check_compile "${name}" "${code}"
     rc=$?
-    if [ $rc -eq 0 ]
-    then
+    if [ $rc -eq 0 ]; then
         trc=1
     fi
     printyesno $name $trc
@@ -649,8 +609,7 @@ check_ptr_declare () {
     setdata args incheaders all
     check_compile "${name}" "${code}"
     rc=$?
-    if [ $rc -eq 0 ]
-    then
+    if [ $rc -eq 0 ]; then
         trc=1
     fi
     printyesno $name $trc
@@ -676,8 +635,7 @@ _END_EXTERNS_
     setdata args incheaders all
     check_compile "${name}" "${code}"
     rc=$?
-    if [ $rc -eq 0 ]
-    then
+    if [ $rc -eq 0 ]; then
         trc=1
     fi
     printyesno $name $trc
@@ -694,10 +652,8 @@ check_command () {
 
     trc=0
     pth="`echo ${PATH} | sed 's/[;:]/ /g'`"
-    for p in $pth
-    do
-        if [ -x "$p/$cmd" ]
-        then
+    for p in $pth; do
+        if [ -x "$p/$cmd" ]; then
             trc="$p/$cmd"
             break
         fi
@@ -712,8 +668,7 @@ check_lib () {
 
     otherlibs=`getdata args otherlibs`
 
-    if [ "${otherlibs}" != "" ]
-    then
+    if [ "${otherlibs}" != "" ]; then
         printlabel $name "function: ${func} [${otherlibs}]"
     else
         printlabel $name "function: ${func}"
@@ -738,13 +693,11 @@ main () {  return (i==0); }
     setdata args otherlibs "${otherlibs}"
     dlibs=`check_link "${name}" "${code}"`
     rc=$?
-    if [ $rc -eq 0 ]
-    then
+    if [ $rc -eq 0 ]; then
         trc=1
     fi
     tag=""
-    if [ $rc -eq 0 -a "$dlibs" != "" ]
-    then
+    if [ $rc -eq 0 -a "$dlibs" != "" ]; then
       tag=" with ${dlibs}"
       reqlibs=`getdata data reqlibs`
       reqlibs="${reqlibs} ${dlibs}"
@@ -763,8 +716,7 @@ check_class () {
     code=" main () { ${class} testclass; } "
     otherlibs=`getdata args otherlibs`
 
-    if [ "$otherlibs" != "" ]
-    then
+    if [ "$otherlibs" != "" ]; then
         printlabel $name "class: ${class} [${otherlibs}]"
     else
         printlabel $name "class: ${class}"
@@ -777,13 +729,11 @@ check_class () {
     setdata args otherlibs "${otherlibs}"
     check_link "${name}" "${code}" > /dev/null
     rc=$?
-    if [ $rc -eq 0 ]
-    then
+    if [ $rc -eq 0 ]; then
         trc=1
     fi
     tag=""
-    if [ $rc -eq 0 -a "${dlibs}" != "" ]
-    then
+    if [ $rc -eq 0 -a "${dlibs}" != "" ]; then
         tag=" with ${dlibs}"
         reqlibs=`getdata data reqlibs`
         reqlibs="${reqlibs} ${dlibs}"
@@ -800,8 +750,7 @@ check_include_malloc () {
     trc=0
     _hdr_malloc=`getdata cfg _hdr_malloc`
     _hdr_string=`getdata cfg _hdr_string`
-    if [ "${_hdr_string}" = "string.h" -a "${_hdr_malloc}" = "malloc.h" ]
-    then
+    if [ "${_hdr_string}" = "string.h" -a "${_hdr_malloc}" = "malloc.h" ]; then
         printlabel $name "header: include malloc.h"
         checkcache $name
         if [ $rc -eq 0 ]; then return; fi
@@ -814,8 +763,7 @@ main () { char *x; x = (char *) malloc (20); }"
         setdata args incheaders std
         check_compile "${name}" "${code}"
         rc=$?
-        if [ $rc -eq 0 ]
-        then
+        if [ $rc -eq 0 ]; then
             trc=1
         fi
         printyesno $name $trc
@@ -829,8 +777,7 @@ check_include_string () {
     trc=0
     _hdr_string=`getdata cfg _hdr_string`
     _hdr_strings=`getdata cfg _hdr_strings`
-    if [ "${_hdr_string}" = "string.h" -a "${_hdr_strings}" = "strings.h" ]
-    then
+    if [ "${_hdr_string}" = "string.h" -a "${_hdr_strings}" = "strings.h" ]; then
         printlabel $name "header: include both string.h & strings.h"
         checkcache $name
         if [ $rc -eq 0 ]; then return; fi
@@ -843,8 +790,7 @@ main () { char *x; x = \"xyz\"; strcat (x, \"abc\"); }
         setdata args incheaders std
         check_compile "${name}" "${code}"
         rc=$?
-        if [ $rc -eq 0 ]
-        then
+        if [ $rc -eq 0 ]; then
             trc=1
         fi
         printyesno $name $trc
@@ -865,8 +811,7 @@ create_config () {
 
 _HERE_
 
-    if [ -f $CACHEFILE ]
-    then
+    if [ -f $CACHEFILE ]; then
       . $CACHEFILE
     fi
     cleardata data          # don't use cache for required libs
@@ -889,12 +834,9 @@ _HERE_
     # This while loop reads data from stdin, so it has
     # a subshell of its own.  This requires us to save the
     # configuration data in files for re-use.  See setdata()
-    while read tdatline
-    do
-        if [ $ininclude -eq 1 ]
-        then
-            if [ "${tdatline}" = "endinclude" ]
-            then
+    while read tdatline; do
+        if [ $ininclude -eq 1 ]; then
+            if [ "${tdatline}" = "endinclude" ]; then
                 echo "end include" >> $LOG
                 ininclude=0
                 IFS="$OIFS"
@@ -910,8 +852,7 @@ _HERE_
                 hdr*|sys*)
                     ;;
                 *)
-                    if [ $inheaders -eq 1 ]
-                    then
+                    if [ $inheaders -eq 1 ]; then
                         check_include_malloc '_include_malloc'
                         check_include_string '_include_string'
                     fi
@@ -920,8 +861,7 @@ _HERE_
             esac
         fi
 
-        if [ $ininclude -eq 0 ]
-        then
+        if [ $ininclude -eq 0 ]; then
           case ${tdatline} in
             hdr*|sys*)
                 set $tdatline
@@ -959,13 +899,11 @@ _HERE_
                 setdata args otherlibs "${libs}"
                 check_lib $nm "${func}"
                 rc=$?
-                if [ $func = 'setmntent' -a $rc -eq 1 ]
-                then
+                if [ $func = 'setmntent' -a $rc -eq 1 ]; then
                     check_setmntent_1arg '_setmntent_1arg'
                     check_setmntent_2arg '_setmntent_2arg'
                 fi
-                if [ $func = 'statfs' -a $rc -eq 1 ]
-                then
+                if [ $func = 'statfs' -a $rc -eq 1 ]; then
                     check_statfs_2arg '_statfs_2arg'
                     check_statfs_3arg '_statfs_3arg'
                     check_statfs_4arg '_statfs_4arg'
@@ -992,13 +930,11 @@ _HERE_
                 func=$2
                 req=$3
                 has=1
-                if [ "${req}" != "" ]
-                then
+                if [ "${req}" != "" ]; then
                     has=`getdata cfg "${req}"`
                 fi
                 nm=`echo "_npt_${func}" | tr '[A-Z]' '[a-z]'`
-                if [ ${has} -eq 1 ]
-                then
+                if [ ${has} -eq 1 ]; then
                     check_npt "${nm}" "${func}"
                 else
                     setdata cfg "${nm}" "0"
@@ -1009,11 +945,9 @@ _HERE_
                 type=$2
                 var=$3
                 nm=`echo "_dcl_${var}" | tr '[A-Z]' '[a-z]'`
-                if [ "$type" = "int" ]
-                then
+                if [ "$type" = "int" ]; then
                     check_int_declare $nm $var
-                elif [ "$type" = "ptr" ]
-                then
+                elif [ "$type" = "ptr" ]; then
                     check_ptr_declare $nm $var
                 fi
                 ;;
@@ -1045,12 +979,10 @@ _HERE_
     # refetch the configuration data
     . ${CACHEFILE}
 
-    for cfgvar in ${di_cfg_vars}
-    do
+    for cfgvar in ${di_cfg_vars}; do
         val=`getdata cfg $cfgvar`
         tval=0
-        if [ "$val" != "0" ]
-        then
+        if [ "$val" != "0" ]; then
           tval=1
         fi
         case ${cfgvar} in
@@ -1064,9 +996,8 @@ _HERE_
     done
 
     > $REQLIB
-    val=`getdata data reqlibs`
-    val=`for tval in $val
-        do
+    val=`getdata data reqlibs`;
+    val=`for tval in $val; do
             echo $tval
         done | sort | uniq`
     echo $val >> $REQLIB
@@ -1121,15 +1052,13 @@ usage () {
 
 echo -n 'test' | grep -- '-n' > /dev/null 2>&1
 rc=$?
-if [ $rc -eq 0 ]
-then
+if [ $rc -eq 0 ]; then
     EN=''
     EC='\c'
 fi
 
 clearcache=0
-while test $# -gt 1
-do
+while test $# -gt 1; do
   case "$1" in
     -C)
       shift
@@ -1164,13 +1093,11 @@ do
 done
 
 configfile=$1
-if [ $# -ne 1 -o ! -f $configfile ]
-then
+if [ $# -ne 1 -o ! -f $configfile ]; then
   usage
   exit 1
 fi
-if [ -d $TMP -a $TMP != "_tmp_mkconfig" ]
-then
+if [ -d $TMP -a $TMP != "_tmp_mkconfig" ]; then
   usage
   exit 1
 fi
@@ -1184,8 +1111,7 @@ test -d $TMP && rm -rf $TMP > /dev/null 2>&1
 mkdir $TMP
 cd $TMP
 
-if [ $clearcache -eq 1 ]
-then
+if [ $clearcache -eq 1 ]; then
   rm -f $CACHEFILE > /dev/null 2>&1
 fi
 
