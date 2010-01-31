@@ -1,2 +1,2 @@
 hdr math.h
-lib atanh -lm
+lib tan -lm
