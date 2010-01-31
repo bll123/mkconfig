@@ -345,6 +345,41 @@ main () { exit (0); }
     setdata cfg "${name}" "${val}"
 }
 
+check_constant () {
+    name=$1
+    constant=$2
+
+    printlabel $name "constant: ${constant}"
+    checkcache $name
+    if [ $rc -eq 0 ]; then return; fi
+
+    reqhdr=`getdata args reqhdr`
+    code=""
+    if [ "${reqhdr}" != "" ]; then
+        set ${reqhdr}
+        while test $# -gt 0; do
+            code="${code}
+#include <$1>
+"
+            shift
+        done
+    fi
+    code="${code}
+main () { if (${constant} == 0) { 1; } exit (0); }
+"
+    rc=1
+    cleardata args
+    setdata args incheaders all
+    check_compile "${name}" "${code}"
+    rc=$?
+    val="0"
+    if [ $rc -eq 0 ]; then
+        val="1"
+    fi
+    printyesno $name $val
+    setdata cfg "${name}" "${val}"
+}
+
 check_keyword () {
     name=$1
     keyword=$2
@@ -679,13 +714,8 @@ check_lib () {
     trc=0
     code="
 typedef int (*_TEST_fun_)();
-#ifdef _TRY_extern_
-_BEGIN_EXTERNS_
-extern int ${func}();
-_END_EXTERNS_
-#endif
 static _TEST_fun_ i=(_TEST_fun_) ${func};
-main () {  return (i==0); }
+main () {  i(); return (i==0); }
 "
 
     cleardata args
@@ -880,6 +910,17 @@ _HERE_
                 esac
                 setdata args reqhdr "$reqhdr"
                 check_header $nm $hdr
+                ;;
+            const*)
+                set $tdatline
+                name=$2
+                constant=$2
+                shift;shift
+                reqhdr="$*"
+                name=`echo ${name} | tr '[A-Z]' '[a-z]'`
+                name="_const_${name}"
+                setdata args reqhdr "$reqhdr"
+                check_constant $name $constant
                 ;;
             typ*)
                 set $tdatline

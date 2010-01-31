@@ -364,6 +364,41 @@ _HERE_
     $r_config->{$name} = $val;
 }
 
+sub
+check_constant
+{
+    my ($name, $constant, $r_clist, $r_config, $r_a) = @_;
+
+    printlabel $name, "constant: $constant";
+    if (checkcache ($name, $r_config) == 0)
+    {
+        return;
+    }
+
+    my $r_rh = $r_a->{'reqhdr'} || [];
+    my $code = '';
+    foreach my $reqhdr (@$r_rh)
+    {
+        $code .= <<"_HERE_";
+#include <$reqhdr>
+_HERE_
+    }
+    $code .= <<"_HERE_";
+main () { if (${constant} == 0) { 1; } exit (0); }
+_HERE_
+    my $rc = 1;
+    $rc = check_compile ($name, $code, $r_clist, $r_config,
+        { 'incheaders' => 'all', });
+    my $val = 0;
+    if ($rc == 0)
+    {
+        $val = 1;
+    }
+    printyesno $name, $val;
+    setlist $r_clist, $name;
+    $r_config->{$name} = $val;
+}
+
 # if the keyword is reserved, the compile will fail.
 sub
 check_keyword
@@ -598,13 +633,8 @@ check_lib
     $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 typedef int (*_TEST_fun_)();
-#ifdef _TRY_extern_
-_BEGIN_EXTERNS_
-extern int $func();
-_END_EXTERNS_
-#endif
 static _TEST_fun_ i=(_TEST_fun_) $func;
-main () {  return (i==0); }
+main () {  i(); return (i==0); }
 _HERE_
 
     my %a = (
@@ -1028,6 +1058,21 @@ _HERE_
                 $config{$nm} eq '0')
             {
                 check_header ($nm, $hdr, \%clist, \%config,
+                    { 'reqhdr' => \@oh, });
+            }
+        }
+        elsif ($line =~ m#^const\s+([^\s]+)\s*(.*)#o)
+        {
+            my $tnm = $1;
+            my $reqhdr = $2;
+            my $nm = "_const_" . lc $tnm;
+            $reqhdr =~ s/^\s*//o;
+            $reqhdr =~ s/\s*$//o;
+            my @oh = split (/\s+/, $reqhdr);
+            if (! defined ($config{$nm}) ||
+                $config{$nm} eq '0')
+            {
+                check_constant ($nm, $tnm, \%clist, \%config,
                     { 'reqhdr' => \@oh, });
             }
         }
