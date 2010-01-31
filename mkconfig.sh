@@ -1106,7 +1106,8 @@ _HERE_
 usage () {
   echo "Usage: $0 [-c <cache-file>] [-o <output-file>]"
   echo "       [-l <log-file>] [-t <tmp-dir>] [-r <reqlib-file>]"
-  echo "       <config-file>"
+  echo "       [-C] <config-file>"
+  echo "  -C : clear cache-file"
   echo "<tmp-dir> must not exist."
   echo "defaults:"
   echo "  <output-file>: config.h"
@@ -1118,9 +1119,22 @@ usage () {
 
 # main
 
+echo -n 'test' | grep -- '-n' > /dev/null 2>&1
+rc=$?
+if [ $rc -eq 0 ]
+then
+    EN=''
+    EC='\c'
+fi
+
+clearcache=0
 while test $# -gt 1
 do
   case "$1" in
+    -C)
+      shift
+      clearcache=1
+      ;;
     -c)
       shift
       CACHEFILE="$1"
@@ -1166,17 +1180,14 @@ CONFH="../$CONFH"
 REQLIB="../$REQLIB"
 CACHEFILE="../$CACHEFILE"
 
-echo -n 'test' | grep -- '-n' > /dev/null 2>&1
-rc=$?
-if [ $rc -eq 0 ]
-then
-    EN=''
-    EC='\c'
-fi
-
 test -d $TMP && rm -rf $TMP > /dev/null 2>&1
 mkdir $TMP
 cd $TMP
+
+if [ $clearcache -eq 1 ]
+then
+  rm -f $CACHEFILE > /dev/null 2>&1
+fi
 
 echo "$0 using $configfile"
 rm -f $LOG > /dev/null 2>&1

@@ -1223,7 +1223,8 @@ usage
 {
   print STDOUT "Usage: $0 [-c <cache-file>] [-o <output-file>]";
   print STDOUT "       [-l <log-file>] [-t <tmp-dir>] [-r <reqlib-file>]";
-  print STDOUT "       <config-file>";
+  print STDOUT "       [-C] <config-file>";
+  print STDOUT "  -C : clear cache-file";
   print STDOUT "<tmp-dir> must not exist.";
   print STDOUT "defaults:";
   print STDOUT "  <output-file>: config.h";
@@ -1235,8 +1236,14 @@ usage
 
 # main
 
+my $clearcache = 0;
 while ($#ARGV > 0)
 {
+  if ($ARGV[0] eq "-C")
+  {
+      shift @ARGV;
+      $clearcache = 1;
+  }
   if ($ARGV[0] eq "-c")
   {
       shift @ARGV;
@@ -1289,6 +1296,11 @@ $CACHEFILE = "../$CACHEFILE";
 if (-d $TMP) { system ("rm -rf $TMP"); }
 mkdir $TMP, 0777;
 chdir $TMP;
+
+if ($clearcache)
+{
+    unlink $CACHEFILE;
+}
 
 print STDOUT "$0 using $configfile\n";
 unlink $LOG;
