@@ -1,0 +1,20 @@
+# test mkconfig include quoting, backslashes, indentation.
+
+include
+
+/* TEST 1 */
+/* a \\ b \' \" ' " */
+/* TEST 2 */
+#if _lib_bindtextdomain && \\
+    _lib_gettext && \\
+    _lib_setlocale && \\
+    _lib_textdomain && \\
+    _hdr_libintl && \\
+    _hdr_locale && \\
+(_command_msgfmt || _command_gmsgfmt)
+# define _enable_nls 1
+#else
+# define _enable_nls 0
+#endif
+
+endinclude
