@@ -64,6 +64,9 @@ do
     grc=1
   else
     echo " ... success"
+    if [ ! -f $tmkconfig ]; then
+      rm -f ${tlog}
+    fi
   fi
   clean $tbase
   count=`expr $count + 1`
