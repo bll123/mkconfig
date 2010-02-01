@@ -41,141 +41,6 @@ exitmkconfig
 }
 
 sub
-check_run
-{
-    my ($name, $code, $r_val, $r_clist, $r_config, $r_a) = @_;
-
-    my $rc = check_link ($name, $code, $r_clist, $r_config,
-        { 'incheaders' => 'all', %$r_a, });
-    print LOGFH "##  run test: link: $rc\n";
-    $$r_val = 0;
-    if ($rc == 0)
-    {
-        $rc = system ("./$name.exe > $name.out");
-        if ($rc & 127) { exitmkconfig ($rc); }
-        print LOGFH "##  run test: run: $rc\n";
-        if ($rc == 0)
-        {
-            open (CRFH, "<$name.out");
-            $$r_val = <CRFH>;
-            chomp $$r_val;
-            close CRFH;
-        }
-    }
-    return $rc;
-}
-
-sub
-check_link
-{
-    my ($name, $code, $r_clist, $r_config, $r_a) = @_;
-
-    my $otherlibs = '';
-    if (defined ($r_a->{'otherlibs'}))
-    {
-        $otherlibs = $r_a->{'otherlibs'};
-    }
-
-    open (CLFH, ">$name.c");
-    print CLFH $precc;
-
-    my $hdrs = print_headers ($r_a, $r_clist, $r_config);
-    print CLFH $hdrs;
-    print CLFH $code;
-    close CLFH;
-
-    my $rc = system ("cat $name.c >> $LOG");
-    if ($rc & 127) { exitmkconfig ($rc); }
-
-    my $dlibs = '';
-    $rc = _check_link ($name, {} );
-    if ($rc != 0)
-    {
-      if ($otherlibs ne '')
-      {
-        my @olibs = split (/\s+/, $otherlibs);
-        my $oliblist = '';
-        foreach my $olib (@olibs)
-        {
-          $oliblist = $oliblist . ' ' . $olib;
-          $rc = _check_link ($name, { 'otherlibs' => $oliblist, } );
-          if ($rc == 0)
-          {
-              my $r_hash = $r_config->{'reqlibs'};
-              my @vals = split (/\s+/, $oliblist);
-              $dlibs = '';
-              foreach my $val (@vals)
-              {
-                  if ($val eq '') { next; }
-                  $r_hash->{$val} = 1;
-                  $dlibs .= $val . ' ';
-              }
-              last;
-          }
-        }
-      }
-    }
-
-    $r_a->{'dlibs'} = $dlibs;
-
-    return $rc;
-}
-
-sub
-_check_link
-{
-    my ($name, $r_a) = @_;
-
-    my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} ";
-    if (defined ($r_a->{'cflags'}))
-    {
-        $cmd .= ' ' . $r_a->{'cflags'} . ' ';
-    }
-    $cmd .= "-o $name.exe $name.c";
-    $cmd .= " $ENV{'LDFLAGS'} $ENV{'LIBS'}";
-    if (defined ($r_a->{'otherlibs'}) && $r_a->{'otherlibs'} ne undef)
-    {
-        $cmd .= ' ' . $r_a->{'otherlibs'} . ' ';
-    }
-    print LOGFH "##  link test: $cmd\n";
-    my $rc = system ("$cmd >> $LOG 2>&1");
-    if ($rc & 127) { exitmkconfig ($rc); }
-    print LOGFH "##      link test: $rc\n";
-    if ($rc == 0)
-    {
-        if (! -x "$name.exe")  # not executable.
-        {
-            $rc = 1;
-        }
-    }
-    return $rc;
-}
-
-sub
-check_compile
-{
-    my ($name, $code, $r_clist, $r_config, $r_a) = @_;
-
-    open (CCFH, ">$name.c");
-
-    print CCFH $precc;
-
-    my $hdrs = print_headers ($r_a, $r_clist, $r_config);
-    print CCFH $hdrs;
-    print CCFH $code;
-    close CCFH;
-
-    my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} -c $name.c";
-    print LOGFH "##  compile test: $cmd\n";
-    my $rc = system ("cat $name.c >> $LOG");
-    if ($rc & 127) { exitmkconfig ($rc); }
-    $rc = system ("$cmd >> $LOG 2>&1");
-    if ($rc & 127) { exitmkconfig ($rc); }
-    print LOGFH "##  compile test: $rc\n";
-    return $rc;
-}
-
-sub
 printlabel
 {
     my ($name, $label) = @_;
@@ -335,6 +200,158 @@ print_headers
 }
 
 sub
+check_run
+{
+    my ($name, $code, $r_val, $r_clist, $r_config, $r_a) = @_;
+
+    my $rc = check_link ($name, $code, $r_clist, $r_config,
+        { 'incheaders' => 'all', %$r_a, });
+    print LOGFH "##  run test: link: $rc\n";
+    $$r_val = 0;
+    if ($rc == 0)
+    {
+        $rc = system ("./$name.exe > $name.out");
+        if ($rc & 127) { exitmkconfig ($rc); }
+        print LOGFH "##  run test: run: $rc\n";
+        if ($rc == 0)
+        {
+            open (CRFH, "<$name.out");
+            $$r_val = <CRFH>;
+            chomp $$r_val;
+            close CRFH;
+        }
+    }
+    return $rc;
+}
+
+sub
+check_link
+{
+    my ($name, $code, $r_clist, $r_config, $r_a) = @_;
+
+    my $otherlibs = '';
+    if (defined ($r_a->{'otherlibs'}))
+    {
+        $otherlibs = $r_a->{'otherlibs'};
+    }
+
+    open (CLFH, ">$name.c");
+    print CLFH $precc;
+
+    my $hdrs = print_headers ($r_a, $r_clist, $r_config);
+    print CLFH $hdrs;
+    print CLFH $code;
+    close CLFH;
+
+    my $rc = system ("cat $name.c >> $LOG");
+    if ($rc & 127) { exitmkconfig ($rc); }
+
+    my $dlibs = '';
+    $rc = _check_link ($name, {} );
+    if ($rc != 0)
+    {
+      if ($otherlibs ne '')
+      {
+        my @olibs = split (/\s+/, $otherlibs);
+        my $oliblist = '';
+        foreach my $olib (@olibs)
+        {
+          $oliblist = $oliblist . ' ' . $olib;
+          $rc = _check_link ($name, { 'otherlibs' => $oliblist, } );
+          if ($rc == 0)
+          {
+              my $r_hash = $r_config->{'reqlibs'};
+              my @vals = split (/\s+/, $oliblist);
+              $dlibs = '';
+              foreach my $val (@vals)
+              {
+                  if ($val eq '') { next; }
+                  $r_hash->{$val} = 1;
+                  $dlibs .= $val . ' ';
+              }
+              last;
+          }
+        }
+      }
+    }
+
+    $r_a->{'dlibs'} = $dlibs;
+
+    return $rc;
+}
+
+sub
+_check_link
+{
+    my ($name, $r_a) = @_;
+
+    my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} ";
+    if (defined ($r_a->{'cflags'}))
+    {
+        $cmd .= ' ' . $r_a->{'cflags'} . ' ';
+    }
+    $cmd .= "-o $name.exe $name.c";
+    $cmd .= " $ENV{'LDFLAGS'} $ENV{'LIBS'}";
+    if (defined ($r_a->{'otherlibs'}) && $r_a->{'otherlibs'} ne undef)
+    {
+        $cmd .= ' ' . $r_a->{'otherlibs'} . ' ';
+    }
+    print LOGFH "##  link test: $cmd\n";
+    my $rc = system ("$cmd >> $LOG 2>&1");
+    if ($rc & 127) { exitmkconfig ($rc); }
+    print LOGFH "##      link test: $rc\n";
+    if ($rc == 0)
+    {
+        if (! -x "$name.exe")  # not executable.
+        {
+            $rc = 1;
+        }
+    }
+    return $rc;
+}
+
+sub
+check_compile
+{
+    my ($name, $code, $r_clist, $r_config, $r_a) = @_;
+
+    open (CCFH, ">$name.c");
+
+    print CCFH $precc;
+
+    my $hdrs = print_headers ($r_a, $r_clist, $r_config);
+    print CCFH $hdrs;
+    print CCFH $code;
+    close CCFH;
+
+    my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} -c $name.c";
+    print LOGFH "##  compile test: $cmd\n";
+    my $rc = system ("cat $name.c >> $LOG");
+    if ($rc & 127) { exitmkconfig ($rc); }
+    $rc = system ("$cmd >> $LOG 2>&1");
+    if ($rc & 127) { exitmkconfig ($rc); }
+    print LOGFH "##  compile test: $rc\n";
+    return $rc;
+}
+
+sub
+do_check_compile
+{
+    my ($name, $code, $inc, $r_clist, $r_config) = @_;
+
+    my $rc = check_compile ($name, $code, $r_clist, $r_config,
+        { 'incheaders' => $inc, });
+    my $trc = 0;
+    if ($rc == 0)
+    {
+        $trc = 1;
+    }
+    printyesno $name, $trc;
+    setlist $r_clist, $name;
+    $r_config->{$name} = $trc;
+}
+
+sub
 check_header
 {
     my ($name, $file, $r_clist, $r_config, $r_a) = @_;
@@ -392,17 +409,7 @@ _HERE_
     $code .= <<"_HERE_";
 main () { if (${constant} == 0) { 1; } exit (0); }
 _HERE_
-    my $rc = 1;
-    $rc = check_compile ($name, $code, $r_clist, $r_config,
-        { 'incheaders' => 'all', });
-    my $val = 0;
-    if ($rc == 0)
-    {
-        $val = 1;
-    }
-    printyesno $name, $val;
-    setlist $r_clist, $name;
-    $r_config->{$name} = $val;
+    do_check_compile ($name, $code, 'all', $r_clist, $r_config);
 }
 
 # if the keyword is reserved, the compile will fail.
@@ -489,7 +496,6 @@ check_include_malloc
 {
     my ($name, $r_clist, $r_config) = @_;
 
-    setlist $r_clist, $name;
     if (defined ($r_config->{'_hdr_malloc'}) &&
         $r_config->{'_hdr_malloc'} ne '0' &&
         defined ($r_config->{'_hdr_string'}) &&
@@ -501,22 +507,12 @@ check_include_malloc
             return;
         }
 
-        $r_config->{$name} = 0;
         my $code = <<"_HERE_";
-main ()
-{
-    char *x;
-    x = (char *) malloc (20);
-}
+main () { char *x; x = (char *) malloc (20); }
 _HERE_
-        my $rc = check_compile ($name, $code, $r_clist, $r_config,
-                { 'incheaders' => 'all', });
-        if ($rc == 0)
-        {
-            $r_config->{$name} = 1;
-        }
-        printyesno $name, $r_config->{$name};
+        do_check_compile ($name, $code, 'std', $r_clist, $r_config);
     } else {
+        setlist $r_clist, $name;
         $r_config->{$name} = 0;
     }
 }
@@ -526,7 +522,6 @@ check_include_string
 {
     my ($name, $r_clist, $r_config) = @_;
 
-    setlist $r_clist, $name;
     if (defined ($r_config->{'_hdr_string'}) &&
         $r_config->{'_hdr_string'} ne '0' &&
         defined ($r_config->{'_hdr_strings'}) &&
@@ -538,23 +533,14 @@ check_include_string
             return;
         }
 
-        $r_config->{$name} = 0;
         my $code = <<"_HERE_";
 #include <string.h>
 #include <strings.h>
-main ()
-{
-    char *x; x = "xyz"; strcat (x, "abc");
-}
+main () { char *x; x = "xyz"; strcat (x, "abc"); }
 _HERE_
-        my $rc = check_compile ($name, $code, $r_clist, $r_config,
-                { 'incheaders' => 'std', });
-        if ($rc == 0)
-        {
-            $r_config->{$name} = 1;
-        }
-        printyesno $name, $r_config->{$name};
+        do_check_compile ($name, $code, 'std', $r_clist, $r_config);
     } else {
+        setlist $r_clist, $name;
         $r_config->{$name} = 0;
     }
 }
@@ -564,7 +550,6 @@ check_include_time
 {
     my ($name, $r_clist, $r_config) = @_;
 
-    setlist $r_clist, $name;
     if (defined ($r_config->{'_hdr_time'}) &&
         $r_config->{'_hdr_time'} ne '0' &&
         defined ($r_config->{'_sys_time'}) &&
@@ -576,23 +561,14 @@ check_include_time
             return;
         }
 
-        $r_config->{$name} = 0;
         my $code = <<"_HERE_";
 #include <time.h>
 #include <sys/time.h>
-main ()
-{
-   struct tm x;
-}
+main () { struct tm x; }
 _HERE_
-        my $rc = check_compile ($name, $code, $r_clist, $r_config,
-                { 'incheaders' => 'std', });
-        if ($rc == 0)
-        {
-            $r_config->{$name} = 1;
-        }
-        printyesno $name, $r_config->{$name};
+        do_check_compile ($name, $code, 'std', $r_clist, $r_config);
     } else {
+        setlist $r_clist, $name;
         $r_config->{$name} = 0;
     }
 }
@@ -608,21 +584,13 @@ check_npt
         return;
     }
 
-    setlist $r_clist, $name;
-    $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 _BEGIN_EXTERNS_
 struct _TEST_struct { int _TEST_member; };
 extern struct _TEST_struct* $proto _ARG_((struct _TEST_struct*));
 _END_EXTERNS_
 _HERE_
-    my $rc = check_compile ($name, $code, $r_clist, $r_config,
-            { 'incheaders' => 'all', });
-    if ($rc == 0)
-    {
-        $r_config->{$name} = 1;
-    }
-    printyesno $name, $r_config->{$name};
+    do_check_compile ($name, $code, 'all', $r_clist, $r_config);
 }
 
 sub
@@ -636,21 +604,13 @@ check_type
         return;
     }
 
-    setlist $r_clist, $name;
-    $r_config->{$name} = 0;
     my $code = <<"_HERE_";
 struct xxx { $type mem; };
 static struct xxx v;
 struct xxx* f() { return &v; }
 main () { struct xxx *tmp; tmp = f(); exit (0); }
 _HERE_
-    my $rc = check_compile ($name, $code, $r_clist, $r_config,
-            { 'incheaders' => 'all', });
-    if ($rc == 0)
-    {
-        $r_config->{$name} = 1;
-    }
-    printyesno $name, $r_config->{$name};
+    do_check_compile ($name, $code, 'all', $r_clist, $r_config);
 }
 
 sub
