@@ -317,6 +317,12 @@ print_headers
             {
                 next;
             }
+            if ($val eq '_sys_time' &&
+                $r_config->{'_hdr_time'} ne '0' &&
+                $r_config->{'_include_time'} eq '0')
+            {
+                next;
+            }
             if ($r_config->{$val} ne '0')
             {
                 $txt .= "#include <" . $r_config->{$val} . ">\n";
@@ -554,6 +560,44 @@ _HERE_
 }
 
 sub
+check_include_time
+{
+    my ($name, $r_clist, $r_config) = @_;
+
+    setlist $r_clist, $name;
+    if (defined ($r_config->{'_hdr_time'}) &&
+        $r_config->{'_hdr_time'} ne '0' &&
+        defined ($r_config->{'_sys_time'}) &&
+        $r_config->{'_sys_time'} ne '0')
+    {
+        printlabel $name, "header: include both time.h & sys/time.h";
+        if (checkcache ($name, $r_config) == 0)
+        {
+            return;
+        }
+
+        $r_config->{$name} = 0;
+        my $code = <<"_HERE_";
+#include <time.h>
+#include <sys/time.h>
+main ()
+{
+   struct tm x;
+}
+_HERE_
+        my $rc = check_compile ($name, $code, $r_clist, $r_config,
+                { 'incheaders' => 'std', });
+        if ($rc == 0)
+        {
+            $r_config->{$name} = 1;
+        }
+        printyesno $name, $r_config->{$name};
+    } else {
+        $r_config->{$name} = 0;
+    }
+}
+
+sub
 check_npt
 {
     my ($name, $proto, $r_clist, $r_config) = @_;
@@ -631,6 +675,8 @@ check_lib
     }
 
     $r_config->{$name} = 0;
+    # unfortunately, this does not work if the function
+    # is not declared.
     my $code = <<"_HERE_";
 typedef int (*_TEST_fun_)();
 static _TEST_fun_ i=(_TEST_fun_) $func;
@@ -1017,6 +1063,7 @@ _HERE_
         {
             check_include_malloc ('_include_malloc', \%clist, \%config);
             check_include_string ('_include_string', \%clist, \%config);
+            check_include_time ('_include_time', \%clist, \%config);
             $inheaders = 0;
         }
 
