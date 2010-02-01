@@ -316,6 +316,41 @@ check_compile () {
 }
 
 
+do_check_compile () {
+    name="$1"
+    code="$2"
+    inc="$3"
+
+    cleardata args
+    setdata args incheaders ${inc}
+    check_compile "${name}" "${code}"
+    rc=$?
+    try="0"
+    if [ $rc -eq 0 ]; then
+        try="1"
+    fi
+    printyesno $name $try
+    setdata cfg "${name}" "${try}"
+}
+
+do_check_link () {
+    name="$1"
+    code="$2"
+    inc="$3"
+
+    cleardata args
+    setdata args incheaders ${inc}
+    setdata args otherlibs ""
+    check_link "${name}" "${code}" > /dev/null
+    rc=$?
+    trc=0
+    if [ $rc -eq 0 ]; then
+        trc=1
+    fi
+    printyesno $name $trc
+    setdata cfg "${name}" "${trc}"
+}
+
 check_header () {
     name=$1
     file=$2
@@ -374,17 +409,7 @@ check_constant () {
     code="${code}
 main () { if (${constant} == 0) { 1; } exit (0); }
 "
-    rc=1
-    cleardata args
-    setdata args incheaders all
-    check_compile "${name}" "${code}"
-    rc=$?
-    val="0"
-    if [ $rc -eq 0 ]; then
-        val="1"
-    fi
-    printyesno $name $val
-    setdata cfg "${name}" "${val}"
+    do_check_compile "${name}" "${code}" all
 }
 
 check_keyword () {
@@ -395,12 +420,13 @@ check_keyword () {
     checkcache $name
     if [ $rc -eq 0 ]; then return; fi
 
-    trc=0
     code="main () { int ${keyword}; ${keyword} = 1; exit (0); }"
+
     cleardata args
     setdata args incheaders std
     check_compile "${name}" "${code}"
     rc=$?
+    trc=0
     if [ $rc -ne 0 ]; then  # failure means it is reserved...
       trc=1
     fi
@@ -421,16 +447,8 @@ extern int foo (int, int);
 _END_EXTERNS_
 int bar () { int rc; rc = foo (1,1); return 0; }
 '
-    cleardata args
-    setdata args incheaders all
-    check_compile "${name}" "${code}"
-    rc=$?
-    trc=0
-    if [ $rc -eq 0 ]; then
-        trc=1
-    fi
-    printyesno $name $trc
-    setdata cfg "${name}" "${trc}"
+
+    do_check_compile "${name}" "${code}" all
 }
 
 check_type () {
@@ -441,22 +459,14 @@ check_type () {
     checkcache $name
     if [ $rc -eq 0 ]; then return; fi
 
-    trc=0
     code="
 struct xxx { ${type} mem; };
 static struct xxx v;
 struct xxx* f() { return &v; }
 main () { struct xxx *tmp; tmp = f(); exit (0); }
 "
-    cleardata args
-    setdata args incheaders all
-    check_compile "${name}" "${code}"
-    rc=$?
-    if [ $rc -eq 0 ]; then
-        trc=1
-    fi
-    printyesno $name $trc
-    setdata cfg "${name}" "${trc}"
+
+    do_check_compile "${name}" "${code}" all
 }
 
 check_member () {
@@ -468,16 +478,9 @@ check_member () {
     checkcache $name
     if [ $rc -eq 0 ]; then return; fi
 
-    trc=0
     code="main () { struct ${struct} s; int i; i = sizeof (s.${member}); }"
-    cleardata args
-    setdata args incheaders all
-    check_compile "${name}" "${code}"
-    if [ $rc -eq 0 ]; then
-        trc=1
-    fi
-    printyesno $name $trc
-    setdata cfg "${name}" "${trc}"
+
+    do_check_compile "${name}" "${code}" all
 }
 
 check_setmntent_1arg () {
@@ -487,18 +490,9 @@ check_setmntent_1arg () {
     checkcache $name
     if [ $rc -eq 0 ]; then return; fi
 
-    trc=0
     code="main () { setmntent (\"/etc/mnttab\"); }"
-    cleardata args
-    setdata args incheaders all
-    setdata args otherlibs ""
-    check_link "${name}" "${code}" > /dev/null
-    rc=$?
-    if [ $rc -eq 0 ]; then
-        trc=1
-    fi
-    printyesno $name $trc
-    setdata cfg "${name}" "${trc}"
+
+    do_check_link "${name}" "${code}" all
 }
 
 check_setmntent_2arg () {
@@ -508,18 +502,8 @@ check_setmntent_2arg () {
     checkcache $name
     if [ $rc -eq 0 ]; then return; fi
 
-    trc=0
     code="main () { setmntent (\"/etc/mnttab\", \"r\"); }"
-    cleardata args
-    setdata args incheaders all
-    setdata args otherlibs ""
-    check_link "${name}" "${code}" > /dev/null
-    rc=$?
-    if [ $rc -eq 0 ]; then
-        trc=1
-    fi
-    printyesno $name $trc
-    setdata cfg "${name}" "${trc}"
+    do_check_link "${name}" "${code}" all
 }
 
 check_statfs_2arg () {
@@ -529,23 +513,13 @@ check_statfs_2arg () {
     checkcache $name
     if [ $rc -eq 0 ]; then return; fi
 
-    trc=0
     code="
 main () {
     struct statfs statBuf; char *name; name = \"/\";
     statfs (name, &statBuf);
 }
 "
-    cleardata args
-    setdata args incheaders all
-    setdata args otherlibs ""
-    check_link "${name}" "${code}" > /dev/null
-    rc=$?
-    if [ $rc -eq 0 ]; then
-        trc=1
-    fi
-    printyesno $name $trc
-    setdata cfg "${name}" "${trc}"
+    do_check_link "${name}" "${code}" all
 }
 
 check_statfs_3arg () {
@@ -555,23 +529,13 @@ check_statfs_3arg () {
     checkcache $name
     if [ $rc -eq 0 ]; then return; fi
 
-    trc=0
     code="
 main () {
     struct statfs statBuf; char *name; name = \"/\";
     statfs (name, &statBuf, sizeof (statBuf));
 }
 "
-    cleardata args
-    setdata args incheaders all
-    setdata args otherlibs ""
-    check_link "${name}" "${code}" > /dev/null
-    rc=$?
-    if [ $rc -eq 0 ]; then
-        trc=1
-    fi
-    printyesno $name $trc
-    setdata cfg "${name}" "${trc}"
+    do_check_link "${name}" "${code}" all
 }
 
 check_statfs_4arg () {
@@ -581,23 +545,13 @@ check_statfs_4arg () {
     checkcache $name
     if [ $rc -eq 0 ]; then return; fi
 
-    trc=0
     code="
 main () {
     struct statfs statBuf; char *name; name = \"/\";
     statfs (name, &statBuf, sizeof (statBuf), 0);
 }
 "
-    cleardata args
-    setdata args incheaders all
-    setdata args otherlibs ""
-    check_link "${name}" "${code}" > /dev/null
-    rc=$?
-    if [ $rc -eq 0 ]; then
-        trc=1
-    fi
-    printyesno $name $trc
-    setdata cfg "${name}" "${trc}"
+    do_check_link "${name}" "${code}" all
 }
 
 
@@ -624,17 +578,8 @@ check_int_declare () {
     checkcache $name
     if [ $rc -eq 0 ]; then return; fi
 
-    trc=0
     code="main () { int x; x = ${function}; }"
-    cleardata args
-    setdata args incheaders all
-    check_compile "${name}" "${code}"
-    rc=$?
-    if [ $rc -eq 0 ]; then
-        trc=1
-    fi
-    printyesno $name $trc
-    setdata cfg "${name}" "${trc}"
+    do_check_compile "${name}" "${code}" all
 }
 
 check_ptr_declare () {
@@ -645,17 +590,8 @@ check_ptr_declare () {
     checkcache $name
     if [ $rc -eq 0 ]; then return; fi
 
-    trc=0
     code="main () { _VOID_ *x; x = ${function}; }"
-    cleardata args
-    setdata args incheaders all
-    check_compile "${name}" "${code}"
-    rc=$?
-    if [ $rc -eq 0 ]; then
-        trc=1
-    fi
-    printyesno $name $trc
-    setdata cfg "${name}" "${trc}"
+    do_check_compile "${name}" "${code}" all
 }
 
 check_npt () {
@@ -666,22 +602,13 @@ check_npt () {
     checkcache $name
     if [ $rc -eq 0 ]; then return; fi
 
-    trc=0
     code="
 _BEGIN_EXTERNS_
 struct _TEST_struct { int _TEST_member; };
 extern struct _TEST_struct* ${proto} _ARG_((struct _TEST_struct*));
 _END_EXTERNS_
 "
-    cleardata args
-    setdata args incheaders all
-    check_compile "${name}" "${code}"
-    rc=$?
-    if [ $rc -eq 0 ]; then
-        trc=1
-    fi
-    printyesno $name $trc
-    setdata cfg "${name}" "${trc}"
+    do_check_compile "${name}" "${code}" all
 }
 
 check_command () {
@@ -790,24 +717,18 @@ check_include_malloc () {
     _hdr_malloc=`getdata cfg _hdr_malloc`
     _hdr_string=`getdata cfg _hdr_string`
     if [ "${_hdr_string}" = "string.h" -a "${_hdr_malloc}" = "malloc.h" ]; then
-        printlabel $name "header: include malloc.h"
-        checkcache $name
-        if [ $rc -eq 0 ]; then return; fi
+      printlabel $name "header: include malloc.h"
+      checkcache $name
+      if [ $rc -eq 0 ]; then return; fi
 
-        code="
+      code="
 #include <string.h>
 #include <malloc.h>
 main () { char *x; x = (char *) malloc (20); }"
-        cleardata args
-        setdata args incheaders std
-        check_compile "${name}" "${code}"
-        rc=$?
-        if [ $rc -eq 0 ]; then
-            trc=1
-        fi
-        printyesno $name $trc
+      do_check_compile "${name}" "${code}" std
+    else
+      setdata cfg "${name}" "${trc}"
     fi
-    setdata cfg "${name}" "${trc}"
 }
 
 check_include_string () {
@@ -817,24 +738,18 @@ check_include_string () {
     _hdr_string=`getdata cfg _hdr_string`
     _hdr_strings=`getdata cfg _hdr_strings`
     if [ "${_hdr_string}" = "string.h" -a "${_hdr_strings}" = "strings.h" ]; then
-        printlabel $name "header: include both string.h & strings.h"
-        checkcache $name
-        if [ $rc -eq 0 ]; then return; fi
+      printlabel $name "header: include both string.h & strings.h"
+      checkcache $name
+      if [ $rc -eq 0 ]; then return; fi
 
-        code="#include <string.h>
+      code="#include <string.h>
 #include <strings.h>
 main () { char *x; x = \"xyz\"; strcat (x, \"abc\"); }
 "
-        cleardata args
-        setdata args incheaders std
-        check_compile "${name}" "${code}"
-        rc=$?
-        if [ $rc -eq 0 ]; then
-            trc=1
-        fi
-        printyesno $name $trc
+      do_check_compile "${name}" "${code}" std
+    else
+      setdata cfg "${name}" "${trc}"
     fi
-    setdata cfg "${name}" "${trc}"
 }
 
 check_include_time () {
@@ -844,24 +759,18 @@ check_include_time () {
     _hdr_time=`getdata cfg _hdr_time`
     _sys_time=`getdata cfg _sys_time`
     if [ "${_hdr_time}" = "time.h" -a "${_sys_time}" = "sys/time.h" ]; then
-        printlabel $name "header: include both time.h & sys/time.h"
-        checkcache $name
-        if [ $rc -eq 0 ]; then return; fi
+      printlabel $name "header: include both time.h & sys/time.h"
+      checkcache $name
+      if [ $rc -eq 0 ]; then return; fi
 
-        code="#include <time.h>
+      code="#include <time.h>
 #include <sys/time.h>
 main () { struct tm x; }
 "
-        cleardata args
-        setdata args incheaders std
-        check_compile "${name}" "${code}"
-        rc=$?
-        if [ $rc -eq 0 ]; then
-            trc=1
-        fi
-        printyesno $name $trc
+      do_check_compile "${name}" "${code}" std
+    else
+      setdata cfg "${name}" "${trc}"
     fi
-    setdata cfg "${name}" "${trc}"
 }
 
 create_config () {
