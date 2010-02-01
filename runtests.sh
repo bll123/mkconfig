@@ -51,7 +51,7 @@ do
   arg=""
   if [ -f $tmkconfig ]; then
     echo "##==== mkconfig.sh " >> ${tlog}
-    arg="../mkconfig.sh"
+    arg="${SHELL} ../mkconfig.sh"
   fi
   echo "##== env" >> ${tlog}
   env | sort >> ${tlog}
@@ -60,7 +60,7 @@ do
   if [ -f $tconfig ]; then
     cp -pf $tconfig $tconfh
   fi
-  ./$tf $arg >> ${tlog} 2>&1
+  ${SHELL} ./$tf $arg >> ${tlog} 2>&1
   rc=$?
   if [ -f mkconfig.log ]; then
     echo "##== mkconfig.log" >> ${tlog}
@@ -89,7 +89,7 @@ do
       cat $tconfig | sed 's/_mkconfig_sh 1/_mkconfig_sh 0/' |
         sed 's/_mkconfig_pl 0/_mkconfig_pl 1/' > $tconfh
     fi
-    ./$tf perl ../mkconfig.pl >> ${tlog} 2>&1
+    ${SHELL} ./$tf perl ../mkconfig.pl >> ${tlog} 2>&1
     rc=$?
     echo "##== mkconfig.log" >> ${tlog}
     cat mkconfig.log >> ${tlog}
