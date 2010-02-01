@@ -6,10 +6,12 @@
 # Copyright 1994-2010 Brad Lanam, Walnut Creek, CA
 #
 
-export CC=${CC:-cc}
+CC=${CC:-cc}
+export CC
 
-export EN='-n'
-export EC=''
+EN='-n'
+EC=''
+export EN EC
 exec 3>&1
 
 echo -n 'test' | grep -- '-n' > /dev/null 2>&1

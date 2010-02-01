@@ -9,8 +9,9 @@ TMP=_tmp_test_03
 test -d $TMP && rm -rf $TMP
 mkdir $TMP
 
-export CFLAGS="-I../$TMP ${CFLAGS}"
-export LDFLAGS="-L../$TMP ${LDFLAGS}"
+CFLAGS="-I../$TMP ${CFLAGS}"
+LDFLAGS="-L../$TMP ${LDFLAGS}"
+export CFLAGS LDFLAGS
 
 cd $TMP
 
