@@ -179,6 +179,13 @@ print_headers () {
                       echo "#include <${hdval}>"
                     fi
                     ;;
+                _sys_time)
+                    htval=`getdata cfg '_hdr_time'`
+                    itval=`getdata cfg '_include_time'`
+                    if [ "${htval}" = "0" -o "${itval}" != "0" ]; then
+                      echo "#include <${hdval}>"
+                    fi
+                    ;;
                 _hdr_*|_sys_*)
                     hdval=`getdata cfg ${cfgvar}`
                     if [ "${hdval}" != "0" -a "${hdval}" != "" ]; then
@@ -712,6 +719,8 @@ check_lib () {
     fi
 
     trc=0
+    # unfortunately, this does not work if the function
+    # is not declared.
     code="
 typedef int (*_TEST_fun_)();
 static _TEST_fun_ i=(_TEST_fun_) ${func};
@@ -828,6 +837,33 @@ main () { char *x; x = \"xyz\"; strcat (x, \"abc\"); }
     setdata cfg "${name}" "${trc}"
 }
 
+check_include_time () {
+    name=$1
+
+    trc=0
+    _hdr_time=`getdata cfg _hdr_time`
+    _sys_time=`getdata cfg _sys_time`
+    if [ "${_hdr_time}" = "time.h" -a "${_sys_time}" = "sys/time.h" ]; then
+        printlabel $name "header: include both time.h & sys/time.h"
+        checkcache $name
+        if [ $rc -eq 0 ]; then return; fi
+
+        code="#include <time.h>
+#include <sys/time.h>
+main () { struct tm x; }
+"
+        cleardata args
+        setdata args incheaders std
+        check_compile "${name}" "${code}"
+        rc=$?
+        if [ $rc -eq 0 ]; then
+            trc=1
+        fi
+        printyesno $name $trc
+    fi
+    setdata cfg "${name}" "${trc}"
+}
+
 create_config () {
     configfile=$1
     cleardata cfg
@@ -885,6 +921,7 @@ _HERE_
                     if [ $inheaders -eq 1 ]; then
                         check_include_malloc '_include_malloc'
                         check_include_string '_include_string'
+                        check_include_time '_include_time'
                     fi
                     inheaders=0
                     ;;
