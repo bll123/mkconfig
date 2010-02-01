@@ -163,6 +163,7 @@ print_headers () {
 
     if [ "${incheaders}" = "all" ]; then
         for cfgvar in ${di_cfg_vars}; do
+            hdval=`getdata cfg ${cfgvar}`
             case ${cfgvar} in
                 _hdr_stdio|_hdr_stdlib|_sys_types|_sys_param)
                     ;;
@@ -187,7 +188,6 @@ print_headers () {
                     fi
                     ;;
                 _hdr_*|_sys_*)
-                    hdval=`getdata cfg ${cfgvar}`
                     if [ "${hdval}" != "0" -a "${hdval}" != "" ]; then
                         echo "#include <${hdval}>"
                     fi
