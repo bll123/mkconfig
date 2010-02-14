@@ -17,6 +17,22 @@ EN='-n'
 EC=''
 datachg=0
 
+hasappend=0
+hastypeset=0
+hasparamsub=0
+$SHELL -c "xtmp=abc;ytmp=abc;xtmp+=\$ytmp" > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+  hasappend=1
+fi
+$SHELL -c "typeset -l xtmp" > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+  hastypeset=1
+fi
+$SHELL -c "xtmp=abc.abc;y=\${xtmp//./_}" > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+  hasparamsub=1
+fi
+
 precc='
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
 # define _ARG_(x) x
@@ -39,6 +55,48 @@ exitmkconfig () {
     exit 1
 }
 
+tolower () {
+  if [ $hastypeset -eq 1 ]; then
+    typeset -l val
+  fi
+  val=$1
+  if [ $hastypeset -eq 0 ]; then
+    val=`echo $val | tr '[A-Z]' '[a-z]'`
+  fi
+  echo $val
+}
+
+dosubst () {
+  var=$1
+  shift
+  sedargs=""
+  while test $# -gt 0; do
+    pattern=$1
+    sub=$2
+    if [ $hasparamsub -eq 1 ]; then
+      var=${var//${pattern}/${sub}}
+    else
+      sedargs="${sedargs} -e 's~${pattern}~${sub}~g'"
+    fi
+    shift
+    shift
+  done
+  if [ $hasparamsub -eq 0 ]; then
+    var=`eval "echo ${var} | sed ${sedargs}"`
+  fi
+  echo $var
+}
+
+doappend () {
+  var=$1
+  val=$2
+  if [ $hasappend -eq 1 ]; then
+    eval $var+=\$val
+  else
+    eval $var=\$${var}\$val
+  fi
+}
+
 savedata () {
     # And save the data for re-use.
     # Some shells don't quote the values in the set
@@ -47,10 +105,7 @@ savedata () {
     # And then there's: x='', which gets munged.
     if [ $datachg -eq 1 ]; then
       set | grep "^di_cfg" | \
-        sed "s/=/='/" | \
-        sed "s/$/'/" | \
-        sed "s/''/'/g" | \
-        sed "s/='$/=''/" \
+        sed -e "s/=/='/" -e "s/$/'/" -e "s/''/'/g" -e "s/='$/=''/" \
         > "${CACHEFILE}"
       datachg=0
     fi
@@ -70,15 +125,14 @@ setdata () {
     sdname=$2
     sdval=$3
 
-    if [ "$prefix" != "args" ]; then datachg=1; fi
+    datachg=1
 
-    cmd="echo \$di_${prefix}_vars | grep ${sdname} > /dev/null 2>&1"
+    cmd="test \"X\$di_${prefix}_${sdname}\" != X > /dev/null 2>&1"
     eval "$cmd"
     rc=$?
     # if already in the list of vars, don't add it again.
     if [ $rc -ne 0 ]; then
-      cmd="di_${prefix}_vars=\"\${di_${prefix}_vars} ${sdname}\""
-      eval "$cmd"
+      doappend di_${prefix}_vars " $sdname"
     fi
     cmd="di_${prefix}_${sdname}=\"${sdval}\""
     eval "$cmd"
@@ -151,7 +205,6 @@ checkcache () {
 
 
 print_headers () {
-    incheaders=`getdata args incheaders`
     if [ "${incheaders}" = "all" -o "${incheaders}" = "std" ]; then
         for tnm in '_hdr_stdio' '_hdr_stdlib' '_sys_types' '_sys_param'; do
             tval=`getdata cfg ${tnm}`
@@ -223,7 +276,7 @@ check_link () {
     shift;shift
 
     ocounter=0
-    clotherlibs=`getdata args otherlibs`
+    clotherlibs=$otherlibs
     if [ "${clotherlibs}" != "" ]; then
         set -- $clotherlibs
         ocount=$#
@@ -238,7 +291,7 @@ check_link () {
     cat ${name}.c >> $LOG
 
     dlibs=""
-    setdata args otherlibs ""
+    otherlibs=""
     _check_link $name
     rc=$?
     echo "##      link test (none): $rc" >> $LOG
@@ -254,7 +307,7 @@ check_link () {
                 tcounter=`expr $tcounter + 1`
             done
             dlibs="${olibs}"
-            setdata args otherlibs "$olibs"
+            otherlibs="$olibs"
             _check_link $name
             rc=$?
             echo "##      link test (${olibs}): $rc" >> $LOG
@@ -271,13 +324,12 @@ _check_link () {
     name=$1
 
     cmd="${CC} ${CFLAGS} "
-    cflags=`getdata args cflags`
     if [ "${cflags}" != "" ]; then
         cmd="${cmd} ${cflags} "
     fi
     cmd="${cmd} -o ${name}.exe ${name}.c "
     cmd="${cmd} ${LDFLAGS} ${LIBS} "
-    _clotherlibs=`getdata args otherlibs`
+    _clotherlibs="$otherlibs"
     if [ "${_clotherlibs}" != "" ]; then
         cmd="${cmd} ${_clotherlibs} "
     fi
@@ -321,8 +373,7 @@ do_check_compile () {
     code="$2"
     inc="$3"
 
-    cleardata args
-    setdata args incheaders ${inc}
+    incheaders=${inc}
     check_compile "${name}" "${code}"
     rc=$?
     try="0"
@@ -338,9 +389,8 @@ do_check_link () {
     code="$2"
     inc="$3"
 
-    cleardata args
-    setdata args incheaders ${inc}
-    setdata args otherlibs ""
+    incheaders=${inc}
+    otherlibs=""
     check_link "${name}" "${code}" > /dev/null
     rc=$?
     trc=0
@@ -359,24 +409,22 @@ check_header () {
     checkcache $name
     if [ $rc -eq 0 ]; then return; fi
 
-    reqhdr=`getdata args reqhdr`
     code=""
     if [ "${reqhdr}" != "" ]; then
         set ${reqhdr}
         while test $# -gt 0; do
-            code="${code}
+            doappend code "
 #include <$1>
 "
             shift
         done
     fi
-    code="${code}
+    doappend code "
 #include <$file>
 main () { exit (0); }
 "
     rc=1
-    cleardata args
-    setdata args incheaders std
+    incheaders=std
     check_compile "${name}" "${code}"
     rc=$?
     val="0"
@@ -395,18 +443,17 @@ check_constant () {
     checkcache $name
     if [ $rc -eq 0 ]; then return; fi
 
-    reqhdr=`getdata args reqhdr`
     code=""
     if [ "${reqhdr}" != "" ]; then
         set ${reqhdr}
         while test $# -gt 0; do
-            code="${code}
+            doappend code "
 #include <$1>
 "
             shift
         done
     fi
-    code="${code}
+    doappend code "
 main () { if (${constant} == 0) { 1; } exit (0); }
 "
     do_check_compile "${name}" "${code}" all
@@ -422,8 +469,7 @@ check_keyword () {
 
     code="main () { int ${keyword}; ${keyword} = 1; exit (0); }"
 
-    cleardata args
-    setdata args incheaders std
+    incheaders=std
     check_compile "${name}" "${code}"
     rc=$?
     trc=0
@@ -620,8 +666,7 @@ check_command () {
     if [ $rc -eq 0 ]; then return; fi
 
     trc=0
-    pth="`echo ${PATH} | sed 's/[;:]/ /g'`"
-    for p in $pth; do
+    for p in $pthlist; do
         if [ -x "$p/$cmd" ]; then
             trc="$p/$cmd"
             break
@@ -634,8 +679,6 @@ check_command () {
 check_lib () {
     name=$1
     func=$2
-
-    otherlibs=`getdata args otherlibs`
 
     if [ "${otherlibs}" != "" ]; then
         printlabel $name "function: ${func} [${otherlibs}]"
@@ -654,9 +697,7 @@ static _TEST_fun_ i=(_TEST_fun_) ${func};
 main () {  i(); return (i==0); }
 "
 
-    cleardata args
-    setdata args incheaders all
-    setdata args otherlibs "${otherlibs}"
+    incheaders=all
     dlibs=`check_link "${name}" "${code}"`
     rc=$?
     if [ $rc -eq 0 ]; then
@@ -665,9 +706,7 @@ main () {  i(); return (i==0); }
     tag=""
     if [ $rc -eq 0 -a "$dlibs" != "" ]; then
       tag=" with ${dlibs}"
-      reqlibs=`getdata data reqlibs`
       reqlibs="${reqlibs} ${dlibs}"
-      setdata data reqlibs "${reqlibs}"
     fi
     printyesno $name $trc "$tag"
     setdata cfg "${name}" "${trc}"
@@ -680,7 +719,6 @@ check_class () {
 
     trc=0
     code=" main () { ${class} testclass; } "
-    otherlibs=`getdata args otherlibs`
 
     if [ "$otherlibs" != "" ]; then
         printlabel $name "class: ${class} [${otherlibs}]"
@@ -690,9 +728,8 @@ check_class () {
         if [ $rc -eq 0 ]; then return; fi
     fi
 
-    cleardata args
-    setdata args incheaders all
-    setdata args otherlibs "${otherlibs}"
+    incheaders=all
+#    otherlibs="${otherlibs}"
     check_link "${name}" "${code}" > /dev/null
     rc=$?
     if [ $rc -eq 0 ]; then
@@ -701,9 +738,7 @@ check_class () {
     tag=""
     if [ $rc -eq 0 -a "${dlibs}" != "" ]; then
         tag=" with ${dlibs}"
-        reqlibs=`getdata data reqlibs`
         reqlibs="${reqlibs} ${dlibs}"
-        setdata data reqlibs "${reqlibs}"
     fi
     printyesno $name $trc "$tag"
     setdata cfg "${name}" "${trc}"
@@ -777,10 +812,10 @@ create_config () {
     configfile=$1
     cleardata cfg
 
-    setdata data reqlibs ""
+    reqlibs=""
 
     > ${CONFH}
-    cat <<_HERE_ >> ${CONFH}
+    cat << _HERE_ >> ${CONFH} 
 #ifndef __INC_CONFIG_H
 #define __INC_CONFIG_H 1
 
@@ -789,10 +824,8 @@ _HERE_
     if [ -f $CACHEFILE ]; then
       . $CACHEFILE
     fi
-    cleardata data          # don't use cache for required libs
 
-    cleardata args
-    setdata args reqhdr ""
+    reqhdr=""
     check_header "_hdr_stdlib" "stdlib.h"
     check_header "_hdr_stdio" "stdio.h"
     check_header "_sys_types" "sys/types.h"
@@ -808,7 +841,7 @@ _HERE_
     > $INC
     # This while loop reads data from stdin, so it has
     # a subshell of its own.  This requires us to save the
-    # configuration data in files for re-use.  See setdata()
+    # configuration data in files for re-use.  See savedata()
     while read tdatline; do
         if [ $ininclude -eq 1 ]; then
             if [ "${tdatline}" = "endinclude" ]; then
@@ -845,36 +878,35 @@ _HERE_
                 hdr=$2
                 shift;shift
                 reqhdr="$*"
-                nm1=`echo ${hdr} | sed 's,/.*,,' | tr '[A-Z]' '[a-z]' `
-                nm2=`echo ${hdr} | sed "s/^${nm1}//" | sed 's,^/*,,'`
-                nm=`echo "_${type}_${nm1}_${nm2}" | sed 's,[/:],_,g' |
-                    sed 's/\.h_*$//'`
+                # input may be:  ctype.h kernel/fs_info.h
+                #    storage/Directory.h
+                nm1=`echo ${hdr} | sed -e 's,/.*,,'`
+                nm2="_`echo $hdr | sed -e \"s,^${nm1},,\" -e 's,^/*,,'`"
+                nm="_${type}_${nm1}"
+                if [ "$nm2" != "_" ]; then
+                  doappend nm $nm2
+                fi
+                nm=`dosubst ${nm} '[/:]' '_' '\.h' ''`
                 case ${type} in
                     sys)
                         hdr="sys/${hdr}"
                         ;;
                 esac
-                setdata args reqhdr "$reqhdr"
                 check_header $nm $hdr
                 ;;
             const*)
                 set $tdatline
-                name=$2
                 constant=$2
                 shift;shift
                 reqhdr="$*"
-                name=`echo ${name} | tr '[A-Z]' '[a-z]'`
-                name="_const_${name}"
-                setdata args reqhdr "$reqhdr"
-                check_constant $name $constant
+                nm="_const_${constant}"
+                check_constant $nm $constant
                 ;;
             typ*)
                 set $tdatline
-                name=$2
                 type=$2
-                name=`echo ${name} | tr '[A-Z]' '[a-z]'`
-                name="_typ_${name}"
-                check_type $name $type
+                nm="_typ_${type}"
+                check_type $nm $type
                 ;;
             lib*)
                 set $tdatline
@@ -882,8 +914,7 @@ _HERE_
                 shift;shift
                 libs=$*
                 nm="_lib_${func}"
-                cleardata args
-                setdata args otherlibs "${libs}"
+                otherlibs="${libs}"
                 check_lib $nm "${func}"
                 rc=$?
                 if [ $func = 'setmntent' -a $rc -eq 1 ]; then
@@ -901,15 +932,15 @@ _HERE_
                 class=$2
                 shift;shift
                 libs="$*"
-                nm=`echo "_class_${class}" | sed 's/:/_/g'`
-                cleardata args
-                setdata args otherlibs "${libs}"
+                nm="_class_${class}"
+                nm=`dosubst ${nm} '[/:]' '_'`
+                otherlibs="${libs}"
                 check_class "${nm}" "${class}"
                 ;;
             command*)
                 set $tdatline
                 cmd=$2
-                nm=`echo "_command_${cmd}" | tr '[A-Z]' '[a-z]'`
+                nm="_command_${cmd}"
                 check_command "${nm}" "${cmd}"
                 ;;
             npt*)
@@ -920,7 +951,7 @@ _HERE_
                 if [ "${req}" != "" ]; then
                     has=`getdata cfg "${req}"`
                 fi
-                nm=`echo "_npt_${func}" | tr '[A-Z]' '[a-z]'`
+                nm="_npt_${func}"
                 if [ ${has} -eq 1 ]; then
                     check_npt "${nm}" "${func}"
                 else
@@ -931,7 +962,7 @@ _HERE_
                 set $tdatline
                 type=$2
                 var=$3
-                nm=`echo "_dcl_${var}" | tr '[A-Z]' '[a-z]'`
+                nm="_dcl_${var}"
                 if [ "$type" = "int" ]; then
                     check_int_declare $nm $var
                 elif [ "$type" = "ptr" ]; then
@@ -942,14 +973,15 @@ _HERE_
                 set $tdatline
                 struct=$2
                 member=$3
-                nm=`echo "_mem_${member}_${struct}" | tr '[A-Z]' '[a-z]'`
+                nm="_mem_${member}_${struct}"
                 check_member $nm $struct $member
                 ;;
             size*)
                 set $tdatline
                 shift
                 type="$*"
-                nm=`echo "_siz_${type}" | tr '[A-Z]' '[a-z]' | sed 's/ /_/g'`
+                nm="_siz_${type}"
+                nm=`dosubst "${nm}" ' ' '_'`
                 check_size $nm "${type}"
                 ;;
             include*)
@@ -983,11 +1015,7 @@ _HERE_
     done
 
     > $REQLIB
-    val=`getdata data reqlibs`;
-    val=`for tval in $val; do
-            echo $tval
-        done | sort | uniq`
-    echo $val >> $REQLIB
+    echo $reqlibs >> $REQLIB
 
     # standard header for all...
     cat << _HERE_ >> ${CONFH}
@@ -1043,6 +1071,7 @@ if [ $rc -eq 0 ]; then
     EN=''
     EC='\c'
 fi
+pthlist=`dosubst $PATH '[;:]' ' '`
 
 clearcache=0
 while test $# -gt 1; do
