@@ -1,2 +1,2 @@
-hdr math.h
-lib tan -lm
+hdr test02b.h
+lib test02b -ltest02b
