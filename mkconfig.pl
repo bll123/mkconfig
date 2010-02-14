@@ -1050,7 +1050,6 @@ _HERE_
             my $nm = "_${typ}_";
             # create the standard header name for config.h
             my @h = split (/\//, $hdr);
-            $h[0] = lc $h[0];
             $nm .= join ('_', @h);
             $nm =~ s,\.h$,,o;
             $nm =~ s,:,_,go;
@@ -1072,7 +1071,7 @@ _HERE_
         {
             my $tnm = $1;
             my $reqhdr = $2;
-            my $nm = "_const_" . lc $tnm;
+            my $nm = "_const_" . $tnm;
             $reqhdr =~ s/^\s*//o;
             $reqhdr =~ s/\s*$//o;
             my @oh = split (/\s+/, $reqhdr);
@@ -1086,7 +1085,7 @@ _HERE_
         elsif ($line =~ m#^command\s+(.*)#o)
         {
             my $cmd = $1;
-            my $nm = "_command_" . lc $cmd;
+            my $nm = "_command_" . $cmd;
             if (! defined ($config{$nm}) ||
                 $config{$nm} eq '0')
             {
@@ -1097,7 +1096,7 @@ _HERE_
         {
             my $func = $1;
             my $req = $2;
-            my $nm = "_npt_" . lc $func;
+            my $nm = "_npt_" . $func;
             if (! defined ($req) || $config{$req} ne '0')
             {
                 if (! defined ($config{$nm}) || $config{$nm} eq '0')
@@ -1111,7 +1110,7 @@ _HERE_
         elsif ($line =~ m#^key\s+(.*)#o)
         {
             my $tnm = $1;
-            my $nm = "_key_" . lc $tnm;
+            my $nm = "_key_" . $tnm;
             if (! defined ($config{$nm}) ||
                 $config{$nm} eq '0')
             {
@@ -1134,7 +1133,7 @@ _HERE_
         elsif ($line =~ m#^typ\s+(.*)#o)
         {
             my $tnm = $1;
-            my $nm = "_typ_" . lc $tnm;
+            my $nm = "_typ_" . $tnm;
             if (! defined ($config{$nm}) ||
                 $config{$nm} eq '0')
             {
@@ -1168,7 +1167,7 @@ _HERE_
         {
             my $type = $1;
             my $var = $2;
-            my $nm = "_dcl_" . lc $var;
+            my $nm = "_dcl_" . $var;
             if (! defined ($config{$nm}) ||
                 $config{$nm} eq '0')
             {
@@ -1186,7 +1185,7 @@ _HERE_
         {
             my $struct = $1;
             my $member = $2;
-            my $nm = "_mem_" . lc $member . '_' . lc $struct;
+            my $nm = "_mem_" . $member . '_' . $struct;
             if (! defined ($config{$nm}) ||
                 $config{$nm} eq '0')
             {
@@ -1197,7 +1196,7 @@ _HERE_
         {
             my $typ = $1;
             $typ =~ s/\s*$//o;
-            my $nm = "_siz_" . lc $typ;
+            my $nm = "_siz_" . $typ;
             $nm =~ s, ,_,go;
             if (! defined ($config{$nm}) ||
                 $config{$nm} eq '0')
