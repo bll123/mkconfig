@@ -13,8 +13,6 @@ CACHEFILE="mkconfig.cache"
 datafile=""
 
 INC="include.txt"                   # temporary
-EN='-n'
-EC=''
 datachg=0
 
 hasappend=0
@@ -815,7 +813,7 @@ create_config () {
     reqlibs=""
 
     > ${CONFH}
-    cat << _HERE_ >> ${CONFH} 
+    cat  << _HERE_ >> ${CONFH} 
 #ifndef __INC_CONFIG_H
 #define __INC_CONFIG_H 1
 
@@ -1065,9 +1063,9 @@ usage () {
 
 # main
 
-echo -n 'test' | grep -- '-n' > /dev/null 2>&1
-rc=$?
-if [ $rc -eq 0 ]; then
+EN='-n'
+EC=''
+if [ "`echo -n test`" = "-n test" ]; then
     EN=''
     EC='\c'
 fi
