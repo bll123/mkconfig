@@ -12,12 +12,8 @@ export CC
 EN='-n'
 EC=''
 export EN EC
-exec 3>&1
 
-echo -n 'test' | grep -- '-n' > /dev/null 2>&1
-rc=$?
-if [ $rc -eq 0 ]
-then
+if [ "`echo -n test`" = "-n test" ]; then
     EN=''
     EC='\c'
 fi
@@ -62,7 +58,7 @@ do
   if [ -f $tconfig ]; then
     cp -pf $tconfig $tconfh
   fi
-  ${SHELL} ./$tf "${SHELL} ../$arg" >> ${tlog} 2>&1
+  ${SHELL} ./$tf "${SHELL} ../$arg" 3>&1 >> ${tlog} 2>&1
   rc=$?
   if [ -f mkconfig.log ]; then
     echo "##== mkconfig.log" >> ${tlog}
@@ -91,7 +87,7 @@ do
       cat $tconfig | sed 's/_mkconfig_sh 1/_mkconfig_sh 0/' |
         sed 's/_mkconfig_pl 0/_mkconfig_pl 1/' > $tconfh
     fi
-    ${SHELL} ./$tf perl ../mkconfig.pl >> ${tlog} 2>&1
+    ${SHELL} ./$tf perl ../mkconfig.pl 3>&1 >> ${tlog} 2>&1
     rc=$?
     echo "##== mkconfig.log" >> ${tlog}
     cat mkconfig.log >> ${tlog}
