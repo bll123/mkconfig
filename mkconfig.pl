@@ -10,7 +10,7 @@
 # use Config;
 require 5.005;
 
-my $CONFH = "config.h";
+my $CONFH;
 my $LOG = "mkconfig.log";
 my $TMP = "_tmp_mkconfig";
 my $CACHEFILE = "mkconfig.cache";
@@ -704,11 +704,11 @@ _HERE_
 }
 
 sub
-check_setmntent_1arg
+check_setmntent_args
 {
     my ($name, $r_clist, $r_config) = @_;
 
-    printlabel $name, "setmntent(): 1 argument";
+    printlabel $name, "setmntent # arguments";
     if (checkcache ($name, $r_config) == 0)
     {
         return;
@@ -716,6 +716,12 @@ check_setmntent_1arg
 
     setlist $r_clist, $name;
     $r_config->{$name} = 0;
+
+    if ($r_config->{'_lib_setmntent'} eq '0')
+    {
+        printyesno_val $name, $r_config->{$name};
+        return;
+    }
     my $code = <<"_HERE_";
 main () { setmntent ("/etc/mnttab"); }
 _HERE_
@@ -723,42 +729,29 @@ _HERE_
         { 'incheaders' => 'all', 'otherlibs' => undef, });
     if ($rc == 0)
     {
-        $r_config->{$name} = 1;
-    }
-    printyesno $name, $r_config->{$name};
-}
-
-sub
-check_setmntent_2arg
-{
-    my ($name, $r_clist, $r_config) = @_;
-
-    printlabel $name, "setmntent(): 2 arguments";
-    if (checkcache ($name, $r_config) == 0)
-    {
+        $r_config->{$name} = 2;
+        printyesno_val $name, $r_config->{$name};
         return;
     }
 
-    setlist $r_clist, $name;
-    $r_config->{$name} = 0;
-    my $code = <<"_HERE_";
+    $code = <<"_HERE_";
 main () { setmntent ("/etc/mnttab", "r"); }
 _HERE_
-    my $rc = check_link ($name, $code, $r_clist, $r_config,
+    $rc = check_link ($name, $code, $r_clist, $r_config,
         { 'incheaders' => 'all', 'otherlibs' => undef, });
     if ($rc == 0)
     {
-        $r_config->{$name} = 1;
+        $r_config->{$name} = 3;
     }
-    printyesno $name, $r_config->{$name};
+    printyesno_val $name, $r_config->{$name};
 }
 
 sub
-check_statfs_2arg
+check_statfs_args
 {
     my ($name, $r_clist, $r_config) = @_;
 
-    printlabel $name, "statfs(): 2 arguments";
+    printlabel $name, "statfs # arguments";
     if (checkcache ($name, $r_config) == 0)
     {
         return;
@@ -766,6 +759,13 @@ check_statfs_2arg
 
     setlist $r_clist, $name;
     $r_config->{$name} = 0;
+
+    if ($r_config->{'_lib_statfs'} eq '0')
+    {
+        printyesno_val $name, $r_config->{$name};
+        return;
+    }
+
     my $code = <<"_HERE_";
 main () {
     struct statfs statBuf; char *name; name = "/";
@@ -776,65 +776,39 @@ _HERE_
         { 'incheaders' => 'all', 'otherlibs' => undef, });
     if ($rc == 0)
     {
-        $r_config->{$name} = 1;
-    }
-    printyesno $name, $r_config->{$name};
-}
-
-sub
-check_statfs_3arg
-{
-    my ($name, $r_clist, $r_config) = @_;
-
-    printlabel $name, "statfs(): 3 arguments";
-    if (checkcache ($name, $r_config) == 0)
-    {
+        $r_config->{$name} = 2;
+        printyesno_val $name, $r_config->{$name};
         return;
     }
 
-    setlist $r_clist, $name;
-    $r_config->{$name} = 0;
-    my $code = <<"_HERE_";
+    $code = <<"_HERE_";
 main () {
     struct statfs statBuf; char *name; name = "/";
     statfs (name, &statBuf, sizeof (statBuf));
 }
 _HERE_
-    my $rc = check_link ($name, $code, $r_clist, $r_config,
+    $rc = check_link ($name, $code, $r_clist, $r_config,
         { 'incheaders' => 'all', 'otherlibs' => undef, });
     if ($rc == 0)
     {
-        $r_config->{$name} = 1;
-    }
-    printyesno $name, $r_config->{$name};
-}
-
-sub
-check_statfs_4arg
-{
-    my ($name, $r_clist, $r_config) = @_;
-
-    printlabel $name, "statfs(): 4 arguments";
-    if (checkcache ($name, $r_config) == 0)
-    {
+        $r_config->{$name} = 3;
+        printyesno_val $name, $r_config->{$name};
         return;
     }
 
-    setlist $r_clist, $name;
-    $r_config->{$name} = 0;
-    my $code = <<"_HERE_";
+    $code = <<"_HERE_";
 main () {
     struct statfs statBuf; char *name; name = "/";
     statfs (name, &statBuf, sizeof (statBuf), 0);
 }
 _HERE_
-    my $rc = check_link ($name, $code, $r_clist, $r_config,
+    $rc = check_link ($name, $code, $r_clist, $r_config,
         { 'incheaders' => 'all', 'otherlibs' => undef, });
     if ($rc == 0)
     {
-        $r_config->{$name} = 1;
+        $r_config->{$name} = 4;
     }
-    printyesno $name, $r_config->{$name};
+    printyesno_val $name, $r_config->{$name};
 }
 
 sub
@@ -951,13 +925,6 @@ create_config
     $clist{'hash'} = ();
     $config{'reqlibs'} = {};
 
-    open (CCOFH, ">$CONFH");
-    print CCOFH <<'_HERE_';
-#ifndef __INC_CONFIG_H
-#define __INC_CONFIG_H 1
-
-_HERE_
-
     if (-f $CACHEFILE)
     {
       open (MKCC, "<$CACHEFILE");
@@ -1026,6 +993,7 @@ _HERE_
         {
             print LOGFH "end include\n";
             $ininclude = 0;
+            next;
         }
         elsif ($ininclude == 1)
         {
@@ -1036,15 +1004,41 @@ _HERE_
 
         if ($inheaders && $line !~ m#^(hdr|sys)#o)
         {
-            check_include_malloc ('_include_malloc', \%clist, \%config);
-            check_include_string ('_include_string', \%clist, \%config);
-            check_include_time ('_include_time', \%clist, \%config);
             $inheaders = 0;
         }
 
         print LOGFH "#### ${linenumber}: ${line}\n";
 
-        if ($line =~ m#^include$#o)
+        if ($line =~ m#^config\s+([^\s]+)#o)
+        {
+            print LOGFH "config file: $1\n";
+            $CONFH="../$1";
+        }
+        elsif ($line =~ m#^(source|standard)#o)
+        {
+            ;
+        }
+        elsif ($line =~ m#^setmntent_args#o)
+        {
+            check_setmntent_args ('_setmntent_args', \%clist, \%config);
+        }
+        elsif ($line =~ m#^statfs_args#o)
+        {
+            check_statfs_args ('_statfs_args', \%clist, \%config);
+        }
+        elsif ($line =~ m#^include_malloc#o)
+        {
+            check_include_malloc ('_include_malloc', \%clist, \%config);
+        }
+        elsif ($line =~ m#^include_string#o)
+        {
+            check_include_string ('_include_string', \%clist, \%config);
+        }
+        elsif ($line =~ m#^include_time#o)
+        {
+            check_include_time ('_include_time', \%clist, \%config);
+        }
+        elsif ($line =~ m#^include$#o)
         {
             print LOGFH "start include\n";
             $ininclude = 1;
@@ -1157,17 +1151,6 @@ _HERE_
             {
                 check_lib ($nm, $func, \%clist, \%config,
                        { 'otherlibs' => $libs, });
-                if ($func eq 'setmntent' && $config{$nm} ne '0')
-                {
-                    check_setmntent_1arg ('_setmntent_1arg', \%clist, \%config);
-                    check_setmntent_2arg ('_setmntent_2arg', \%clist, \%config);
-                }
-                if ($func eq 'statfs' && $config{$nm} ne '0')
-                {
-                    check_statfs_2arg ('_statfs_2arg', \%clist, \%config);
-                    check_statfs_3arg ('_statfs_3arg', \%clist, \%config);
-                    check_statfs_4arg ('_statfs_4arg', \%clist, \%config);
-                }
             }
         }
         elsif ($line =~ m#^dcl\s+([^\s]*)\s+(.*)#o)
@@ -1219,6 +1202,13 @@ _HERE_
         savecache (\%clist, \%config);
     }
 
+    open (CCOFH, ">$CONFH");
+    print CCOFH <<'_HERE_';
+#ifndef __INC_CONFIG_H
+#define __INC_CONFIG_H 1
+
+_HERE_
+
     foreach my $val (@{$clist{'list'}})
     {
       my $tval = 0;
@@ -1226,13 +1216,13 @@ _HERE_
       {
           $tval = 1;
       }
-      if ($val =~ m#^_siz#o)
+      if ($val =~ m#^(_hdr|_sys|_command)#o)
       {
-        print CCOFH "#define $val $config{$val}\n";
+        print CCOFH "#define $val $tval\n";
       }
       else
       {
-        print CCOFH "#define $val $tval\n";
+        print CCOFH "#define $val $config{$val}\n";
       }
     }
 
@@ -1260,9 +1250,6 @@ _HERE_
 
     print CCOFH <<'_HERE_';
 
-#define _mkconfig_sh 0
-#define _mkconfig_pl 1
-
 #endif /* __INC_CONFIG_H */
 _HERE_
     close CCOFH;
@@ -1279,13 +1266,12 @@ _HERE_
 sub
 usage
 {
-  print STDOUT "Usage: $0 [-c <cache-file>] [-o <output-file>]";
+  print STDOUT "Usage: $0 [-c <cache-file>] ";
   print STDOUT "       [-l <log-file>] [-t <tmp-dir>] [-r <reqlib-file>]";
   print STDOUT "       [-C] <config-file>";
   print STDOUT "  -C : clear cache-file";
   print STDOUT "<tmp-dir> must not exist.";
   print STDOUT "defaults:";
-  print STDOUT "  <output-file>: config.h";
   print STDOUT "  <cache-file> : mkconfig.cache";
   print STDOUT "  <log-file>   : mkconfig.log";
   print STDOUT "  <tmp-dir>    : _tmp_mkconfig";
@@ -1306,12 +1292,6 @@ while ($#ARGV > 0)
   {
       shift @ARGV;
       $CACHEFILE = $ARGV[0];
-      shift @ARGV;
-  }
-  if ($ARGV[0] eq "-o")
-  {
-      shift @ARGV;
-      $CONFH = $ARGV[0];
       shift @ARGV;
   }
   if ($ARGV[0] eq "-l")
@@ -1347,7 +1327,6 @@ if (-d $TMP && $TMP ne "_tmp_mkconfig")
 }
 
 $LOG = "../$LOG";
-$CONFH = "../$CONFH";
 $REQLIB = "../$REQLIB";
 $CACHEFILE = "../$CACHEFILE";
 
