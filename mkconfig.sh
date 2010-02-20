@@ -378,6 +378,9 @@ echo "CC: ${CC}" >> $LOG
 echo "CFLAGS: ${CFLAGS}" >> $LOG
 echo "LDFLAGS: ${LDFLAGS}" >> $LOG
 echo "LIBS: ${LIBS}" >> $LOG
+echo "sh has append: ${shhasappend}" >> $LOG
+echo "sh has paramsub: ${shhasparamsub}" >> $LOG
+echo "sh has math: ${shhasmath}" >> $LOG
 
 create_config $configfile
 
