@@ -6,17 +6,31 @@
 # Copyright 1994-2010 Brad Lanam, Walnut Creek, CA
 #
 
+mypath=`dirname $0`
+. ${mypath}/features/shellfuncs.sh
+
+testdir=$1
+if [ ! -d $testdir ]; then
+  echo "## Unable to locate $testdir"
+  exit 1
+fi
+cd $testdir
+if [ $? != 0 ]; then
+  echo "## Unable to cd to $testdir"
+  exit 1
+fi
+
 CC=${CC:-cc}
 export CC
 
-EN='-n'
-EC=''
-export EN EC
-
-if [ "`echo -n test`" = "-n test" ]; then
-    EN=''
-    EC='\c'
+shell=`getshelltype`
+testshell $shell
+if [ $? != 0 ]; then
+  exec $SHELL $0 $@
 fi
+testshcapability
+setechovars
+export EN EC
 
 clean () {
   tbase=$1
@@ -37,8 +51,8 @@ do
   clean $tbase
   if [ ! -x ./$tf ]; then
     echo "permission denied"
-    fcount=`expr $fcount + 1`
-    count=`expr $count + 1`
+    fcount=`domath "$fcount + 1"`
+    count=`domath "$count + 1"`
     rm -f ${tlog}
     clean $tbase
     continue
@@ -66,7 +80,7 @@ do
   fi
   if [ $rc -ne 0 ]; then
     echo " ... failed"
-    fcount=`expr $fcount + 1`
+    fcount=`domath "$fcount + 1"`
     grc=1
   else
     echo " ... success"
@@ -75,7 +89,7 @@ do
     fi
   fi
   clean $tbase
-  count=`expr $count + 1`
+  count=`domath "$count + 1"`
 
   if [ -f $tmkconfig ]; then
     echo ${EN} "$tf ... mkconfig.pl ${EC}"
@@ -93,7 +107,7 @@ do
     cat mkconfig.log >> ${tlog}
     if [ $rc -ne 0 ]; then
       echo " ... failed"
-      fcount=`expr $fcount + 1`
+      fcount=`domath "$fcount + 1"`
     else
       echo " ... success"
       if [ $grc -eq 0 ]; then
@@ -101,7 +115,7 @@ do
       fi
     fi
     clean $tbase
-    count=`expr $count + 1`
+    count=`domath "$count + 1"`
   fi
 done
 
