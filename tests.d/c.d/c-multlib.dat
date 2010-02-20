@@ -1,5 +1,5 @@
-config test_06.ctest
-source lang-c
+output test_06.ctest
+loadunit lang-c
 standard
 hdr test06b.h
 hdr test06c.h

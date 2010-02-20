@@ -1,5 +1,5 @@
-config test_05.ctest
-source lang-c
+output test_05.ctest
+loadunit lang-c
 standard
 hdr test05b.h
 lib test05b -ltest05b
