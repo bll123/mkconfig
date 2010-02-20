@@ -65,4 +65,57 @@ domath () {
   else
     val=`expr $expr`
   fi
+  echo $val
+}
+
+getshelltype () {
+  shell="sh"   # unknown or old
+  if [ "$KSH_VERSION" != "" ]; then
+    shell=ksh
+  fi
+  if [ "$BASH_VERSION" != "" ]; then
+    shell=bash
+  fi
+  if [ "$ZSH_VERSION" != "" ]; then
+    shell=zsh
+  fi
+  if [ "$shell" = "sh" -a "$_" != "" ]; then
+    case $_ in
+      *bash)
+        shell=bash
+        ;;
+      *dash)
+        shell=dash
+        ;;
+      *ksh)
+        shell=ksh
+        ;;
+      *zsh)
+        shell=zsh
+        ;;
+    esac
+  fi
+  echo $shell
+}
+
+testshell () {
+  rc=0
+  shell=$1
+  baseshell=`basename $SHELL`
+  if [ "$baseshell" = "pdksh" -a "$shell" = "ksh" ]; then
+    shell=pdksh
+  fi
+  # test if $SHELL and what type of shell started this script are equal.
+  # if not, the shell capabilities test will break, so restart
+  # this program using a standard shell.  
+  # zsh is broken
+  if [ "$shell" != "$baseshell" -o "$baseshell" = "zsh" ]; then  
+    SHELL=/bin/sh
+    if [ -x /usr/bin/ksh ]; then
+      SHELL=/usr/bin/ksh
+    fi
+    export SHELL
+    rc=1
+  fi
+  return $rc
 }
