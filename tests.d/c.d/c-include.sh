@@ -3,11 +3,11 @@
 script=$@
 
 echo ${EN} "include${EC}" >&3
-eval "${script} -C test_01.dat"
+eval "${script} -C test_04.dat"
 echo "## diff"
-diff -b test_01.ctmp test_01.ctest
+diff -b test_04.ctmp test_04.ctest
 rc=$?
 echo "## config.h"
-cat test_01.ctest
+cat test_04.ctest
 exit $rc
 

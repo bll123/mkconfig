@@ -5,7 +5,7 @@ echo ${EN} "lib w/req${EC}" >&3
 
 grc=0
 
-TMP=_tmp_test_02
+TMP=_tmp_test_05
 test -d $TMP && rm -rf $TMP
 mkdir $TMP
 
@@ -15,40 +15,40 @@ export CFLAGS LDFLAGS
 
 cd $TMP
 
-cat > test02b.h <<_HERE_
-int test02b ();
+cat > test05b.h <<_HERE_
+int test05b ();
 _HERE_
 
-cat > test02b.c <<_HERE_
+cat > test05b.c <<_HERE_
 #include <stdio.h>
 #include <stdlib.h>
-#include <test02b.h>
-int test02b () { printf ("hello world\n"); return 0; }
+#include <test05b.h>
+int test05b () { printf ("hello world\n"); return 0; }
 _HERE_
-${CC} -c ${CFLAGS} test02b.c
+${CC} -c ${CFLAGS} test05b.c
 if [ $? -ne 0 ]; then
-  echo "compile test02b.c failed"
+  echo "compile test05b.c failed"
   cd ..
   test -d $TMP && rm -rf $TMP
   exit 1
 fi
-ar cq libtest02b.a test02b.o
+ar cq libtest05b.a test05b.o
 
 cd ..
 
-eval "${script} -C test_02.dat"
+eval "${script} -C test_05.dat"
 echo "## diff 1"
-diff -b test_02.ctmp test_02.ctest
+diff -b test_05.ctmp test_05.ctest
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
 
 echo "## diff 2"
-diff -b test_02.reqlibs reqlibs.txt
+diff -b test_05.reqlibs reqlibs.txt
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
 
 echo "## config.h"
-cat test_02.ctest
+cat test_05.ctest
 echo "## reqlibs.txt"
 cat reqlibs.txt
 exit $grc
