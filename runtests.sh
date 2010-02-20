@@ -6,22 +6,14 @@
 # Copyright 1994-2010 Brad Lanam, Walnut Creek, CA
 #
 
+clean () {
+  tbase=$1
+  rm -rf mkconfig.log mkconfig.cache _tmp_mkconfig \
+    reqlibs.txt $tbase.ctmp $tbase.ctest > /dev/null 2>&1
+}
+
 mypath=`dirname $0`
 . ${mypath}/features/shellfuncs.sh
-
-testdir=$1
-if [ ! -d $testdir ]; then
-  echo "## Unable to locate $testdir"
-  exit 1
-fi
-cd $testdir
-if [ $? != 0 ]; then
-  echo "## Unable to cd to $testdir"
-  exit 1
-fi
-
-CC=${CC:-cc}
-export CC
 
 shell=`getshelltype`
 testshell $shell
@@ -32,11 +24,20 @@ testshcapability
 setechovars
 export EN EC
 
-clean () {
-  tbase=$1
-  rm -rf mkconfig.log mkconfig.cache _tmp_mkconfig \
-    reqlibs.txt config.h $tbase.configh > /dev/null 2>&1
-}
+testdir=$1
+if [ ! -d $testdir ]; then
+  echo "## Unable to locate $testdir"
+  exit 1
+fi
+
+CC=${CC:-cc}
+export CC
+
+cd $testdir
+if [ $? != 0 ]; then
+  echo "## Unable to cd to $testdir"
+  exit 1
+fi
 
 count=0
 fcount=0
@@ -46,7 +47,7 @@ do
   tlog="${tbase}.log"
   tmkconfig="${tbase}.mkconfig"
   tconfig="${tbase}.config"
-  tconfh="${tbase}.configh"
+  tconfh="${tbase}.ctmp"
 
   clean $tbase
   if [ ! -x ./$tf ]; then
@@ -70,7 +71,7 @@ do
   echo "##== stdout" >> ${tlog}
   echo ${EN} "$tf ... ${arg} ${EC}"
   if [ -f $tconfig ]; then
-    cp -pf $tconfig $tconfh
+    cat $tconfig | sed '/^#define _include_/d' > $tconfh
   fi
   ${SHELL} ./$tf "${SHELL} ../$arg" 3>&1 >> ${tlog} 2>&1
   rc=$?
@@ -98,8 +99,7 @@ do
     env | sort >> ${tlog}
     echo "##== stdout" >> ${tlog}
     if [ -f $tconfig ]; then
-      cat $tconfig | sed 's/_mkconfig_sh 1/_mkconfig_sh 0/' |
-        sed 's/_mkconfig_pl 0/_mkconfig_pl 1/' > $tconfh
+      cat $tconfig > $tconfh
     fi
     ${SHELL} ./$tf perl ../mkconfig.pl 3>&1 >> ${tlog} 2>&1
     rc=$?
