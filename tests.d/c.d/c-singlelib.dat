@@ -1,5 +1,5 @@
-config test_02.ctest
+config test_05.ctest
 source lang-c
 standard
-hdr test02b.h
-lib test02b -ltest02b
+hdr test05b.h
+lib test05b -ltest05b

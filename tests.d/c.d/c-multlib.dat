@@ -1,6 +1,6 @@
-config test_03.ctest
+config test_06.ctest
 source lang-c
 standard
-hdr test03b.h
-hdr test03c.h
-lib test03b -ltest03b -ltest03c
+hdr test06b.h
+hdr test06c.h
+lib test06b -ltest06b -ltest06c

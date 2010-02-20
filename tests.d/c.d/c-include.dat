@@ -1,6 +1,6 @@
 # test mkconfig include quoting, backslashes, indentation.
 
-config test_01.ctest
+config test_04.ctest
 source lang-c
 standard
 include

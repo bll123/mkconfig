@@ -5,7 +5,7 @@ echo ${EN} "lib w/multiple req${EC}" >&3
 
 grc=0
 
-TMP=_tmp_test_03
+TMP=_tmp_test_06
 test -d $TMP && rm -rf $TMP
 mkdir $TMP
 
@@ -15,61 +15,61 @@ export CFLAGS LDFLAGS
 
 cd $TMP
 
-cat > test03b.h <<_HERE_
-int test03b ();
+cat > test06b.h <<_HERE_
+int test06b ();
 _HERE_
-cat > test03c.h <<_HERE_
-int test03c ();
+cat > test06c.h <<_HERE_
+int test06c ();
 _HERE_
 
-cat > test03b.c <<_HERE_
+cat > test06b.c <<_HERE_
 #include <stdio.h>
 #include <stdlib.h>
-#include <test03b.h>
-#include <test03c.h>
-int test03b () { test03c(); return 0; }
+#include <test06b.h>
+#include <test06c.h>
+int test06b () { test06c(); return 0; }
 _HERE_
-${CC} -c ${CFLAGS} test03b.c
+${CC} -c ${CFLAGS} test06b.c
 if [ $? -ne 0 ]; then 
-  echo "compile test03b.c failed"
+  echo "compile test06b.c failed"
   cd ..
   test -d $TMP && rm -rf $TMP
   exit 1
 fi
-ar cq libtest03b.a test03b.o
+ar cq libtest06b.a test06b.o
 
-cat > test03c.c <<_HERE_
+cat > test06c.c <<_HERE_
 #include <stdio.h>
 #include <stdlib.h>
-#include <test03c.h>
-int test03c () { printf ("hello world\n"); return 0; }
+#include <test06c.h>
+int test06c () { printf ("hello world\n"); return 0; }
 _HERE_
-${CC} -c ${CFLAGS} test03c.c
+${CC} -c ${CFLAGS} test06c.c
 if [ $? -ne 0 ]; then 
-  echo "compile test03b.c failed"
+  echo "compile test06b.c failed"
   cd ..
   test -d $TMP && rm -rf $TMP
   exit 1
 fi
-ar cq libtest03c.a test03c.o
+ar cq libtest06c.a test06c.o
 
 cd ..
 
-eval "${script} -C test_03.dat"
+eval "${script} -C test_06.dat"
 echo "## diff 1"
-diff -b test_03.ctmp test_03.ctest
+diff -b test_06.ctmp test_06.ctest
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
 
 echo "## diff 2"
-diff -b test_03.reqlibs reqlibs.txt
+diff -b test_06.reqlibs reqlibs.txt
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
 
 test -d $TMP && rm -rf $TMP 
 
 echo "## config.h"
-cat test_03.ctest
+cat test_06.ctest
 echo "## reqlibs.txt"
 cat reqlibs.txt
 exit $grc
