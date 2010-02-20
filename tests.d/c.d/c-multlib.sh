@@ -27,7 +27,7 @@ cat > test03b.c <<_HERE_
 #include <stdlib.h>
 #include <test03b.h>
 #include <test03c.h>
-int test03b () { test03c(); }
+int test03b () { test03c(); return 0; }
 _HERE_
 ${CC} -c ${CFLAGS} test03b.c
 if [ $? -ne 0 ]; then 
@@ -42,7 +42,7 @@ cat > test03c.c <<_HERE_
 #include <stdio.h>
 #include <stdlib.h>
 #include <test03c.h>
-int test03c () { printf ("hello world\n"); }
+int test03c () { printf ("hello world\n"); return 0; }
 _HERE_
 ${CC} -c ${CFLAGS} test03c.c
 if [ $? -ne 0 ]; then 
@@ -56,10 +56,12 @@ ar cq libtest03c.a test03c.o
 cd ..
 
 eval "${script} -C test_03.dat"
-diff -b test_03.configh config.h
+echo "## diff 1"
+diff -b test_03.ctmp test_03.ctest
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
 
+echo "## diff 2"
 diff -b test_03.reqlibs reqlibs.txt
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
@@ -67,7 +69,7 @@ if [ $rc -ne 0 ];then grc=$rc; fi
 test -d $TMP && rm -rf $TMP 
 
 echo "## config.h"
-cat config.h
+cat test_03.ctest
 echo "## reqlibs.txt"
 cat reqlibs.txt
 exit $grc
