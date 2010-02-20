@@ -83,8 +83,8 @@ _HERE_
 }
 
 standard_checks () {
-    check_hdr hdr "stdlib.h"
     check_hdr hdr "stdio.h"
+    check_hdr hdr "stdlib.h"
     check_hdr sys "types.h"
     check_hdr sys "param.h"
     check_key key "void"
