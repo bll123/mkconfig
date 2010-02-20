@@ -1,7 +1,7 @@
 #!/bin/sh
 
 script=$@
-echo ${EN} "lib w/multiple req${EC}" >&3
+echo ${EN} "w/multiple lib${EC}" >&3
 
 grc=0
 
