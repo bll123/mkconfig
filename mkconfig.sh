@@ -208,11 +208,10 @@ create_config () {
         case ${tdatline} in
           endinclude)
             ;;
-          config*)
+          output*)
             set $tdatline
             type=$1
             file=$2
-            echo "   config file name: ${mypath}/${file}" >> $LOG
             case ${file} in
               /*)
                 CONFH="${file}"
@@ -221,12 +220,15 @@ create_config () {
                 CONFH="../${file}"
                 ;;
             esac
+            echo "output-file: ${CONFH}"
+            echo "   config file name: ${CONFH}" >> $LOG
             ;;
-          source*)
+          loadunit*)
             set $tdatline
             type=$1
             file=$2
             if [ -f ../${mypath}/mkconfig.units/${file}.sh ]; then
+              echo "load-unit: ${file}"
               echo "   found ${file}" >> $LOG
               . ../${mypath}/mkconfig.units/${file}.sh
             fi
