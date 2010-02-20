@@ -1009,8 +1009,9 @@ create_config
 
         print LOGFH "#### ${linenumber}: ${line}\n";
 
-        if ($line =~ m#^config\s+([^\s]+)#o)
+        if ($line =~ m#^output\s+([^\s]+)#o)
         {
+            print "output-file: $1\n";
             print LOGFH "config file: $1\n";
             $CONFH="../$1";
         }
