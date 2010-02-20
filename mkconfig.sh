@@ -5,6 +5,9 @@
 # Copyright 2009-2010 Brad Lanam Walnut Creek, CA USA
 #
 
+mypath=`dirname $0`
+. ${mypath}/features/shellfuncs.sh
+
 LOG="mkconfig.log"
 CONFH="config.h"
 REQLIB="reqlibs.txt"
@@ -14,22 +17,6 @@ datafile=""
 
 INC="include.txt"                   # temporary
 datachg=0
-
-hasappend=0
-hastypeset=0
-hasparamsub=0
-$SHELL -c "xtmp=abc;ytmp=abc;xtmp+=\$ytmp" > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-  hasappend=1
-fi
-$SHELL -c "typeset -l xtmp" > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-  hastypeset=1
-fi
-$SHELL -c "xtmp=abc.abc;y=\${xtmp//./_}" > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-  hasparamsub=1
-fi
 
 precc='
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
@@ -51,48 +38,6 @@ precc='
 exitmkconfig () {
     rc=$1
     exit 1
-}
-
-tolower () {
-  if [ $hastypeset -eq 1 ]; then
-    typeset -l val
-  fi
-  val=$1
-  if [ $hastypeset -eq 0 ]; then
-    val=`echo $val | tr '[A-Z]' '[a-z]'`
-  fi
-  echo $val
-}
-
-dosubst () {
-  var=$1
-  shift
-  sedargs=""
-  while test $# -gt 0; do
-    pattern=$1
-    sub=$2
-    if [ $hasparamsub -eq 1 ]; then
-      var=${var//${pattern}/${sub}}
-    else
-      sedargs="${sedargs} -e 's~${pattern}~${sub}~g'"
-    fi
-    shift
-    shift
-  done
-  if [ $hasparamsub -eq 0 ]; then
-    var=`eval "echo ${var} | sed ${sedargs}"`
-  fi
-  echo $var
-}
-
-doappend () {
-  var=$1
-  val=$2
-  if [ $hasappend -eq 1 ]; then
-    eval $var+=\$val
-  else
-    eval $var=\$${var}\$val
-  fi
 }
 
 savedata () {
@@ -665,10 +610,11 @@ check_command () {
 
     trc=0
     for p in $pthlist; do
-        if [ -x "$p/$cmd" ]; then
-            trc="$p/$cmd"
-            break
-        fi
+      if [ -x "$p/$cmd" ]; then
+        trc="$p/$cmd"
+        echo " found $cmd in $p" >> $LOG
+        break
+      fi
     done
     printyesno $name $trc
     setdata cfg "${name}" "${trc}"
@@ -813,7 +759,7 @@ create_config () {
     reqlibs=""
 
     > ${CONFH}
-    cat  << _HERE_ >> ${CONFH} 
+    cat  << _HERE_ >> ${CONFH}
 #ifndef __INC_CONFIG_H
 #define __INC_CONFIG_H 1
 
@@ -835,162 +781,166 @@ _HERE_
 
     ininclude=0
     inheaders=1
+    linenumber=0
     OIFS="$IFS"
     > $INC
     # This while loop reads data from stdin, so it has
     # a subshell of its own.  This requires us to save the
     # configuration data in files for re-use.  See savedata()
     while read tdatline; do
-        if [ $ininclude -eq 1 ]; then
-            if [ "${tdatline}" = "endinclude" ]; then
-                echo "end include" >> $LOG
-                ininclude=0
-                IFS="$OIFS"
-            else
-                echo "${tdatline}" >> $INC
-            fi
-        else
-            case ${tdatline} in
-                "")
-                    ;;
-                \#*)
-                    ;;
-                hdr*|sys*)
-                    ;;
-                *)
-                    if [ $inheaders -eq 1 ]; then
-                        check_include_malloc '_include_malloc'
-                        check_include_string '_include_string'
-                        check_include_time '_include_time'
-                    fi
-                    inheaders=0
-                    ;;
-            esac
-        fi
+      linenumber=`domath "$linenumber + 1"`
 
-        if [ $ininclude -eq 0 ]; then
+      if [ $ininclude -eq 1 ]; then
+          if [ "${tdatline}" = "endinclude" ]; then
+            echo "#### ${linenumber}: ${tdatline}" >> $LOG
+            ininclude=0
+            IFS="$OIFS"
+          else
+            echo "${tdatline}" >> $INC
+          fi
+      else
           case ${tdatline} in
-            hdr*|sys*)
-                set $tdatline
-                type=$1
-                hdr=$2
-                shift;shift
-                reqhdr="$*"
-                # input may be:  ctype.h kernel/fs_info.h
-                #    storage/Directory.h
-                nm1=`echo ${hdr} | sed -e 's,/.*,,'`
-                nm2="_`echo $hdr | sed -e \"s,^${nm1},,\" -e 's,^/*,,'`"
-                nm="_${type}_${nm1}"
-                if [ "$nm2" != "_" ]; then
-                  doappend nm $nm2
-                fi
-                nm=`dosubst ${nm} '[/:]' '_' '\.h' ''`
-                case ${type} in
-                    sys)
-                        hdr="sys/${hdr}"
-                        ;;
-                esac
-                check_header $nm $hdr
-                ;;
-            const*)
-                set $tdatline
-                constant=$2
-                shift;shift
-                reqhdr="$*"
-                nm="_const_${constant}"
-                check_constant $nm $constant
-                ;;
-            typ*)
-                set $tdatline
-                type=$2
-                nm="_typ_${type}"
-                check_type $nm $type
-                ;;
-            lib*)
-                set $tdatline
-                func=$2
-                shift;shift
-                libs=$*
-                nm="_lib_${func}"
-                otherlibs="${libs}"
-                check_lib $nm "${func}"
-                rc=$?
-                if [ $func = 'setmntent' -a $rc -eq 1 ]; then
-                    check_setmntent_1arg '_setmntent_1arg'
-                    check_setmntent_2arg '_setmntent_2arg'
-                fi
-                if [ $func = 'statfs' -a $rc -eq 1 ]; then
-                    check_statfs_2arg '_statfs_2arg'
-                    check_statfs_3arg '_statfs_3arg'
-                    check_statfs_4arg '_statfs_4arg'
-                fi
-                ;;
-            class*)
-                set $tdatline
-                class=$2
-                shift;shift
-                libs="$*"
-                nm="_class_${class}"
-                nm=`dosubst ${nm} '[/:]' '_'`
-                otherlibs="${libs}"
-                check_class "${nm}" "${class}"
-                ;;
-            command*)
-                set $tdatline
-                cmd=$2
-                nm="_command_${cmd}"
-                check_command "${nm}" "${cmd}"
-                ;;
-            npt*)
-                set $tdatline
-                func=$2
-                req=$3
-                has=1
-                if [ "${req}" != "" ]; then
-                    has=`getdata cfg "${req}"`
-                fi
-                nm="_npt_${func}"
-                if [ ${has} -eq 1 ]; then
-                    check_npt "${nm}" "${func}"
-                else
-                    setdata cfg "${nm}" "0"
-                fi
-                ;;
-            dcl*)
-                set $tdatline
-                type=$2
-                var=$3
-                nm="_dcl_${var}"
-                if [ "$type" = "int" ]; then
-                    check_int_declare $nm $var
-                elif [ "$type" = "ptr" ]; then
-                    check_ptr_declare $nm $var
-                fi
-                ;;
-            member*)
-                set $tdatline
-                struct=$2
-                member=$3
-                nm="_mem_${member}_${struct}"
-                check_member $nm $struct $member
-                ;;
-            size*)
-                set $tdatline
-                shift
-                type="$*"
-                nm="_siz_${type}"
-                nm=`dosubst "${nm}" ' ' '_'`
-                check_size $nm "${type}"
-                ;;
-            include*)
-                echo "start include" >> $LOG
-                ininclude=1
-                IFS="
-"
-                ;;
+              "")
+                  ;;
+              \#*)
+                  ;;
+              hdr*|sys*)
+                  echo "#### ${linenumber}: ${tdatline}" >> $LOG
+                  ;;
+              *)
+                  if [ $inheaders -eq 1 ]; then
+                      check_include_malloc '_include_malloc'
+                      check_include_string '_include_string'
+                      check_include_time '_include_time'
+                  fi
+                  inheaders=0
+                  echo "#### ${linenumber}: ${tdatline}" >> $LOG
+                  ;;
           esac
-          savedata
-        fi
+      fi
+
+      if [ $ininclude -eq 0 ]; then
+        case ${tdatline} in
+          hdr*|sys*)
+              set $tdatline
+              type=$1
+              hdr=$2
+              shift;shift
+              reqhdr="$*"
+              # input may be:  ctype.h kernel/fs_info.h
+              #    storage/Directory.h
+              nm1=`echo ${hdr} | sed -e 's,/.*,,'`
+              nm2="_`echo $hdr | sed -e \"s,^${nm1},,\" -e 's,^/*,,'`"
+              nm="_${type}_${nm1}"
+              if [ "$nm2" != "_" ]; then
+                doappend nm $nm2
+              fi
+              nm=`dosubst "${nm}" '[/:]' '_' '\.h' ''`
+              case ${type} in
+                  sys)
+                      hdr="sys/${hdr}"
+                      ;;
+              esac
+              check_header $nm $hdr
+              ;;
+          const*)
+              set $tdatline
+              constant=$2
+              shift;shift
+              reqhdr="$*"
+              nm="_const_${constant}"
+              check_constant $nm $constant
+              ;;
+          typ*)
+              set $tdatline
+              type=$2
+              nm="_typ_${type}"
+              check_type $nm $type
+              ;;
+          lib*)
+              set $tdatline
+              func=$2
+              shift;shift
+              libs=$*
+              nm="_lib_${func}"
+              otherlibs="${libs}"
+              check_lib $nm "${func}"
+              rc=$?
+              if [ $func = 'setmntent' -a $rc -eq 1 ]; then
+                  check_setmntent_1arg '_setmntent_1arg'
+                  check_setmntent_2arg '_setmntent_2arg'
+              fi
+              if [ $func = 'statfs' -a $rc -eq 1 ]; then
+                  check_statfs_2arg '_statfs_2arg'
+                  check_statfs_3arg '_statfs_3arg'
+                  check_statfs_4arg '_statfs_4arg'
+              fi
+              ;;
+          class*)
+              set $tdatline
+              class=$2
+              shift;shift
+              libs="$*"
+              nm="_class_${class}"
+              nm=`dosubst "${nm}" '[/:]' '_'`
+              otherlibs="${libs}"
+              check_class "${nm}" "${class}"
+              ;;
+          command*)
+              set $tdatline
+              cmd=$2
+              nm="_command_${cmd}"
+              check_command "${nm}" "${cmd}"
+              ;;
+          npt*)
+              set $tdatline
+              func=$2
+              req=$3
+              has=1
+              if [ "${req}" != "" ]; then
+                  has=`getdata cfg "${req}"`
+              fi
+              nm="_npt_${func}"
+              if [ ${has} -eq 1 ]; then
+                  check_npt "${nm}" "${func}"
+              else
+                  setdata cfg "${nm}" "0"
+              fi
+              ;;
+          dcl*)
+              set $tdatline
+              type=$2
+              var=$3
+              nm="_dcl_${var}"
+              if [ "$type" = "int" ]; then
+                  check_int_declare $nm $var
+              elif [ "$type" = "ptr" ]; then
+                  check_ptr_declare $nm $var
+              fi
+              ;;
+          member*)
+              set $tdatline
+              struct=$2
+              member=$3
+              nm="_mem_${member}_${struct}"
+              check_member $nm $struct $member
+              ;;
+          size*)
+              set $tdatline
+              shift
+              type="$*"
+              nm="_siz_${type}"
+              nm=`dosubst "${nm}" ' ' '_'`
+              check_size $nm "${type}"
+              ;;
+          include*)
+              ininclude=1
+              IFS="
+"
+              ;;
+        esac
+        savedata
+      fi
     done < ../${configfile}
 
     # refetch the configuration data
@@ -1063,13 +1013,16 @@ usage () {
 
 # main
 
-EN='-n'
-EC=''
-if [ "`echo -n test`" = "-n test" ]; then
-    EN=''
-    EC='\c'
+shell=`getshelltype`
+set -x
+testshell $shell
+if [ $? != 0 ]; then
+  exec $SHELL $0 $@
 fi
-pthlist=`dosubst $PATH '[;:]' ' '`
+set +x
+testshcapability
+setechovars
+pthlist=`dosubst "$PATH" '[;:]' ' '`
 
 clearcache=0
 while test $# -gt 1; do
@@ -1129,7 +1082,7 @@ if [ $clearcache -eq 1 ]; then
   rm -f $CACHEFILE > /dev/null 2>&1
 fi
 
-echo "$0 using $configfile"
+echo "$0 ($shell) using $configfile"
 rm -f $LOG > /dev/null 2>&1
 CFLAGS="${CFLAGS} ${CINCLUDES}"
 echo "CC: ${CC}" >> $LOG
