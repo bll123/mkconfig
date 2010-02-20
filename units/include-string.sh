@@ -4,7 +4,7 @@
 #
 
 check_include_string () {
-    name=$1
+    name="_$1"
 
     trc=0
     _hdr_string=`getdata cfg _hdr_string`

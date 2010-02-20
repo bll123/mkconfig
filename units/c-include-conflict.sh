@@ -4,7 +4,7 @@
 #
 
 check_include_time () {
-    name=$1
+    name="_$1"
 
     trc=0
     _hdr_time=`getdata cfg _hdr_time`

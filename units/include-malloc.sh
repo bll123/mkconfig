@@ -4,7 +4,7 @@
 #
 
 check_include_malloc () {
-    name=$1
+    name="_$1"
 
     trc=0
     _hdr_malloc=`getdata cfg _hdr_malloc`

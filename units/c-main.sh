@@ -43,18 +43,56 @@ precc='
 #endif
 '
 
-standard_checks () {
-    check_header "_hdr_stdlib" "stdlib.h"
-    check_header "_hdr_stdio" "stdio.h"
-    check_header "_sys_types" "sys/types.h"
-    check_header "_sys_param" "sys/param.h"
+preconfigfile () {
+  pc_configfile=$1
+  cat  << _HERE_ >> ${pc_configfile}
+#ifndef __INC_CONFIG_H
+#define __INC_CONFIG_H 1
 
-    check_keyword "_key_void" "void"
-    check_keyword "_key_const" "const"
+_HERE_
+}
+
+stdconfigfile () {
+  pc_configfile=$1
+  cat << _HERE_ >> ${pc_configfile}
+
+#if ! _key_void || ! _proto_stdc
+# define void int
+#endif
+#if ! _key_const || ! _proto_stdc
+# define const
+#endif
+
+#ifndef _
+# if _proto_stdc
+#  define _(args) args
+# else
+#  define _(args) ()
+# endif
+#endif
+
+_HERE_
+}
+
+postconfigfile () {
+  pc_configfile=$1
+  cat << _HERE_ >> ${pc_configfile}
+
+#endif /* __INC_CONFIG_H */
+_HERE_
+}
+
+standard_checks () {
+    check_hdr hdr "stdlib.h"
+    check_hdr hdr "stdio.h"
+    check_hdr sys "types.h"
+    check_hdr sys "param.h"
+    check_key key "void"
+    check_key key "const"
     check_proto "_proto_stdc"
 }
 
-print_headers () {
+_print_headers () {
     if [ "${incheaders}" = "all" -o "${incheaders}" = "std" ]; then
         for tnm in '_hdr_stdio' '_hdr_stdlib' '_sys_types' '_sys_param'; do
             tval=`getdata cfg ${tnm}`
@@ -100,11 +138,11 @@ print_headers () {
     fi
 }
 
-check_run () {
+_chk_run () {
     name=$1
     code=$2
 
-    check_link "${name}" "${code}" > /dev/null
+    _chk_link_libs "${name}" "${code}" > /dev/null
     rc=$?
     echo "##  run test: link: $rc" >> $LOG
     rval=0
@@ -120,7 +158,7 @@ check_run () {
     return $rc
 }
 
-check_link () {
+_chk_link_libs () {
     name=$1
     code=$2
     shift;shift
@@ -136,13 +174,13 @@ check_link () {
 
     > ${name}.c
     echo "${precc}" >> ${name}.c
-    print_headers >> ${name}.c
+    _print_headers >> ${name}.c
     echo "${code}" >> ${name}.c
     cat ${name}.c >> $LOG
 
     dlibs=""
     otherlibs=""
-    _check_link $name
+    _chk_link $name
     rc=$?
     echo "##      link test (none): $rc" >> $LOG
     if [ $rc -ne 0 ]; then
@@ -158,7 +196,7 @@ check_link () {
             done
             dlibs="${olibs}"
             otherlibs="$olibs"
-            _check_link $name
+            _chk_link $name
             rc=$?
             echo "##      link test (${olibs}): $rc" >> $LOG
             if [ $rc -eq 0 ]; then
@@ -170,7 +208,7 @@ check_link () {
     return $rc
 }
 
-_check_link () {
+_chk_link () {
     name=$1
 
     cmd="${CC} ${CFLAGS} "
@@ -199,13 +237,13 @@ _check_link () {
 }
 
 
-check_compile () {
+_chk_compile () {
     name=$1
     code=$2
 
     > ${name}.c
     echo "${precc}" >> ${name}.c
-    print_headers >> ${name}.c
+    _print_headers >> ${name}.c
     echo "${code}" >> ${name}.c
 
     cmd="${CC} ${CFLAGS} -c ${name}.c"
@@ -224,7 +262,7 @@ do_check_compile () {
     inc="$3"
 
     incheaders=${inc}
-    check_compile "${name}" "${code}"
+    _chk_compile "${name}" "${code}"
     rc=$?
     try="0"
     if [ $rc -eq 0 ]; then
@@ -234,28 +272,28 @@ do_check_compile () {
     setdata cfg "${name}" "${try}"
 }
 
-do_check_link () {
-    name="$1"
-    code="$2"
-    inc="$3"
-
-    incheaders=${inc}
-    otherlibs=""
-    check_link "${name}" "${code}" > /dev/null
-    rc=$?
-    trc=0
-    if [ $rc -eq 0 ]; then
-        trc=1
+check_hdr () {
+    type=$1
+    hdr=$2
+    shift;shift
+    reqhdr="$*"
+    # input may be:  ctype.h kernel/fs_info.h
+    #    storage/Directory.h
+    nm1=`echo ${hdr} | sed -e 's,/.*,,'`
+    nm2="_`echo $hdr | sed -e \"s,^${nm1},,\" -e 's,^/*,,'`"
+    nm="_${type}_${nm1}"
+    if [ "$nm2" != "_" ]; then
+      doappend nm $nm2
     fi
-    printyesno $name $trc
-    setdata cfg "${name}" "${trc}"
-    return $trc
-}
+    nm=`dosubst "${nm}" '[/:]' '_' '\.h' ''`
+    case ${type} in
+      sys)
+        hdr="sys/${hdr}"
+        ;;
+    esac
 
-
-check_header () {
-    name=$1
-    file=$2
+    name=$nm
+    file=$hdr
 
     printlabel $name "header: ${file}"
     checkcache $name
@@ -277,7 +315,7 @@ main () { exit (0); }
 "
     rc=1
     incheaders=std
-    check_compile "${name}" "${code}"
+    _chk_compile "${name}" "${code}"
     rc=$?
     val="0"
     if [ $rc -eq 0 ]; then
@@ -287,9 +325,17 @@ main () { exit (0); }
     setdata cfg "${name}" "${val}"
 }
 
-check_constant () {
-    name=$1
+check_sys () {
+  check_hdr $@
+}
+
+check_const () {
     constant=$2
+    shift;shift
+    reqhdr="$*"
+    nm="_const_${constant}"
+
+    name=$nm
 
     printlabel $name "constant: ${constant}"
     checkcache $name
@@ -311,9 +357,9 @@ main () { if (${constant} == 0) { 1; } exit (0); }
     do_check_compile "${name}" "${code}" all
 }
 
-check_keyword () {
-    name=$1
+check_key () {
     keyword=$2
+    name="_key_${keyword}"
 
     printlabel $name "keyword: ${keyword}"
     checkcache $name
@@ -322,7 +368,7 @@ check_keyword () {
     code="main () { int ${keyword}; ${keyword} = 1; exit (0); }"
 
     incheaders=std
-    check_compile "${name}" "${code}"
+    _chk_compile "${name}" "${code}"
     rc=$?
     trc=0
     if [ $rc -ne 0 ]; then  # failure means it is reserved...
@@ -349,9 +395,11 @@ int bar () { int rc; rc = foo (1,1); return 0; }
     do_check_compile "${name}" "${code}" all
 }
 
-check_type () {
-    name=$1
+check_typ () {
     type=$2
+    nm="_typ_${type}"
+
+    name=$nm
 
     printlabel $name "type: ${type}"
     checkcache $name
@@ -368,9 +416,11 @@ main () { struct xxx *tmp; tmp = f(); exit (0); }
 }
 
 check_member () {
-    name=$1
     struct=$2
     member=$3
+    nm="_mem_${member}_${struct}"
+
+    name=$nm
 
     printlabel $name "exists: ${struct}.${member}"
     checkcache $name
@@ -382,10 +432,13 @@ check_member () {
 }
 
 
-
 check_size () {
-    name=$1
-    type=$2
+    shift
+    type="$*"
+    nm="_siz_${type}"
+    nm=`dosubst "${nm}" ' ' '_'`
+
+    name=$nm
 
     printlabel $name "sizeof: ${type}"
     checkcache_val $name
@@ -393,9 +446,21 @@ check_size () {
 
     code="main () { printf(\"%u\", sizeof(${type})); exit (0); }"
     val=0
-    val=`check_run "${name}" "${code}"`
+    val=`_chk_run "${name}" "${code}"`
     printyesno_val $name $val
     setdata cfg "${name}" "${val}"
+}
+
+check_dcl () {
+    type=$2
+    var=$3
+
+    nm="_dcl_${var}"
+    if [ "$type" = "int" ]; then
+      check_int_declare $nm $var
+    elif [ "$type" = "ptr" ]; then
+      check_ptr_declare $nm $var
+    fi
 }
 
 check_int_declare () {
@@ -423,12 +488,26 @@ check_ptr_declare () {
 }
 
 check_npt () {
-    name=$1
-    proto=$2
+    func=$2
+    req=$3
+    has=1
+    if [ "${req}" != "" ]; then
+      has=`getdata cfg "${req}"`
+    fi
+    nm="_npt_${func}"
+
+    name=$nm
+    proto=$func
 
     printlabel $name "need prototype: ${proto}"
     checkcache $name
     if [ $rc -eq 0 ]; then return; fi
+
+    if [ ${has} -eq 0 ]; then
+      setdata cfg "${nm}" "0"
+      printyesno $name 0
+      return
+    fi
 
     code="
 _BEGIN_EXTERNS_
@@ -440,8 +519,13 @@ _END_EXTERNS_
 }
 
 check_lib () {
-    name=$1
     func=$2
+    shift;shift
+    libs=$*
+    nm="_lib_${func}"
+    otherlibs="${libs}"
+
+    name=$nm
 
     if [ "${otherlibs}" != "" ]; then
         printlabel $name "function: ${func} [${otherlibs}]"
@@ -461,7 +545,7 @@ main () {  i(); return (i==0); }
 "
 
     incheaders=all
-    dlibs=`check_link "${name}" "${code}"`
+    dlibs=`_chk_link_libs "${name}" "${code}"`
     rc=$?
     if [ $rc -eq 0 ]; then
         trc=1
@@ -477,8 +561,14 @@ main () {  i(); return (i==0); }
 }
 
 check_class () {
-    name=$1
     class=$2
+    shift;shift
+    libs="$*"
+    nm="_class_${class}"
+    nm=`dosubst "${nm}" '[/:]' '_'`
+    otherlibs="${libs}"
+
+    name=$nm
 
     trc=0
     code=" main () { ${class} testclass; } "
@@ -493,7 +583,7 @@ check_class () {
 
     incheaders=all
 #    otherlibs="${otherlibs}"
-    check_link "${name}" "${code}" > /dev/null
+    _chk_link_libs "${name}" "${code}" > /dev/null
     rc=$?
     if [ $rc -eq 0 ]; then
         trc=1
@@ -507,41 +597,3 @@ check_class () {
     setdata cfg "${name}" "${trc}"
 }
 
-preconfigfile () {
-  pc_configfile=$1
-  cat  << _HERE_ >> ${pc_configfile}
-#ifndef __INC_CONFIG_H
-#define __INC_CONFIG_H 1
-
-_HERE_
-}
-
-stdconfigfile () {
-  pc_configfile=$1
-  cat << _HERE_ >> ${pc_configfile}
-
-#if ! _key_void || ! _proto_stdc
-# define void int
-#endif
-#if ! _key_const || ! _proto_stdc
-# define const
-#endif
-
-#ifndef _
-# if _proto_stdc
-#  define _(args) args
-# else
-#  define _(args) ()
-# endif
-#endif
-
-_HERE_
-}
-
-postconfigfile () {
-  pc_configfile=$1
-  cat << _HERE_ >> ${pc_configfile}
-
-#endif /* __INC_CONFIG_H */
-_HERE_
-}
