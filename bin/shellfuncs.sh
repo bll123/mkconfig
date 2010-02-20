@@ -13,15 +13,22 @@ testshcapability () {
   shhasappend=0
   shhasparamsub=0
   shhasmath=0
-  $SHELL -c "xtmp=abc;ytmp=abc;xtmp+=\$ytmp" > /dev/null 2>&1
+  (eval "x=a;x+=b; test z\$x = zab") 2>/dev/null
   if [ $? -eq 0 ]; then
     shhasappend=1
   fi
-  $SHELL -c "xtmp=abc.abc;y=\${xtmp//./_}" > /dev/null 2>&1
+  ( eval "set -xv; x=bcb;y=\${x/c/_};test z\$y = zb_b")
   if [ $? -eq 0 ]; then
     shhasparamsub=1
+    # old freebsd shell complains if this substitution is inline.
+    # so replace the function when this capability is available.
+    eval 'dosubst () { var=$1; shift;
+        while test $# -gt 0; do
+        pattern=$1; sub=$2;
+        var=${var//${pattern}/${sub}};
+        shift; shift; done; echo $var; } '
   fi
-  $SHELL -c "xtmp=1;y=\$((\$xtmp+1))" > /dev/null 2>&1
+  (eval "x=1;y=\$((\$x+1)); test z\$y = z2") 2>/dev/null
   if [ $? -eq 0 ]; then
     shhasmath=1
   fi
@@ -34,17 +41,11 @@ dosubst () {
   while test $# -gt 0; do
     pattern=$1
     sub=$2
-    if [ $shhasparamsub -eq 1 ]; then
-      var=${var//${pattern}/${sub}}
-    else
-      sedargs="${sedargs} -e 's~${pattern}~${sub}~g'"
-    fi
+    sedargs="${sedargs} -e 's~${pattern}~${sub}~g'"
     shift
     shift
   done
-  if [ $shhasparamsub -eq 0 ]; then
-    var=`eval "echo ${var} | sed ${sedargs}"`
-  fi
+  var=`eval "echo ${var} | sed ${sedargs}"`
   echo $var
 }
 
@@ -132,7 +133,7 @@ testshell () {
     noksh=0
     case ${systype} in
       CYGWIN*)
-        noksh=1
+        noksh=1     # cygwin's ksh is a link to pdksh
         ;;
     esac
     if [ $noksh -eq 0 -a -x /usr/bin/ksh ]; then
