@@ -1008,23 +1008,18 @@ _HERE_
         exit 1;
     }
 
+    my $linenumber = 0;
     my $inheaders = 1;
     my $ininclude = 0;
     my $include = '';
     while (my $line = <DATAIN>)
     {
         chomp $line;
+        ++$linenumber;
+
         if ($ininclude == 0 && ($line =~ /^#/o || $line eq ''))
         {
             next;
-        }
-
-        if ($inheaders && $line !~ m#^(hdr|sys)#o)
-        {
-            check_include_malloc ('_include_malloc', \%clist, \%config);
-            check_include_string ('_include_string', \%clist, \%config);
-            check_include_time ('_include_time', \%clist, \%config);
-            $inheaders = 0;
         }
 
         if ($ininclude == 1 && $line =~ m#^endinclude$#o)
@@ -1036,8 +1031,20 @@ _HERE_
         {
             $line =~ s,\\(.),$1,g;
             $include .= $line . "\n";
+            next;
         }
-        elsif ($line =~ m#^include$#o)
+
+        if ($inheaders && $line !~ m#^(hdr|sys)#o)
+        {
+            check_include_malloc ('_include_malloc', \%clist, \%config);
+            check_include_string ('_include_string', \%clist, \%config);
+            check_include_time ('_include_time', \%clist, \%config);
+            $inheaders = 0;
+        }
+
+        print LOGFH "#### ${linenumber}: ${line}\n";
+
+        if ($line =~ m#^include$#o)
         {
             print LOGFH "start include\n";
             $ininclude = 1;
