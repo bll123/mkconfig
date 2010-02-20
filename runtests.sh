@@ -8,7 +8,7 @@
 
 clean () {
   tbase=$1
-  rm -rf mkconfig.log mkconfig.cache _tmp_mkconfig \
+  rm -rf mkconfig.log mkconfig.cache _tmp_mkconfig _tmp_$tbase \
     reqlibs.txt $tbase.ctmp $tbase.ctest > /dev/null 2>&1
 }
 
