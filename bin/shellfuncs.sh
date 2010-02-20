@@ -107,12 +107,39 @@ testshell () {
   fi
   # test if $SHELL and what type of shell started this script are equal.
   # if not, the shell capabilities test will break, so restart
-  # this program using a standard shell.  
-  # zsh is broken
-  if [ "$shell" != "$baseshell" -o "$baseshell" = "zsh" ]; then  
+  # this program using a standard shell.
+  ok=0
+  # sh is commonly bash in disguise
+  if [ "$shell" = "sh" -a "$baseshell" = "bash" ]; then
+    ok=1
+  fi
+  # dash is commonly installed as sh
+  if [ "$shell" = "sh" -a "$baseshell" = "dash" ]; then
+    ok=1
+  fi
+  if [ "$shell" = "$baseshell" ]; then
+    ok=1
+  fi
+  if [ "$baseshell" = "pdksh" ]; then   # broken
+    ok=0
+  fi
+  if [ "$baseshell" = "zsh" ]; then   # broken
+    ok=0
+  fi
+  if [ $ok -eq 0 ]; then
     SHELL=/bin/sh
-    if [ -x /usr/bin/ksh ]; then
+    systype=`uname -s 2>/dev/null`
+    noksh=0
+    case ${systype} in
+      CYGWIN*)
+        noksh=1
+        ;;
+    esac
+    if [ $noksh -eq 0 -a -x /usr/bin/ksh ]; then
       SHELL=/usr/bin/ksh
+    fi
+    if [ $noksh -eq 1 -a -x /usr/bin/dash ]; then
+      SHELL=/usr/bin/dash
     fi
     export SHELL
     rc=1
