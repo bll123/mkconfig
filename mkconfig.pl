@@ -1015,7 +1015,7 @@ create_config
             print LOGFH "config file: $1\n";
             $CONFH="../$1";
         }
-        elsif ($line =~ m#^(source|standard)#o)
+        elsif ($line =~ m#^(loadunit|standard)#o)
         {
             ;
         }
