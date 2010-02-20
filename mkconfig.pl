@@ -954,8 +954,8 @@ create_config
     # FreeBSD has buggy headers, requires sys/param.h as a required include.
     # always check for these headers.
     my @headlist1 = (
-        [ "_hdr_stdlib", "stdlib.h", ],
         [ "_hdr_stdio", "stdio.h", ],
+        [ "_hdr_stdlib", "stdlib.h", ],
         [ "_sys_types", "sys/types.h", ],
         [ "_sys_param", "sys/param.h", ],
         );
