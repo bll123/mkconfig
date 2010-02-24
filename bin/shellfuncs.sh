@@ -17,7 +17,7 @@ testshcapability () {
   if [ $? -eq 0 ]; then
     shhasappend=1
   fi
-  ( eval "x=bcb;y=\${x/c/_};test z\$y = zb_b")
+  ( eval "x=bcb;y=\${x/c/_};test z\$y = zb_b") 2>/dev/null
   if [ $? -eq 0 ]; then
     shhasparamsub=1
     # old freebsd shell complains if this substitution is inline.
