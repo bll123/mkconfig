@@ -80,8 +80,9 @@ getshelltype () {
   if [ "$ZSH_VERSION" != "" ]; then
     shell=zsh
   fi
-  if [ "$shell" = "sh" -a "$_" != "" ]; then
-    case $_ in
+  typ=`$SHELL -c 'echo $_'`
+  if [ "$shell" = "sh" -a "$typ" != "" ]; then
+    case $typ in
       *bash)
         shell=bash
         ;;
