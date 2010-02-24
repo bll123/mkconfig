@@ -111,11 +111,11 @@ testshell () {
   # this program using a standard shell.
   ok=0
   # sh is commonly bash in disguise
-  if [ "$shell" = "sh" -a "$baseshell" = "bash" ]; then
+  if [ "$shell" = "bash" -a "$baseshell" = "sh" ]; then
     ok=1
   fi
   # dash is commonly installed as sh
-  if [ "$shell" = "sh" -a "$baseshell" = "dash" ]; then
+  if [ "$shell" = "dash" -a "$baseshell" = "sh" ]; then
     ok=1
   fi
   if [ "$shell" = "$baseshell" ]; then
