@@ -13,6 +13,7 @@ LOG="mkconfig.log"
 REQLIB="reqlibs.txt"
 TMP="_tmp_mkconfig"
 CACHEFILE="mkconfig.cache"
+VARSFILE="mkconfig.vars"
 datafile=""
 
 INC="include.txt"                   # temporary
@@ -46,11 +47,12 @@ savedata () {
 
 cleardata () {
     prefix=$1
-    cmd="echo \${di_${prefix}_vars}"
-    for tval in `eval $cmd`; do
-        eval unset di_${prefix}_${tval}
-    done
-    eval "di_${prefix}_vars="
+    if [ -f $VARSFILE ]; then
+      for tval in `cat $VARSFILE`; do
+          eval unset di_${prefix}_${tval}
+      done
+      rm -f $VARSFILE
+    fi
 }
 
 setdata () {
@@ -65,7 +67,7 @@ setdata () {
     rc=$?
     # if already in the list of vars, don't add it again.
     if [ $rc -ne 0 ]; then
-      doappend di_${prefix}_vars " $sdname"
+      echo $sdname >> $VARSFILE
     fi
     cmd="di_${prefix}_${sdname}=\"${sdval}\""
     eval "$cmd"
@@ -163,7 +165,7 @@ create_config () {
 
     reqlibs=""
 
-    if [ -f "$CACHEFILE" ]; then
+    if [ -f "$CACHEFILE" -a -f "$VARSFILE" ]; then
       . $CACHEFILE
     fi
 
@@ -173,9 +175,11 @@ create_config () {
     linenumber=0
     OIFS="$IFS"
     > $INC
-    # This while loop reads data from stdin, so it has
-    # a subshell of its own.  This requires us to save the
-    # configuration data in files for re-use.  See savedata()
+    # save stdin in fd 5.
+    # and reset stdin to get from the configfile.
+    # this allows us to run the while loop in the
+    # current shell rather than a subshell.
+    exec 5<&0 < ../${configfile}
     while read tdatline; do
       linenumber=`domath "$linenumber + 1"`
 
@@ -258,32 +262,30 @@ create_config () {
               eval $chk $@
               ;;
         esac
-        savedata
       fi
-    done < ../${configfile}
+    done
+    # reset the file descriptors back to the norm.
+    exec <&5 5<&-
 
-    # refetch the configuration data
-    if [ -f "$CACHEFILE" ]; then
-      . ${CACHEFILE}
-    fi
+    savedata  # save the cache file.
 
     > ${CONFH}
     preconfigfile ${CONFH}
 
-    for cfgvar in ${di_cfg_vars}; do
-        val=`getdata cfg $cfgvar`
-        tval=0
-        if [ "$val" != "0" ]; then
-          tval=1
-        fi
-        case ${cfgvar} in
-            _hdr*|_sys*|_command*)
-                echo "#define ${cfgvar} ${tval}" >> ${CONFH}
-                ;;
-            *)
-                echo "#define ${cfgvar} ${val}" >> ${CONFH}
-                ;;
-        esac
+    for cfgvar in `cat $VARSFILE`; do
+      val=`getdata cfg $cfgvar`
+      tval=0
+      if [ "$val" != "0" ]; then
+        tval=1
+      fi
+      case ${cfgvar} in
+        _hdr*|_sys*|_command*)
+          echo "#define ${cfgvar} ${tval}" >> ${CONFH}
+          ;;
+        *)
+          echo "#define ${cfgvar} ${val}" >> ${CONFH}
+          ;;
+      esac
     done
 
     > $REQLIB
@@ -296,13 +298,14 @@ create_config () {
 }
 
 usage () {
-  echo "Usage: $0 [-c <cache-file>] "
+  echo "Usage: $0 [-c <cache-file>] [-v <vars-file>]"
   echo "       [-l <log-file>] [-t <tmp-dir>] [-r <reqlib-file>]"
   echo "       [-C] <config-file>"
   echo "  -C : clear cache-file"
   echo "<tmp-dir> must not exist."
   echo "defaults:"
   echo "  <cache-file> : mkconfig.cache"
+  echo "  <vars-file>  : mkconfig.vars"
   echo "  <log-file>   : mkconfig.log"
   echo "  <tmp-dir>    : _tmp_mkconfig"
   echo "  <reqlib-file>: reqlibs.txt"
@@ -346,6 +349,11 @@ while test $# -gt 1; do
       REQLIB="$1"
       shift
       ;;
+    -v)
+      shift
+      VARSFILE="$1"
+      shift
+      ;;
   esac
 done
 
@@ -366,9 +374,11 @@ cd $TMP
 LOG="../$LOG"
 REQLIB="../$REQLIB"
 CACHEFILE="../$CACHEFILE"
+VARSFILE="../$VARSFILE"
 
 if [ $clearcache -eq 1 ]; then
   rm -f $CACHEFILE > /dev/null 2>&1
+  rm -f $VARSFILE > /dev/null 2>&1
 fi
 
 echo "$0 ($shell) using $configfile"
