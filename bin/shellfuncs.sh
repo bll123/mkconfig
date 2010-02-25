@@ -119,6 +119,10 @@ testshell () {
   if [ "$shell" = "dash" -a "$baseshell" = "sh" ]; then
     ok=1
   fi
+  # I haven't seen this, but just in case...
+  if [ "$shell" = "ksh" -a "$baseshell" = "sh" ]; then
+    ok=1
+  fi
   if [ "$shell" = "$baseshell" ]; then
     ok=1
   fi
@@ -128,6 +132,7 @@ testshell () {
   if [ "$baseshell" = "zsh" ]; then   # broken
     ok=0
   fi
+
   if [ $ok -eq 0 ]; then
     SHELL=/bin/sh
     systype=`uname -s 2>/dev/null`
