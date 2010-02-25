@@ -14,6 +14,7 @@ check_statfs_args () {
     val=`getdata cfg _lib_statfs`
     if [ "$val" = 0 ]; then
       setdata cfg "${name}" 0
+      printyesno_val "${name}" 0 ""
       return
     fi
 
