@@ -73,6 +73,11 @@ getshelltype () {
   shell="sh"   # unknown or old
   if [ "$KSH_VERSION" != "" ]; then
     shell=ksh
+    case $KSH_VERSION in
+      *PD*)
+        shell=pdksh
+        ;;
+    esac
   fi
   if [ "$BASH_VERSION" != "" ]; then
     shell=bash
@@ -80,56 +85,17 @@ getshelltype () {
   if [ "$ZSH_VERSION" != "" ]; then
     shell=zsh
   fi
-  typ=`$SHELL -c 'echo $_'`
-  if [ "$shell" = "sh" -a "$typ" != "" ]; then
-    case $typ in
-      *bash)
-        shell=bash
-        ;;
-      *dash)
-        shell=dash
-        ;;
-      *ksh)
-        shell=ksh
-        ;;
-      *zsh)
-        shell=zsh
-        ;;
-    esac
-  fi
   echo $shell
 }
 
 testshell () {
   rc=0
   shell=$1
-  baseshell=`basename $SHELL`
-  if [ "$baseshell" = "pdksh" -a "$shell" = "ksh" ]; then
-    shell=pdksh
-  fi
-  # test if $SHELL and what type of shell started this script are equal.
-  # if not, the shell capabilities test will break, so restart
-  # this program using a standard shell.
-  ok=0
-  # sh is commonly bash in disguise
-  if [ "$shell" = "bash" -a "$baseshell" = "sh" ]; then
-    ok=1
-  fi
-  # dash is commonly installed as sh
-  if [ "$shell" = "dash" -a "$baseshell" = "sh" ]; then
-    ok=1
-  fi
-  # I haven't seen this, but just in case...
-  if [ "$shell" = "ksh" -a "$baseshell" = "sh" ]; then
-    ok=1
-  fi
-  if [ "$shell" = "$baseshell" ]; then
-    ok=1
-  fi
-  if [ "$baseshell" = "pdksh" ]; then   # broken
+  ok=1
+  if [ "$shell" = "pdksh" ]; then   # broken
     ok=0
   fi
-  if [ "$baseshell" = "zsh" ]; then   # broken
+  if [ "$shell" = "zsh" ]; then   # broken
     ok=0
   fi
 
