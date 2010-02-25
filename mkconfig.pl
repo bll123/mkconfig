@@ -99,11 +99,10 @@ checkcache_val
 {
   my ($name, $r_config) = @_;
 
-  my $val = $r_config->{$name};
   my $rc = 1;
-  if (defined ($r_config->{$name}) && $val ne "" )
+  if (defined ($r_config->{$name}) && $r_config->{$name} ne "" )
   {
-    printyesno_val $name, $val, " (cached)";
+    printyesno_val $name, $r_config->{$name}, " (cached)";
     $rc = 0;
   }
   return $rc;
@@ -114,11 +113,10 @@ checkcache
 {
   my ($name, $r_config) = @_;
 
-  my $val = $r_config->{$name};
   my $rc = 1;
-  if (defined ($r_config->{$name}) && $val ne "" )
+  if (defined ($r_config->{$name}) && $r_config->{$name} ne "" )
   {
-    printyesno $name, $val, " (cached)";
+    printyesno $name, $r_config->{$name}, " (cached)";
     $rc = 0;
   }
   return $rc;
@@ -578,12 +576,20 @@ _HERE_
 sub
 check_npt
 {
-    my ($name, $proto, $r_clist, $r_config) = @_;
+    my ($name, $proto, $req, $r_clist, $r_config) = @_;
 
     printlabel $name, "need prototype: $proto";
     if (checkcache ($name, $r_config) == 0)
     {
         return;
+    }
+
+    if (defined ($r_config->{$req}) && $r_config->{$req} eq '0')
+    {
+      $r_config->{$name} = 0;
+      setlist $r_clist, $name;
+      printyesno $nm, $r_config->{$name};
+      return;
     }
 
     my $code = <<"_HERE_";
@@ -937,19 +943,18 @@ create_config
         {
           my $name = $1;
           my $val = $2;
-          if ($name eq 'vars') {
-            $val =~ s/^ *//;
-            @{$clist{'list'}} = split (/ +/, $val);
-            foreach my $var (@{$clist{'list'}})
-            {
-               $clist{'hash'}->{$var} = 1;
-            }
-          } else {
-            $config{$name} = $val;
-          }
+          $config{$name} = $val;
+          $clist{'hash'}->{$name} = 1;
         }
       }
       close (MKCC);
+      open (MKCV, "<$VARSFILE");
+      while (my $line = <MKCV>)
+      {
+        chomp $line;
+        push @{$clist{'list'}}, $line;
+      }
+      close (MKCV);
     }
 
 
@@ -1064,12 +1069,7 @@ create_config
             $reqhdr =~ s/^\s*//o;
             $reqhdr =~ s/\s*$//o;
             my @oh = split (/\s+/, $reqhdr);
-            if (! defined ($config{$nm}) ||
-                $config{$nm} eq '0')
-            {
-                check_header ($nm, $hdr, \%clist, \%config,
-                    { 'reqhdr' => \@oh, });
-            }
+            check_header ($nm, $hdr, \%clist, \%config, { 'reqhdr' => \@oh, });
         }
         elsif ($line =~ m#^const\s+([^\s]+)\s*(.*)#o)
         {
@@ -1079,39 +1079,21 @@ create_config
             $reqhdr =~ s/^\s*//o;
             $reqhdr =~ s/\s*$//o;
             my @oh = split (/\s+/, $reqhdr);
-            if (! defined ($config{$nm}) ||
-                $config{$nm} eq '0')
-            {
-                check_constant ($nm, $tnm, \%clist, \%config,
-                    { 'reqhdr' => \@oh, });
-            }
+            check_constant ($nm, $tnm, \%clist, \%config,
+                { 'reqhdr' => \@oh, });
         }
         elsif ($line =~ m#^command\s+(.*)#o)
         {
             my $cmd = $1;
             my $nm = "_command_" . $cmd;
-            if (! defined ($config{$nm}) ||
-                $config{$nm} eq '0')
-            {
-                check_command ($nm, $cmd, \%clist, \%config);
-            }
+            check_command ($nm, $cmd, \%clist, \%config);
         }
         elsif ($line =~ m#^npt\s+([^\s]*)\s*(.*)#o)
         {
             my $func = $1;
             my $req = $2;
             my $nm = "_npt_" . $func;
-            if (! defined ($req) || $config{$req} ne '0')
-            {
-                if (! defined ($config{$nm}) || $config{$nm} eq '0')
-                {
-                    check_npt ($nm, $func, \%clist, \%config);
-                }
-            } else {
-              $config{$nm} = 0;
-              setlist $r_clist, $name;
-              printyesno $name, $r_config->{$name};
-            }
+            check_npt ($nm, $func, $req, \%clist, \%config);
         }
         elsif ($line =~ m#^key\s+(.*)#o)
         {
@@ -1270,17 +1252,17 @@ _HERE_
 sub
 usage
 {
-  print STDOUT "Usage: $0 [-c <cache-file>] [-v <vars-file>] ";
-  print STDOUT "       [-l <log-file>] [-t <tmp-dir>] [-r <reqlib-file>]";
-  print STDOUT "       [-C] <config-file>";
-  print STDOUT "  -C : clear cache-file";
-  print STDOUT "<tmp-dir> must not exist.";
-  print STDOUT "defaults:";
-  print STDOUT "  <cache-file> : mkconfig.cache";
-  print STDOUT "  <vars-file>  : mkconfig.vars";
-  print STDOUT "  <log-file>   : mkconfig.log";
-  print STDOUT "  <tmp-dir>    : _tmp_mkconfig";
-  print STDOUT "  <reqlib-file>: reqlibs.txt";
+  print STDOUT "Usage: $0 [-c <cache-file>] [-v <vars-file>] \n";
+  print STDOUT "       [-l <log-file>] [-t <tmp-dir>] [-r <reqlib-file>]\n";
+  print STDOUT "       [-C] <config-file>\n";
+  print STDOUT "  -C : clear cache-file\n";
+  print STDOUT "<tmp-dir> must not exist.\n";
+  print STDOUT "defaults:\n";
+  print STDOUT "  <cache-file> : mkconfig.cache\n";
+  print STDOUT "  <vars-file>  : mkconfig.vars\n";
+  print STDOUT "  <log-file>   : mkconfig.log\n";
+  print STDOUT "  <tmp-dir>    : _tmp_mkconfig\n";
+  print STDOUT "  <reqlib-file>: reqlibs.txt\n";
 }
 
 # main
