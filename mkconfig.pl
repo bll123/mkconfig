@@ -14,6 +14,7 @@ my $CONFH;
 my $LOG = "mkconfig.log";
 my $TMP = "_tmp_mkconfig";
 my $CACHEFILE = "mkconfig.cache";
+my $VARSFILE = "mkconfig.vars";
 my $REQLIB = "reqlibs.txt";
 
 my $precc = <<'_HERE_';
@@ -83,13 +84,14 @@ savecache
     my ($r_clist, $r_config) = @_;
 
     open (MKCC, ">$CACHEFILE");
+    open (MKCV, ">$VARSFILE");
     foreach my $val (sort @{$r_clist->{'list'}})
     {
       print MKCC "di_cfg_${val}='" . $r_config->{$val} . "'\n";
+      print MKCV $val, "\n";
     }
-    my $vals = join (' ', @{$r_clist->{'list'}});
-    print MKCC "di_cfg_vars=' ${vals}'\n";
     close (MKCC);
+    close (MKCV);
 }
 
 sub
@@ -925,7 +927,7 @@ create_config
     $clist{'hash'} = ();
     $config{'reqlibs'} = {};
 
-    if (-f $CACHEFILE)
+    if (-f $CACHEFILE && -f $VARSFILE)
     {
       open (MKCC, "<$CACHEFILE");
       while (my $line = <MKCC>)
@@ -1200,7 +1202,6 @@ create_config
             print LOGFH "unknown command: $line\n";
             print STDOUT "unknown command: $line\n";
         }
-        savecache (\%clist, \%config);
     }
 
     open (CCOFH, ">$CONFH");
@@ -1267,13 +1268,14 @@ _HERE_
 sub
 usage
 {
-  print STDOUT "Usage: $0 [-c <cache-file>] ";
+  print STDOUT "Usage: $0 [-c <cache-file>] [-v <vars-file>] ";
   print STDOUT "       [-l <log-file>] [-t <tmp-dir>] [-r <reqlib-file>]";
   print STDOUT "       [-C] <config-file>";
   print STDOUT "  -C : clear cache-file";
   print STDOUT "<tmp-dir> must not exist.";
   print STDOUT "defaults:";
   print STDOUT "  <cache-file> : mkconfig.cache";
+  print STDOUT "  <vars-file>  : mkconfig.vars";
   print STDOUT "  <log-file>   : mkconfig.log";
   print STDOUT "  <tmp-dir>    : _tmp_mkconfig";
   print STDOUT "  <reqlib-file>: reqlibs.txt";
@@ -1313,6 +1315,12 @@ while ($#ARGV > 0)
       $REQLIB = $ARGV[0];
       shift @ARGV;
   }
+  if ($ARGV[0] eq "-v")
+  {
+      shift @ARGV;
+      $VARSFILE = $ARGV[0];
+      shift @ARGV;
+  }
 }
 
 my $configfile = $ARGV[0];
@@ -1330,6 +1338,7 @@ if (-d $TMP && $TMP ne "_tmp_mkconfig")
 $LOG = "../$LOG";
 $REQLIB = "../$REQLIB";
 $CACHEFILE = "../$CACHEFILE";
+$VARSFILE = "../$VARSFILE";
 
 if (-d $TMP) { system ("rm -rf $TMP"); }
 mkdir $TMP, 0777;
@@ -1338,6 +1347,7 @@ chdir $TMP;
 if ($clearcache)
 {
     unlink $CACHEFILE;
+    unlink $VARSFILE;
 }
 
 print STDOUT "$0 using $configfile\n";
