@@ -504,7 +504,7 @@ check_npt () {
     if [ $rc -eq 0 ]; then return; fi
 
     if [ ${has} -eq 0 ]; then
-      setdata cfg "${nm}" "0"
+      setdata cfg "${name}" "0"
       printyesno $name 0
       return
     fi
