@@ -1106,6 +1106,8 @@ create_config
                 if (! defined ($config{$nm}) || $config{$nm} eq '0')
                 {
                     check_npt ($nm, $func, \%clist, \%config);
+                } else {
+                  $config{$nm} = 0;
                 }
             } else {
               $config{$nm} = 0;
