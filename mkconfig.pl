@@ -85,7 +85,7 @@ savecache
 
     open (MKCC, ">$CACHEFILE");
     open (MKCV, ">$VARSFILE");
-    foreach my $val (sort @{$r_clist->{'list'}})
+    foreach my $val (@{$r_clist->{'list'}})
     {
       print MKCC "di_cfg_${val}='" . $r_config->{$val} . "'\n";
       print MKCV $val, "\n";
