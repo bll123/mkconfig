@@ -102,8 +102,8 @@ _print_headers () {
         done
     fi
 
-    if [ "${incheaders}" = "all" ]; then
-        for cfgvar in ${di_cfg_vars}; do
+    if [ "${incheaders}" = "all" -a -f "$VARSFILE" ]; then
+        for cfgvar in `cat $VARSFILE`; do
             hdval=`getdata cfg ${cfgvar}`
             case ${cfgvar} in
                 _hdr_stdio|_hdr_stdlib|_sys_types|_sys_param)
