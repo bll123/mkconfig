@@ -173,7 +173,11 @@ create_config () {
 
     ininclude=0
     linenumber=0
-    OIFS="$IFS"
+    hasifs=0
+    if [ "$IFS" != "" ]; then
+      OIFS="$IFS"
+      hasifs=1
+    fi
     > $INC
     # save stdin in fd 5.
     # and reset stdin to get from the configfile.
@@ -187,7 +191,11 @@ create_config () {
           if [ "${tdatline}" = "endinclude" ]; then
             echo "#### ${linenumber}: ${tdatline}" >> $LOG
             ininclude=0
-            IFS="$OIFS"
+            if [ $hasifs -eq 1 ]; then
+              IFS="$OIFS"
+            else
+              unset IFS
+            fi
           else
             echo "${tdatline}" >> $INC
           fi
