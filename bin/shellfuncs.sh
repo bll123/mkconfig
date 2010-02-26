@@ -92,7 +92,7 @@ testshell () {
   rc=0
   shell=$1
   ok=1
-  if [ "$shell" = "pdksh" ]; then   # broken
+  if [ "$shell" = "pdksh" ]; then   # often broken
     ok=0
   fi
   if [ "$shell" = "zsh" ]; then   # broken
@@ -101,18 +101,22 @@ testshell () {
 
   if [ $ok -eq 0 ]; then
     SHELL=/bin/sh
-    systype=`uname -s 2>/dev/null`
     noksh=0
-    case ${systype} in
-      CYGWIN*)
-        noksh=1     # cygwin's ksh is a link to pdksh
-        ;;
-    esac
     if [ $noksh -eq 0 -a -x /usr/bin/ksh ]; then
       SHELL=/usr/bin/ksh
+      vers=`/usr/bin/ksh -c "echo \$KSH_VERSION"`
+      case $vers in
+        *PD*)
+          noksh=1
+          SHELL=/bin/sh
+          ;;
+      esac
     fi
-    if [ $noksh -eq 1 -a -x /usr/bin/dash ]; then
-      SHELL=/usr/bin/dash
+    if [ $noksh -eq 1 -a -x /bin/ash ]; then
+      SHELL=/bin/ash
+    fi
+    if [ $noksh -eq 1 -a -x /bin/dash ]; then
+      SHELL=/bin/dash
     fi
     export SHELL
     rc=1
