@@ -38,6 +38,12 @@ cd ..
 
 eval "${script} -C test_05.dat"
 echo "## diff 1"
+ed test_05.ctest << _HERE_ > /dev/null 2>&1
+g/^#define _key_/d
+g/^#define _proto_/d
+w
+q
+_HERE_
 diff -b test_05.ctmp test_05.ctest
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
