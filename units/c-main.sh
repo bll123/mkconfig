@@ -288,7 +288,7 @@ check_hdr () {
     if [ "$nm2" != "_" ]; then
       doappend nm $nm2
     fi
-    nm=`dosubst "${nm}" '[/:]' '_' '\.h' ''`
+    nm=`dosubst "${nm}" '/' '_' ':' '_' '\.h' ''`
     case ${type} in
       sys)
         hdr="sys/${hdr}"
@@ -450,6 +450,10 @@ check_size () {
     code="main () { printf(\"%u\", sizeof(${type})); exit (0); }"
     val=0
     val=`_chk_run "${name}" "${code}"`
+    rc=$?
+    if [ $rc -ne 0 ]; then
+      val=0
+    fi
     printyesno_val $name $val
     setdata cfg "${name}" "${val}"
 }
@@ -568,7 +572,7 @@ check_class () {
     shift;shift
     libs="$*"
     nm="_class_${class}"
-    nm=`dosubst "${nm}" '[/:]' '_'`
+    nm=`dosubst "${nm}" '/' '_' ':' '_'`
     otherlibs="${libs}"
 
     name=$nm
@@ -585,7 +589,6 @@ check_class () {
     fi
 
     incheaders=all
-#    otherlibs="${otherlibs}"
     _chk_link_libs "${name}" "${code}" > /dev/null
     rc=$?
     if [ $rc -eq 0 ]; then
