@@ -71,7 +71,7 @@ do
   echo "##== stdout" >> ${tlog}
   echo ${EN} "$tf ... ${arg} ${EC}"
   if [ -f $tconfig ]; then
-    cat $tconfig | sed '/^#define _include_/d' > $tconfh
+    cat $tconfig > $tconfh
   fi
   ${SHELL} ./$tf "${SHELL} ../$arg" 3>&1 >> ${tlog} 2>&1
   rc=$?
