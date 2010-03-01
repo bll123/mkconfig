@@ -1,5 +1,8 @@
 #!/bin/sh
 #
+# Copyright 2010 Brad Lanam Walnut Creek CA USA
+#
+#
 # check and see if there is a conflict between time.h and sys/time.h
 #
 

@@ -1,5 +1,8 @@
 #!/bin/sh
 #
+# Copyright 2010 Brad Lanam Walnut Creek CA USA
+#
+#
 #   The four headers: stdio.h, stdlib.h, sys/types.h, and sys/param.h
 #   are always checked.  FreeBSD has header inclusion bugs and requires
 #   sys/param.h.

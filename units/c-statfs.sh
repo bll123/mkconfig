@@ -1,5 +1,8 @@
 #!/bin/sh
 #
+# Copyright 2010 Brad Lanam Walnut Creek CA USA
+#
+#
 #  Check to see how many arguments the statfs() system
 #  call takes.  Generally only works w/prototypes.
 #
