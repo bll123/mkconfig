@@ -17,7 +17,6 @@ VARSFILE="mkconfig.vars"
 datafile=""
 
 INC="include.txt"                   # temporary
-datachg=0
 
 chkconfigfname () {
   if [ "$CONFH" = "" ]; then
@@ -31,18 +30,15 @@ exitmkconfig () {
     exit 1
 }
 
-savedata () {
+savecache () {
     # And save the data for re-use.
     # Some shells don't quote the values in the set
     # command like bash does.  So we do it.
     # Then we have to undo it for bash.
     # And then there's: x='', which gets munged.
-    if [ $datachg -eq 1 ]; then
-      set | grep "^di_cfg" | \
-        sed -e "s/=/='/" -e "s/$/'/" -e "s/''/'/g" -e "s/='$/=''/" \
-        > "${CACHEFILE}"
-      datachg=0
-    fi
+    set | grep "^di_cfg" | \
+      sed -e "s/=/='/" -e "s/$/'/" -e "s/''/'/g" -e "s/='$/=''/" \
+      > "${CACHEFILE}"
 }
 
 cleardata () {
@@ -59,8 +55,6 @@ setdata () {
     prefix=$1
     sdname=$2
     sdval=$3
-
-    datachg=1
 
     cmd="test \"X\$di_${prefix}_${sdname}\" != X > /dev/null 2>&1"
     eval "$cmd"
@@ -275,7 +269,7 @@ create_config () {
     # reset the file descriptors back to the norm.
     exec <&5 5<&-
 
-    savedata  # save the cache file.
+    savecache  # save the cache file.
 
     > ${CONFH}
     preconfigfile ${CONFH}
