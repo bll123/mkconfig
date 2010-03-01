@@ -12,7 +12,7 @@ clean () {
     reqlibs.txt $tbase.ctmp $tbase.ctest > /dev/null 2>&1
 }
 
-mypath=`dirname $0`
+mypath=`echo $0 | sed -e 's,[^/]*$,,'`
 . ${mypath}/features/shellfuncs.sh
 
 shell=`getshelltype`

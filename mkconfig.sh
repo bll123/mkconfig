@@ -6,7 +6,7 @@
 #
 
 
-mypath=`dirname $0`
+mypath=`echo $0 | sed -e 's,[^/]*$,,'`
 . ${mypath}/features/shellfuncs.sh
 
 LOG="mkconfig.log"
