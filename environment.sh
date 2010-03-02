@@ -77,7 +77,7 @@ usage () {
 
 doshelltest $@
 setechovars
-pthlist=`dosubst "$PATH" ';' ' ' ':' ' '`
+mkconfigversion
 
 clearenv=0
 while test $# -gt 1; do
@@ -120,5 +120,3 @@ create_env $configfile
 cd ..
 test -d $TMP && rm -rf $TMP > /dev/null 2>&1
 exit 0
-
-

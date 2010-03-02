@@ -311,7 +311,7 @@ usage () {
 
 doshelltest $@
 setechovars
-pthlist=`dosubst "$PATH" ';' ' ' ':' ' '`
+mkconfigversion
 
 clearcache=0
 while test $# -gt 1; do

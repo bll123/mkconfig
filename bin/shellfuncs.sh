@@ -1,5 +1,9 @@
 #!/bin/sh
 
+mkconfigversion () {
+  echo "mkconfig version 1.2"
+}
+
 setechovars () {
   EN='-n'
   EC=''
@@ -166,3 +170,4 @@ locatecmd () {
   done
   echo $trc
 }
+

@@ -17,6 +17,7 @@ mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
 
 doshelltest $@
 setechovars
+mkconfigversion
 
 testdir=$1
 if [ ! -d $testdir ]; then
