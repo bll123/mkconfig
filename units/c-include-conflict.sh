@@ -9,6 +9,11 @@
 check_include_time () {
     name="_$1"
 
+    if [ "${CC}" = "" ]; then
+      echo "No compiler specified" >&2
+      return
+    fi
+
     trc=0
     _hdr_time=`getdata cfg _hdr_time`
     _sys_time=`getdata cfg _sys_time`

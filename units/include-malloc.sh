@@ -9,6 +9,11 @@
 check_include_malloc () {
     name="_$1"
 
+    if [ "${CC}" = "" ]; then
+      echo "No compiler specified"
+      return
+    fi
+
     trc=0
     _hdr_malloc=`getdata cfg _hdr_malloc`
     _hdr_string=`getdata cfg _hdr_string`

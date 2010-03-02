@@ -9,6 +9,11 @@
 check_include_string () {
     name="_$1"
 
+    if [ "${CC}" = "" ]; then
+      echo "No compiler specified" >&2
+      return
+    fi
+
     trc=0
     _hdr_string=`getdata cfg _hdr_string`
     _hdr_strings=`getdata cfg _hdr_strings`
