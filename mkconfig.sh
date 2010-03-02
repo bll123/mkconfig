@@ -140,14 +140,8 @@ check_command () {
     checkcache $name
     if [ $rc -eq 0 ]; then return; fi
 
-    trc=0
-    for p in $pthlist; do
-      if [ -x "$p/$cmd" ]; then
-        trc="$p/$cmd"
-        echo " found $cmd in $p" >> $LOG
-        break
-      fi
-    done
+    trc=`locatecmd "$cmd"`
+    if [ "$trc" = "" ]; then trc=0; fi
     printyesno $name $trc
     setdata cfg "${name}" "${trc}"
 }
@@ -315,7 +309,7 @@ usage () {
 
 # main
 
-doshelltest
+doshelltest $@
 setechovars
 pthlist=`dosubst "$PATH" ';' ' ' ':' ' '`
 
@@ -355,7 +349,7 @@ while test $# -gt 1; do
 done
 
 configfile=$1
-if [ $# -ne 1 -o ! -f $configfile ]; then
+if [ $# -ne 1 ] || [ ! -f $configfile  ]; then
   echo "No configuration file specified or not found."
   usage
   exit 1
