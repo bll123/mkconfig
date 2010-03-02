@@ -118,5 +118,4 @@ echo "sh has math: ${shhasmath}" >> $LOG
 create_env $configfile
 
 cd ..
-test -d $TMP && rm -rf $TMP > /dev/null 2>&1
 exit 0
