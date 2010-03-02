@@ -1,11 +1,11 @@
 #!/bin/sh
 
 script=$@
-echo ${EN} "compile mkconfig environmental units${EC}" >&3
+echo ${EN} "compile environmental units${EC}" >&3
 
 grc=0
 
-cd ../mkconfig.units
+cd ../env.units
 for f in *.sh; do
   /bin/sh -n $f
   rc=$?
