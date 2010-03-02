@@ -7,6 +7,8 @@ setechovars () {
     EN=''
     EC='\c'
   fi
+  export EN
+  export EC
 }
 
 testshcapability () {
@@ -101,8 +103,13 @@ testshell () {
 
   if [ $ok -eq 0 ]; then
     SHELL=/bin/sh
+    rc=1
+  fi
+
+  # most anything's better than bash.
+  if [ $shell = "bash" ]; then
     noksh=0
-    if [ $noksh -eq 0 -a -x /usr/bin/ksh ]; then
+    if [ -x /usr/bin/ksh ]; then
       SHELL=/usr/bin/ksh
       vers=`/usr/bin/ksh -c "echo \$KSH_VERSION"`
       case $vers in
@@ -122,4 +129,13 @@ testshell () {
     rc=1
   fi
   return $rc
+}
+
+doshelltest () {
+  shell=`getshelltype`
+  testshell $shell
+  if [ $? != 0 ]; then
+    exec $SHELL $0 $@
+  fi
+  testshcapability
 }
