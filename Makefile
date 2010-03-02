@@ -6,12 +6,13 @@ CP = cp
 RM = rm
 
 current-files:
-	-$(RM) -rf env.units
-	mkdir env.units;chmod 755 env.units
-	-$(CP) -f env.units.base/* env.units > /dev/null 2>&1
-	-$(RM) -rf mkconfig.units
-	mkdir mkconfig.units;chmod 755 mkconfig.units
-	-$(CP) -f mkconfig.units.base/* mkconfig.units > /dev/null 2>&1
-	-$(RM) -rf tests
-	mkdir tests;chmod 755 tests
-	-$(CP) -f tests.base/* tests > /dev/null 2>&1
+	@-$(RM) -f env.units/* > /dev/null 2>&1
+	@$(CP) -f env.units.base/*.sh env.units
+	@-$(RM) -f mkconfig.units/* > /dev/null 2>&1
+	@$(CP) -f mkconfig.units.base/*.sh mkconfig.units
+	@-$(RM) -f tests/* > /dev/null 2>&1
+	@$(CP) -f tests.base/*.sh tests
+	@$(CP) -f tests.base/*.dat tests
+	@$(CP) -f tests.base/*.config tests
+	@$(CP) -f tests.base/*.mkconfig tests
+	@$(CP) -f tests.base/*.reqlibs tests
