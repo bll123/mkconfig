@@ -1,5 +1,5 @@
-output test_05.ctest
+output test_07.ctest
 loadunit lang-c
 standard
-hdr test05b.h
-lib test05b -ltest05b
+hdr tst1lib.h
+lib tst1lib -ltst1lib

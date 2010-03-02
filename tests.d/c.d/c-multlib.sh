@@ -5,7 +5,7 @@ echo ${EN} "w/multiple lib${EC}" >&3
 
 grc=0
 
-TMP=_tmp_test_06
+TMP=_tmp_test_08
 test -d $TMP && rm -rf $TMP
 mkdir $TMP
 
@@ -15,67 +15,68 @@ export CFLAGS LDFLAGS
 
 cd $TMP
 
-cat > test06b.h <<_HERE_
-int test06b ();
+cat > tst2libb.h <<_HERE_
+int tst2libb ();
 _HERE_
-cat > test06c.h <<_HERE_
-int test06c ();
+cat > tst2libc.h <<_HERE_
+int tst2libc ();
 _HERE_
 
-cat > test06b.c <<_HERE_
+cat > tst2libb.c <<_HERE_
 #include <stdio.h>
 #include <stdlib.h>
-#include <test06b.h>
-#include <test06c.h>
-int test06b () { test06c(); return 0; }
+#include <tst2libb.h>
+#include <tst2libc.h>
+int tst2libb () { tst2libc(); return 0; }
 _HERE_
-${CC} -c ${CFLAGS} test06b.c
-if [ $? -ne 0 ]; then 
-  echo "compile test06b.c failed"
+${CC} -c ${CFLAGS} tst2libb.c
+if [ $? -ne 0 ]; then
+  echo "compile tst2libb.c failed"
   cd ..
   test -d $TMP && rm -rf $TMP
   exit 1
 fi
-ar cq libtest06b.a test06b.o
+ar cq libtst2libb.a tst2libb.o
 
-cat > test06c.c <<_HERE_
+cat > tst2libc.c <<_HERE_
 #include <stdio.h>
 #include <stdlib.h>
-#include <test06c.h>
-int test06c () { printf ("hello world\n"); return 0; }
+#include <tst2libc.h>
+int tst2libc () { printf ("hello world\n"); return 0; }
 _HERE_
-${CC} -c ${CFLAGS} test06c.c
-if [ $? -ne 0 ]; then 
-  echo "compile test06b.c failed"
+${CC} -c ${CFLAGS} tst2libc.c
+if [ $? -ne 0 ]; then
+  echo "compile tst2libb.c failed"
   cd ..
   test -d $TMP && rm -rf $TMP
   exit 1
 fi
-ar cq libtest06c.a test06c.o
+ar cq libtst2libc.a tst2libc.o
 
 cd ..
 
-eval "${script} -C test_06.dat"
-echo "## diff 1"
-ed test_06.ctest << _HERE_ > /dev/null 2>&1
+eval "${script} -C test_08.dat"
+ed test_08.ctest << _HERE_ > /dev/null 2>&1
 g/^#define _key_/d
 g/^#define _proto_/d
 w
 q
 _HERE_
-diff -b test_06.ctmp test_06.ctest
+echo "## diff 1"
+diff -b test_08.ctmp test_08.ctest
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
 
 echo "## diff 2"
-diff -b test_06.reqlibs reqlibs.txt
+diff -b test_08.reqlibs reqlibs.txt
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
 
-test -d $TMP && rm -rf $TMP 
+test -d $TMP && rm -rf $TMP
 
 echo "## config.h"
-cat test_06.ctest
+cat test_08.ctest
 echo "## reqlibs.txt"
 cat reqlibs.txt
+
 exit $grc

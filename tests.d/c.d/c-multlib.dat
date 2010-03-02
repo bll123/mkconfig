@@ -1,6 +1,6 @@
-output test_06.ctest
+output test_08.ctest
 loadunit lang-c
 standard
-hdr test06b.h
-hdr test06c.h
-lib test06b -ltest06b -ltest06c
+hdr tst2libb.h
+hdr tst2libc.h
+lib tst2libb -ltst2libb -ltst2libc

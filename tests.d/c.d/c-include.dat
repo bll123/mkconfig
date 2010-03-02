@@ -1,6 +1,6 @@
 # test mkconfig include quoting, backslashes, indentation.
 
-output test_04.ctest
+output test_06.ctest
 loadunit lang-c
 standard
 include
