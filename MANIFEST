@@ -1,0 +1,38 @@
+README          README
+MANIFEST		MANIFEST
+environment.sh		environment setup program
+env.units/		units for environment.sh
+env.units/cflags.sh
+env.units/object_extension.sh
+mkconfig.pl		perl config program
+mkconfig.sh		shell config program
+mkconfig.units/	units for mkconfig.sh
+mkconfig.units/include-malloc.sh
+mkconfig.units/include-string.sh
+mkconfig.units/include-time.sh
+mkconfig.units/lang-c.sh
+mkconfig.units/setmntent-args.sh
+mkconfig.units/statfs-args.sh
+shellfuncs.sh		mkconfig functions
+tests/			regression tests for mkconfig
+tests/test_01.sh
+tests/test_02.sh
+tests/test_03.sh
+tests/test_04.config
+tests/test_04.dat
+tests/test_04.mkconfig
+tests/test_04.sh
+tests/test_05.config
+tests/test_05.dat
+tests/test_05.mkconfig
+tests/test_05.reqlibs
+tests/test_05.sh
+tests/test_06.config
+tests/test_06.dat
+tests/test_06.mkconfig
+tests/test_06.reqlibs
+tests/test_06.sh
+tests/test_07.dat
+tests/test_07.mkconfig
+tests/test_07.sh
+runtests.sh			runs regression tests

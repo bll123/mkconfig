@@ -1,0 +1,14 @@
+mkconfig - configuration tool
+
+CHANGES
+
+    1.2                                     [ x xxx xxxx]
+        Force type of shell used during build (for performance reasons).
+        Rewrite mkconfig.sh to use unit scripts and increase performance.
+
+    1.1 - di ver 4.19                       [1 Feb 2010]
+        Fixed a quoting bug in mkconfig.sh.
+        mkconfig enhancements and cleanup.
+
+    1.0 - di ver 4.18
+        Initial coding
