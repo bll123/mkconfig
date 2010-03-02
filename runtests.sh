@@ -15,7 +15,7 @@ clean () {
 mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
 . ${mypath}/shellfuncs.sh
 
-doshelltest
+doshelltest $@
 setechovars
 
 testdir=$1

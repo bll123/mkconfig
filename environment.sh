@@ -75,7 +75,7 @@ usage () {
 
 # main
 
-doshelltest
+doshelltest $@
 setechovars
 pthlist=`dosubst "$PATH" ';' ' ' ':' ' '`
 
