@@ -22,6 +22,7 @@ testshcapability () {
   (eval "x=a;x+=b; test z\$x = zab") 2>/dev/null
   if [ $? -eq 0 ]; then
     shhasappend=1
+    eval 'doappend () { var=$1; val=$2; eval $var+=\$val; }'
   fi
   ( eval "x=bcb;y=\${x/c/_};test z\$y = zb_b") 2>/dev/null
   if [ $? -eq 0 ]; then
@@ -37,6 +38,7 @@ testshcapability () {
   (eval "x=1;y=\$((\$x+1)); test z\$y = z2") 2>/dev/null
   if [ $? -eq 0 ]; then
     shhasmath=1
+    eval 'domath () { expr=$1; val=$(($expr)); echo $val }'
   fi
 }
 
@@ -58,20 +60,12 @@ dosubst () {
 doappend () {
   var=$1
   val=$2
-  if [ $shhasappend -eq 1 ]; then
-    eval $var+=\$val
-  else
-    eval $var=\$${var}\$val
-  fi
+  eval $var=\$${var}\$val
 }
 
 domath () {
   expr=$1
-  if [ $shhasmath -eq 1 ]; then
-    val=$(($expr))
-  else
-    val=`expr $expr`
-  fi
+  val=`expr $expr`
   echo $val
 }
 
