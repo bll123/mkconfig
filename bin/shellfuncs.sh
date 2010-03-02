@@ -106,35 +106,40 @@ testshell () {
     rc=1
   fi
 
-  # most anything's better than bash.
-  if [ $shell = "bash" ]; then
+  # bash is slow.
+  if [ $ok -eq 0 -o $shell = "bash" ]; then
     noksh=0
     if [ -x /usr/bin/ksh ]; then
       SHELL=/usr/bin/ksh
-      vers=`/usr/bin/ksh -c "echo \$KSH_VERSION"`
+      tcmd="/usr/bin/ksh -c \"echo \\\$KSH_VERSION\""
+      vers=`eval ${tcmd}`
       case $vers in
         *PD*)
           noksh=1
           SHELL=/bin/sh
           ;;
+        *)
+          rc=1
+          ;;
       esac
     fi
     if [ $noksh -eq 1 -a -x /bin/ash ]; then
       SHELL=/bin/ash
+      rc=1
     fi
     if [ $noksh -eq 1 -a -x /bin/dash ]; then
       SHELL=/bin/dash
+      rc=1
     fi
-    export SHELL
-    rc=1
   fi
 
+  # make sure SHELL env var is set.
   if [ $rc -eq 0 ]; then
     wsh=`locatecmd $shell`
     SHELL=${wsh}
-    export SHELL
   fi
 
+  export SHELL
   return $rc
 }
 
@@ -142,6 +147,7 @@ doshelltest () {
   shell=`getshelltype`
   testshell $shell
   if [ $? != 0 ]; then
+    echo "exec $SHELL $0 $@"
     exec $SHELL $0 $@
   fi
   testshcapability
