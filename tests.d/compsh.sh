@@ -11,6 +11,12 @@ for f in *.sh; do
   rc=$?
   if [ $rc -ne 0 ];then grc=$rc; fi
 
+  if [ -x /bin/dash ]; then
+    /bin/dash -n $f
+    rc=$?
+    if [ $rc -ne 0 ];then grc=$rc; fi
+  fi
+
   if [ -x /usr/bin/ksh ]; then
     /usr/bin/ksh -n $f
     rc=$?
