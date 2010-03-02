@@ -7,7 +7,7 @@
 
 
 mypath=`echo $0 | sed -e 's,[^/]*$,,'`
-. ${mypath}/features/shellfuncs.sh
+. ${mypath}/shellfuncs.sh
 
 LOG="mkconfig.log"
 REQLIB="reqlibs.txt"
@@ -226,7 +226,7 @@ create_config () {
                 CONFH="../${file}"
                 ;;
             esac
-            echo "output-file: ${CONFH}"
+            echo "output-file: ${file}"
             echo "   config file name: ${CONFH}" >> $LOG
             ;;
           loadunit*)
@@ -361,10 +361,12 @@ done
 
 configfile=$1
 if [ $# -ne 1 -o ! -f $configfile ]; then
+  echo "No configuration file specified or not found."
   usage
   exit 1
 fi
 if [ -d $TMP -a $TMP != "_tmp_mkconfig" ]; then
+  echo "$TMP must not exist."
   usage
   exit 1
 fi

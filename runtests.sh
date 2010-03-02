@@ -13,7 +13,7 @@ clean () {
 }
 
 mypath=`echo $0 | sed -e 's,[^/]*$,,'`
-. ${mypath}/features/shellfuncs.sh
+. ${mypath}/shellfuncs.sh
 
 shell=`getshelltype`
 testshell $shell
