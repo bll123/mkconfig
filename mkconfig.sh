@@ -6,7 +6,7 @@
 #
 
 
-mypath=`echo $0 | sed -e 's,[^/]*$,,'`
+mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
 . ${mypath}/shellfuncs.sh
 
 LOG="mkconfig.log"
@@ -315,14 +315,9 @@ usage () {
 
 # main
 
-shell=`getshelltype`
-testshell $shell
-if [ $? != 0 ]; then
-  exec $SHELL $0 $@
-fi
-testshcapability
+doshelltest
 setechovars
-pthlist=`dosubst "$PATH" '[;:]' ' '`
+pthlist=`dosubst "$PATH" ';' ' ' ':' ' '`
 
 clearcache=0
 while test $# -gt 1; do
