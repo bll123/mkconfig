@@ -147,7 +147,6 @@ doshelltest () {
   shell=`getshelltype`
   testshell $shell
   if [ $? != 0 ]; then
-    echo "exec $SHELL $0 $@"
     exec $SHELL $0 $@
   fi
   testshcapability
