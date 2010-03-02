@@ -128,6 +128,13 @@ testshell () {
     export SHELL
     rc=1
   fi
+
+  if [ $rc -eq 0 ]; then
+    wsh=`locatecmd $shell`
+    SHELL=${wsh}
+    export SHELL
+  fi
+
   return $rc
 }
 
@@ -138,4 +145,19 @@ doshelltest () {
     exec $SHELL $0 $@
   fi
   testshcapability
+}
+
+locatecmd () {
+  tcmd=$1
+  if [ "$pthlist" = "" ]; then
+    pthlist=`dosubst "$PATH" ';' ' ' ':' ' '`
+  fi
+  trc=""
+  for p in $pthlist; do
+    if [ -x "$p/$tcmd" ]; then
+      trc="$p/$tcmd"
+      break
+    fi
+  done
+  echo $trc
 }
