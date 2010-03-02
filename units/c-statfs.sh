@@ -14,6 +14,11 @@ check_statfs_args () {
     checkcache $name
     if [ $rc -eq 0 ]; then return; fi
 
+    if [ "${CC}" = "" ]; then
+      echo "No compiler specified" >&2
+      return
+    fi
+
     val=`getdata cfg _lib_statfs`
     if [ "$val" = 0 ]; then
       setdata cfg "${name}" 0
