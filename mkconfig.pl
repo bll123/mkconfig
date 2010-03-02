@@ -260,12 +260,20 @@ check_link
           $rc = _check_link ($name, { 'otherlibs' => $oliblist, } );
           if ($rc == 0)
           {
+
               my $r_hash = $r_config->{'reqlibs'};
               my @vals = split (/\s+/, $oliblist);
               $dlibs = '';
               foreach my $val (@vals)
               {
                   if ($val eq '') { next; }
+                  if (! defined ($r_hash->{$val}))
+                  {
+                      print LOGFH "   reqlib: $val: new\n";
+                      push @{$r_config->{'reqlibs_list'}}, $val;
+                  } else {
+                      print LOGFH "   reqlib: $val: already\n";
+                  }
                   $r_hash->{$val} = 1;
                   $dlibs .= $val . ' ';
               }
@@ -932,6 +940,7 @@ create_config
     $clist{'list'} = ();
     $clist{'hash'} = ();
     $config{'reqlibs'} = {};
+    $config{'reqlibs_list'} = ();
 
     if (-f $CACHEFILE && -f $VARSFILE)
     {
@@ -1242,8 +1251,8 @@ _HERE_
 
     open (RLIBFH, ">$REQLIB");
 
-    my $r_hash = $config{'reqlibs'};
-    print RLIBFH join (' ', keys %$r_hash) . "\n";
+    my $r_list = $config{'reqlibs_list'};
+    print RLIBFH join (' ', @{$r_list}) . "\n";
     close RLIBFH;
 
     savecache (\%clist, \%config);
