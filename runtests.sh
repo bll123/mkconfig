@@ -12,17 +12,11 @@ clean () {
     reqlibs.txt $tbase.ctmp $tbase.ctest > /dev/null 2>&1
 }
 
-mypath=`echo $0 | sed -e 's,[^/]*$,,'`
+mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
 . ${mypath}/shellfuncs.sh
 
-shell=`getshelltype`
-testshell $shell
-if [ $? != 0 ]; then
-  exec $SHELL $0 $@
-fi
-testshcapability
+doshelltest
 setechovars
-export EN EC
 
 testdir=$1
 if [ ! -d $testdir ]; then
