@@ -2,8 +2,11 @@
 #
 # $Id$
 # $Source$
+#
 # Copyright 2001-2010 Brad Lanam, Walnut Creek, California USA
 #
+
+require_unit systype
 
 CC=${CC:-cc}
 ccflags=""
@@ -11,83 +14,8 @@ ldflags=""
 libs=""
 includes=""
 usinggcc="N"
-path=$PATH
 
-## need path separator...
-tpath=`echo $PATH | sed 's/:/ /g'`
-set ${tpath}
-for i in $@
-do
-    if [ -x "$i/sed" ]
-    then
-        xsed="$i/sed"
-        echo "found sed at ${xsed}" >&2
-    fi
-    if [ -x "$i/grep" ]
-    then
-        xgrep="$i/grep"
-        echo "found grep at ${xgrep}" >&2
-    fi
-    if [ -x "$i/uname" ]
-    then
-        xuname="$i/uname"
-        echo "found uname at ${xuname}" >&2
-    fi
-    if [ -x "$i/getconf" ]
-    then
-        xgetconf="$i/getconf"
-        echo "found getconf at ${xgetconf}" >&2
-    fi
-    # first located
-    if [ -x "$i/msgfmt" -a "$xmsgfmt" = "" ]
-    then
-        xmsgfmt="$i/msgfmt"
-        echo "found msgfmt at ${xmsgfmt}" >&2
-    fi
-    # first located
-    if [ -x "$i/gmsgfmt" -a "$xgmsgfmt" = "" ]
-    then
-        xgmsgfmt="$i/gmsgfmt"
-        echo "found gmsgfmt at ${xgmsgfmt}" >&2
-    fi
-    if [ -x "$i/${CC}" ]
-    then
-        xccpath="$i"
-        echo "found cc at ${xccpath}" >&2
-    fi
-done
-
-case ${CC} in
-    /*)
-        xccpath=`echo ${CC} | ${xsed} 's,.*/,,'`
-        echo "change xccpath to ${xccpath}" >&2
-        ;;
-esac
-
-if [ "${xuname}" != "" ]
-then
-    SYSTYPE=`${xuname} -s`
-    SYSREV=`${xuname} -r`
-    SYSARCH=`${xuname} -m`
-
-    case ${SYSTYPE} in
-        AIX)
-            tmp=`( (oslevel) 2>/dev/null || echo "not found") 2>&1`
-            case "$tmp" in
-                'not found') SYSREV="$4"."$3" ;;
-                '<3240'|'<>3240') SYSREV=3.2.0 ;;
-                '=3240'|'>3240'|'<3250'|'<>3250') SYSREV=3.2.4 ;;
-                '=3250'|'>3250') SYSREV=3.2.5 ;;
-                *) SYSREV=$tmp;;
-            esac
-            ;;
-    esac
-
-    echo "type: ${SYSTYPE}" >&2
-    echo "rev: ${SYSREV}" >&2
-    echo "arch: ${SYSARCH}" >&2
-fi
-
+xgetconf=`locatecmd getconf`
 if [ "${xgetconf}" != "" ]
 then
     echo "using flags from getconf" >&2
@@ -107,7 +35,6 @@ then
     usinggcc="Y"
 fi
 
-# -Wtraditional
 case ${CC} in
     *gcc*)
         usinggcc="Y"
@@ -118,11 +45,6 @@ if [ "$usinggcc" = "Y" ]
 then
     echo "set gcc flags" >&2
     gccflags="-Wall -Waggregate-return -Wconversion -Wformat -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wpointer-arith -Wshadow -Wstrict-prototypes -Wunused"
-    case "${bit64}" in
-        1)
-            ccflags="-m64 $ccflags"
-            ;;
-    esac
 fi
 
 TCC=${CC}
@@ -131,183 +53,160 @@ then
   TCC=gcc
 fi
 
-case ${SYSTYPE} in
+case ${_MKCONFIG_SYSTYPE} in
     AIX)
-        usinggcc="N"
+      if [ "${usinggcc}" = "N" ]; then
         ccflags="-qhalt=e $ccflags"
         ccflags="$ccflags -qmaxmem=-1"
-        case ${SYSREV} in
-            4.*)
-                ccflags="-DUSE_ETC_FILESYSTEMS=1 $ccflags"
-                ;;
+        case ${_MKCONFIG_SYSREV} in
+          4.*)
+            ccflags="-DUSE_ETC_FILESYSTEMS=1 $ccflags"
+            ;;
         esac
-        ;;
+      fi
+      ;;
     BeOS|Haiku)
-        case ${TCC} in
-            cc|gcc)
-                CC=g++
-                ;;
-        esac
-        # uname -m does not reflect actual architecture
-        libs="-lroot -lbe $libs"
-        ;;
+      case ${TCC} in
+        cc|gcc)
+          CC=g++
+          ;;
+      esac
+      # uname -m does not reflect actual architecture
+      libs="-lroot -lbe $libs"
+      ;;
     CYGWIN*)
-        ;;
+      ;;
     FreeBSD)
-        includes="-I/usr/local/include $includes"
-        ldflags="-L/usr/local/lib $ldflags"
-        ;;
+      # FreeBSD has many packages that get installed in /usr/local
+      includes="-I/usr/local/include $includes"
+      ldflags="-L/usr/local/lib $ldflags"
+      ;;
     DYNIX)
-        libs="-lseq $libs"
-        ;;
+      libs="-lseq $libs"
+      ;;
     DYNIX/ptx)
-        libs="-lseq $libs"
-        ;;
+      libs="-lseq $libs"
+      ;;
     HP-UX)
-        if [ "${tccflags}" = "" ]
-        then
-            ccflags="-D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 $ccflags"
-        fi
-        case ${TCC} in
-            cc)
-                case ${SYSREV} in
-                    *.10.*)
-                        ccflags="+DAportable $ccflags"
-                        ;;
-                esac
-                ccflags="-Ae $ccflags"
-                usinggcc="N"
-                ;;
-        esac
-        if [ $DI_BUILD_NO_NLS -eq 0 -a \
-            -d /usr/local/include -a \
-            -d /usr/local/lib -a \
-            -f /usr/local/lib/libintl.sl -a \
-            -f /usr/local/lib/libiconv.sl ]
-        then
-            includes="-I/usr/local/include $includes"
-            ldflags="-L/usr/local/lib $ldflags"
-            libs="-lintl $libs"
-            if [ $xmsgfmt != "/usr/local/bin/msgfmt" ]
-            then
-                path="/usr/local/bin:${path}"
-            fi
-        elif [ $DI_BUILD_NO_NLS -eq 0 -a \
-            -d /opt/gnome/include -a \
-            -d /opt/gnome/lib -a \
-            -f /opt/gnome/lib/libintl.sl -a \
-            -f /opt/gnome/lib/libiconv.sl ]
-        then
-            includes="-I/opt/gnome/include $includes"
-            ldflags="-L/opt/gnome/lib $ldflags"
-            libs="-lintl $libs"
-            if [ $xmsgfmt != "/usr/local/bin/msgfmt" ]
-            then
-                path="/opt/gnome/bin:${path}"
-            fi
-        fi
-        ;;
-    IRIX*)
-        case ${SYSREV} in
-            [45].*)
-                libs="-lsun"
-                ;;
-        esac
-        ;;
-    NetBSD)
-        ;;
-    OS/2)
-        ldflags="-Zexe"
-        ;;
-    OSF1)
-        ccflags="-std1 $ccflags"
-        ;;
-    SunOS)
-        case ${SYSREV} in
-            5.*)
-                case ${TCC} in
-                    cc)
-                        # If solaris is compile w/strict ansi, we get
-                        # a work-around for the long long type with
-                        # large files.  So we compile w/extensions.
-                        ccflags="-Xa -v $ccflags"
-                        # optimization
-                        ccflags="`echo $ccflags | ${xsed} 's,-xO. *,-xO4 ,'`"
-                        ccflags="`echo $ccflags | ${xsed} 's,-O *,-xO4 ,'`"
-                        echo $ccflags | ${xgrep} -- '-xO4' >/dev/null 2>&1
-                        case $rc in
-                            0)
-                                ldflags="-fast $ldflags"
-                                ;;
-                        esac
+      if [ "${tccflags}" = "" ]
+      then
+          ccflags="-D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 $ccflags"
+      fi
+      case ${TCC} in
+        cc)
+          case ${_MKCONFIG_SYSREV} in
+            *.10.*)
+              ccflags="+DAportable $ccflags"
+              ;;
+          esac
+          ccflags="-Ae $ccflags"
+          usinggcc="N"
+          ;;
+      esac
 
-                        case "${bit64}" in
-                            1)
-                                ;;
-                        esac
+      # check for libintl in other places...
+      if [ -d /usr/local/include -a \
+          -d /usr/local/lib -a \
+          -f /usr/local/lib/libintl.sl -a \
+          -f /usr/local/lib/libiconv.sl ]
+      then
+          includes="-I/usr/local/include $includes"
+          ldflags="-L/usr/local/lib $ldflags"
+          libs="-lintl $libs"
+      elif [ -d /opt/gnome/include -a \
+          -d /opt/gnome/lib -a \
+          -f /opt/gnome/lib/libintl.sl -a \
+          -f /opt/gnome/lib/libiconv.sl ]
+      then
+          includes="-I/opt/gnome/include $includes"
+          ldflags="-L/opt/gnome/lib $ldflags"
+          libs="-lintl $libs"
+      fi
+      ;;
+    IRIX*)
+      case ${_MKCONFIG_SYSREV} in
+        [45].*)
+          libs="-lsun"
+          ;;
+      esac
+      ;;
+    Linux)
+      ;;
+    NetBSD)
+      ;;
+    OS/2)
+      ldflags="-Zexe"
+      ;;
+    OSF1)
+      ccflags="-std1 $ccflags"
+      ;;
+    SunOS)
+      case ${_MKCONFIG_SYSREV} in
+        5.*)
+          case ${TCC} in
+            cc)
+              # If solaris is compile w/strict ansi, we get
+              # a work-around for the long long type with
+              # large files.  So we compile w/extensions.
+              ccflags="-Xa -v $ccflags"
+              # optimization; -xO3 is good. -xO4 must be set by user.
+              ccflags="`echo $ccflags | ${xsed} 's,-xO. *,-xO3 ,'`"
+              ccflags="`echo $ccflags | ${xsed} 's,-O *,-xO3 ,'`"
+              echo $ccflags | ${xgrep} -- '-xO3' >/dev/null 2>&1
+              case $rc in
+                  0)
+                      ldflags="-fast $ldflags"
                       ;;
-                    *gcc*)
-                        ;;
-                esac
-                ;;
-        esac
-        ;;
+              esac
+              ;;
+            *gcc*)
+              ;;
+          esac
+          ;;
+      esac
+      ;;
     syllable)
-        case ${TCC} in
-            cc|gcc)
-                CC=g++
-                ;;
-        esac
-        ;;
+      case ${TCC} in
+        cc|gcc)
+          CC=g++
+          ;;
+      esac
+      ;;
     # unixware
     UNIX_SV)
-        ;;
+      ;;
 esac
 
 case ${CC} in
-    g++)
-        echo "set g++ flags" >&2
-        gccflags="-Wall -Waggregate-return -Wconversion -Wformat -Wpointer-arith -Wshadow -Wunused"
-        ;;
+  g++)
+    echo "set g++ flags" >&2
+    gccflags="-Wall -Waggregate-return -Wconversion -Wformat -Wpointer-arith -Wshadow -Wunused"
+    ;;
 esac
 
 ccflags="$gccflags $ccflags"
 
-# largefile stuff
+# largefile flags
 ccflags="$ccflags $tccflags"
 ldflags="$ldflags $tldflags"
 libs="$libs $tlibs"
+
+echo "cc:${CC}" >&2
 echo "ccflags:${ccflags}" >&2
 echo "ldflags:${ldflags}" >&2
 echo "libs:${libs}" >&2
 
-mfmt="${xmsgfmt}"
-if [ "$usinggcc" = "Y" ]
-then
-    mfmt="${xgmsgfmt:-${xmsgfmt}}"
-    if [ -f "${xccpath}/msgfmt" ]
-    then
-        mfmt="${xccpath}/msgfmt"
-    fi
-    if [ -f "${xccpath}/gmsgfmt" ]
-    then
-        mfmt="${xccpath}/gmsgfmt"
-    fi
-fi
-
 echo "CC=\"${CC}\""
-echo "CFLAGS=\"$ccflags $includes\""
-echo "CINCLUDES=\"$includes\""
-echo "LDFLAGS=\"$ldflags\""
-echo "LIBS=\"$libs\""
-echo "XMSGFMT=\"$mfmt\""
-echo "PATH=\"$path\""
 echo "export CC"
+echo "CFLAGS=\"$ccflags $includes\""
 echo "export CFLAGS"
+echo "CINCLUDES=\"$includes\""
 echo "export CINCLUDES"
+echo "LDFLAGS=\"$ldflags\""
 echo "export LDFLAGS"
+echo "LIBS=\"$libs\""
 echo "export LIBS"
-echo "export PATH"
-echo "export XMSGFMT"
 
-exit 0
+echo "_MKCONFIG_USING_GCC=${usinggcc}"
+echo "export _MKCONFIG_USING_GCC"
+
