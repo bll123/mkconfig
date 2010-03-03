@@ -1,6 +1,7 @@
 #!/bin/sh
 #
 # $Id$
+# $Revision$
 #
 # Copyright 2010 Brad Lanam Walnut Creek, CA USA
 #
@@ -10,7 +11,59 @@ mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
 . ${mypath}/shellfuncs.sh
 
 LOG="mkconfig_env.log"
-ENVFILE="mkconfig.env"
+
+exitmkconfig () {
+    rc=$1
+    exit $rc
+}
+
+chkconfigfname () {
+  if [ "$ENVFILE" = "" ]; then
+    echo "Config file name not set.  Exiting."
+    exitmkconfig 1
+  fi
+}
+
+dorununit () {
+  tag=""
+  dep=$2
+  if [ "$dep" = "Y" ]; then
+   sfile="${tfile}"
+   tag=" (dependency)"
+  fi
+  tfile=$1
+  if [ ! -f ${ENVFILE} ]; then
+    > ${ENVFILE}
+    chmod a+rx $ENVFILE
+  fi
+  if [ -f ${mypath}/env.units/${tfile}.sh ]; then
+    # run as part of our script so that it
+    # has access to the various functions
+    echo "run-unit: ${tfile} ${tag}" >&3
+    echo "   found ${tfile}" >> $LOG
+    . ${mypath}/env.units/${tfile}.sh >> $ENVFILE 2>>$LOG
+    eval "_MKCONFIG_UNIT_${tfile}=Y"
+    . $ENVFILE >>$LOG 2>&1
+  fi
+  if [ "$dep" = "Y" ]; then
+    tfile="$sfile"
+    tag=""
+  fi
+}
+
+require_unit () {
+  units=$@
+  for u in $units; do
+    cmd="echo \$_MKCONFIG_UNIT_${u}"
+    val=`eval $cmd`
+    if [ "$val" = "Y" ]; then
+      echo "   required unit ${u} already run" >> $LOG
+      continue
+    fi
+    echo "   required unit ${u} needed" >> $LOG
+    dorununit $u Y
+  done
+}
 
 create_env () {
     configfile=$1
@@ -60,23 +113,15 @@ create_env () {
               ;;
           esac
           test -f ${ENVFILE} && rm -f ${ENVFILE}
-          echo "output-file: ${file}"
+          echo "output-file: ${file}" >&3
           echo "   output file name: ${ENVFILE}" >> $LOG
           ;;
         rununit*)
-          if [ ! -f ${ENVFILE} ]; then
-            > ${ENVFILE}
-            chmod a+rx $ENVFILE
-          fi
+          chkconfigfname
           set $tdatline
           type=$1
           file=$2
-          if [ -f ${mypath}/env.units/${file}.sh ]; then
-            echo "run-unit: ${file}"
-            echo "   found ${file}" >> $LOG
-            ${mypath}/env.units/${file}.sh >> $ENVFILE 2>>$LOG
-            . $ENVFILE >>$LOG 2>&1
-          fi
+          dorununit ${file} N
           ;;
       esac
     done
@@ -85,14 +130,15 @@ create_env () {
 }
 
 usage () {
-  echo "Usage: $0 [-l <log-file>] [-e <env-file>] [-C] <config-file>"
+  echo "Usage: $0 [-l <log-file>] [-C] <config-file>"
   echo "  -C : clear cache-file"
   echo "defaults:"
   echo "  <log-file>   : mkconfig_env.log"
-  echo "  <env-file>   : mkconfig.env"
 }
 
 # main
+
+exec 3>&1
 
 doshelltest $@
 setechovars
@@ -110,11 +156,6 @@ while test $# -gt 1; do
       LOG="$1"
       shift
       ;;
-    -e)
-      shift
-      ENVFILE="$1"
-      shift
-      ;;
   esac
 done
 
@@ -128,7 +169,7 @@ if [ $clearenv -eq 1 ]; then
   rm -f $ENVFILE > /dev/null 2>&1
 fi
 
-echo "$0 ($shell) using $configfile"
+echo "$0 ($shell) using $configfile" >&3
 rm -f $LOG > /dev/null 2>&1
 echo "sh has append: ${shhasappend}" >> $LOG
 echo "sh has paramsub: ${shhasparamsub}" >> $LOG
