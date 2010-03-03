@@ -2,11 +2,9 @@
 #
 # $Id$
 # $Source$
+#
 # Copyright 2001-2010 Brad Lanam, Walnut Creek, California, USA
 #
-
-# requires that rununit: cflags
-# be executed first.
 
 TMP=objext$$
 
@@ -46,5 +44,3 @@ echo "OBJ_EXT=${OBJ_EXT}"
 echo "EXE_EXT=${EXE_EXT}"
 echo "export OBJ_EXT"
 echo "export EXE_EXT"
-
-exit 0
