@@ -146,6 +146,28 @@ check_command () {
     setdata cfg "${name}" "${trc}"
 }
 
+require_unit () {
+  units=$@
+  for u in $units; do
+    val=`eval echo \$_MKCONFIG_UNIT_${u}`
+    if [ "$val" = "Y" ]; then
+      echo "   required unit ${u} already loaded" >> $LOG
+      continue
+    fi
+    echo "   required unit ${u} needed" >> $LOG
+    doloadunit $u
+  done
+}
+
+doloadunit () {
+  file=$1
+  if [ -f ../${mypath}/mkconfig.units/${file}.sh ]; then
+    echo "load-unit: ${file}"
+    echo "   found ${file}" >> $LOG
+    . ../${mypath}/mkconfig.units/${file}.sh
+    eval "_MKCONFIG_UNIT_${u}=Y"
+  fi
+}
 
 create_config () {
     configfile=$1
@@ -227,11 +249,7 @@ create_config () {
             set $tdatline
             type=$1
             file=$2
-            if [ -f ../${mypath}/mkconfig.units/${file}.sh ]; then
-              echo "load-unit: ${file}"
-              echo "   found ${file}" >> $LOG
-              . ../${mypath}/mkconfig.units/${file}.sh
-            fi
+            doloadunit ${file}
             ;;
           standard)
             chkconfigfname
