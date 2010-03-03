@@ -38,7 +38,7 @@ testshcapability () {
   (eval "x=1;y=\$((\$x+1)); test z\$y = z2") 2>/dev/null
   if [ $? -eq 0 ]; then
     shhasmath=1
-    eval 'domath () { expr=$1; val=$(($expr)); echo $val }'
+    eval 'domath () { expr=$1; val=$(($expr)); echo $val; }'
   fi
 }
 
