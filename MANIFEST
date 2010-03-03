@@ -1,9 +1,12 @@
-README          README
+README          	README
 MANIFEST		MANIFEST
 environment.sh		environment setup program
 env.units/		units for environment.sh
 env.units/cflags.sh
+env.units/msgfmt.sh
 env.units/object_extension.sh
+env.units/systype.sh
+mkconfig.1		manual page
 mkconfig.pl		perl config program
 mkconfig.sh		shell config program
 mkconfig.units/	units for mkconfig.sh
@@ -35,4 +38,4 @@ tests/test_06.sh
 tests/test_07.dat
 tests/test_07.mkconfig
 tests/test_07.sh
-runtests.sh			runs regression tests
+runtests.sh		runs regression tests
