@@ -1,4 +1,10 @@
 #!/bin/sh
+#
+# $Id$
+# $Revision$
+#
+# Copyright 2010 Brad Lanam Walnut Creek, CA, USA
+#
 
 mkconfigversion () {
   echo "mkconfig version 1.2"
