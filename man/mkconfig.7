@@ -1,0 +1,176 @@
+.\"
+.\" $Id$
+.\" $Revision$
+.\"
+.\" mkconfig.1
+.\"
+.\" Copyright 2010 Brad Lanam  Walnut Creek CA USA
+.\"
+.\" bll6969di_at_gmail.com
+.\"
+.TH mkconfig 1 "3 Mar 2010"
+.SH Name
+mkconfig \- build configuration utilities
+.SH Synopsis
+.\" mkconfig.sh [-C] [-c <cache-file>] [-v <vars-file>] [-l <log-file>]
+.\"    [-t <tmp-dir>] [-r <reqlib-file>] config-file
+.\" environment.sh [-C] [-l <log-file>] config-file
+.B mkconfig.sh
+[\fB\-C\fP]
+[\fB\-c\fP <cache\-file>]
+[\fB\-v\fP <vars\-file>]
+[\fB\-l\fP <log\-file>]
+.br
+[\fB\-t\fP <tmp\-dir>]
+[\fB\-r\fP <reqlib-file>]
+config\-file
+.PP
+cache\-file defaults to 'mkconfig.cache'.
+.br
+vars\-file defaults to 'mkconfig.vars'.
+.br
+log\-file defaults to 'mkconfig.log'.
+.br
+tmp\-dir defaults to '_tmp_mkconfig'.
+This directory must not exist before running \fImkconfig.sh\fP,
+as it will be removed in its entirety.
+.br
+reqlib\-file defaults to 'reqlibs.txt'.
+.PP
+.B environment.sh
+[\fB\-C\fP]
+[\fB\-l\fP <log\-file>]
+config\-file
+.PP
+log\-file defaults to 'mkconfig_env.log'.
+.SH Description
+\fImkconfig.sh\fP
+is a build configuration utility originally modeled after iffe.
+It is written in portable shell script and
+designed to be extensible for any configuration use.
+.PP
+\fImkconfig.sh\fP
+is intended to generate a configuration file that can be included
+in your source code in order to set macros or include code that
+modifies the compilation behaviour of your program on different
+systems.
+.PP
+\fIenvironment.sh\fP
+is intended to check the system environment and create a file
+that can set the environment to control the build process.
+.SH environment.sh Basic Configuration Commands
+.TP
+\fBoutput\fP file\-name (required)
+.br
+specify the name of the output file.
+.TP
+\fBrununit\fP unit\-name
+.br
+execute a unit.
+.SH environment.sh Units
+.TP
+.B cflags
+.TP
+.B object_extension
+.SH Configuration File Format (mkconfig.sh)
+.SH Basic Configuration Commands (mkconfig.sh)
+.TP
+\fBoutput\fP file\-name (required)
+.br
+specify the name of the output file.
+.TP
+\fBloadunit\fP unit\-name
+.br
+include a unit for testing
+units may include specific check routines.
+.TP
+  standard
+.br
+  perform any standard checks for the language unit
+           that was sourced
+.TP
+  command  name\-of\-command
+.br
+           check if command exists.
+           e.g.: command msgfmt
+.TP
+.B  include endinclude
+.br
+    include all of the code between these two tags
+    in the configuration file.  Backslashes must
+    be escaped with a backslash.
+.SH mkconfig.sh Units
+.TP
+.B lang-c
+.br
+.TP
+  hdr      name-of-header [required-headers]
+.br
+           check for a header.
+           e.g.: hdr ctype.h
+.TP
+  sys      name-of-sys-header [required-headers]
+.br
+           check for a header in sys/.
+           e.g.: sys types.h
+.TP
+  const    constant-name [required-headers]
+.br
+           check that a constant exists
+           e.g.: O_RDONLY
+.TP
+  key      keyword
+.br
+           check to see if keyword is reserved.
+           e.g.: key volatile
+.TP
+  npt      function [requirement]
+.br
+           check if function needs a prototype.
+           the optional requirement should be _lib_<funcname>
+           if the requirement does not exist, _npt_<function>
+           will set set to false in config.h
+           e.g.: npt getopt
+                 npt statfs _lib_statfs
+.TP
+  typ      type-name
+.br
+           check if type-name exists.
+           e.g.: typ size_t
+.TP
+  lib      function [libs]
+.br
+           check if function exists.
+           if libs are specified, tests for function
+           w/o the libraries, then with.
+           e.g.: lib gettext -lintl -liconv
+                 will test gettext, gettext -lintl, gettext -lintl -liconv
+.TP
+  class    class [libs]
+.br
+           check if class exists.
+           e.g.: class os::Volumes
+.TP
+  dcl      {int|ptr} variable
+.br
+           check if the variable is declared.
+           e.g.: dcl int errno
+.TP
+  member   struct member
+.br
+           check if member is a member of struct.
+           e.g.: member statfs f_bsize
+.SH Creating a New Language Module
+.SH Creating a New Language Module
+.SH See Also
+iffe(1) autoconf(1) dist(7)
+.SH Bugs
+Send bug reports to: bll6969di_at_gmail.com
+.SH Website
+\fImkconfig\fP is currently packaged in conjunction with \fIdi\fP
+.PP
+http://www.gentoo.com/di/
+.SH Author
+This program is Copyright 2010 by Brad Lanam.
+.PP
+Brad Lanam, Walnut Creek, CA (bll6969di_at_gmail.com)
