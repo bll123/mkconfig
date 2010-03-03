@@ -7,6 +7,8 @@
 #  call takes.  Generally only works w/prototypes.
 #
 
+require_unit lang-c
+
 check_statfs_args () {
     name="_$1"
 

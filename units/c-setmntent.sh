@@ -6,6 +6,8 @@
 # check and see how many arguments setmntent() takes.
 #
 
+require_unit lang-c
+
 check_setmntent_args () {
     name="_$1"
 

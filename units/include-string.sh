@@ -6,6 +6,8 @@
 # check and see if there is a conflict between string.h and strings.h
 #
 
+require_unit lang-c
+
 check_include_string () {
     name="_$1"
 

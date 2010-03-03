@@ -6,6 +6,8 @@
 # check and see if there is a conflict w/string.h and malloc.h
 #
 
+require_unit lang-c
+
 check_include_malloc () {
     name="_$1"
 

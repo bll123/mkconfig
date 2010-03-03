@@ -6,6 +6,8 @@
 # check and see if there is a conflict between time.h and sys/time.h
 #
 
+require_unit lang-c
+
 check_include_time () {
     name="_$1"
 
