@@ -23,8 +23,7 @@ create_env () {
         ;;
     esac
 
-    > ${ENVFILE}
-    chmod a+rx $ENVFILE
+    test -f ${ENVFILE} && rm -f ${ENVFILE}
 
     linenumber=0
     # save stdin in fd 5.
@@ -48,7 +47,27 @@ create_env () {
       esac
 
       case ${tdatline} in
+        output*)
+          set $tdatline
+          type=$1
+          file=$2
+          ENVFILE="${file}"
+          case ${ENVFILE} in
+            /*)
+              ;;
+            *)
+              ENVFILE="./${ENVFILE}"
+              ;;
+          esac
+          test -f ${ENVFILE} && rm -f ${ENVFILE}
+          echo "output-file: ${file}"
+          echo "   output file name: ${ENVFILE}" >> $LOG
+          ;;
         rununit*)
+          if [ ! -f ${ENVFILE} ]; then
+            > ${ENVFILE}
+            chmod a+rx $ENVFILE
+          fi
           set $tdatline
           type=$1
           file=$2
