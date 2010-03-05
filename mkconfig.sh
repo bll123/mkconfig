@@ -148,26 +148,36 @@ check_command () {
 
 require_unit () {
   units=$@
-  for u in $units; do
-    tu=`dosubst $u '-' '_'`
-    val=`eval echo \$_MKCONFIG_UNIT_${tu}`
+  for rqu in $units; do
+    trqu=`dosubst $rqu '-' '_'`
+    cmd="echo \$_MKCONFIG_UNIT_${trqu}"
+    val=`eval $cmd`
     if [ "$val" = "Y" ]; then
-      echo "   required unit ${u} already loaded" >> $LOG
+      echo "   required unit ${rqu} already loaded" >> $LOG
       continue
     fi
-    echo "   required unit ${u} needed" >> $LOG
-    doloadunit $u
+    echo "   required unit ${rqu} needed" >> $LOG
+    doloadunit $rqu Y
   done
 }
 
 doloadunit () {
-  file=$1
-  if [ -f ../${mypath}/mkconfig.units/${file}.sh ]; then
-    echo "load-unit: ${file}"
-    echo "   found ${file}" >> $LOG
-    . ../${mypath}/mkconfig.units/${file}.sh
-    tu=`dosubst $u '-' '_'`
-    eval "_MKCONFIG_UNIT_${tu}=Y"
+  lu=$1
+  dep=$2
+  if [ "$dep" = "Y" ]; then
+   slu="${lu}"
+   tag=" (dependency)"
+  fi
+  if [ -f ../${mypath}/mkconfig.units/${lu}.sh ]; then
+    echo "load-unit: ${lu} ${tag}"
+    echo "   found ${lu} ${tag}" >> $LOG
+    . ../${mypath}/mkconfig.units/${lu}.sh
+    tlu=`dosubst $lu '-' '_'`
+    eval "_MKCONFIG_UNIT_${tlu}=Y"
+  fi
+  if [ "$dep" = "Y" ]; then
+    lu="$slu"
+    tag=""
   fi
 }
 
@@ -251,7 +261,7 @@ create_config () {
             set $tdatline
             type=$1
             file=$2
-            doloadunit ${file}
+            doloadunit ${file} N
             ;;
           standard)
             chkconfigfname
