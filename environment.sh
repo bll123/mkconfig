@@ -28,25 +28,26 @@ dorununit () {
   tag=""
   dep=$2
   if [ "$dep" = "Y" ]; then
-   sfile="${tfile}"
+   su="${u}"
    tag=" (dependency)"
   fi
-  tfile=$1
+  u=$1
   if [ ! -f ${ENVFILE} ]; then
     > ${ENVFILE}
     chmod a+rx $ENVFILE
   fi
-  if [ -f ${mypath}/env.units/${tfile}.sh ]; then
+  if [ -f ${mypath}/env.units/${u}.sh ]; then
     # run as part of our script so that it
     # has access to the various functions
-    echo "run-unit: ${tfile} ${tag}" >&3
-    echo "   found ${tfile}" >> $LOG
-    . ${mypath}/env.units/${tfile}.sh >> $ENVFILE 2>>$LOG
-    eval "_MKCONFIG_UNIT_${tfile}=Y"
+    echo "run-unit: ${u} ${tag}" >&3
+    echo "   found ${u}" >> $LOG
+    . ${mypath}/env.units/${u}.sh >> $ENVFILE 2>>$LOG
+    tu=`dosubst $u '-' '_'`
+    eval "_MKCONFIG_UNIT_${tu}=Y"
     . $ENVFILE >>$LOG 2>&1
   fi
   if [ "$dep" = "Y" ]; then
-    tfile="$sfile"
+    u="$su"
     tag=""
   fi
 }
@@ -54,7 +55,8 @@ dorununit () {
 require_unit () {
   units=$@
   for u in $units; do
-    cmd="echo \$_MKCONFIG_UNIT_${u}"
+    tu=`dosubst $u '-' '_'`
+    cmd="echo \$_MKCONFIG_UNIT_${tu}"
     val=`eval $cmd`
     if [ "$val" = "Y" ]; then
       echo "   required unit ${u} already run" >> $LOG

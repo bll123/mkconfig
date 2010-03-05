@@ -149,7 +149,8 @@ check_command () {
 require_unit () {
   units=$@
   for u in $units; do
-    val=`eval echo \$_MKCONFIG_UNIT_${u}`
+    tu=`dosubst $u '-' '_'`
+    val=`eval echo \$_MKCONFIG_UNIT_${tu}`
     if [ "$val" = "Y" ]; then
       echo "   required unit ${u} already loaded" >> $LOG
       continue
@@ -165,7 +166,8 @@ doloadunit () {
     echo "load-unit: ${file}"
     echo "   found ${file}" >> $LOG
     . ../${mypath}/mkconfig.units/${file}.sh
-    eval "_MKCONFIG_UNIT_${u}=Y"
+    tu=`dosubst $u '-' '_'`
+    eval "_MKCONFIG_UNIT_${tu}=Y"
   fi
 }
 
