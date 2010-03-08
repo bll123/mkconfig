@@ -637,13 +637,15 @@ check_lib
     setlist $r_clist, $name;
     my $val = $r_a->{'otherlibs'} || '';
 
+    $rfunc = $func;
+    $rfunc =~ s/_dollar_/\$/g;
     if ($val ne '')
     {
-        printlabel $name, "function: $func [$val]";
+        printlabel $name, "function: $rfunc [$val]";
     }
     else
     {
-        printlabel $name, "function: $func";
+        printlabel $name, "function: $rfunc";
         if (checkcache ($name, $r_config) == 0)
         {
             return;
@@ -655,7 +657,7 @@ check_lib
     # is not declared.
     my $code = <<"_HERE_";
 typedef int (*_TEST_fun_)();
-static _TEST_fun_ i=(_TEST_fun_) $func;
+static _TEST_fun_ i=(_TEST_fun_) $rfunc;
 main () {  i(); return (i==0); }
 _HERE_
 
