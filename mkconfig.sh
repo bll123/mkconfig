@@ -71,7 +71,8 @@ getdata () {
     prefix=$1
     gdname=$2
 
-    gdval=`eval echo "\\${di_${prefix}_${gdname}}"`
+    cmd="echo \${di_${prefix}_${gdname}}"
+    gdval=`eval $cmd`
     echo $gdval
 }
 
@@ -229,9 +230,6 @@ create_config () {
               \#*)
                   continue
                   ;;
-              hdr*|sys*)
-                  echo "#### ${linenumber}: ${tdatline}" >> $LOG
-                  ;;
               *)
                   echo "#### ${linenumber}: ${tdatline}" >> $LOG
                   ;;
@@ -285,7 +283,8 @@ create_config () {
               set $tdatline
               type=$1
               chk="check_${type}"
-              eval $chk $@
+              cmd="$chk $@"
+              eval $cmd
               ;;
         esac
       fi
