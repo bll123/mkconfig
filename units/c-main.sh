@@ -186,12 +186,10 @@ _chk_link_libs () {
       ocount=0
   fi
 
-  # this doesn't work well due to lost backslashes and quoting issues.
-  # code=`dosubst "$code" '_dollar_' '\\$'`
   > ${name}.c
   echo "${precc}" >> ${name}.c
   _print_headers >> ${name}.c
-  echo "${code}" >> ${name}.c
+  echo "${code}" | sed 's/_dollar_/$/g' >> ${name}.c
   cat ${name}.c >> $LOG
 
   dlibs=""
