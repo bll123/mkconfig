@@ -1,7 +1,6 @@
 #!/bin/bash
 
-echo "Enter version: \c"
-read ver
+ver=$(cat VERSION)
 
 PKG=mkconfig
 dir="${PKG}-${ver}"
