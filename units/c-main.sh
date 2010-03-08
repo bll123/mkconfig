@@ -186,6 +186,7 @@ _chk_link_libs () {
       ocount=0
   fi
 
+  code=`dosubst "$code" '_dollar_' '\\$'`
   > ${name}.c
   echo "${precc}" >> ${name}.c
   _print_headers >> ${name}.c
@@ -545,10 +546,11 @@ check_lib () {
 
   name=$nm
 
+  rfunc=`dosubst $func '_dollar_' '$'`
   if [ "${otherlibs}" != "" ]; then
-      printlabel $name "function: ${func} [${otherlibs}]"
+      printlabel $name "function: ${rfunc} [${otherlibs}]"
   else
-      printlabel $name "function: ${func}"
+      printlabel $name "function: ${rfunc}"
       checkcache $name
       if [ $rc -eq 0 ]; then return; fi
   fi
