@@ -5,6 +5,10 @@
 CP = cp
 RM = rm
 
+tar:	
+	$(MAKE) current-files
+	$(SHELL) mktar.sh $?
+
 current-files:
 	@-$(RM) -f env.units/* > /dev/null 2>&1
 	@$(CP) -f env.units.base/*.sh env.units
