@@ -59,7 +59,7 @@ dosubst () {
     shift
     shift
   done
-  var=`eval "echo ${var} | sed ${sedargs}"`
+  var=`eval "echo \"${var}\" | sed ${sedargs}"`
   echo $var
 }
 
