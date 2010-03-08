@@ -37,9 +37,9 @@ else
   SYSARCH="unknown"
 fi
 
-echo "_MKCONFIG_SYSTYPE=${SYSTYPE}"
+echo "_MKCONFIG_SYSTYPE=\"${SYSTYPE}\""
 echo "export _MKCONFIG_SYSTYPE"
-echo "_MKCONFIG_SYSREV=${SYSREV}"
+echo "_MKCONFIG_SYSREV=\"${SYSREV}\""
 echo "export _MKCONFIG_SYSREV"
-echo "_MKCONFIG_SYSARCH=${SYSARCH}"
+echo "_MKCONFIG_SYSARCH=\"${SYSARCH}\""
 echo "export _MKCONFIG_SYSARCH"
