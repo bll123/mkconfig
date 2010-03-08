@@ -1,23 +1,22 @@
-LICENSE			LICENSE
-MANIFEST		MANIFEST
-README          	README
-VERSION			version
 environment.sh		environment setup program
-env.units/		units for environment.sh
 env.units/cflags.sh
 env.units/msgfmt.sh
 env.units/object_extension.sh
 env.units/systype.sh
+env.units/		units for environment.sh
+LICENSE			LICENSE
+MANIFEST		MANIFEST
 mkconfig.7		manual page
 mkconfig.pl		perl config program
 mkconfig.sh		shell config program
-mkconfig.units/		units for mkconfig.sh
 mkconfig.units/include-malloc.sh
 mkconfig.units/include-string.sh
 mkconfig.units/include-time.sh
 mkconfig.units/lang-c.sh
 mkconfig.units/setmntent-args.sh
 mkconfig.units/statfs-args.sh
+mkconfig.units/		units for mkconfig.sh
+README          	README
 runtests.sh		runs regression tests
 shellfuncs.sh		mkconfig functions
 tests/			regression tests for mkconfig
@@ -43,3 +42,4 @@ tests/test_08.sh
 tests/test_09.dat
 tests/test_09.mkconfig
 tests/test_09.sh
+VERSION			version
