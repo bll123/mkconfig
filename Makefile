@@ -7,7 +7,7 @@ RM = rm
 
 tar:	
 	$(MAKE) current-files
-	$(SHELL) mktar.sh $?
+	$(SHELL) mktar.sh
 
 current-files:
 	@-$(RM) -f env.units/* > /dev/null 2>&1
