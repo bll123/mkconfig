@@ -74,6 +74,8 @@ case ${_MKCONFIG_SYSTYPE} in
       # uname -m does not reflect actual architecture
       libs="-lroot -lbe $libs"
       ;;
+    BSD)
+      ;;
     CYGWIN*)
       ;;
     FreeBSD)
