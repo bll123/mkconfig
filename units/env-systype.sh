@@ -32,9 +32,24 @@ then
     echo "rev: ${SYSREV}" >&2
     echo "arch: ${SYSARCH}" >&2
 else
-  SYSTYPE="unknown"
-  SYSREV="unknown"
-  SYSARCH="unknown"
+  # no uname...we'll have to do some guessing.
+  if [ -f /vmunix ]; then
+    # some sort of BSD variant
+    # sys/param.h might have:
+    #   #define BSD 43
+    #   #define BSD4_3  1
+    rev=`grep '^#define.*BSD[^0-9]' /usr/include/sys/param.h | sed 's,/.*,,'`
+    if [ "rev" != "" ]; then
+      SYSTYPE="BSD"
+      rev=`echo $rev | sed 's/^[^0-9]*\([0-9]\)*\([0-9]\).*/\1.\2/'`
+      SYSREV="$rev"
+      SYSARCH="unknown"
+    fi
+  else
+    SYSTYPE="SYSV"      # some SysV variant, probably.
+    SYSREV="unknown"
+    SYSARCH="unknown"
+  fi
 fi
 
 echo "_MKCONFIG_SYSTYPE=\"${SYSTYPE}\""
