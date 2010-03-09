@@ -596,7 +596,7 @@ check_npt
     {
       $r_config->{$name} = 0;
       setlist $r_clist, $name;
-      printyesno $nm, $r_config->{$name};
+      printyesno $name, $r_config->{$name};
       return;
     }
 
