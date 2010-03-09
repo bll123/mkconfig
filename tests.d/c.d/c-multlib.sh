@@ -56,12 +56,8 @@ ar cq libtst2libc.a tst2libc.o
 cd ..
 
 eval "${script} -C test_08.dat"
-ed test_08.ctest << _HERE_ > /dev/null 2>&1
-g/^#define _key_/d
-g/^#define _proto_/d
-w
-q
-_HERE_
+cat test_08.ctest | sed -e '/^#define _key_/d' -e '/^#define _proto_/d' > t
+mv t test_08.ctest
 echo "## diff 1"
 diff -b test_08.ctmp test_08.ctest
 rc=$?

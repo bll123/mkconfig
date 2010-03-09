@@ -37,12 +37,8 @@ ar cq libtst1lib.a tst1lib.o
 cd ..
 
 eval "${script} -C test_07.dat"
-ed test_07.ctest << _HERE_ > /dev/null 2>&1
-g/^#define _key_/d
-g/^#define _proto_/d
-w
-q
-_HERE_
+cat test_07.ctest | sed -e '/^#define _key_/d' -e '/^#define _proto_/d' > t
+mv t test_07.ctest
 echo "## diff 1"
 diff -b test_07.ctmp test_07.ctest
 rc=$?
