@@ -137,6 +137,12 @@ testshell () {
     fi
   fi
 
+  # force shell type.
+  if [ "$_MKCONFIG_SHELL" != "" ]; then
+    SHELL="$_MKCONFIG_SHELL"
+    rc=1
+  fi
+
   # make sure SHELL env var is set.
   if [ $rc -eq 0 ]; then
     wsh=`locatecmd $shell`
