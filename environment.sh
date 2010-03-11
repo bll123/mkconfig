@@ -81,11 +81,11 @@ create_env () {
     test -f ${ENVFILE} && rm -f ${ENVFILE}
 
     linenumber=0
-    # save stdin in fd 5.
+    # save stdin in fd 7.
     # and reset stdin to get from the configfile.
     # this allows us to run the while loop in the
     # current shell rather than a subshell.
-    exec 5<&0 < ${configfile}
+    exec 7<&0 < ${configfile}
     while read tdatline; do
       linenumber=`domath "$linenumber + 1"`
 
@@ -128,7 +128,7 @@ create_env () {
       esac
     done
     # reset the file descriptors back to the norm.
-    exec <&5 5<&-
+    exec <&7 7<&-
 }
 
 usage () {
