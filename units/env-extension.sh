@@ -41,6 +41,6 @@ fi
 rm -f $TMP.c $TMP.o $TMP.obj $TMP $TMP.exe a.out > /dev/null 2>&1
 
 echo "OBJ_EXT=${OBJ_EXT}"
-echo "EXE_EXT=${EXE_EXT}"
 echo "export OBJ_EXT"
+echo "EXE_EXT=${EXE_EXT}"
 echo "export EXE_EXT"
