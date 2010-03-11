@@ -32,7 +32,11 @@ then
     echo "rev: ${SYSREV}" >&2
     echo "arch: ${SYSARCH}" >&2
 else
+  echo "no uname, try some guessing" >&2
   # no uname...we'll have to do some guessing.
+  SYSTYPE="unknown"
+  SYSREV="unknown"
+  SYSARCH="unknown"
   if [ -f /vmunix ]; then
     # some sort of BSD variant
     # sys/param.h might have:
@@ -41,14 +45,16 @@ else
     rev=`grep '^#define.*BSD[^0-9]' /usr/include/sys/param.h | sed 's,/.*,,'`
     if [ "rev" != "" ]; then
       SYSTYPE="BSD"
-      rev=`echo $rev | sed 's/^[^0-9]*\([0-9]\)*\([0-9]\).*/\1.\2/'`
+      rev=`echo $rev | sed 's/^[^0-9]*\([0-9]\)\([0-9]\).*/\1.\2/'`
       SYSREV="$rev"
-      SYSARCH="unknown"
     fi
   else
     SYSTYPE="SYSV"      # some SysV variant, probably.
-    SYSREV="unknown"
-    SYSARCH="unknown"
+  fi
+  xarch=`locatecmd arch`
+  echo "arch located: ${xarch}" >&2
+  if [ "${xarch}" != "" ]; then
+    SYSARCH=`arch`
   fi
 fi
 
