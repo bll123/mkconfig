@@ -14,7 +14,7 @@ my $CONFH;
 my $LOG = "mkconfig.log";
 my $TMP = "_tmp_mkconfig";
 my $CACHEFILE = "mkconfig.cache";
-my $VARSFILE = "mkconfig.vars";
+my $VARSFILE = "mkconfig_c.vars";
 my $REQLIB = "reqlibs.txt";
 
 my $precc = <<'_HERE_';
@@ -87,7 +87,7 @@ savecache
     open (MKCV, ">$VARSFILE");
     foreach my $val (@{$r_clist->{'list'}})
     {
-      print MKCC "di_cfg_${val}='" . $r_config->{$val} . "'\n";
+      print MKCC "di_c_${val}='" . $r_config->{$val} . "'\n";
       print MKCV $val, "\n";
     }
     close (MKCC);
@@ -878,13 +878,13 @@ create_config
     $config{'reqlibs'} = {};
     $config{'reqlibs_list'} = ();
 
-    if (-f $CACHEFILE && -f $VARSFILE)
+    if (-f $CACHEFILE)
     {
       open (MKCC, "<$CACHEFILE");
       while (my $line = <MKCC>)
       {
         chomp $line;
-        if ($line =~ m/^di_cfg_(.*)='(.*)'/o)
+        if ($line =~ m/^di_c_(.*)='(.*)'/o)
         {
           my $name = $1;
           my $val = $2;
@@ -1228,18 +1228,6 @@ while ($#ARGV > 0)
   {
       shift @ARGV;
       $TMP = $ARGV[0];
-      shift @ARGV;
-  }
-  if ($ARGV[0] eq "-r")
-  {
-      shift @ARGV;
-      $REQLIB = $ARGV[0];
-      shift @ARGV;
-  }
-  if ($ARGV[0] eq "-v")
-  {
-      shift @ARGV;
-      $VARSFILE = $ARGV[0];
       shift @ARGV;
   }
 }
