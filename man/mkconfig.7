@@ -2,105 +2,56 @@
 .\" $Id$
 .\" $Revision$
 .\"
-.\" mkconfig.1
+.\" mkconfig.7
 .\"
 .\" Copyright 2010 Brad Lanam  Walnut Creek CA USA
 .\"
 .\" bll6969di_at_gmail.com
 .\"
-.TH mkconfig 1 "3 Mar 2010"
+.TH mkconfig 7 "12 Mar 2010"
 .SH Name
 mkconfig \- build configuration utilities
 .SH Synopsis
-.\" mkconfig.sh [-C] [-c <cache-file>] [-v <vars-file>] [-l <log-file>]
-.\"    [-t <tmp-dir>] [-r <reqlib-file>] config-file
-.\" environment.sh [-C] [-l <log-file>] config-file
+.\" mkconfig.sh [-C] [-c <cache-file>]
+.\"       [-l <log-file>] config-file
 .B mkconfig.sh
 [\fB\-C\fP]
 [\fB\-c\fP <cache\-file>]
-[\fB\-v\fP <vars\-file>]
 [\fB\-l\fP <log\-file>]
 .br
-[\fB\-t\fP <tmp\-dir>]
-[\fB\-r\fP <reqlib-file>]
+.RS
 config\-file
+.RE
+.PP
+The \-C option clears any cache file before processing the units.
 .PP
 cache\-file defaults to 'mkconfig.cache'.
-.br
-vars\-file defaults to 'mkconfig.vars'.
-.br
+.PP
 log\-file defaults to 'mkconfig.log'.
-.br
+.PP
 tmp\-dir defaults to '_tmp_mkconfig'.
 This directory must not exist before running \fImkconfig.sh\fP,
 as it will be removed in its entirety.
-.br
-reqlib\-file defaults to 'reqlibs.txt'.
 .PP
-.B environment.sh
-[\fB\-C\fP]
-[\fB\-l\fP <log\-file>]
-config\-file
+config\-file is the file with the list of configuration commands.
 .PP
-log\-file defaults to 'mkconfig_env.log'.
 .SH Description
 \fImkconfig.sh\fP
-is a build configuration utility originally modeled after iffe.
+is a build configuration utility.
 It is written in portable shell script and
-designed to be extensible for any configuration use.
+designed to be extensible for any configuration use.  Most Bourne
+Shell compatible shells will work.  \fImkconfig.sh\fP will choose
+\fIksh\fP, \fIash\fP or \fIdash\fP over \fIbash\fP since they are
+faster.
 .PP
 \fImkconfig.sh\fP
-is intended to generate a configuration file that can be included
-in your source code in order to set macros or include code that
-modifies the compilation behaviour of your program on different
-systems.
-.PP
-\fIenvironment.sh\fP
-is intended to check the system environment and create a file
-that can set the environment to control the build process.  The
-various units output environment variable settings to a file that
-can be executed by a shell script to set the environment.
-.SH environment.sh Basic Configuration Commands
-.TP
-\fBoutput\fP file\-name (required)
-.br
-Specify the name of the output file.
-.TP
-\fBrununit\fP unit\-name
-.br
-Execute an environment unit.
-.SH environment.sh Units
-.PP
-.TP
-.B systype
-.br
-The systype environment unit sets the following environment variables:
-_MKCONFIG_SYSTYPE, _MKCONFIG_SYSREV, _MKCONFIG_SYSARCH.  These generally
-correspond to the output of uname -s, uname -r and uname -a respectively.
-On AIX, the oslevel command is used to attempt to resolv the revision
-of the operating system.  On MacOSX, the revision is used unchanged and
-does not correspond to the marketing level.
-.B cflags
-.br
-The cflags environment unit sets the following environment variables:
-CC, CFLAGS, CINCLUDES, LDFLAGS, LIBS, _MKCONFIG_USING_GCC.  CC will default
-to 'cc' unless already set.  CFLAGS, CINCLUDES, LDFLAGS and LIBS will
-be according to the 'getconf'
-program and with flags appropriate to the system type and compiler.
-.TP
-.B object_extension
-.br
-The object_extension environment unit set the following environment
-variables: OBJ_EXT, EXE_EXT.  These two variables are set to the
-object file extension (.o, .obj) and executable file extension (none or
-.exe) per the operating system and compiler.
-.TP
-.B msgfmt
-.br
-\fImsgfmt\fP sets the XMSGFMT environment variable to the path of the
-msgfmt command, if any.
+is intended to generate a file that can be used as an included file,
+a shell script, a configuration file, or any other use.
 .SH Basic Configuration Commands (mkconfig.sh)
-.PP
+.TP
+\fB#\fP comment
+.br
+Comments begin with a '#' in column 1.  Blank lines are ignored.
 .TP
 \fBoutput\fP file\-name (required)
 .br
@@ -115,7 +66,7 @@ Units may include specific check routines that may be performed.
 .br
 Perform any standard checks for the language unit that was loaded.
 .TP
-command  name\-of\-command
+\fBcommand\fP name\-of\-command
 .br
 Check if command exists in the path.
 e.g.: command sed
@@ -123,14 +74,99 @@ e.g.: command sed
 .B include endinclude
 .br
 Include all of the code between these two tags
-in the configuration file.  Backslashes must
+in the output file.  Backslashes must
 be escaped with a backslash.
-.SH mkconfig.sh Units
+.PP
+Other commands depend on the units loaded.
+.SH Environment Units
+The environment units create an output file that can be used
+as shell script input to set your environment.
+.TP
+.B env-systype
+.br
+The systype environment unit determines what type, revision and
+architecture of the system you are running on.
+.RS
+.TP
+\fBsystem\fP {type|rev|arch}
+.br
+The type, rev and arch commands will create
+the _MKCONFIG_SYSTYPE, _MKCONFIG_SYSREV, and _MKCONFIG_SYSARCH
+environment variables respectively.  These
+correspond to the output of uname -s, uname -r and uname -m.
+On AIX, the oslevel command is used to attempt to resolve the revision
+of the operating system.  On MacOSX, the revision is currently unchanged and
+does not correspond to the marketing version.
+.RE
 .PP
 .TP
-.B lang-c
+.B env-cflags
 .br
-The lang-c unit creates an include file for C programs.
+The cflags environment unit determines basic flags needed to run the
+C compiler.  Since these units are interdependent on each other, they
+should be configured in the order: cc, using_gcc, cflags, ldflags, and libs.
+.RS
+.TP
+\fBcc\fP
+.br
+Determines the C compiler being used (default cc).
+Sets the CC environment variable.
+.TP
+\fBusing_gcc\fP
+.br
+Sets the _MKCONFIG_USING_GCC environment variable to 'Y' if the gcc
+compiler is being used.
+.TP
+\fBcflags\fP
+.br
+Sets the CFLAGS environment variable according to the 'getconf' program
+and appropriate to the operating system and compiler.
+.TP
+\fBldflags\fP
+.br
+Sets the LDFLAGS environment variable according to the 'getconf' program
+and appropriate to the operating system and compiler.
+.TP
+\fBlibs\fP
+.br
+Sets the LIBS environment variable according to the 'getconf' program
+and appropriate to the operating system and compiler.
+.RE
+.TP
+.B env-extension
+.RS
+.TP
+\fBextension\fP {obj|exe}
+.br
+The obj and exe arguments correspond to the OBJ_EXT and EXE_EXT
+environment variables. These two variables are set to the
+object file extension (.o, .obj) and executable file extension (none or
+.exe) per the operating system and compiler.
+.RE
+.TP
+.B env-msgfmt
+.RS
+.TP
+\fBcmd_msgfmt\fP
+.br
+Sets the XMSGFMT environment variable to the path of the
+msgfmt command, if any.
+.RE
+.SH C Language Units
+.TP
+.B c\-main
+.br
+The c\-main unit creates an include file for C programs.
+The \fIhdr\fP and \fIsys\fP directives should be listed first
+in the configuration file so that the headers are
+available for use in the other tests.
+.RS
+.TP
+\fBstandard\fP
+.br
+The \fIstandard\fP checks are for: the headers stdio.h, stdlib.h, sys/types.h
+and sys/param.h, the keywords \fIvoid\fP and \fIconst\fP,
+and C function prototypes.
 .TP
 \fBhdr\fP name\-of\-header [required\-headers]
 .br
@@ -146,6 +182,17 @@ e.g. hdr storage/volumes.h gui/window.h
 Like \fIhdr\fP, but looks in the sys/ directory.
 e.g. sys types.h
 .TP
+\fBclass\fP class [libs]
+.br
+Check to see if class \fIclass\fP exists.
+If the optional \fIlibs\fP are specified,
+the test will try first without the libraries, then with
+the first library, then the first and next, etc.
+e.g.: class os::Volumes
+.br
+Any libraries that are found to be needed for compilation will be
+output to the 'reqlibs.txt' file.
+.TP
 \fBconst\fP constant\-name [required\-headers]
 .br
 Check to see that a constant exists.
@@ -154,10 +201,37 @@ are included in the compilation test before attempting
 the compilation test.
 e.g. const O_RDONLY
 .TP
+\fBdcl\fP {int|ptr} variable
+.br
+Check to see if the variable is declared.
+If \fIint\fP is specified, the variable is a numeric type.
+If \fIptr\fP is specified, the variable is a pointer type.
+e.g. dcl int errno; dcl ptr optarg
+.TP
 \fBkey\fP keyword
 .br
 Check to see if a C-language keyword is reserved.
 e.g. key volatile
+.TP
+\fBlib\fP function [libs]
+.br
+Check to see if library function \fIfunction\fP exists.
+If the optional \fIlibs\fP are specified,
+the test will try first without the libraries, then with
+the first library, then the first and next, etc.
+e.g. lib gettext -lintl -liconv
+will first test gettext, then gettext -lintl, then gettext -lintl -liconv.
+.br
+Any libraries that are found to be needed for compilation will be
+output to the 'reqlibs.txt' file.
+.br
+The string '_dollar_', if included in the library function name
+will be replaced with the '$' symbol.
+.TP
+\fBmember\fP struct member
+.br
+Check to see if \fImember\fP is a member of \fIstruct\fP.
+e.g.: member statfs f_bsize
 .TP
 \fBnpt\fP function [library\-requirement]
 .br
@@ -172,58 +246,31 @@ e.g. npt getopt; npt statfs _lib_statfs
 .br
 Check to see if type\-name exists.
 e.g. typ size_t
+.RE
 .TP
-\fBlib\fP function [libs]
-.br
-Check to see if library function \fIfunction\fP exists.
-If the optional \fIlibs\fP are specified,
-the test will try first without the libraries, then with
-the first library, then the first and next, etc.
-e.g. lib gettext -lintl -liconv
-will first test gettext, then gettext -lintl, then gettext -lintl -liconv.
-.br
-Any libraries that are found to be needed for compilation will be
-output to the 'reqlibs.txt' file.
+.B c-statfs\-args
+.RS
 .TP
-\fBclass\fP class [libs]
+\fBstatfs_args\fP
 .br
-Check to see if class \fIclass\fP exists.
-If the optional \fIlibs\fP are specified,
-the test will try first without the libraries, then with
-the first library, then the first and next, etc.
-e.g.: class os::Volumes
-.br
-Any libraries that are found to be needed for compilation will be
-output to the 'reqlibs.txt' file.
+Checks to see how many arguments the statfs() system call accepts.
+.RE
 .TP
-\fBdcl\fP {int|ptr} variable
-.br
-Check to see if the variable is declared.
-If \fIint\fP is specified, the variable is a numeric type.
-If \fIptr\fP is specified, the variable is a pointer type.
-e.g. dcl int errno; dcl ptr optarg
+.B c-setmntent\-args
+.RS
 .TP
-\fBmember\fP struct member
+\fBsetmentent_args\fP
 .br
-Check to see if \fImember\fP is a member of \fIstruct\fP.
-e.g.: member statfs f_bsize
+Check to see how many arguments the setmntent() system call accepts.
+.RE
 .TP
-.B statfs\-args
-.br
+.B c-include\-time
+.RS
 .TP
-.B setmntent\-args
+\fBinclude_time\fP
 .br
-.TP
-.B include\-malloc
-.br
-.TP
-.B include\-time
-.br
-.TP
-.B include\-string
-.br
-The lang-c unit creates an include file for C programs.
-.SH Creating a New Language Module
+Check to see if there is a conflict between time.h and sys/times.h.
+.RE
 .SH See Also
 iffe(1) autoconf(1) dist(7)
 .SH Bugs
@@ -233,6 +280,6 @@ Send bug reports to: bll6969di_at_gmail.com
 .PP
 http://www.gentoo.com/di/
 .SH Author
-This program is Copyright 2010 by Brad Lanam.
+This program is Copyright 2010 by Brad Lanam, Walnut Creek CA
 .PP
 Brad Lanam, Walnut Creek, CA (bll6969di_at_gmail.com)
