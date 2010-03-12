@@ -40,6 +40,7 @@ _HERE_
 
   printyesno_val $name "${OBJ_EXT}"
   setdata ${_MKCONFIG_PREFIX} $name "${OBJ_EXT}"
+  doexport $name "${OBJ_EXT}"
 }
 
 check_exeext () {
@@ -75,5 +76,6 @@ _HERE_
 
   printyesno_val $name "${EXE_EXT}"
   setdata ${_MKCONFIG_PREFIX} $name "${EXE_EXT}"
+  doexport $name "${EXE_EXT}"
 }
 

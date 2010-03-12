@@ -52,6 +52,7 @@ check_system () {
 
     printyesno_val _MKCONFIG_SYSTYPE "${_MKCONFIG_SYSTYPE}"
     setdata ${_MKCONFIG_PREFIX} _MKCONFIG_SYSTYPE "${_MKCONFIG_SYSTYPE}"
+    doexport _MKCONFIG_SYSTYPE "${_MKCONFIG_SYSTYPE}"
   fi
 
   if [ "$arg" = "rev" ]; then
@@ -105,6 +106,7 @@ check_system () {
     echo "rev: ${_MKCONFIG_SYSREV}" >> $LOG
     printyesno_val _MKCONFIG_SYSREV "${_MKCONFIG_SYSREV}"
     setdata ${_MKCONFIG_PREFIX} _MKCONFIG_SYSREV "${_MKCONFIG_SYSREV}"
+    doexport _MKCONFIG_SYSTYPE "${_MKCONFIG_SYSTYPE}"
   fi
 
   if [ "$arg" = "arch" ]; then
@@ -130,5 +132,6 @@ check_system () {
 
     printyesno_val _MKCONFIG_SYSARCH "${_MKCONFIG_SYSARCH}"
     setdata ${_MKCONFIG_PREFIX} _MKCONFIG_SYSARCH "${_MKCONFIG_SYSARCH}"
+    doexport _MKCONFIG_SYSTYPE "${_MKCONFIG_SYSTYPE}"
   fi
 }

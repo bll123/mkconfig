@@ -38,3 +38,13 @@ output_item () {
 output_other () {
   return
 }
+
+doexport () {
+  var=$1
+  val=$2
+
+  cmd="${var}=${val}"
+  eval $cmd
+  cmd="export ${var}"
+  eval $cmd
+}
