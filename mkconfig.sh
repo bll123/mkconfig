@@ -318,14 +318,11 @@ create_config () {
 
 usage () {
   cat << _HERE_
-Usage: $0 [-c <cache-file>] [-l <log-file>]
-       [-t <tmp-dir>] [-s <other-name>=<other-file>]
-       [-C] <config-file>
+Usage: $0 [-C] [-c <cache-file>] [-l <log-file>] <config-file>
   -C : clear cache-file
 defaults:"
   <cache-file> : mkconfig.cache
   <log-file>   : mkconfig.log
-  <tmp-dir>    : _tmp_mkconfig;  <tmp-dir> must not exist."
 _HERE_
 }
 
@@ -350,16 +347,6 @@ while test $# -gt 1; do
     -l)
       shift
       LOG="$1"
-      shift
-      ;;
-    -t)
-      shift
-      TMP="$1"
-      shift
-      ;;
-    -s)
-      shift
-      set_other_name $1
       shift
       ;;
   esac
