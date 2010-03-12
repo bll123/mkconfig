@@ -6,61 +6,118 @@
 # Copyright 2010 Brad Lanam Walnut Creek, CA USA
 #
 
-xuname=`locatecmd uname`
-echo "uname located: ${xuname}" >&2
+require_unit env-main
 
-if [ "${xuname}" != "" ]
-then
-    SYSTYPE=`${xuname} -s`
-    SYSREV=`${xuname} -r`
-    SYSARCH=`${xuname} -m`
+check_system () {
+  name="_MKCONFIG_SYS"
+  arg=$2
+  uarg=`toupper $arg`
+  name="${name}${uarg}"
 
-    case ${SYSTYPE} in
-        AIX)
-            tmp=`( (oslevel) 2>/dev/null || echo "not found") 2>&1`
-            case "$tmp" in
-                'not found') SYSREV="$4"."$3" ;;
-                '<3240'|'<>3240') SYSREV=3.2.0 ;;
-                '=3240'|'>3240'|'<3250'|'<>3250') SYSREV=3.2.4 ;;
-                '=3250'|'>3250') SYSREV=3.2.5 ;;
-                *) SYSREV=$tmp;;
-            esac
-            ;;
-    esac
+  xuname=`locatecmd uname`
+  echo "uname located: ${xuname}" >> $LOG
 
-    echo "type: ${SYSTYPE}" >&2
-    echo "rev: ${SYSREV}" >&2
-    echo "arch: ${SYSARCH}" >&2
-else
-  echo "no uname, try some guessing" >&2
-  # no uname...we'll have to do some guessing.
-  SYSTYPE="unknown"
-  SYSREV="unknown"
-  SYSARCH="unknown"
-  if [ -f /vmunix ]; then
-    # some sort of BSD variant
-    # sys/param.h might have:
-    #   #define BSD 43
-    #   #define BSD4_3  1
-    rev=`grep '^#define.*BSD[^0-9]' /usr/include/sys/param.h | sed 's,/.*,,'`
-    if [ "rev" != "" ]; then
-      SYSTYPE="BSD"
-      rev=`echo $rev | sed 's/^[^0-9]*\([0-9]\)\([0-9]\).*/\1.\2/'`
-      SYSREV="$rev"
+  if [ "$arg" = "type" ]; then
+    printlabel $name "system: type"
+    checkcache_val ${_MKCONFIG_PREFIX} $name
+    if [ $rc -eq 0 ]; then return; fi
+
+    if [ "${xuname}" != "" ]
+    then
+      _MKCONFIG_SYSTYPE=`${xuname} -s`
+    else
+      echo "no uname, try some guessing" >> $LOG
+      # no uname...we'll have to do some guessing.
+      _MKCONFIG_SYSTYPE="unknown"
+      if [ -f /vmunix ]; then
+        # some sort of BSD variant
+        _MKCONFIG_SYSTYPE="BSD"
+      else
+        _MKCONFIG_SYSTYPE="SYSV"      # some SysV variant, probably.
+      fi
     fi
-  else
-    SYSTYPE="SYSV"      # some SysV variant, probably.
-  fi
-  xarch=`locatecmd arch`
-  echo "arch located: ${xarch}" >&2
-  if [ "${xarch}" != "" ]; then
-    SYSARCH=`arch`
-  fi
-fi
 
-echo "_MKCONFIG_SYSTYPE=\"${SYSTYPE}\""
-echo "export _MKCONFIG_SYSTYPE"
-echo "_MKCONFIG_SYSREV=\"${SYSREV}\""
-echo "export _MKCONFIG_SYSREV"
-echo "_MKCONFIG_SYSARCH=\"${SYSARCH}\""
-echo "export _MKCONFIG_SYSARCH"
+    echo "type: ${_MKCONFIG_SYSTYPE}" >> $LOG
+
+    printyesno_val _MKCONFIG_SYSTYPE "${_MKCONFIG_SYSTYPE}"
+    setdata ${_MKCONFIG_PREFIX} _MKCONFIG_SYSTYPE "${_MKCONFIG_SYSTYPE}"
+  fi
+
+  if [ "$arg" = "rev" ]; then
+    printlabel $name "system: rev"
+    checkcache_val ${_MKCONFIG_PREFIX} $name
+    if [ $rc -eq 0 ]; then return; fi
+
+    if [ "${xuname}" != "" ]
+    then
+      case ${_MKCONFIG_SYSTYPE} in
+        AIX)
+          tmp=`( (oslevel) 2>/dev/null || echo "not found") 2>&1`
+          case "$tmp" in
+            'not found')
+              _MKCONFIG_SYSREV="$4"."$3"
+              ;;
+            '<3240'|'<>3240')
+              _MKCONFIG_SYSREV=3.2.0
+              ;;
+            '=3240'|'>3240'|'<3250'|'<>3250')
+              _MKCONFIG_SYSREV=3.2.4
+              ;;
+            '=3250'|'>3250')
+              _MKCONFIG_SYSREV=3.2.5
+              ;;
+            *)
+              _MKCONFIG_SYSREV=$tmp
+              ;;
+            esac
+          ;;
+        *)
+          _MKCONFIG_SYSREV=`${xuname} -r`
+          ;;
+      esac
+    else
+      echo "no uname, try some guessing" >> $LOG
+      # no uname...we'll have to do some guessing.
+      _MKCONFIG_SYSREV="unknown"
+      if [ -f /vmunix ]; then
+        # sys/param.h might have:
+        #   #define BSD 43
+        #   #define BSD4_3  1
+        rev=`grep '^#define.*BSD[^0-9]' /usr/include/sys/param.h | sed 's,/.*,,'`
+        if [ "rev" != "" ]; then
+          rev=`echo $rev | sed 's/^[^0-9]*\([0-9]\)\([0-9]\).*/\1.\2/'`
+          _MKCONFIG_SYSREV="$rev"
+        fi
+      fi
+    fi
+
+    echo "rev: ${_MKCONFIG_SYSREV}" >> $LOG
+    printyesno_val _MKCONFIG_SYSREV "${_MKCONFIG_SYSREV}"
+    setdata ${_MKCONFIG_PREFIX} _MKCONFIG_SYSREV "${_MKCONFIG_SYSREV}"
+  fi
+
+  if [ "$arg" = "arch" ]; then
+    printlabel $name "system: arch"
+    checkcache_val ${_MKCONFIG_PREFIX} $name
+    if [ $rc -eq 0 ]; then return; fi
+
+    if [ "${xuname}" != "" ]
+    then
+      _MKCONFIG_SYSARCH=`${xuname} -m`
+    else
+      echo "no uname, try some guessing" >> $LOG
+      # no uname...we'll have to do some guessing.
+      _MKCONFIG_SYSARCH="unknown"
+      xarch=`locatecmd arch`
+      echo "arch located: ${xarch}" >> $LOG
+      if [ "${xarch}" != "" ]; then
+        _MKCONFIG_SYSARCH=`arch`
+      fi
+    fi
+
+    echo "arch: ${_MKCONFIG_SYSARCH}" >> $LOG
+
+    printyesno_val _MKCONFIG_SYSARCH "${_MKCONFIG_SYSARCH}"
+    setdata ${_MKCONFIG_PREFIX} _MKCONFIG_SYSARCH "${_MKCONFIG_SYSARCH}"
+  fi
+}
