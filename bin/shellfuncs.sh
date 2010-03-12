@@ -147,7 +147,10 @@ testshell () {
           rc=1
           ;;
       esac
+    else
+      noksh=1
     fi
+
     if [ $noksh -eq 1 -a -x /bin/ash ]; then
       SHELL=/bin/ash
       rc=1
@@ -180,16 +183,6 @@ doshelltest () {
 locatecmd () {
   tcmd=$1
 
-#set -x
-#set | grep int_cmd >&2
-#  cmd="echo \${di_int_cmd_${tcmd}}"
-#  gdval=`eval $cmd`
-#  if [ "$gdval" != "" ]; then
-#    echo $gdval
-#    return
-#  fi
-#set +x
-
   if [ "$pthlist" = "" ]; then
     pthlist=`dosubst "$PATH" ';' ' ' ':' ' '`
   fi
@@ -201,10 +194,6 @@ locatecmd () {
       break
     fi
   done
-#set -x
-#  cmd="di_int_cmd_${tcmd}=\"${trc}\""
-#  eval "$cmd"
-#set +x
   echo $trc
 }
 
