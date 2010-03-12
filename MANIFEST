@@ -17,25 +17,26 @@ mkconfig.units/env-systype.sh
 README          	README
 runtests.sh		runs regression tests
 shellfuncs.sh		mkconfig functions
-tests/			regression tests for mkconfig
-tests/test_01.sh
-tests/test_02.sh
-tests/test_03.sh
-tests/test_06.config
-tests/test_06.dat
-tests/test_06.mkconfig
-tests/test_06.sh
-tests/test_07.config
-tests/test_07.dat
-tests/test_07.mkconfig
-tests/test_07.reqlibs
-tests/test_07.sh
-tests/test_08.config
-tests/test_08.dat
-tests/test_08.mkconfig
-tests/test_08.reqlibs
-tests/test_08.sh
-tests/test_09.dat
-tests/test_09.mkconfig
-tests/test_09.sh
+tests.d/			regression tests for mkconfig
+tests.d/test_order	
+tests.d/compmksh.sh
+tests.d/compmkperl.sh
+tests.d/compunits.sh
+tests.d/include.config
+tests.d/include.dat
+tests.d/include.mkconfig
+tests.d/include.sh
+tests.d/singlelib.config
+tests.d/singlelib.dat
+tests.d/singlelib.mkconfig
+tests.d/singlelib.reqlibs
+tests.d/singlelib.sh
+tests.d/multlib.config
+tests.d/multlib.dat
+tests.d/multlib.mkconfig
+tests.d/multlib.reqlibs
+tests.d/multlib.sh
+tests.d/cache.dat
+tests.d/cache.mkconfig
+tests.d/cache.sh
 VERSION			version
