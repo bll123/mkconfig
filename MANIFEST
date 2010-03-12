@@ -1,5 +1,6 @@
 LICENSE			LICENSE
 MANIFEST		MANIFEST
+Makefile		
 mkconfig.7		manual page
 mkconfig.pl		perl config program
 mkconfig.sh		shell config program
