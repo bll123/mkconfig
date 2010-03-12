@@ -5,13 +5,22 @@
 CP = cp
 RM = rm
 
-tar:	
+clean:
+	-rm -rf _tmp_mkconfig tests.done > /dev/null 2>&1
+
+distclean:
+	$(MAKE) clean
+
+tests.done: runtests.sh
+	echo "## running mkconfig tests"
+	CC=$(CC) $(_MKCONFIG_SHELL) ./runtests.sh tests
+	touch tests.done
+
+tar:
 	$(MAKE) current-files
 	$(SHELL) mktar.sh
 
 current-files:
-	@-$(RM) -f env.units/* > /dev/null 2>&1
-	@$(CP) -f env.units.base/*.sh env.units
 	@-$(RM) -f mkconfig.units/* > /dev/null 2>&1
 	@$(CP) -f mkconfig.units.base/*.sh mkconfig.units
 	@-$(RM) -rf tests/* > /dev/null 2>&1
