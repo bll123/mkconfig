@@ -7,13 +7,13 @@
 #  call takes.  Generally only works w/prototypes.
 #
 
-require_unit lang-c
+require_unit c-main
 
 check_statfs_args () {
     name="_$1"
 
     printlabel $name "statfs # arguments"
-    checkcache $name
+    checkcache ${_MKCONFIG_PREFIX} $name
     if [ $rc -eq 0 ]; then return; fi
 
     if [ "${CC}" = "" ]; then
@@ -21,9 +21,9 @@ check_statfs_args () {
       return
     fi
 
-    val=`getdata cfg _lib_statfs`
+    val=`getdata ${_MKCONFIG_PREFIX} _lib_statfs`
     if [ "$val" = 0 ]; then
-      setdata cfg "${name}" 0
+      setdata ${_MKCONFIG_PREFIX} "${name}" 0
       printyesno_val "${name}" 0 ""
       return
     fi
@@ -37,7 +37,7 @@ main () {
     _chk_link_libs "${name}" "${code}" > /dev/null
     rc=$?
     if [ $rc -eq 0 ]; then
-      setdata cfg "${name}" 2
+      setdata ${_MKCONFIG_PREFIX} "${name}" 2
       printyesno_val "${name}" 2 ""
       return
     fi
@@ -51,7 +51,7 @@ main () {
     _chk_link_libs "${name}" "${code}" > /dev/null
     rc=$?
     if [ $rc -eq 0 ]; then
-      setdata cfg "${name}" 3
+      setdata ${_MKCONFIG_PREFIX} "${name}" 3
       printyesno_val "${name}" 3 ""
       return
     fi
@@ -65,10 +65,10 @@ main () {
     _chk_link_libs "${name}" "${code}" > /dev/null
     rc=$?
     if [ $rc -eq 0 ]; then
-      setdata cfg "${name}" 4
+      setdata ${_MKCONFIG_PREFIX} "${name}" 4
       printyesno_val "${name}" 4 ""
       return
     fi
-    setdata cfg "${name}" 0
+    setdata ${_MKCONFIG_PREFIX} "${name}" 0
     printyesno_val "${name}" 0 ""
 }
