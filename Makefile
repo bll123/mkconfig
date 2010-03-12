@@ -12,7 +12,7 @@ distclean:
 	$(MAKE) clean
 
 tests.done: runtests.sh
-	echo "## running mkconfig tests"
+	@echo "## running mkconfig tests"
 	CC=$(CC) $(_MKCONFIG_SHELL) ./runtests.sh tests
 	touch tests.done
 
