@@ -29,11 +29,7 @@ cache\-file defaults to 'mkconfig.cache'.
 .PP
 log\-file defaults to 'mkconfig.log'.
 .PP
-tmp\-dir defaults to '_tmp_mkconfig'.
-This directory must not exist before running \fImkconfig.sh\fP,
-as it will be removed in its entirety.
-.PP
-config\-file is the file with the list of configuration commands.
+config\-file is a file containing a list of configuration commands.
 .PP
 .SH Description
 \fImkconfig.sh\fP
@@ -140,8 +136,8 @@ and appropriate to the operating system and compiler.
 .br
 The obj and exe arguments correspond to the OBJ_EXT and EXE_EXT
 environment variables. These two variables are set to the
-object file extension (.o, .obj) and executable file extension (none or
-.exe) per the operating system and compiler.
+object file extension (.o, .obj) and executable file
+extension (none or .exe) per the operating system and compiler.
 .RE
 .TP
 .B env-msgfmt
