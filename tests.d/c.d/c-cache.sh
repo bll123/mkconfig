@@ -3,20 +3,18 @@
 script=$@
 
 echo ${EN} "cache${EC}" >&3
-rm -f test_09.a test_09.b test_09.a.vars test_09.b.vars test_09.ctest
-eval "${script} -C test_09.dat"
-mv -f test_09.ctest test_09.a
-mv -f mkconfig_c.vars test_09.a.vars
-eval "${script} test_09.dat"
-mv -f test_09.ctest test_09.b
-mv -f mkconfig_c.vars test_09.b.vars
+eval "${script} -C $RUNTESTDIR/cache.dat"
+mv -f cache.ctest cache.a
+mv -f mkconfig_c.vars cache.a.vars
+eval "${script} $RUNTESTDIR/cache.dat"
+mv -f cache.ctest cache.b
+mv -f mkconfig_c.vars cache.b.vars
 grc=0
 echo "## diff config.h"
-diff -b test_09.a test_09.b
+diff -b cache.a cache.b
 if [ $? -ne 0 ]; then grc=$rc; fi
 echo "## diff vars"
-diff -b test_09.a.vars test_09.b.vars
+diff -b cache.a.vars cache.b.vars
 if [ $? -ne 0 ]; then grc=$rc; fi
-rm -f test_09.a test_09.b test_09.a.vars test_09.b.vars test_09.ctest
 exit $grc
 
