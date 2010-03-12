@@ -9,24 +9,91 @@
 require_unit env-main
 require_unit env-systype
 
-check_compiler () {
-  CC=${CC:-cc}
-  ccflags=""
-  ldflags=""
-  libs=""
-  includes=""
-  usinggcc="N"
+env_dogetconf=F
+env_dohpcflags=F
+
+_dogetconf () {
+  if [ "$env_dogetconf" = T ]; then
+    return
+  fi
 
   xgetconf=`locatecmd getconf`
   if [ "${xgetconf}" != "" ]
   then
       echo "using flags from getconf" >> $LOG
-      tccflags="`${xgetconf} LFS_CFLAGS 2>/dev/null`"
-      tldflags="`${xgetconf} LFS_LDFLAGS 2>/dev/null`"
-      tlibs="`${xgetconf} LFS_LIBS 2>/dev/null`"
+      lfccflags="`${xgetconf} LFS_CFLAGS 2>/dev/null`"
+      lfldflags="`${xgetconf} LFS_LDFLAGS 2>/dev/null`"
+      lflibs="`${xgetconf} LFS_LIBS 2>/dev/null`"
+  fi
+  env_dogetconf=T
+}
+
+_dohpcflags () {
+  if [ "$env_dohpcflags" = T ]; then
+    return
   fi
 
-  gccflags=""
+  hpccincludes=""
+  hpldflags=""
+  hplibs=""
+
+  # check for libintl in other places...
+  if [ -d /usr/local/include -a \
+      -d /usr/local/lib -a \
+      -f /usr/local/lib/libintl.sl -a \
+      -f /usr/local/lib/libiconv.sl ]
+  then
+      hpccincludes="-I/usr/local/include"
+      hpldflags="-L/usr/local/lib"
+      hplibs="-lintl"
+  elif [ -d /opt/gnome/include -a \
+      -d /opt/gnome/lib -a \
+      -f /opt/gnome/lib/libintl.sl -a \
+      -f /opt/gnome/lib/libiconv.sl ]
+  then
+      hpccincludes="-I/opt/gnome/include"
+      hpldflags="-L/opt/gnome/lib"
+      hplibs="-lintl"
+  fi
+  env_dohpcflags=T
+}
+
+check_cc () {
+  CC=${CC:-cc}
+
+  printlabel CC "C compiler"
+  checkcache_val ${_MKCONFIG_PREFIX} CC
+  if [ $? -eq 0 ]; then return; fi
+
+  case ${_MKCONFIG_SYSTYPE} in
+      BeOS|Haiku)
+        case ${CC} in
+          cc|gcc)
+            CC=g++
+            ;;
+        esac
+        ;;
+      syllable)
+        case ${CC} in
+          cc|gcc)
+            CC=g++
+            ;;
+        esac
+        ;;
+  esac
+
+  echo "cc:${CC}" >> $LOG
+
+  printyesno_val CC "${CC}"
+  setdata ${_MKCONFIG_PREFIX} CC "${CC}"
+}
+
+check_using_gcc () {
+  usinggcc="N"
+
+  printlabel _MKCONFIG_USING_GCC "Using GCC"
+  checkcache_val ${_MKCONFIG_PREFIX} _MKCONFIG_USING_GCC
+  if [ $? -eq 0 ]; then return; fi
 
   # check for gcc...
   ${CC} -v 2>&1 | grep 'gcc version' > /dev/null 2>&1
@@ -43,21 +110,37 @@ check_compiler () {
           ;;
   esac
 
-  if [ "$usinggcc" = "Y" ]
+  printyesno_val _MKCONFIG_USING_GCC "${usinggcc}"
+  setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_GCC "${usinggcc}"
+}
+
+check_cflags () {
+  ccflags="${CFLAGS:-}"
+  ccincludes="${CINCLUDES:-}"
+
+  printlabel CFLAGS "C flags"
+  checkcache_val ${_MKCONFIG_PREFIX} CFLAGS
+  if [ $? -eq 0 ]; then return; fi
+
+  _dogetconf
+
+  gccflags=""
+
+  if [ "${_MKCONFIG_USING_GCC}" = "Y" ]
   then
       echo "set gcc flags" >> $LOG
       gccflags="-Wall -Waggregate-return -Wconversion -Wformat -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wpointer-arith -Wshadow -Wstrict-prototypes -Wunused"
   fi
 
   TCC=${CC}
-  if [ "${usinggcc}" = "Y" ]
+  if [ "${_MKCONFIG_USING_GCC}" = "Y" ]
   then
     TCC=gcc
   fi
 
   case ${_MKCONFIG_SYSTYPE} in
       AIX)
-        if [ "${usinggcc}" = "N" ]; then
+        if [ "${_MKCONFIG_USING_GCC}" = "N" ]; then
           ccflags="-qhalt=e $ccflags"
           ccflags="$ccflags -qmaxmem=-1"
           case ${_MKCONFIG_SYSREV} in
@@ -67,32 +150,12 @@ check_compiler () {
           esac
         fi
         ;;
-      BeOS|Haiku)
-        case ${TCC} in
-          cc|gcc)
-            CC=g++
-            ;;
-        esac
-        # uname -m does not reflect actual architecture
-        libs="-lroot -lbe $libs"
-        ;;
-      BSD)
-        ;;
-      CYGWIN*)
-        ;;
       FreeBSD)
         # FreeBSD has many packages that get installed in /usr/local
-        includes="-I/usr/local/include $includes"
-        ldflags="-L/usr/local/lib $ldflags"
-        ;;
-      DYNIX)
-        libs="-lseq $libs"
-        ;;
-      DYNIX/ptx)
-        libs="-lseq $libs"
+        ccincludes="-I/usr/local/include $ccincludes"
         ;;
       HP-UX)
-        if [ "${tccflags}" = "" ]
+        if [ "${lfccflags}" = "" ]
         then
             ccflags="-D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 $ccflags"
         fi
@@ -104,42 +167,12 @@ check_compiler () {
                 ;;
             esac
             ccflags="-Ae $ccflags"
-            usinggcc="N"
+            _MKCONFIG_USING_GCC="N"
             ;;
         esac
 
-        # check for libintl in other places...
-        if [ -d /usr/local/include -a \
-            -d /usr/local/lib -a \
-            -f /usr/local/lib/libintl.sl -a \
-            -f /usr/local/lib/libiconv.sl ]
-        then
-            includes="-I/usr/local/include $includes"
-            ldflags="-L/usr/local/lib $ldflags"
-            libs="-lintl $libs"
-        elif [ -d /opt/gnome/include -a \
-            -d /opt/gnome/lib -a \
-            -f /opt/gnome/lib/libintl.sl -a \
-            -f /opt/gnome/lib/libiconv.sl ]
-        then
-            includes="-I/opt/gnome/include $includes"
-            ldflags="-L/opt/gnome/lib $ldflags"
-            libs="-lintl $libs"
-        fi
-        ;;
-      IRIX*)
-        case ${_MKCONFIG_SYSREV} in
-          [45].*)
-            libs="-lsun"
-            ;;
-        esac
-        ;;
-      Linux)
-        ;;
-      NetBSD)
-        ;;
-      OS/2)
-        ldflags="-Zexe"
+        _dohpcflags
+        ccincludes="$hpccincludes $ccincludes"
         ;;
       OSF1)
         ccflags="-std1 $ccflags"
@@ -163,21 +196,9 @@ check_compiler () {
                         ;;
                 esac
                 ;;
-              *gcc*)
-                ;;
             esac
             ;;
         esac
-        ;;
-      syllable)
-        case ${TCC} in
-          cc|gcc)
-            CC=g++
-            ;;
-        esac
-        ;;
-      # unixware
-      UNIX_SV)
         ;;
   esac
 
@@ -191,36 +212,114 @@ check_compiler () {
   ccflags="$gccflags $ccflags"
 
   # largefile flags
-  ccflags="$ccflags $tccflags"
-  ldflags="$ldflags $tldflags"
-  libs="$libs $tlibs"
+  ccflags="$ccflags $lfccflags"
 
-  echo "cc:${CC}" >> $LOG
   echo "ccflags:${ccflags}" >> $LOG
+
+  printyesno_val CFLAGS "$ccflags $ccincludes"
+  setdata ${_MKCONFIG_PREFIX} CFLAGS "$ccflags $ccincludes"
+}
+
+check_ldflags () {
+  ldflags="${LDFLAGS:-}"
+
+  printlabel LDFLAGS "C Load flags"
+  checkcache_val ${_MKCONFIG_PREFIX} LDFLAGS
+  if [ $? -eq 0 ]; then return; fi
+
+  _dogetconf
+
+  TCC=${CC}
+  if [ "${_MKCONFIG_USING_GCC}" = "Y" ]
+  then
+    TCC=gcc
+  fi
+
+  case ${_MKCONFIG_SYSTYPE} in
+      FreeBSD)
+        # FreeBSD has many packages that get installed in /usr/local
+        ldflags="-L/usr/local/lib $ldflags"
+        ;;
+      HP-UX)
+        _dohpcflags
+        ldflags="$hpldflags $ldflags"
+        ;;
+      OS/2)
+        ldflags="-Zexe"
+        ;;
+      SunOS)
+        case ${_MKCONFIG_SYSREV} in
+          5.*)
+            case ${TCC} in
+              cc)
+                echo $CFLAGS | grep -- '-xO3' >/dev/null 2>&1
+                case $rc in
+                    0)
+                        ldflags="-fast $ldflags"
+                        ;;
+                esac
+                ;;
+            esac
+            ;;
+        esac
+        ;;
+  esac
+
+  ldflags="$ldflags $lfldflags"
+
   echo "ldflags:${ldflags}" >> $LOG
-  echo "libs:${libs}" >> $LOG
 
-  printlabel CC ${CC}
-  printyesno_val CC "C compiler"
-  setdata ${_MKCONFIG_PREFIX} CC "${CC}"
-
-  printlabel CFLAGS "C flags"
-  printyesno_val CFLAGS "$ccflags $includes"
-  setdata ${_MKCONFIG_PREFIX} CFLAGS "$ccflags $includes"
-
-  printlabel CINCLUDES "C includes"
-  printyesno_val CINCLUDES "$includes"
-  setdata ${_MKCONFIG_PREFIX} CINCLUDES "$includes"
-
-  printlabel LDFLAGS "Load flags"
   printyesno_val LDFLAGS "$ldflags"
   setdata ${_MKCONFIG_PREFIX} LDFLAGS "$ldflags"
+}
 
-  printlabel LIBS "Libraries"
+check_libs () {
+  libs="${LIBS:-}"
+
+  printlabel LIBS "C Libraries"
+  checkcache_val ${_MKCONFIG_PREFIX} LIBS
+  if [ $? -eq 0 ]; then return; fi
+
+  _dogetconf
+
+  gccflags=""
+
+  TCC=${CC}
+  if [ "${_MKCONFIG_USING_GCC}" = "Y" ]
+  then
+    TCC=gcc
+  fi
+
+  case ${_MKCONFIG_SYSTYPE} in
+      BeOS|Haiku)
+        # uname -m does not reflect actual architecture
+        libs="-lroot -lbe $libs"
+        ;;
+      DYNIX)
+        libs="-lseq $libs"
+        ;;
+      DYNIX/ptx)
+        libs="-lseq $libs"
+        ;;
+      HP-UX)
+        _dohpcflags
+        libs="$hplibs $libs"
+        ;;
+      IRIX*)
+        case ${_MKCONFIG_SYSREV} in
+          [45].*)
+            libs="-lsun"
+            ;;
+        esac
+        ;;
+  esac
+
+  # largefile flags
+  libs="$libs $lflibs"
+
+  echo "libs:${libs}" >> $LOG
+
   printyesno_val LIBS "$libs"
   setdata ${_MKCONFIG_PREFIX} LIBS "$libs"
-
-  printlabel _MKCONFIG_USING_GCC "Using GCC"
-  printyesno_val _MKCONFIG_USING_GCC "${usinggcc}"
-  setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_GCC "${usinggcc}"
 }
+
