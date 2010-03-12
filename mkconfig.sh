@@ -111,7 +111,7 @@ checkcache_val () {
   tval=`getdata ${prefix} ${tname}`
   rc=1
   if [ "$tval" != "" ]; then
-    printyesno_val $tname $tval " (cached)"
+    printyesno_val "$tname" "$tval" " (cached)"
     rc=0
   fi
   return $rc
@@ -124,7 +124,7 @@ checkcache () {
   tval=`getdata ${prefix} ${tname}`
   rc=1
   if [ "$tval" != "" ]; then
-    printyesno $tname $tval " (cached)"
+    printyesno "$tname" "$tval" " (cached)"
     rc=0
   fi
   return $rc
@@ -198,11 +198,18 @@ create_config () {
       hasifs=1
     fi
     > $INC
+    case ${configfile} in
+      /*)
+        ;;
+      *)
+        configfile="../${configfile}"
+        ;;
+    esac
     # save stdin in fd 7.
     # and reset stdin to get from the configfile.
     # this allows us to run the while loop in the
     # current shell rather than a subshell.
-    exec 7<&0 < ../${configfile}
+    exec 7<&0 < ${configfile}
     while read tdatline; do
       linenumber=`domath "$linenumber + 1"`
 
