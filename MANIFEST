@@ -1,21 +1,18 @@
-environment.sh		environment setup program
-env.units/		units for environment.sh
-env.units/cflags.sh
-env.units/msgfmt.sh
-env.units/object_extension.sh
-env.units/systype.sh
 LICENSE			LICENSE
 MANIFEST		MANIFEST
 mkconfig.7		manual page
 mkconfig.pl		perl config program
 mkconfig.sh		shell config program
 mkconfig.units/		units for mkconfig.sh
-mkconfig.units/include-malloc.sh
-mkconfig.units/include-string.sh
-mkconfig.units/include-time.sh
-mkconfig.units/lang-c.sh
-mkconfig.units/setmntent-args.sh
-mkconfig.units/statfs-args.sh
+mkconfig.units/env-main.sh
+mkconfig.units/env-msgfmt.sh
+mkconfig.units/env-systype.sh
+mkconfig.units/env-cc.sh
+mkconfig.units/env-extension.sh
+mkconfig.units/c-include-time.sh
+mkconfig.units/c-main.sh
+mkconfig.units/c-setmntent-args.sh
+mkconfig.units/c-statfs-args.sh
 README          	README
 runtests.sh		runs regression tests
 shellfuncs.sh		mkconfig functions
