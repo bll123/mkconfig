@@ -13,10 +13,10 @@
 #
 #   The following code is present in the final config.h file:
 #
-#       #if ! _key_void || ! _proto_stdc
+#       #if ! _key_void
 #       # define void int
 #       #endif
-#       #if ! _key_const || ! _proto_stdc
+#       #if ! _key_const
 #       # define const
 #       #endif
 #
@@ -28,6 +28,11 @@
 #       # endif
 #       #endif
 #
+
+_MKCONFIG_PREFIX=c
+_MKCONFIG_HASEMPTY=F
+
+REQLIB="../reqlibs.txt"
 
 precc='
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
@@ -48,6 +53,11 @@ precc='
 
 preconfigfile () {
 
+  echo "CC: ${CC}" >> $LOG
+  echo "CFLAGS: ${CFLAGS}" >> $LOG
+  echo "LDFLAGS: ${LDFLAGS}" >> $LOG
+  echo "LIBS: ${LIBS}" >> $LOG
+
   if [ "${CC}" = "" ]; then
     echo "No compiler specified" >&2
     return
@@ -65,10 +75,10 @@ stdconfigfile () {
   pc_configfile=$1
   cat << _HERE_ >> ${pc_configfile}
 
-#if ! _key_void || ! _proto_stdc
+#if ! _key_void
 # define void int
 #endif
-#if ! _key_const || ! _proto_stdc
+#if ! _key_const
 # define const
 #endif
 
@@ -109,7 +119,7 @@ standard_checks () {
 _print_headers () {
   if [ "${incheaders}" = "all" -o "${incheaders}" = "std" ]; then
       for tnm in '_hdr_stdio' '_hdr_stdlib' '_sys_types' '_sys_param'; do
-          tval=`getdata cfg ${tnm}`
+          tval=`getdata ${_MKCONFIG_PREFIX} ${tnm}`
           if [ "${tval}" != "0" -a "${tval}" != "" ]; then
               echo "#include <${tval}>"
           fi
@@ -118,26 +128,13 @@ _print_headers () {
 
   if [ "${incheaders}" = "all" -a -f "$VARSFILE" ]; then
       for cfgvar in `cat $VARSFILE`; do
-          hdval=`getdata cfg ${cfgvar}`
+          hdval=`getdata ${_MKCONFIG_PREFIX} ${cfgvar}`
           case ${cfgvar} in
               _hdr_stdio|_hdr_stdlib|_sys_types|_sys_param)
                   ;;
-              _hdr_malloc)
-                  imval=`getdata cfg '_include_malloc'`
-                  if [ "${imval}" != "0" ]; then
-                    echo "#include <${hdval}>"
-                  fi
-                  ;;
-              _hdr_strings)
-                  hsval=`getdata cfg '_hdr_string'`
-                  isval=`getdata cfg '_include_string'`
-                  if [ "${hsval}" = "0" -o "${isval}" != "0" ]; then
-                    echo "#include <${hdval}>"
-                  fi
-                  ;;
               _sys_time)
-                  htval=`getdata cfg '_hdr_time'`
-                  itval=`getdata cfg '_include_time'`
+                  htval=`getdata ${_MKCONFIG_PREFIX} '_hdr_time'`
+                  itval=`getdata ${_MKCONFIG_PREFIX} '_include_time'`
                   if [ "${htval}" = "0" -o "${itval}" != "0" ]; then
                     echo "#include <${hdval}>"
                   fi
@@ -283,7 +280,7 @@ do_check_compile () {
       try="1"
   fi
   printyesno $name $try
-  setdata cfg "${name}" "${try}"
+  setdata ${_MKCONFIG_PREFIX} "${name}" "${try}"
 }
 
 check_hdr () {
@@ -310,7 +307,7 @@ check_hdr () {
   file=$hdr
 
   printlabel $name "header: ${file}"
-  checkcache $name
+  checkcache ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
 
   code=""
@@ -336,7 +333,7 @@ main () { exit (0); }
       val=${file}
   fi
   printyesno $name $val
-  setdata cfg "${name}" "${val}"
+  setdata ${_MKCONFIG_PREFIX} "${name}" "${val}"
 }
 
 check_sys () {
@@ -352,7 +349,7 @@ check_const () {
   name=$nm
 
   printlabel $name "constant: ${constant}"
-  checkcache $name
+  checkcache ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
 
   code=""
@@ -376,7 +373,7 @@ check_key () {
   name="_key_${keyword}"
 
   printlabel $name "keyword: ${keyword}"
-  checkcache $name
+  checkcache ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
 
   code="main () { int ${keyword}; ${keyword} = 1; exit (0); }"
@@ -389,14 +386,14 @@ check_key () {
     trc=1
   fi
   printyesno $name $trc
-  setdata cfg "${name}" "${trc}"
+  setdata ${_MKCONFIG_PREFIX} "${name}" "${trc}"
 }
 
 check_proto () {
   name=$1
 
   printlabel $name "supported: prototypes"
-  checkcache $name
+  checkcache ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
 
   code='
@@ -416,7 +413,7 @@ check_typ () {
   name=$nm
 
   printlabel $name "type: ${type}"
-  checkcache $name
+  checkcache ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
 
   code="
@@ -437,7 +434,7 @@ check_member () {
   name=$nm
 
   printlabel $name "exists: ${struct}.${member}"
-  checkcache $name
+  checkcache ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
 
   code="main () { struct ${struct} s; int i; i = sizeof (s.${member}); }"
@@ -455,7 +452,7 @@ check_size () {
   name=$nm
 
   printlabel $name "sizeof: ${type}"
-  checkcache_val $name
+  checkcache_val ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
 
   code="main () { printf(\"%u\", sizeof(${type})); exit (0); }"
@@ -466,7 +463,7 @@ check_size () {
     val=0
   fi
   printyesno_val $name $val
-  setdata cfg "${name}" "${val}"
+  setdata ${_MKCONFIG_PREFIX} "${name}" "${val}"
 }
 
 check_dcl () {
@@ -486,7 +483,7 @@ check_int_declare () {
   function=$2
 
   printlabel $name "declared: ${function}"
-  checkcache $name
+  checkcache ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
 
   code="main () { int x; x = ${function}; }"
@@ -498,7 +495,7 @@ check_ptr_declare () {
   function=$2
 
   printlabel $name "declared: ${function}"
-  checkcache $name
+  checkcache ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
 
   code="main () { _VOID_ *x; x = ${function}; }"
@@ -508,9 +505,10 @@ check_ptr_declare () {
 check_npt () {
   func=$2
   req=$3
+
   has=1
   if [ "${req}" != "" ]; then
-    has=`getdata cfg "${req}"`
+    has=`getdata ${_MKCONFIG_PREFIX} "${req}"`
   fi
   nm="_npt_${func}"
 
@@ -518,11 +516,11 @@ check_npt () {
   proto=$func
 
   printlabel $name "need prototype: ${proto}"
-  checkcache $name
+  checkcache ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
 
   if [ ${has} -eq 0 ]; then
-    setdata cfg "${name}" "0"
+    setdata ${_MKCONFIG_PREFIX} "${name}" "0"
     printyesno $name 0
     return
   fi
@@ -550,7 +548,7 @@ check_lib () {
       printlabel $name "function: ${rfunc} [${otherlibs}]"
   else
       printlabel $name "function: ${rfunc}"
-      checkcache $name
+      checkcache ${_MKCONFIG_PREFIX} $name
       if [ $rc -eq 0 ]; then return; fi
   fi
 
@@ -558,8 +556,10 @@ check_lib () {
   # unfortunately, this does not work if the function
   # is not declared.
   code="
+_BEGIN_EXTERNS_
 typedef int (*_TEST_fun_)();
 static _TEST_fun_ i=(_TEST_fun_) ${func};
+_END_EXTERNS_
 main () {  i(); return (i==0); }
 "
 
@@ -574,8 +574,35 @@ main () {  i(); return (i==0); }
     tag=" with ${dlibs}"
     reqlibs="${reqlibs} ${dlibs}"
   fi
+
+  if [ ${trc} -eq 0 -a "$_MKCONFIG_TEST_EXTERN" != "" ]; then
+    # Normally, we don't want to do this, as
+    # on some systems we can get spurious errors
+    # where the lib does not exist and the link works!
+    # On modern systems, this simply isn't necessary.
+    code="
+_BEGIN_EXTERNS_
+  extern int ${func}();
+  typedef int (*_TEST_fun_)();
+  static _TEST_fun_ i=(_TEST_fun_) ${func};
+_END_EXTERNS_
+  main () {  i(); return (i==0); }
+  "
+    incheaders=all
+    dlibs=`_chk_link_libs "${name}" "${code}"`
+    rc=$?
+    if [ $rc -eq 0 ]; then
+        trc=1
+    fi
+    tag=""
+    if [ $rc -eq 0 -a "$dlibs" != "" ]; then
+      tag=" with ${dlibs}"
+      reqlibs="${reqlibs} ${dlibs}"
+    fi
+  fi
+
   printyesno $name $trc "$tag"
-  setdata cfg "${name}" "${trc}"
+  setdata ${_MKCONFIG_PREFIX} "${name}" "${trc}"
   return $trc
 }
 
@@ -596,7 +623,7 @@ check_class () {
       printlabel $name "class: ${class} [${otherlibs}]"
   else
       printlabel $name "class: ${class}"
-      checkcache $name
+      checkcache ${_MKCONFIG_PREFIX} $name
       if [ $rc -eq 0 ]; then return; fi
   fi
 
@@ -612,6 +639,36 @@ check_class () {
       reqlibs="${reqlibs} ${dlibs}"
   fi
   printyesno $name $trc "$tag"
-  setdata cfg "${name}" "${trc}"
+  setdata ${_MKCONFIG_PREFIX} "${name}" "${trc}"
 }
 
+output_item () {
+  out=$1
+  name=$2
+  val=$3
+
+  tval=0
+  if [ "$val" != "0" ]; then
+    tval=1
+  fi
+  case ${name} in
+    _hdr*|_sys*|_command*)
+      echo "#define ${name} ${tval}" >> ${out}
+      ;;
+    *)
+      echo "#define ${name} ${val}" >> ${out}
+      ;;
+  esac
+}
+
+output_other () {
+  out=$1
+
+  > $REQLIB
+  echo $reqlibs >> $REQLIB
+}
+
+set_other_name () {
+  arg=$1
+  eval $arg
+}
