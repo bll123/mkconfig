@@ -1,4 +1,4 @@
-output test_08.ctest
+output multlib.ctest
 loadunit c-main
 standard
 hdr tst2libb.h
