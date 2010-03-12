@@ -1,5 +1,5 @@
 output test_08.ctest
-loadunit lang-c
+loadunit c-main
 standard
 hdr tst2libb.h
 hdr tst2libc.h
