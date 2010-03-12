@@ -678,8 +678,3 @@ output_other () {
   > $REQLIB
   echo $reqlibs >> $REQLIB
 }
-
-set_other_name () {
-  arg=$1
-  eval $arg
-}

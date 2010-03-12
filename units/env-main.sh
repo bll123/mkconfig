@@ -38,8 +38,3 @@ output_item () {
 output_other () {
   return
 }
-
-set_other_name () {
-  arg=$1
-  eval $arg
-}
