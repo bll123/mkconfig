@@ -1,6 +1,7 @@
 mkconfig - configuration tool (version 1.2).
 
-Please e-mail any configuration units to bll6969di_at_gmail.com.
+Please e-mail any configuration units and the corresponding
+manual page entry to bll6969di_at_gmail.com.
 They will be included in the next release.
 Please try to give them a name that reflects what the unit does.
 If you have a test that can verify the unit works, please include
@@ -8,10 +9,11 @@ that also.
 
 CHANGES
 
-    1.2                                     [7 mar 2010]
-        Force type of shell used during build (for performance reasons).
+    1.2                                     [12 mar 2010]
         Rewrite mkconfig.sh to use unit scripts and increase performance.
-        Add environment.sh.
+        Add environment units.
+        Force type of shell used during build (for performance reasons).
+        Allow _MKCONFIG_SHELL to override shell.
 
     1.1 (di ver 4.19)                       [1 Feb 2010]
         Changed format of config.h file.
