@@ -171,17 +171,6 @@ print_headers
             {
                 next;
             }
-            if ($val eq '_hdr_malloc' &&
-                $r_config->{'_include_malloc'} eq '0')
-            {
-                next;
-            }
-            if ($val eq '_hdr_strings' &&
-                $r_config->{'_hdr_string'} ne '0' &&
-                $r_config->{'_include_string'} eq '0')
-            {
-                next;
-            }
             if ($val eq '_sys_time' &&
                 $r_config->{'_hdr_time'} ne '0' &&
                 $r_config->{'_include_time'} eq '0')
@@ -496,61 +485,6 @@ check_command
         }
     }
     printyesno $name, $r_config->{$name};
-}
-
-# malloc.h conflicts w/string.h on some systems.
-sub
-check_include_malloc
-{
-    my ($name, $r_clist, $r_config) = @_;
-
-    if (defined ($r_config->{'_hdr_malloc'}) &&
-        $r_config->{'_hdr_malloc'} ne '0' &&
-        defined ($r_config->{'_hdr_string'}) &&
-        $r_config->{'_hdr_string'} ne '0')
-    {
-        printlabel $name, "header: include malloc.h";
-        if (checkcache ($name, $r_config) == 0)
-        {
-            return;
-        }
-
-        my $code = <<"_HERE_";
-main () { char *x; x = (char *) malloc (20); }
-_HERE_
-        do_check_compile ($name, $code, 'std', $r_clist, $r_config);
-    } else {
-        setlist $r_clist, $name;
-        $r_config->{$name} = 0;
-    }
-}
-
-sub
-check_include_string
-{
-    my ($name, $r_clist, $r_config) = @_;
-
-    if (defined ($r_config->{'_hdr_string'}) &&
-        $r_config->{'_hdr_string'} ne '0' &&
-        defined ($r_config->{'_hdr_strings'}) &&
-        $r_config->{'_hdr_strings'} ne '0')
-    {
-        printlabel $name, "header: include both string.h & strings.h";
-        if (checkcache ($name, $r_config) == 0)
-        {
-            return;
-        }
-
-        my $code = <<"_HERE_";
-#include <string.h>
-#include <strings.h>
-main () { char *x; x = "xyz"; strcat (x, "abc"); }
-_HERE_
-        do_check_compile ($name, $code, 'std', $r_clist, $r_config);
-    } else {
-        setlist $r_clist, $name;
-        $r_config->{$name} = 0;
-    }
 }
 
 sub
@@ -1045,14 +979,6 @@ create_config
         {
             check_statfs_args ('_statfs_args', \%clist, \%config);
         }
-        elsif ($line =~ m#^include_malloc#o)
-        {
-            check_include_malloc ('_include_malloc', \%clist, \%config);
-        }
-        elsif ($line =~ m#^include_string#o)
-        {
-            check_include_string ('_include_string', \%clist, \%config);
-        }
         elsif ($line =~ m#^include_time#o)
         {
             check_include_time ('_include_time', \%clist, \%config);
@@ -1226,10 +1152,10 @@ _HERE_
     # standard tail -- always needed; non specific
     print CCOFH <<'_HERE_';
 
-#if ! _key_void || ! _proto_stdc
+#if ! _key_void
 # define void int
 #endif
-#if ! _key_const || ! _proto_stdc
+#if ! _key_const
 # define const
 #endif
 
