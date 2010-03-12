@@ -1,5 +1,5 @@
 output test_07.ctest
-loadunit lang-c
+loadunit c-main
 standard
 hdr tst1lib.h
 lib tst1lib -ltst1lib

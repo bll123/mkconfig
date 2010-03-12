@@ -1,7 +1,7 @@
 # test mkconfig caching
 
 output test_09.ctest
-loadunit lang-c
+loadunit c-main
 standard
 
 hdr     ctype.h
