@@ -222,11 +222,7 @@ _chk_link_libs () {
 _chk_link () {
   name=$1
 
-  cmd="${CC} ${CFLAGS} "
-  if [ "${cflags}" != "" ]; then
-      cmd="${cmd} ${cflags} "
-  fi
-  cmd="${cmd} -o ${name}.exe ${name}.c "
+  cmd="${CC} ${CFLAGS} -o ${name}.exe ${name}.c "
   cmd="${cmd} ${LDFLAGS} ${LIBS} "
   _clotherlibs="$otherlibs"
   if [ "${_clotherlibs}" != "" ]; then
