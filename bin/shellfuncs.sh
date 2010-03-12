@@ -25,6 +25,7 @@ testshcapability () {
   shhasappend=0
   shhasparamsub=0
   shhasmath=0
+  shhasupper=0
   (eval "x=a;x+=b; test z\$x = zab") 2>/dev/null
   if [ $? -eq 0 ]; then
     shhasappend=1
@@ -45,6 +46,11 @@ testshcapability () {
   if [ $? -eq 0 ]; then
     shhasmath=1
     eval 'domath () { expr=$1; val=$(($expr)); echo $val; }'
+  fi
+  (eval "typeset -u var;var=x;test z\$var = zX") 2>/dev/null
+  if [ $? -eq 0 ]; then
+    shhasupper=1
+    eval 'toupper () { val=$1; typeset -u uval;uval=$val;echo $uval; }'
   fi
 }
 
@@ -84,11 +90,9 @@ getshelltype () {
         shell=pdksh
         ;;
     esac
-  fi
-  if [ "$BASH_VERSION" != "" ]; then
+  elif [ "$BASH_VERSION" != "" ]; then
     shell=bash
-  fi
-  if [ "$ZSH_VERSION" != "" ]; then
+  elif [ "$ZSH_VERSION" != "" ]; then
     shell=zsh
   fi
   echo $shell
@@ -97,6 +101,17 @@ getshelltype () {
 testshell () {
   rc=0
   shell=$1
+
+  # force shell type.
+  if [ "$_MKCONFIG_SHELL" != "" ]; then
+    if [ "$SHELL" != "$_MKCONFIG_SHELL" ]; then
+      SHELL="$_MKCONFIG_SHELL"
+      export SHELL
+      rc=1
+    fi
+    return $rc
+  fi
+
   ok=1
   if [ "$shell" = "pdksh" ]; then   # often broken
     ok=0
@@ -106,11 +121,17 @@ testshell () {
   fi
 
   if [ $ok -eq 0 ]; then
-    SHELL=/bin/sh
+    # if this system is old enough to have /bin/sh5,
+    # we want it in preference to other shells
+    if [ -f /bin/sh5 ]; then
+      SHELL=/bin/sh5
+    else
+      SHELL=/bin/sh
+    fi
     rc=1
   fi
 
-  # bash is slow.
+  # bash is really slow, replace it if possible.
   if [ $ok -eq 0 -o $shell = "bash" ]; then
     noksh=0
     if [ -x /usr/bin/ksh ]; then
@@ -137,12 +158,6 @@ testshell () {
     fi
   fi
 
-  # force shell type.
-  if [ "$_MKCONFIG_SHELL" != "" ]; then
-    SHELL="$_MKCONFIG_SHELL"
-    rc=1
-  fi
-
   # make sure SHELL env var is set.
   if [ $rc -eq 0 ]; then
     wsh=`locatecmd $shell`
@@ -164,9 +179,21 @@ doshelltest () {
 
 locatecmd () {
   tcmd=$1
+
+#set -x
+#set | grep int_cmd >&2
+#  cmd="echo \${di_int_cmd_${tcmd}}"
+#  gdval=`eval $cmd`
+#  if [ "$gdval" != "" ]; then
+#    echo $gdval
+#    return
+#  fi
+#set +x
+
   if [ "$pthlist" = "" ]; then
     pthlist=`dosubst "$PATH" ';' ' ' ':' ' '`
   fi
+
   trc=""
   for p in $pthlist; do
     if [ -x "$p/$tcmd" ]; then
@@ -174,6 +201,14 @@ locatecmd () {
       break
     fi
   done
+#set -x
+#  cmd="di_int_cmd_${tcmd}=\"${trc}\""
+#  eval "$cmd"
+#set +x
   echo $trc
 }
 
+toupper () {
+  val=$1
+  echo `echo $val | tr '[a-z]' '[A-Z]'`
+}
