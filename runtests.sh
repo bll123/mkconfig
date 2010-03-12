@@ -50,7 +50,7 @@ test -d "$RUNTMP" && rm -rf "$RUNTMP"
 mkdir $RUNTMP
 > $RUNLOG
 
-tot=`wc -l test_order | sed 's/ .*//'`
+tot=`wc -l test_order | sed -e 's/^ *//' -e 's/ .*//'`
 pass=1
 count=0
 fcount=0
@@ -171,6 +171,9 @@ done
 
 if [ $fcount -eq 0 ]; then
   rm -f $RUNLOG
+fi
+if [ $count -eq 0 ]; then  # this can't be right...
+  $fcount = -1
 fi
 
 echo "$count tests $fcount failures"
