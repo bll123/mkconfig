@@ -31,6 +31,8 @@
 
 _MKCONFIG_PREFIX=c
 _MKCONFIG_HASEMPTY=F
+PH_PREFIX="mkc_ph."
+PH_STD=F
 
 REQLIB="../reqlibs.txt"
 
@@ -111,17 +113,28 @@ standard_checks () {
   check_hdr hdr "stdlib.h"
   check_hdr sys "types.h"
   check_hdr sys "param.h"
+  PH_STD=T
   check_key key "void"
   check_key key "const"
   check_proto "_proto_stdc"
 }
 
 _print_headers () {
+  incheaders=$1
+
+  out="${PH_PREFIX}${incheaders}"
+
+  if [ -f $out ]; then
+    cat $out
+    return
+  fi
+
+  > $out
   if [ "${incheaders}" = "all" -o "${incheaders}" = "std" ]; then
       for tnm in '_hdr_stdio' '_hdr_stdlib' '_sys_types' '_sys_param'; do
           tval=`getdata ${_MKCONFIG_PREFIX} ${tnm}`
           if [ "${tval}" != "0" -a "${tval}" != "" ]; then
-              echo "#include <${tval}>"
+              echo "#include <${tval}>" >> $out
           fi
       done
   fi
@@ -136,24 +149,30 @@ _print_headers () {
                   htval=`getdata ${_MKCONFIG_PREFIX} '_hdr_time'`
                   itval=`getdata ${_MKCONFIG_PREFIX} '_include_time'`
                   if [ "${htval}" = "0" -o "${itval}" != "0" ]; then
-                    echo "#include <${hdval}>"
+                    echo "#include <${hdval}>" >> $out
                   fi
                   ;;
               _hdr_*|_sys_*)
                   if [ "${hdval}" != "0" -a "${hdval}" != "" ]; then
-                      echo "#include <${hdval}>"
+                    echo "#include <${hdval}>" >> $out
                   fi
                   ;;
           esac
       done
+  fi
+
+  cat $out
+  if [ "$PH_STD" = "F" ]; then
+    rm -f $out
   fi
 }
 
 _chk_run () {
   name=$1
   code=$2
+  inc=$3
 
-  _chk_link_libs "${name}" "${code}" > /dev/null
+  _chk_link_libs "${name}" "${code}" $inc > /dev/null
   rc=$?
   echo "##  run test: link: $rc" >> $LOG
   rval=0
@@ -172,7 +191,8 @@ _chk_run () {
 _chk_link_libs () {
   name=$1
   code=$2
-  shift;shift
+  inc=$3
+  shift;shift;shift
 
   ocounter=0
   clotherlibs=$otherlibs
@@ -185,7 +205,7 @@ _chk_link_libs () {
 
   > ${name}.c
   echo "${precc}" >> ${name}.c
-  _print_headers >> ${name}.c
+  _print_headers $inc >> ${name}.c
   echo "${code}" | sed 's/_dollar_/$/g' >> ${name}.c
   cat ${name}.c >> $LOG
 
@@ -247,10 +267,11 @@ _chk_link () {
 _chk_compile () {
   name=$1
   code=$2
+  inc=$3
 
   > ${name}.c
   echo "${precc}" >> ${name}.c
-  _print_headers >> ${name}.c
+  _print_headers $inc >> ${name}.c
   echo "${code}" >> ${name}.c
 
   cmd="${CC} ${CFLAGS} -c ${name}.c"
@@ -268,8 +289,7 @@ do_check_compile () {
   code="$2"
   inc="$3"
 
-  incheaders=${inc}
-  _chk_compile "${name}" "${code}"
+  _chk_compile "${name}" "${code}" $inc
   rc=$?
   try="0"
   if [ $rc -eq 0 ]; then
@@ -321,8 +341,7 @@ check_hdr () {
 main () { exit (0); }
 "
   rc=1
-  incheaders=std
-  _chk_compile "${name}" "${code}"
+  _chk_compile "${name}" "${code}" std
   rc=$?
   val="0"
   if [ $rc -eq 0 ]; then
@@ -374,8 +393,7 @@ check_key () {
 
   code="main () { int ${keyword}; ${keyword} = 1; exit (0); }"
 
-  incheaders=std
-  _chk_compile "${name}" "${code}"
+  _chk_compile "${name}" "${code}" std
   rc=$?
   trc=0
   if [ $rc -ne 0 ]; then  # failure means it is reserved...
@@ -399,7 +417,7 @@ _END_EXTERNS_
 int bar () { int rc; rc = foo (1,1); return 0; }
 '
 
-  do_check_compile "${name}" "${code}" all
+  do_check_compile "${name}" "${code}" std
 }
 
 check_typ () {
@@ -453,7 +471,7 @@ check_size () {
 
   code="main () { printf(\"%u\", sizeof(${type})); exit (0); }"
   val=0
-  val=`_chk_run "${name}" "${code}"`
+  val=`_chk_run "${name}" "${code}" all`
   rc=$?
   if [ $rc -ne 0 ]; then
     val=0
@@ -559,8 +577,7 @@ _END_EXTERNS_
 main () {  i(); return (i==0); }
 "
 
-  incheaders=all
-  dlibs=`_chk_link_libs "${name}" "${code}"`
+  dlibs=`_chk_link_libs "${name}" "${code}" all`
   rc=$?
   if [ $rc -eq 0 ]; then
       trc=1
@@ -584,8 +601,7 @@ _BEGIN_EXTERNS_
 _END_EXTERNS_
   main () {  i(); return (i==0); }
   "
-    incheaders=all
-    dlibs=`_chk_link_libs "${name}" "${code}"`
+    dlibs=`_chk_link_libs "${name}" "${code}" all`
     rc=$?
     if [ $rc -eq 0 ]; then
         trc=1
@@ -623,8 +639,7 @@ check_class () {
       if [ $rc -eq 0 ]; then return; fi
   fi
 
-  incheaders=all
-  _chk_link_libs "${name}" "${code}" > /dev/null
+  _chk_link_libs "${name}" "${code}" all > /dev/null
   rc=$?
   if [ $rc -eq 0 ]; then
       trc=1
