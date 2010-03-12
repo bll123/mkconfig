@@ -5,7 +5,7 @@ echo ${EN} "compile mkconfig units${EC}" >&3
 
 grc=0
 
-cd ../mkconfig.units
+cd $RUNTOPDIR/mkconfig.units
 for f in *.sh; do
   /bin/sh -n $f
   rc=$?
