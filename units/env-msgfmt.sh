@@ -12,7 +12,9 @@ require_unit env-main
 check_cmd_msgfmt () {
   name="$1"
 
-  printlabel $name "command: locate msgfmt or gmsgfmt"
+  name=XMSGFMT
+
+  printlabel $name "command: locate msgfmt"
   checkcache_val ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
 
@@ -33,6 +35,6 @@ check_cmd_msgfmt () {
       fi
   fi
 
-  printyesno_val XMSGFMT $XMSGFMT
-  setdata ${_MKCONFIG_PREFIX} "XMSGFMT" "${XMSGFMT}"
+  printyesno_val XMSGFMT $xmsgfmt
+  setdata ${_MKCONFIG_PREFIX} "XMSGFMT" "${xmsgfmt}"
 }
