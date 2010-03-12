@@ -5,16 +5,12 @@
 # Copyright 2009-2010 Brad Lanam Walnut Creek, CA USA
 #
 
-
 mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
 . ${mypath}/shellfuncs.sh
 
 LOG="mkconfig.log"
-REQLIB="reqlibs.txt"
-TMP="_tmp_mkconfig"
+_MKCONFIG_TMP="_tmp_mkconfig"
 CACHEFILE="mkconfig.cache"
-VARSFILE="mkconfig.vars"
-datafile=""
 
 INC="include.txt"                   # temporary
 
@@ -36,19 +32,9 @@ savecache () {
     # command like bash does.  So we do it.
     # Then we have to undo it for bash.
     # And then there's: x='', which gets munged.
-    set | grep "^di_cfg" | \
+    set | grep "^di_" | \
       sed -e "s/=/='/" -e "s/$/'/" -e "s/''/'/g" -e "s/='$/=''/" \
       > "${CACHEFILE}"
-}
-
-cleardata () {
-    prefix=$1
-    if [ -f $VARSFILE ]; then
-      for tval in `cat $VARSFILE`; do
-          eval unset di_${prefix}_${tval}
-      done
-      rm -f $VARSFILE
-    fi
 }
 
 setdata () {
@@ -61,10 +47,19 @@ setdata () {
     rc=$?
     # if already in the list of vars, don't add it again.
     if [ $rc -ne 0 ]; then
-      echo $sdname >> $VARSFILE
+      if [ "$_MKCONFIG_HASEMPTY" = "T" ]; then
+        # have to check again, as empty vars don't work for the above test.
+        # need a better way to do this.
+        grep -l "^${sdname}$" $VARSFILE > /dev/null 2>&1
+        rc=$?
+      fi
+      if [ $rc -ne 0 ]; then
+        echo "${sdname}" >> $VARSFILE
+      fi
     fi
     cmd="di_${prefix}_${sdname}=\"${sdval}\""
     eval "$cmd"
+    echo "   set: $cmd" >> $LOG
 }
 
 getdata () {
@@ -80,7 +75,7 @@ printlabel () {
   tname="$1"
   tlabel="$2"
 
-  echo "## [${tname}] ${tlabel} ... " >> $LOG
+  echo "   [${tname}] ${tlabel} ... " >> $LOG
   echo ${EN} "${tlabel} ... ${EC}"
 }
 
@@ -90,10 +85,10 @@ printyesno_val () {
   yntag="${3:-}"
 
   if [ "$ynval" != "0" ]; then
-    echo "## [${ynname}] $ynval ${yntag}" >> $LOG
+    echo "   [${ynname}] $ynval ${yntag}" >> $LOG
     echo "$ynval ${yntag}"
   else
-    echo "## [${ynname}] no ${yntag}" >> $LOG
+    echo "   [${ynname}] no ${yntag}" >> $LOG
     echo "no ${yntag}"
   fi
 }
@@ -110,9 +105,10 @@ printyesno () {
 }
 
 checkcache_val () {
-  tname=$1
+  prefix=$1
+  tname=$2
 
-  tval=`getdata cfg $tname`
+  tval=`getdata ${prefix} ${tname}`
   rc=1
   if [ "$tval" != "" ]; then
     printyesno_val $tname $tval " (cached)"
@@ -122,9 +118,10 @@ checkcache_val () {
 }
 
 checkcache () {
-  tname=$1
+  prefix=$1
+  tname=$2
 
-  tval=`getdata cfg $tname`
+  tval=`getdata ${prefix} ${tname}`
   rc=1
   if [ "$tval" != "" ]; then
     printyesno $tname $tval " (cached)"
@@ -144,7 +141,7 @@ check_command () {
     trc=`locatecmd "$cmd"`
     if [ "$trc" = "" ]; then trc=0; fi
     printyesno $name $trc
-    setdata cfg "${name}" "${trc}"
+    setdata ${_MKCONFIG_PREFIX} "${name}" "${trc}"
 }
 
 require_unit () {
@@ -184,11 +181,10 @@ doloadunit () {
 
 create_config () {
     configfile=$1
-    cleardata cfg
 
     reqlibs=""
 
-    if [ -f "$CACHEFILE" -a -f "$VARSFILE" ]; then
+    if [ -f "$CACHEFILE" ]; then
       . $CACHEFILE
     fi
 
@@ -202,11 +198,11 @@ create_config () {
       hasifs=1
     fi
     > $INC
-    # save stdin in fd 5.
+    # save stdin in fd 7.
     # and reset stdin to get from the configfile.
     # this allows us to run the while loop in the
     # current shell rather than a subshell.
-    exec 5<&0 < ../${configfile}
+    exec 7<&0 < ../${configfile}
     while read tdatline; do
       linenumber=`domath "$linenumber + 1"`
 
@@ -260,6 +256,9 @@ create_config () {
             type=$1
             file=$2
             doloadunit ${file} N
+            if [ "$VARSFILE" = "" -a "${_MKCONFIG_PREFIX}" != "" ]; then
+              VARSFILE="../mkconfig_${_MKCONFIG_PREFIX}.vars"
+            fi
             ;;
           standard)
             chkconfigfname
@@ -290,7 +289,7 @@ create_config () {
       fi
     done
     # reset the file descriptors back to the norm.
-    exec <&5 5<&-
+    exec <&7 7<&-
 
     savecache  # save the cache file.
 
@@ -298,23 +297,11 @@ create_config () {
     preconfigfile ${CONFH}
 
     for cfgvar in `cat $VARSFILE`; do
-      val=`getdata cfg $cfgvar`
-      tval=0
-      if [ "$val" != "0" ]; then
-        tval=1
-      fi
-      case ${cfgvar} in
-        _hdr*|_sys*|_command*)
-          echo "#define ${cfgvar} ${tval}" >> ${CONFH}
-          ;;
-        *)
-          echo "#define ${cfgvar} ${val}" >> ${CONFH}
-          ;;
-      esac
+      val=`getdata ${_MKCONFIG_PREFIX} $cfgvar`
+      output_item ${CONFH} "${cfgvar}" "${val}"
     done
 
-    > $REQLIB
-    echo $reqlibs >> $REQLIB
+    output_other ${CONFH}
 
     # standard header for all...
     stdconfigfile ${CONFH}
@@ -323,17 +310,16 @@ create_config () {
 }
 
 usage () {
-  echo "Usage: $0 [-c <cache-file>] [-v <vars-file>]"
-  echo "       [-l <log-file>] [-t <tmp-dir>] [-r <reqlib-file>]"
-  echo "       [-C] <config-file>"
-  echo "  -C : clear cache-file"
-  echo "<tmp-dir> must not exist."
-  echo "defaults:"
-  echo "  <cache-file> : mkconfig.cache"
-  echo "  <vars-file>  : mkconfig.vars"
-  echo "  <log-file>   : mkconfig.log"
-  echo "  <tmp-dir>    : _tmp_mkconfig"
-  echo "  <reqlib-file>: reqlibs.txt"
+  cat << _HERE_
+Usage: $0 [-c <cache-file>] [-l <log-file>]
+       [-t <tmp-dir>] [-s <other-name>=<other-file>]
+       [-C] <config-file>
+  -C : clear cache-file
+defaults:"
+  <cache-file> : mkconfig.cache
+  <log-file>   : mkconfig.log
+  <tmp-dir>    : _tmp_mkconfig;  <tmp-dir> must not exist."
+_HERE_
 }
 
 # main
@@ -364,14 +350,9 @@ while test $# -gt 1; do
       TMP="$1"
       shift
       ;;
-    -r)
+    -s)
       shift
-      REQLIB="$1"
-      shift
-      ;;
-    -v)
-      shift
-      VARSFILE="$1"
+      set_other_name $1
       shift
       ;;
   esac
@@ -383,39 +364,44 @@ if [ $# -ne 1 ] || [ ! -f $configfile  ]; then
   usage
   exit 1
 fi
-if [ -d $TMP -a $TMP != "_tmp_mkconfig" ]; then
-  echo "$TMP must not exist."
+if [ -d $_MKCONFIG_TMP -a $_MKCONFIG_TMP != "_tmp_mkconfig" ]; then
+  echo "$_MKCONFIG_TMP must not exist."
   usage
   exit 1
 fi
 
-test -d $TMP && rm -rf $TMP > /dev/null 2>&1
-mkdir $TMP
-cd $TMP
+test -d $_MKCONFIG_TMP && rm -rf $_MKCONFIG_TMP > /dev/null 2>&1
+mkdir $_MKCONFIG_TMP
+cd $_MKCONFIG_TMP
 
 LOG="../$LOG"
 REQLIB="../$REQLIB"
 CACHEFILE="../$CACHEFILE"
-VARSFILE="../$VARSFILE"
 
 if [ $clearcache -eq 1 ]; then
   rm -f $CACHEFILE > /dev/null 2>&1
-  rm -f $VARSFILE > /dev/null 2>&1
+  rm -f ../mkconfig_*.vars > /dev/null 2>&1
 fi
 
+dt=`date`
+echo "#### " >> $LOG
+echo "# Start: $dt " >> $LOG
+echo "# $0 ($shell) using $configfile " >> $LOG
+echo "#### " >> $LOG
+
 echo "$0 ($shell) using $configfile"
-rm -f $LOG > /dev/null 2>&1
-CFLAGS="${CFLAGS} ${CINCLUDES}"
-echo "CC: ${CC}" >> $LOG
-echo "CFLAGS: ${CFLAGS}" >> $LOG
-echo "LDFLAGS: ${LDFLAGS}" >> $LOG
-echo "LIBS: ${LIBS}" >> $LOG
-echo "sh has append: ${shhasappend}" >> $LOG
-echo "sh has paramsub: ${shhasparamsub}" >> $LOG
-echo "sh has math: ${shhasmath}" >> $LOG
+echo "$shell has append: ${shhasappend}" >> $LOG
+echo "$shell has paramsub: ${shhasparamsub}" >> $LOG
+echo "$shell has math: ${shhasmath}" >> $LOG
+echo "$shell has upper: ${shhasupper}" >> $LOG
 
 create_config $configfile
 
+dt=`date`
+echo "#### " >> $LOG
+echo "# End: $dt " >> $LOG
+echo "#### " >> $LOG
+
 cd ..
-test -d $TMP && rm -rf $TMP > /dev/null 2>&1
+test -d $_MKCONFIG_TMP && rm -rf $_MKCONFIG_TMP > /dev/null 2>&1
 exit 0
