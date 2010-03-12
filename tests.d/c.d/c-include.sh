@@ -3,12 +3,12 @@
 script=$@
 
 echo ${EN} "include${EC}" >&3
-eval "${script} -C test_06.dat"
+eval "${script} -C $RUNTESTDIR/include.dat"
 echo "## diff"
-cat test_06.ctest | sed -e '/^#define _key_/d' -e '/^#define _proto_/d' > t
-mv t test_06.ctest
-diff -b test_06.ctmp test_06.ctest
+cat include.ctest | sed -e '/^#define _key_/d' -e '/^#define _proto_/d' > t
+mv t include.ctest
+diff -b include.ctmp include.ctest
 rc=$?
 echo "## config.h"
-cat test_06.ctest
+cat include.ctest
 exit $rc

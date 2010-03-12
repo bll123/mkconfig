@@ -5,15 +5,11 @@ echo ${EN} "w/single lib${EC}" >&3
 
 grc=0
 
-TMP=_tmp_test_07
-test -d $TMP && rm -rf $TMP
-mkdir $TMP
+set -x
 
-CFLAGS="-I../$TMP ${CFLAGS}"
-LDFLAGS="-L../$TMP ${LDFLAGS}"
+CFLAGS="-I$RUNTMPDIR ${CFLAGS}"
+LDFLAGS="-L$RUNTMPDIR ${LDFLAGS}"
 export CFLAGS LDFLAGS
-
-cd $TMP
 
 cat > tst1lib.h <<_HERE_
 int tst1lib ();
@@ -28,31 +24,26 @@ _HERE_
 ${CC} -c ${CFLAGS} tst1lib.c
 if [ $? -ne 0 ]; then
   echo "compile tst1lib.c failed"
-  cd ..
-  test -d $TMP && rm -rf $TMP
   exit 1
 fi
 ar cq libtst1lib.a tst1lib.o
 
-cd ..
-
-eval "${script} -C test_07.dat"
-cat test_07.ctest | sed -e '/^#define _key_/d' -e '/^#define _proto_/d' > t
-mv t test_07.ctest
+eval "${script} -C $RUNTESTDIR/singlelib.dat"
+cat singlelib.ctest | sed -e '/^#define _key_/d' -e '/^#define _proto_/d' > t
+mv t singlelib.ctest
 echo "## diff 1"
-diff -b test_07.ctmp test_07.ctest
+diff -b singlelib.ctmp singlelib.ctest
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
 
 echo "## diff 2"
-diff -b test_07.reqlibs reqlibs.txt
+diff -b $RUNTESTDIR/singlelib.reqlibs reqlibs.txt
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
 
 echo "## config.h"
-cat test_07.ctest
+cat singlelib.ctest
 echo "## reqlibs.txt"
 cat reqlibs.txt
 
 exit $grc
-
