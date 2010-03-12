@@ -14,7 +14,7 @@ check_objext () {
   name=OBJ_EXT
   printlabel $name "extension: object"
   checkcache_val ${_MKCONFIG_PREFIX} $name
-  if [ $rc -eq 0 ]; then return; fi
+  if [ $? -eq 0 ]; then return; fi
 
   TMP=objext
 
@@ -48,7 +48,7 @@ check_exeext () {
   name=EXE_EXT
   printlabel $name "extension: executable"
   checkcache_val ${_MKCONFIG_PREFIX} $name
-  if [ $rc -eq 0 ]; then return; fi
+  if [ $? -eq 0 ]; then return; fi
 
   TMP=exeext
 
