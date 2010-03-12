@@ -4,15 +4,15 @@ mkconfig.7		manual page
 mkconfig.pl		perl config program
 mkconfig.sh		shell config program
 mkconfig.units/		units for mkconfig.sh
-mkconfig.units/env-main.sh
-mkconfig.units/env-msgfmt.sh
-mkconfig.units/env-systype.sh
-mkconfig.units/env-cc.sh
-mkconfig.units/env-extension.sh
 mkconfig.units/c-include-time.sh
 mkconfig.units/c-main.sh
 mkconfig.units/c-setmntent-args.sh
 mkconfig.units/c-statfs-args.sh
+mkconfig.units/env-cc.sh
+mkconfig.units/env-extension.sh
+mkconfig.units/env-main.sh
+mkconfig.units/env-msgfmt.sh
+mkconfig.units/env-systype.sh
 README          	README
 runtests.sh		runs regression tests
 shellfuncs.sh		mkconfig functions
@@ -20,8 +20,6 @@ tests/			regression tests for mkconfig
 tests/test_01.sh
 tests/test_02.sh
 tests/test_03.sh
-tests/test_04.sh
-tests/test_05.sh
 tests/test_06.config
 tests/test_06.dat
 tests/test_06.mkconfig
