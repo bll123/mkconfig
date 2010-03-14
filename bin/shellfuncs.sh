@@ -95,6 +95,19 @@ getshelltype () {
   elif [ "$ZSH_VERSION" != "" ]; then
     shell=zsh
   fi
+  if [ "$shell" = "sh" ]; then
+    out=`$SHELL --version 2>&1`
+    echo $out | grep 'bash' > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+      shell=bash
+    fi
+    if [ "$shell" = "sh" ]; then
+      echo $out | grep 'AT&T' > /dev/null 2>&1
+      if [ $? -eq 0 ]; then
+        shell=ksh
+      fi
+    fi
+  fi
   echo $shell
 }
 
@@ -125,8 +138,10 @@ testshell () {
     # we want it in preference to other shells
     if [ -f /bin/sh5 ]; then
       SHELL=/bin/sh5
+      shell=sh5
     else
       SHELL=/bin/sh
+      shell=sh
     fi
     rc=1
   fi
@@ -136,12 +151,14 @@ testshell () {
     noksh=0
     if [ -x /usr/bin/ksh ]; then
       SHELL=/usr/bin/ksh
+      shell=ksh
       tcmd="/usr/bin/ksh -c \"echo \\\$KSH_VERSION\""
       vers=`eval ${tcmd}`
       case $vers in
         *PD*)
-          noksh=1
+          noksh=1               # but not w/pdksh; some versions crash
           SHELL=/bin/sh
+          shell=sh
           ;;
         *)
           rc=1
@@ -151,12 +168,15 @@ testshell () {
       noksh=1
     fi
 
+    # either of these are fine...no preference
     if [ $noksh -eq 1 -a -x /bin/ash ]; then
       SHELL=/bin/ash
+      shell=ash
       rc=1
     fi
     if [ $noksh -eq 1 -a -x /bin/dash ]; then
       SHELL=/bin/dash
+      shell=dash
       rc=1
     fi
   fi
