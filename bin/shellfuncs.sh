@@ -96,7 +96,7 @@ getshelltype () {
     shell=zsh
   fi
   if [ "$shell" = "sh" ]; then
-    out=`$SHELL --version 2>&1`
+    out=`$SHELL --version exit 2>&1`
     echo $out | grep 'bash' > /dev/null 2>&1
     if [ $? -eq 0 ]; then
       shell=bash
