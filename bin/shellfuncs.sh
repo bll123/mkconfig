@@ -32,6 +32,8 @@ test_append () {
   fi
 }
 
+# some shells don't do character classes in conjunction
+# with parameter substitution.
 test_paramsub () {
   shhasparamsub=0
   ( eval 'x=bcb;y=${x/c/_};test z${y} = zb_b') 2>/dev/null
@@ -92,8 +94,14 @@ getshelltype () {
     shell=bash
   elif [ "$ZSH_VERSION" != "" ]; then
     shell=zsh
+  elif [ "$POSH_VERSION" != "" ]; then
+    shell=posh
   fi
-  if [ "$shell" = "sh" ]; then
+  # $SHELL is not reset when a new shell or script
+  # is started.  So it can't be depended upon to
+  # determine which shell is running.  So only use
+  # these tests if $SHELL = /bin/sh .
+  if [ "$shell" = "sh" -a "$SHELL" = "/bin/sh" ]; then
     out=`$SHELL --version exit 2>&1`
     echo $out | grep 'bash' > /dev/null 2>&1
     if [ $? -eq 0 ]; then
@@ -139,7 +147,7 @@ testshell () {
       shell=sh5
     else
       SHELL=/bin/sh
-      shell=sh
+      shell=`/bin/sh -c ". $mypath/shellfuncs.sh;getshelltype"`
     fi
     rc=1
   fi
@@ -148,17 +156,14 @@ testshell () {
   if [ $ok -eq 0 -o $shell = "bash" ]; then
     noksh=0
     if [ -x /usr/bin/ksh ]; then
-      SHELL=/usr/bin/ksh
-      shell=ksh
-      tcmd="/usr/bin/ksh -c \"echo \\\$KSH_VERSION\""
-      vers=`eval ${tcmd}`
-      case $vers in
-        *PD*)
+      tshell=`/usr/bin/ksh -c ". $mypath/shellfuncs.sh;getshelltype"`
+      case $tshell in
+        pdksh)
           noksh=1               # but not w/pdksh; some versions crash
-          SHELL=/bin/sh
-          shell=sh
           ;;
-        *)
+        ksh)
+          SHELL=/usr/bin/ksh
+          shell=ksh
           rc=1
           ;;
       esac
@@ -190,11 +195,6 @@ doshelltest () {
     exec $SHELL $0 $@
   fi
   testshcapability
-
-  # make sure SHELL env var is set.
-  wsh=`locatecmd $shell`
-  SHELL=${wsh}
-  export SHELL
 }
 
 locatecmd () {
