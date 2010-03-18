@@ -37,5 +37,4 @@ check_cmd_msgfmt () {
 
   printyesno_val XMSGFMT $xmsgfmt
   setdata ${_MKCONFIG_PREFIX} "XMSGFMT" "${xmsgfmt}"
-  doexport "XMSGFMT" "${xmsgfmt}"
 }

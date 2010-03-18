@@ -86,7 +86,6 @@ check_cc () {
 
   printyesno_val CC "${CC}"
   setdata ${_MKCONFIG_PREFIX} CC "${CC}"
-  doexport CC "${CC}"
 }
 
 check_using_gcc () {
@@ -113,7 +112,6 @@ check_using_gcc () {
 
   printyesno_val _MKCONFIG_USING_GCC "${usinggcc}"
   setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_GCC "${usinggcc}"
-  doexport _MKCONFIG_USING_GCC "${usinggcc}"
 }
 
 check_cflags () {
@@ -220,7 +218,6 @@ check_cflags () {
 
   printyesno_val CFLAGS "$ccflags $ccincludes"
   setdata ${_MKCONFIG_PREFIX} CFLAGS "$ccflags $ccincludes"
-  doexport CFLAGS "$ccflags $ccincludes"
 }
 
 check_ldflags () {
@@ -274,7 +271,6 @@ check_ldflags () {
 
   printyesno_val LDFLAGS "$ldflags"
   setdata ${_MKCONFIG_PREFIX} LDFLAGS "$ldflags"
-  doexport LDFLAGS "$ldflags"
 }
 
 check_libs () {
@@ -325,6 +321,5 @@ check_libs () {
 
   printyesno_val LIBS "$libs"
   setdata ${_MKCONFIG_PREFIX} LIBS "$libs"
-  doexport LIBS "$libs"
 }
 
