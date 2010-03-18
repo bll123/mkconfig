@@ -79,6 +79,18 @@ printlabel () {
   echo ${EN} "${tlabel} ... ${EC}"
 }
 
+
+
+doexport () {
+  var=$1
+  val=$2
+
+  cmd="${var}=\"${val}\""
+  eval $cmd
+  cmd="export ${var}"
+  eval $cmd
+}
+
 printyesno_val () {
   ynname=$1
   ynval=$2
@@ -90,6 +102,10 @@ printyesno_val () {
   else
     echo "   [${ynname}] no ${yntag}" >> $LOG
     echo "no ${yntag}"
+  fi
+
+  if [ "$_MKCONFIG_EXPORT" = "T" ]; then
+    doexport "$ynname" "$ynval"
   fi
 }
 
@@ -103,6 +119,7 @@ printyesno () {
     fi
     printyesno_val $ynname $ynval "$yntag"
 }
+
 
 checkcache_val () {
   prefix=$1
@@ -180,126 +197,130 @@ doloadunit () {
 }
 
 create_config () {
-    configfile=$1
+  configfile=$1
 
-    reqlibs=""
+  reqlibs=""
 
-    if [ -f "$CACHEFILE" ]; then
-      . $CACHEFILE
-    fi
+  if [ -f "$CACHEFILE" ]; then
+    . $CACHEFILE
+  fi
 
-    reqhdr=""
+  reqhdr=""
 
-    ininclude=0
-    linenumber=0
-    hasifs=0
-    if [ "$IFS" != "" ]; then
-      OIFS="$IFS"
-      hasifs=1
-    fi
-    > $INC
-    case ${configfile} in
-      /*)
-        ;;
-      *)
-        configfile="../${configfile}"
-        ;;
-    esac
-    # save stdin in fd 7.
-    # and reset stdin to get from the configfile.
-    # this allows us to run the while loop in the
-    # current shell rather than a subshell.
-    exec 7<&0 < ${configfile}
-    while read tdatline; do
-      linenumber=`domath "$linenumber + 1"`
+  ininclude=0
+  linenumber=0
+  hasifs=0
+  if [ "$IFS" != "" ]; then
+    OIFS="$IFS"
+    hasifs=1
+  fi
+  > $INC
+  case ${configfile} in
+    /*)
+      ;;
+    *)
+      configfile="../${configfile}"
+      ;;
+  esac
+  # save stdin in fd 7.
+  # and reset stdin to get from the configfile.
+  # this allows us to run the while loop in the
+  # current shell rather than a subshell.
+  exec 7<&0 < ${configfile}
+  while read tdatline; do
+    linenumber=`domath "$linenumber + 1"`
 
-      if [ $ininclude -eq 1 ]; then
-          if [ "${tdatline}" = "endinclude" ]; then
-            echo "#### ${linenumber}: ${tdatline}" >> $LOG
-            ininclude=0
-            if [ $hasifs -eq 1 ]; then
-              IFS="$OIFS"
-            else
-              unset IFS
-            fi
+    if [ $ininclude -eq 1 ]; then
+        if [ "${tdatline}" = "endinclude" ]; then
+          echo "#### ${linenumber}: ${tdatline}" >> $LOG
+          ininclude=0
+          if [ $hasifs -eq 1 ]; then
+            IFS="$OIFS"
           else
-            echo "${tdatline}" >> $INC
+            unset IFS
           fi
-      else
-          case ${tdatline} in
-              "")
-                  continue
-                  ;;
-              \#*)
-                  continue
-                  ;;
-              *)
-                  echo "#### ${linenumber}: ${tdatline}" >> $LOG
-                  ;;
-          esac
-      fi
-
-      if [ $ininclude -eq 0 ]; then
+        else
+          echo "${tdatline}" >> $INC
+        fi
+    else
         case ${tdatline} in
-          endinclude)
-            ;;
-          output*)
-            set $tdatline
-            type=$1
-            file=$2
-            case ${file} in
-              /*)
-                CONFH="${file}"
+            "")
+                continue
                 ;;
-              *)
-                CONFH="../${file}"
+            \#*)
+                continue
                 ;;
-            esac
-            echo "output-file: ${file}"
-            echo "   config file name: ${CONFH}" >> $LOG
-            ;;
-          loadunit*)
-            set $tdatline
-            type=$1
-            file=$2
-            doloadunit ${file} N
-            if [ "$VARSFILE" = "" -a "${_MKCONFIG_PREFIX}" != "" ]; then
-              VARSFILE="../mkconfig_${_MKCONFIG_PREFIX}.vars"
-            fi
-            ;;
-          standard)
-            chkconfigfname
-            standard_checks
-            ;;
-          command*)
-              chkconfigfname
-              set $tdatline
-              cmd=$2
-              nm="_command_${cmd}"
-              check_command "${nm}" "${cmd}"
-              ;;
-          include)
-              chkconfigfname
-              ininclude=1
-              IFS="
-"
-              ;;
-          *)
-              chkconfigfname
-              set $tdatline
-              type=$1
-              chk="check_${type}"
-              cmd="$chk $@"
-              eval $cmd
-              ;;
+            *)
+                echo "#### ${linenumber}: ${tdatline}" >> $LOG
+                ;;
         esac
-      fi
-    done
-    # reset the file descriptors back to the norm.
-    exec <&7 7<&-
+    fi
 
-    savecache  # save the cache file.
+    if [ $ininclude -eq 0 ]; then
+      case ${tdatline} in
+        endinclude)
+          ;;
+        output*)
+          set $tdatline
+          type=$1
+          file=$2
+          case ${file} in
+            none)
+              CONFH="${file}"
+              ;;
+            /*)
+              CONFH="${file}"
+              ;;
+            *)
+              CONFH="../${file}"
+              ;;
+          esac
+          echo "output-file: ${file}"
+          echo "   config file name: ${CONFH}" >> $LOG
+          ;;
+        loadunit*)
+          set $tdatline
+          type=$1
+          file=$2
+          doloadunit ${file} N
+          if [ "$VARSFILE" = "" -a "${_MKCONFIG_PREFIX}" != "" ]; then
+            VARSFILE="../mkconfig_${_MKCONFIG_PREFIX}.vars"
+          fi
+          ;;
+        standard)
+          chkconfigfname
+          standard_checks
+          ;;
+        command*)
+            chkconfigfname
+            set $tdatline
+            cmd=$2
+            nm="_command_${cmd}"
+            check_command "${nm}" "${cmd}"
+            ;;
+        include)
+            chkconfigfname
+            ininclude=1
+            IFS="
+"
+            ;;
+        *)
+            chkconfigfname
+            set $tdatline
+            type=$1
+            chk="check_${type}"
+            cmd="$chk $@"
+            eval $cmd
+            ;;
+      esac
+    fi
+  done
+  # reset the file descriptors back to the norm.
+  exec <&7 7<&-
 
+  savecache  # save the cache file.
+
+  if [ ${CONFH} != "none" ]; then
     > ${CONFH}
     preconfigfile ${CONFH}
 
@@ -309,11 +330,10 @@ create_config () {
     done
 
     output_other ${CONFH}
-
-    # standard header for all...
     stdconfigfile ${CONFH}
     cat $INC >> ${CONFH}
     postconfigfile ${CONFH}
+  fi
 }
 
 usage () {
