@@ -6,6 +6,7 @@
 
 _MKCONFIG_PREFIX=env
 _MKCONFIG_HASEMPTY=T
+_MKCONFIG_EXPORT=T
 
 preconfigfile () {
   pc_configfile=$1
@@ -39,12 +40,3 @@ output_other () {
   return
 }
 
-doexport () {
-  var=$1
-  val=$2
-
-  cmd="${var}=\"${val}\""
-  eval $cmd
-  cmd="export ${var}"
-  eval $cmd
-}
