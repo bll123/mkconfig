@@ -150,6 +150,8 @@ testshell () {
       shell=`/bin/sh -c ". $mypath/shellfuncs.sh;getshelltype"`
     fi
     rc=1
+  else
+    SHELL=$shell   # make sure SHELL gets reset.
   fi
 
   # bash is really slow, replace it if possible.
