@@ -404,6 +404,7 @@ echo "# $0 ($shell) using $configfile " >> $LOG
 echo "#### " >> $LOG
 
 echo "$0 ($shell) using $configfile"
+echo "$SHELL $shell" >> $LOG
 echo "$shell has append: ${shhasappend}" >> $LOG
 echo "$shell has paramsub: ${shhasparamsub}" >> $LOG
 echo "$shell has math: ${shhasmath}" >> $LOG
