@@ -18,7 +18,6 @@ README          	README
 runtests.sh		runs regression tests
 shellfuncs.sh		mkconfig functions
 tests.d/			regression tests for mkconfig
-tests.d/test_order	
 tests.d/compmksh.sh
 tests.d/compmkperl.sh
 tests.d/compunits.sh
