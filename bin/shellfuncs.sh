@@ -7,7 +7,7 @@
 #
 
 mkconfigversion () {
-  echo "mkconfig version 1.2"
+  echo "mkconfig version `cat $mypath/VERSION`"
 }
 
 setechovars () {
@@ -21,64 +21,62 @@ setechovars () {
   export EC
 }
 
-testshcapability () {
+test_append () {
   shhasappend=0
-  shhasparamsub=0
-  shhasmath=0
-  shhasupper=0
-  (eval "x=a;x+=b; test z\$x = zab") 2>/dev/null
+  (eval 'x=a;x+=b; test z$x = zab') 2>/dev/null
   if [ $? -eq 0 ]; then
     shhasappend=1
-    eval 'doappend () { var=$1; val=$2; eval $var+=\$val; }'
+    eval 'doappend () { eval $1+=\$2; }'
+  else
+    eval 'doappend () { eval $1=\$${1}\$2; }'
   fi
-  ( eval "x=bcb;y=\${x/c/_};test z\$y = zb_b") 2>/dev/null
+}
+
+test_paramsub () {
+  shhasparamsub=0
+  ( eval 'x=bcb;y=${x/c/_};test z${y} = zb_b') 2>/dev/null
   if [ $? -eq 0 ]; then
     shhasparamsub=1
-    # old freebsd shell complains if this substitution is inline.
-    # so replace the function when this capability is available.
     eval 'dosubst () { var=$1; shift;
         while test $# -gt 0; do
         pattern=$1; sub=$2;
         var=${var//${pattern}/${sub}};
         shift; shift; done; echo $var; } '
+  else
+    eval 'dosubst () { var=$1; shift;
+        sedargs=""; while test $# -gt 0; do pattern=$1; sub=$2;
+        sedargs="${sedargs} -e 's~${pattern}~${sub}~g'"; shift; shift; done
+        var=`eval "echo \"${var}\" | sed ${sedargs}"`; echo $var; }'
   fi
-  (eval "x=1;y=\$((\$x+1)); test z\$y = z2") 2>/dev/null
+}
+
+test_math () {
+  shhasmath=0
+  (eval 'x=1;y=$(($x+1)); test z$y = z2') 2>/dev/null
   if [ $? -eq 0 ]; then
     shhasmath=1
-    eval 'domath () { expr=$1; val=$(($expr)); echo $val; }'
+    eval 'domath () { echo $(($1)); }'
+  else
+    eval 'domath () { echo `expr $1`; }'
   fi
-  (eval "typeset -u var;var=x;test z\$var = zX") 2>/dev/null
+}
+
+test_upper () {
+  shhasupper=0
+  (eval 'typeset -u var;var=x;test z$var = zX') 2>/dev/null
   if [ $? -eq 0 ]; then
     shhasupper=1
-    eval 'toupper () { val=$1; typeset -u uval;uval=$val;echo $uval; }'
+    eval 'toupper () { typeset -u uval;uval=$1;echo $uval; }'
+  else
+    eval 'toupper () { echo `echo $1 | tr '[a-z]' '[A-Z]'`; }'
   fi
 }
 
-dosubst () {
-  var=$1
-  shift
-  sedargs=""
-  while test $# -gt 0; do
-    pattern=$1
-    sub=$2
-    sedargs="${sedargs} -e 's~${pattern}~${sub}~g'"
-    shift
-    shift
-  done
-  var=`eval "echo \"${var}\" | sed ${sedargs}"`
-  echo $var
-}
-
-doappend () {
-  var=$1
-  val=$2
-  eval $var=\$${var}\$val
-}
-
-domath () {
-  expr=$1
-  val=`expr $expr`
-  echo $val
+testshcapability () {
+  test_append
+  test_paramsub
+  test_math
+  test_upper
 }
 
 getshelltype () {
@@ -181,12 +179,6 @@ testshell () {
     fi
   fi
 
-  # make sure SHELL env var is set.
-  if [ $rc -eq 0 ]; then
-    wsh=`locatecmd $shell`
-    SHELL=${wsh}
-  fi
-
   export SHELL
   return $rc
 }
@@ -198,6 +190,11 @@ doshelltest () {
     exec $SHELL $0 $@
   fi
   testshcapability
+
+  # make sure SHELL env var is set.
+  wsh=`locatecmd $shell`
+  SHELL=${wsh}
+  export SHELL
 }
 
 locatecmd () {
@@ -217,7 +214,3 @@ locatecmd () {
   echo $trc
 }
 
-toupper () {
-  val=$1
-  echo `echo $val | tr '[a-z]' '[A-Z]'`
-}
