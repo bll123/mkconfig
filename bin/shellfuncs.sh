@@ -41,11 +41,11 @@ test_paramsub () {
         while test $# -gt 0; do
         pattern=$1; sub=$2;
         var=${var//${pattern}/${sub}};
-        shift; shift; done; echo $var; } '
+        shift; shift; done; echo $var; }'
   else
     eval 'dosubst () { var=$1; shift;
         sedargs=""; while test $# -gt 0; do pattern=$1; sub=$2;
-        sedargs="${sedargs} -e 's~${pattern}~${sub}~g'"; shift; shift; done
+        sedargs="${sedargs} -e \"s~${pattern}~${sub}~g\""; shift; shift; done
         var=`eval "echo \"${var}\" | sed ${sedargs}"`; echo $var; }'
   fi
 }
