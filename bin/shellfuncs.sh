@@ -97,6 +97,14 @@ getshelltype () {
   elif [ "$POSH_VERSION" != "" ]; then
     shell=posh
   fi
+
+  if [ "$shell" = "sh" ]; then
+    line=`ls -l /bin/sh | grep -- '->' 2>/dev/null`
+    if [ "$line" != "" ]; then
+      shell=`echo $line | sed -e 's,.* ,,' -e 's,.*/,,'`
+    fi
+  fi
+
   # $SHELL is not reset when a new shell or script
   # is started.  So it can't be depended upon to
   # determine which shell is running.  So only use
