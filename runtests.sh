@@ -6,6 +6,7 @@
 # Copyright 1994-2010 Brad Lanam, Walnut Creek, CA
 #
 
+TESTORDER=test_order
 RUNTMP=_tmp_runtests
 export RUNTMP
 
@@ -27,6 +28,9 @@ if [ ! -d $testdir ]; then
   exit 1
 fi
 
+shift
+teststorun="$*"
+
 CC=${CC:-cc}
 export CC
 
@@ -41,26 +45,45 @@ export RUNTESTDIR
 RUNTMPDIR="$RUNTESTDIR/$RUNTMP"
 export RUNTMPDIR
 
-if [ ! -f test_order ]; then
-  echo "## Unable to locate 'test_order'"
-  exit 1
+notestorder=F
+if [ ! -f "$TESTORDER" ]; then
+  notestorder=T
+  ls -1d *.d *.sh 2>/dev/null | grep -v $TESTORDER | 
+    sed -e 's/^/1 /' -e 's/\.sh$//' > $TESTORDER
 fi
 
 test -d "$RUNTMP" && rm -rf "$RUNTMP"
 mkdir $RUNTMP
 > $RUNLOG
 
-tot=`wc -l test_order | sed -e 's/^ *//' -e 's/ .*//'`
+if [ "$teststorun" != "" ]; then
+  tot=`echo $teststorun | wc -w`
+else
+  tot=`wc -l $TESTORDER | sed -e 's/^ *//' -e 's/ .*//'`
+fi 
 pass=1
 count=0
 fcount=0
 while test $count -lt $tot; do
-  exec 7<&0 < test_order
+  exec 7<&0 < $TESTORDER
   while read tfline; do
     set $tfline
     passnum=$1
     tbase=$2
     if [ $passnum -ne $pass ]; then
+      continue
+    fi
+
+    if [ "$teststorun" != "" ]; then
+      echo $teststorun | grep $tbase > /dev/null 2>&1
+      rc=$?
+      if [ $rc -ne 0 ]; then
+        continue
+      fi
+    fi
+
+    if [ -d "$tbase" ]; then
+      $0 $tbase
       continue
     fi
 
@@ -168,6 +191,10 @@ while test $count -lt $tot; do
   exec <&7 7<&-
   pass=`domath "$pass + 1"`
 done
+
+if [ "$notestorder" = "T" ]; then
+  rm -f $TESTORDER > /dev/null 2>&1
+fi
 
 if [ $fcount -eq 0 ]; then
   rm -f $RUNLOG
