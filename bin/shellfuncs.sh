@@ -125,7 +125,6 @@ getshelltype () {
       fi
     fi
   fi
-  echo $shell
 }
 
 testshell () {
