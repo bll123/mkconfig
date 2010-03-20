@@ -6,6 +6,16 @@
 # Copyright 2010 Brad Lanam Walnut Creek, CA USA
 #
 
+#
+# speed at the cost of maintainability...
+# File Descriptors:
+#    9 - >>$LOG
+#    8 - >>$VARSFILE
+#    7 - temporary for mkconfig.sh
+#    6 - >>$CONFH
+#    5 - temporary for c-main.sh
+#
+
 require_unit env-main
 
 env_dolocuname=F
@@ -15,7 +25,7 @@ _dolocuname () {
     return
   fi
 
-  xuname=`locatecmd uname`
+  locatecmd xuname uname
   echo "uname located: ${xuname}" >> $LOG
   env_dolocuname=T
 }
@@ -23,7 +33,8 @@ _dolocuname () {
 check_system () {
   name="_MKCONFIG_SYS"
   arg=$2
-  uarg=`toupper $arg`
+  uarg=$arg
+  toupper uarg
   name="${name}${uarg}"
 
   _dolocuname
@@ -119,7 +130,7 @@ check_system () {
       echo "no uname, try some guessing" >> $LOG
       # no uname...we'll have to do some guessing.
       _MKCONFIG_SYSARCH="unknown"
-      xarch=`locatecmd arch`
+      locatecmd xarch arch
       echo "arch located: ${xarch}" >> $LOG
       if [ "${xarch}" != "" ]; then
         _MKCONFIG_SYSARCH=`arch`

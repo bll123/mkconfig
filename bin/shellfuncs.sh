@@ -7,7 +7,10 @@
 #
 
 mkconfigversion () {
-  echo "mkconfig version `cat $mypath/VERSION`"
+  exec 9<&0 < ${mypath}/VERSION
+  read vers
+  exec <&9 9<&-
+  echo "mkconfig version ${vers}"
 }
 
 setechovars () {
@@ -39,16 +42,16 @@ test_paramsub () {
   ( eval 'x=bcb;y=${x/c/_};test z${y} = zb_b') 2>/dev/null
   if [ $? -eq 0 ]; then
     shhasparamsub=1
-    eval 'dosubst () { var=$1; shift;
+    eval 'dosubst () { subvar=$1; shift;
         while test $# -gt 0; do
         pattern=$1; sub=$2;
-        var=${var//${pattern}/${sub}};
-        shift; shift; done; echo $var; }'
+        eval $subvar=\${${subvar}//${pattern}/${sub}};
+        shift; shift; done; }'
   else
-    eval 'dosubst () { var=$1; shift;
-        sedargs=""; while test $# -gt 0; do pattern=$1; sub=$2;
-        sedargs="${sedargs} -e \"s~${pattern}~${sub}~g\""; shift; shift; done
-        var=`eval "echo \"${var}\" | sed ${sedargs}"`; echo $var; }'
+    eval 'dosubst () { subvar=$1; shift; sa="";
+      while test $# -gt 0; do pattern=$1; sub=$2; shift; shift;
+      sa="${sa} -e \"s~${pattern}~${sub}~g\""; done;
+      cmd="${subvar}=\`echo \${${subvar}} | sed ${sa}\`"; eval $cmd; }'
   fi
 }
 
@@ -57,9 +60,9 @@ test_math () {
   (eval 'x=1;y=$(($x+1)); test z$y = z2') 2>/dev/null
   if [ $? -eq 0 ]; then
     shhasmath=1
-    eval 'domath () { echo $(($1)); }'
+    eval 'domath () { mthvar=$1; val=$(($2)); eval $mthvar=$val; }'
   else
-    eval 'domath () { echo `expr $1`; }'
+    eval 'domath () { mthvar=$1; val=`expr $2`; eval $mthvar=$val; }'
   fi
 }
 
@@ -68,9 +71,9 @@ test_upper () {
   (eval 'typeset -u var;var=x;test z$var = zX') 2>/dev/null
   if [ $? -eq 0 ]; then
     shhasupper=1
-    eval 'toupper () { typeset -u uval;uval=$1;echo $uval; }'
+    eval 'toupper () { ucvar=$1; typeset -u uval; eval "uval=\${$ucvar};$ucvar=\$uval"; }'
   else
-    eval 'toupper () { echo `echo $1 | tr '[a-z]' '[A-Z]'`; }'
+    eval 'toupper () { ucvar=$1; cmd="$ucvar=\`echo \${$ucvar} | tr \"[a-z]\" \"[A-Z]\"\`"; eval "$cmd"; }'
   fi
 }
 
@@ -206,7 +209,7 @@ testshell () {
 }
 
 doshelltest () {
-  shell=`getshelltype`
+  getshelltype
   testshell $shell
   if [ $? != 0 ]; then
     export _shell=$shell
@@ -216,19 +219,20 @@ doshelltest () {
 }
 
 locatecmd () {
-  tcmd=$1
+  lvar=$1
+  ltcmd=$2
 
-  if [ "$pthlist" = "" ]; then
-    pthlist=`dosubst "$PATH" ';' ' ' ':' ' '`
+  if [ "$_pthlist" = "" ]; then
+    _pthlist=$PATH
+    dosubst _pthlist ';' ' ' ':' ' '
   fi
 
-  trc=""
-  for p in $pthlist; do
-    if [ -x "$p/$tcmd" ]; then
-      trc="$p/$tcmd"
+  lcmd=""
+  for p in $_pthlist; do
+    if [ -x "$p/$ltcmd" ]; then
+      lcmd="$p/$ltcmd"
       break
     fi
   done
-  echo $trc
+  eval $lvar=$lcmd
 }
-

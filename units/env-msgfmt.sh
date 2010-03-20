@@ -6,6 +6,16 @@
 # Copyright 2010 Brad Lanam, Walnut Creek, California USA
 #
 
+#
+# speed at the cost of maintainability...
+# File Descriptors:
+#    9 - >>$LOG
+#    8 - >>$VARSFILE
+#    7 - temporary for mkconfig.sh
+#    6 - >>$CONFH
+#    5 - temporary for c-main.sh
+#
+
 require_unit env-main
 # optional unit: cflags
 
@@ -18,8 +28,8 @@ check_cmd_msgfmt () {
   checkcache_val ${_MKCONFIG_PREFIX} $name
   if [ $? -eq 0 ]; then return; fi
 
-  xmsgfmt=`locatecmd msgfmt`
-  xgmsgfmt=`locatecmd gmsgfmt`
+  locatecmd xmsgfmt msgfmt
+  locatecmd xgmsgfmt gmsgfmt
 
   mfmt="${xmsgfmt}"
   if [ "$_MKCONFIG_USING_GCC" = "Y" ]

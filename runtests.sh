@@ -48,7 +48,7 @@ export RUNTMPDIR
 notestorder=F
 if [ ! -f "$TESTORDER" ]; then
   notestorder=T
-  ls -1d *.d *.sh 2>/dev/null | grep -v $TESTORDER | 
+  ls -1d *.d *.sh 2>/dev/null | grep -v $TESTORDER |
     sed -e 's/^/1 /' -e 's/\.sh$//' > $TESTORDER
 fi
 
@@ -60,7 +60,7 @@ if [ "$teststorun" != "" ]; then
   tot=`echo $teststorun | wc -w`
 else
   tot=`wc -l $TESTORDER | sed -e 's/^ *//' -e 's/ .*//'`
-fi 
+fi
 pass=1
 count=0
 fcount=0
@@ -102,8 +102,8 @@ while test $count -lt $tot; do
       ok=F
     fi
     if [ $ok = F ]; then
-      fcount=`domath "$fcount + 1"`
-      count=`domath "$count + 1"`
+      domath fcount "$fcount + 1"
+      domath count "$count + 1"
       clean $tbase
       continue
     fi
@@ -141,14 +141,14 @@ while test $count -lt $tot; do
     echo "####" >> $TRUNLOG
     if [ $rc -ne 0 ]; then
       echo " ... failed"
-      fcount=`domath "$fcount + 1"`
+      domath fcount "$fcount + 1"
       grc=1
       cat $TRUNLOG >> $RUNLOG
     else
       echo " ... success"
     fi
     rm -f $TRUNLOG
-    count=`domath "$count + 1"`
+    domath count "$count + 1"
 
     if [ -f $tmkconfig ]; then
       > $TRUNLOG
@@ -179,17 +179,17 @@ while test $count -lt $tot; do
       echo "####" >> $TRUNLOG
       if [ $rc -ne 0 ]; then
         echo " ... failed"
-        fcount=`domath "$fcount + 1"`
+        domath fcount "$fcount + 1"
         cat $TRUNLOG >> $RUNLOG
       else
         echo " ... success"
       fi
       rm -f $TRUNLOG
-      count=`domath "$count + 1"`
+      domath count "$count + 1"
     fi
   done
   exec <&7 7<&-
-  pass=`domath "$pass + 1"`
+  domath pass "$pass + 1"
 done
 
 if [ "$notestorder" = "T" ]; then

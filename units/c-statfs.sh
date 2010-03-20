@@ -7,6 +7,16 @@
 #  call takes.  Generally only works w/prototypes.
 #
 
+#
+# speed at the cost of maintainability...
+# File Descriptors:
+#    9 - >>$LOG
+#    8 - >>$VARSFILE
+#    7 - temporary for mkconfig.sh
+#    6 - >>$CONFH
+#    5 - temporary for c-main.sh
+#
+
 require_unit c-main
 
 check_statfs_args () {
@@ -21,7 +31,7 @@ check_statfs_args () {
       return
     fi
 
-    val=`getdata ${_MKCONFIG_PREFIX} _lib_statfs`
+    getdata val ${_MKCONFIG_PREFIX} _lib_statfs
     if [ "$val" = 0 ]; then
       setdata ${_MKCONFIG_PREFIX} "${name}" 0
       printyesno_val "${name}" 0 ""

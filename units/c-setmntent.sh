@@ -6,6 +6,16 @@
 # check and see how many arguments setmntent() takes.
 #
 
+#
+# speed at the cost of maintainability...
+# File Descriptors:
+#    9 - >>$LOG
+#    8 - >>$VARSFILE
+#    7 - temporary for mkconfig.sh
+#    6 - >>$CONFH
+#    5 - temporary for c-main.sh
+#
+
 require_unit c-main
 
 check_setmntent_args () {
@@ -15,7 +25,7 @@ check_setmntent_args () {
     checkcache ${_MKCONFIG_PREFIX} $name
     if [ $rc -eq 0 ]; then return; fi
 
-    val=`getdata ${_MKCONFIG_PREFIX} _lib_setmntent`
+    getdata val ${_MKCONFIG_PREFIX} _lib_setmntent
     if [ "$val" = 0 ]; then
       setdata ${_MKCONFIG_PREFIX} "${name}" 0
       printyesno_val "${name}" 0 ""

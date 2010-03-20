@@ -5,6 +5,16 @@
 # Copyright 2009-2010 Brad Lanam Walnut Creek, CA USA
 #
 
+#
+# speed at the cost of maintainability...
+# File Descriptors:
+#    9 - >>$LOG
+#    8 - >>$VARSFILE
+#    7 - temporary for mkconfig.sh
+#    6 - >>$CONFH
+#    5 - temporary for c-main.sh
+#
+
 mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
 . ${mypath}/shellfuncs.sh
 
@@ -54,29 +64,29 @@ setdata () {
         rc=$?
       fi
       if [ $rc -ne 0 ]; then
-        echo "${sdname}" >> $VARSFILE
+        echo "${sdname}" >&8
       fi
     fi
     cmd="di_${prefix}_${sdname}=\"${sdval}\""
-    eval "$cmd"
-    echo "   set: $cmd" >> $LOG
+    eval $cmd
+    echo "   set: $cmd" >&9
 }
 
 getdata () {
-    prefix=$1
-    gdname=$2
+    var=$1
+    prefix=$2
+    gdname=$3
 
-    cmd="echo \${di_${prefix}_${gdname}}"
-    gdval=`eval $cmd`
-    echo $gdval
+    cmd="${var}=\${di_${prefix}_${gdname}}"
+    eval $cmd
 }
 
 printlabel () {
   tname="$1"
   tlabel="$2"
 
-  echo "   [${tname}] ${tlabel} ... " >> $LOG
-  echo ${EN} "${tlabel} ... ${EC}"
+  echo "   [${tname}] ${tlabel} ... " >&9
+  echo ${EN} "${tlabel} ... ${EC}" >&1
 }
 
 
@@ -97,11 +107,11 @@ printyesno_val () {
   yntag="${3:-}"
 
   if [ "$ynval" != "0" ]; then
-    echo "   [${ynname}] $ynval ${yntag}" >> $LOG
-    echo "$ynval ${yntag}"
+    echo "   [${ynname}] $ynval ${yntag}" >&9
+    echo "$ynval ${yntag}" >&1
   else
-    echo "   [${ynname}] no ${yntag}" >> $LOG
-    echo "no ${yntag}"
+    echo "   [${ynname}] no ${yntag}" >&9
+    echo "no ${yntag}" >&1
   fi
 
   if [ "$_MKCONFIG_EXPORT" = "T" ]; then
@@ -120,12 +130,11 @@ printyesno () {
     printyesno_val $ynname $ynval "$yntag"
 }
 
-
 checkcache_val () {
   prefix=$1
   tname=$2
 
-  tval=`getdata ${prefix} ${tname}`
+  getdata tval ${prefix} ${tname}
   rc=1
   if [ "$tval" != "" ]; then
     printyesno_val "$tname" "$tval" " (cached)"
@@ -138,7 +147,7 @@ checkcache () {
   prefix=$1
   tname=$2
 
-  tval=`getdata ${prefix} ${tname}`
+  getdata tval ${prefix} ${tname}
   rc=1
   if [ "$tval" != "" ]; then
     printyesno "$tname" "$tval" " (cached)"
@@ -149,13 +158,13 @@ checkcache () {
 
 check_command () {
     name=$1
-    cmd=$2
+    ccmd=$2
 
-    printlabel $name "command: ${cmd}"
-    checkcache $name
+    printlabel $name "command: ${ccmd}"
+    checkcache ${_MKCONFIG_PREFIX} $name
     if [ $rc -eq 0 ]; then return; fi
 
-    trc=`locatecmd "$cmd"`
+    locatecmd trc $ccmd
     if [ "$trc" = "" ]; then trc=0; fi
     printyesno $name $trc
     setdata ${_MKCONFIG_PREFIX} "${name}" "${trc}"
@@ -164,14 +173,15 @@ check_command () {
 require_unit () {
   units=$@
   for rqu in $units; do
-    trqu=`dosubst $rqu '-' '_'`
-    cmd="echo \$_MKCONFIG_UNIT_${trqu}"
-    val=`eval $cmd`
+    trqu=$rqu
+    dosubst trqu '-' '_'
+    cmd="val=\$_MKCONFIG_UNIT_${trqu}"
+    eval $cmd
     if [ "$val" = "Y" ]; then
-      echo "   required unit ${rqu} already loaded" >> $LOG
+      echo "   required unit ${rqu} already loaded" >&9
       continue
     fi
-    echo "   required unit ${rqu} needed" >> $LOG
+    echo "   required unit ${rqu} needed" >&9
     doloadunit $rqu Y
   done
 }
@@ -184,10 +194,11 @@ doloadunit () {
    tag=" (dependency)"
   fi
   if [ -f ../${mypath}/mkconfig.units/${lu}.sh ]; then
-    echo "load-unit: ${lu} ${tag}"
-    echo "   found ${lu} ${tag}" >> $LOG
+    echo "load-unit: ${lu} ${tag}" >&1
+    echo "   found ${lu} ${tag}" >&9
     . ../${mypath}/mkconfig.units/${lu}.sh
-    tlu=`dosubst $lu '-' '_'`
+    tlu=$lu
+    dosubst tlu '-' '_'
     eval "_MKCONFIG_UNIT_${tlu}=Y"
   fi
   if [ "$dep" = "Y" ]; then
@@ -228,11 +239,11 @@ create_config () {
   # current shell rather than a subshell.
   exec 7<&0 < ${configfile}
   while read tdatline; do
-    linenumber=`domath "$linenumber + 1"`
+    domath linenumber "$linenumber + 1"
 
     if [ $ininclude -eq 1 ]; then
         if [ "${tdatline}" = "endinclude" ]; then
-          echo "#### ${linenumber}: ${tdatline}" >> $LOG
+          echo "#### ${linenumber}: ${tdatline}" >&9
           ininclude=0
           if [ $hasifs -eq 1 ]; then
             IFS="$OIFS"
@@ -251,7 +262,7 @@ create_config () {
                 continue
                 ;;
             *)
-                echo "#### ${linenumber}: ${tdatline}" >> $LOG
+                echo "#### ${linenumber}: ${tdatline}" >&9
                 ;;
         esac
     fi
@@ -275,8 +286,12 @@ create_config () {
               CONFH="../${file}"
               ;;
           esac
-          echo "output-file: ${file}"
-          echo "   config file name: ${CONFH}" >> $LOG
+          echo "output-file: ${file}" >&1
+          echo "   config file name: ${CONFH}" >&9
+          if [ ${CONFH} != "none" ]; then
+            > ${CONFH}
+            exec 6>>${CONFH}
+          fi
           ;;
         loadunit*)
           set $tdatline
@@ -286,6 +301,7 @@ create_config () {
           if [ "$VARSFILE" = "" -a "${_MKCONFIG_PREFIX}" != "" ]; then
             VARSFILE="../mkconfig_${_MKCONFIG_PREFIX}.vars"
           fi
+          exec 8>>$VARSFILE
           ;;
         standard)
           chkconfigfname
@@ -321,17 +337,18 @@ create_config () {
   savecache  # save the cache file.
 
   if [ ${CONFH} != "none" ]; then
-    > ${CONFH}
     preconfigfile ${CONFH}
 
-    for cfgvar in `cat $VARSFILE`; do
-      val=`getdata ${_MKCONFIG_PREFIX} $cfgvar`
+    exec 7<&0 < $VARSFILE
+    while read cfgvar; do
+      getdata val ${_MKCONFIG_PREFIX} $cfgvar
       output_item ${CONFH} "${cfgvar}" "${val}"
     done
+    exec <&7 7<&-
 
     output_other ${CONFH}
     stdconfigfile ${CONFH}
-    cat $INC >> ${CONFH}
+    cat $INC >&6
     postconfigfile ${CONFH}
   fi
 }
@@ -398,24 +415,28 @@ if [ $clearcache -eq 1 ]; then
 fi
 
 dt=`date`
-echo "#### " >> $LOG
-echo "# Start: $dt " >> $LOG
-echo "# $0 ($shell) using $configfile " >> $LOG
-echo "#### " >> $LOG
+exec 9>>$LOG
+
+echo "#### " >&9
+echo "# Start: $dt " >&9
+echo "# $0 ($shell) using $configfile " >&9
+echo "#### " >&9
+echo "SHELL: $SHELL" >&9
+echo "shell: $shell" >&9
+echo "has append: ${shhasappend}" >&9
+echo "has paramsub: ${shhasparamsub}" >&9
+echo "has math: ${shhasmath}" >&9
+echo "has upper: ${shhasupper}" >&9
 
 echo "$0 ($shell) using $configfile"
-echo "$SHELL $shell" >> $LOG
-echo "$shell has append: ${shhasappend}" >> $LOG
-echo "$shell has paramsub: ${shhasparamsub}" >> $LOG
-echo "$shell has math: ${shhasmath}" >> $LOG
-echo "$shell has upper: ${shhasupper}" >> $LOG
 
 create_config $configfile
 
 dt=`date`
-echo "#### " >> $LOG
-echo "# End: $dt " >> $LOG
-echo "#### " >> $LOG
+echo "#### " >&9
+echo "# End: $dt " >&9
+echo "#### " >&9
+exec 9<&-
 
 cd ..
 test -d $_MKCONFIG_TMP && rm -rf $_MKCONFIG_TMP > /dev/null 2>&1

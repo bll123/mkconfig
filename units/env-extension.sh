@@ -6,6 +6,16 @@
 # Copyright 2001-2010 Brad Lanam, Walnut Creek, California, USA
 #
 
+#
+# speed at the cost of maintainability...
+# File Descriptors:
+#    9 - >>$LOG
+#    8 - >>$VARSFILE
+#    7 - temporary for mkconfig.sh
+#    6 - >>$CONFH
+#    5 - temporary for c-main.sh
+#
+
 require_unit env-main
 
 check_objext () {

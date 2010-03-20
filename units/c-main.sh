@@ -29,6 +29,16 @@
 #       #endif
 #
 
+#
+# speed at the cost of maintainability...
+# File Descriptors:
+#    9 - >>$LOG
+#    8 - >>$VARSFILE
+#    7 - temporary for mkconfig.sh
+#    6 - >>$CONFH
+#    5 - temporary for c-main.sh
+#
+
 _MKCONFIG_PREFIX=c
 _MKCONFIG_HASEMPTY=F
 _MKCONFIG_EXPORT=F
@@ -56,10 +66,10 @@ precc='
 
 preconfigfile () {
 
-  echo "CC: ${CC}" >> $LOG
-  echo "CFLAGS: ${CFLAGS}" >> $LOG
-  echo "LDFLAGS: ${LDFLAGS}" >> $LOG
-  echo "LIBS: ${LIBS}" >> $LOG
+  echo "CC: ${CC}" >&9
+  echo "CFLAGS: ${CFLAGS}" >&9
+  echo "LDFLAGS: ${LDFLAGS}" >&9
+  echo "LIBS: ${LIBS}" >&9
 
   if [ "${CC}" = "" ]; then
     echo "No compiler specified" >&2
@@ -67,7 +77,7 @@ preconfigfile () {
   fi
 
   pc_configfile=$1
-  cat  << _HERE_ >> ${pc_configfile}
+  cat  << _HERE_ >&6
 #ifndef __INC_CONFIG_H
 #define __INC_CONFIG_H 1
 
@@ -76,7 +86,7 @@ _HERE_
 
 stdconfigfile () {
   pc_configfile=$1
-  cat << _HERE_ >> ${pc_configfile}
+  cat << _HERE_ >&6
 
 #if ! _key_void
 # define void int
@@ -98,7 +108,7 @@ _HERE_
 
 postconfigfile () {
   pc_configfile=$1
-  cat << _HERE_ >> ${pc_configfile}
+  cat << _HERE_ >&6
 
 #endif /* __INC_CONFIG_H */
 _HERE_
@@ -131,37 +141,41 @@ _print_headers () {
   fi
 
   > $out
+  exec 4>>$out
   if [ "${incheaders}" = "all" -o "${incheaders}" = "std" ]; then
       for tnm in '_hdr_stdio' '_hdr_stdlib' '_sys_types' '_sys_param'; do
-          tval=`getdata ${_MKCONFIG_PREFIX} ${tnm}`
+          getdata tval ${_MKCONFIG_PREFIX} ${tnm}
           if [ "${tval}" != "0" -a "${tval}" != "" ]; then
-              echo "#include <${tval}>" >> $out
+              echo "#include <${tval}>" >&4
           fi
       done
   fi
 
   if [ "${incheaders}" = "all" -a -f "$VARSFILE" ]; then
-      for cfgvar in `cat $VARSFILE`; do
-          hdval=`getdata ${_MKCONFIG_PREFIX} ${cfgvar}`
-          case ${cfgvar} in
-              _hdr_stdio|_hdr_stdlib|_sys_types|_sys_param)
-                  ;;
-              _sys_time)
-                  htval=`getdata ${_MKCONFIG_PREFIX} '_hdr_time'`
-                  itval=`getdata ${_MKCONFIG_PREFIX} '_include_time'`
-                  if [ "${htval}" = "0" -o "${itval}" != "0" ]; then
-                    echo "#include <${hdval}>" >> $out
-                  fi
-                  ;;
-              _hdr_*|_sys_*)
-                  if [ "${hdval}" != "0" -a "${hdval}" != "" ]; then
-                    echo "#include <${hdval}>" >> $out
-                  fi
-                  ;;
-          esac
-      done
+    exec 5<&0 < ${VARSFILE}
+    while read cfgvar; do
+      getdata hdval ${_MKCONFIG_PREFIX} ${cfgvar}
+      case ${cfgvar} in
+        _hdr_stdio|_hdr_stdlib|_sys_types|_sys_param)
+            ;;
+        _sys_time)
+            getdata htval ${_MKCONFIG_PREFIX} '_hdr_time'
+            getdata itval ${_MKCONFIG_PREFIX} '_include_time'
+            if [ "${htval}" = "0" -o "${itval}" != "0" ]; then
+              echo "#include <${hdval}>" >&4
+            fi
+            ;;
+        _hdr_*|_sys_*)
+            if [ "${hdval}" != "0" -a "${hdval}" != "" ]; then
+              echo "#include <${hdval}>" >&4
+            fi
+            ;;
+      esac
+    done
+    exec <&5 5<&-
   fi
 
+  exec 4<&-
   cat $out
   if [ "$PH_STD" = "F" ]; then
     rm -f $out
@@ -173,19 +187,19 @@ _chk_run () {
   code=$2
   inc=$3
 
-  _chk_link_libs "${name}" "${code}" $inc > /dev/null
+  _chk_link_libs "${name}" "${code}" $inc
   rc=$?
-  echo "##  run test: link: $rc" >> $LOG
+  echo "##  run test: link: $rc" >&9
   rval=0
   if [ $rc -eq 0 ]; then
       rval=`./${name}.exe`
       rc=$?
-      echo "##  run test: run: $rc" >> $LOG
+      echo "##  run test: run: $rc" >&9
       if [ $rc -lt 0 ]; then
           exitmkconfig $rc
       fi
   fi
-  echo $rval
+  _retval=$rval
   return $rc
 }
 
@@ -208,35 +222,35 @@ _chk_link_libs () {
   echo "${precc}" >> ${name}.c
   _print_headers $inc >> ${name}.c
   echo "${code}" | sed 's/_dollar_/$/g' >> ${name}.c
-  cat ${name}.c >> $LOG
+  cat ${name}.c >&9
 
   dlibs=""
   otherlibs=""
   _chk_link $name
   rc=$?
-  echo "##      link test (none): $rc" >> $LOG
+  echo "##      link test (none): $rc" >&9
   if [ $rc -ne 0 ]; then
       while test $ocounter -lt $ocount; do
-          ocounter=`expr $ocounter + 1`
+          domath ocounter "$ocounter + 1"
           set -- $clotherlibs
           tcounter=0
           olibs=""
           while test $tcounter -lt $ocounter; do
               olibs="${olibs} $1"
               shift
-              tcounter=`expr $tcounter + 1`
+              domath tcounter "$tcounter + 1"
           done
           dlibs="${olibs}"
           otherlibs="$olibs"
           _chk_link $name
           rc=$?
-          echo "##      link test (${olibs}): $rc" >> $LOG
+          echo "##      link test (${olibs}): $rc" >&9
           if [ $rc -eq 0 ]; then
               break
           fi
       done
   fi
-  echo $dlibs
+  _retdlibs=$dlibs
   return $rc
 }
 
@@ -249,13 +263,13 @@ _chk_link () {
   if [ "${_clotherlibs}" != "" ]; then
       cmd="${cmd} ${_clotherlibs} "
   fi
-  echo "##  _link test: $cmd" >> $LOG
-  eval $cmd >> $LOG 2>&1
+  echo "##  _link test: $cmd" >&9
+  eval $cmd >&9 2>&9
   rc=$?
   if [ $rc -lt 0 ]; then
       exitmkconfig $rc
   fi
-  echo "##      _link test: $rc" >> $LOG
+  echo "##      _link test: $rc" >&9
   if [ $rc -eq 0 ]; then
     if [ ! -x "${name}.exe" ]; then  # not executable
       rc=1
@@ -276,11 +290,11 @@ _chk_compile () {
   echo "${code}" >> ${name}.c
 
   cmd="${CC} ${CFLAGS} -c ${name}.c"
-  echo "##  compile test: $cmd" >> $LOG
-  cat ${name}.c >> $LOG
-  eval ${cmd} >> $LOG 2>&1
+  echo "##  compile test: $cmd" >&9
+  cat ${name}.c >&9
+  eval ${cmd} >&9 2>&9
   rc=$?
-  echo "##  compile test: $rc" >> $LOG
+  echo "##  compile test: $rc" >&9
   return $rc
 }
 
@@ -313,7 +327,7 @@ check_hdr () {
   if [ "$nm2" != "_" ]; then
     doappend nm $nm2
   fi
-  nm=`dosubst "${nm}" '/' '_' ':' '_' '\.h' ''`
+  dosubst nm '/' '_' ':' '_' '\.h' ''
   case ${type} in
     sys)
       hdr="sys/${hdr}"
@@ -462,7 +476,7 @@ check_size () {
   shift
   type="$*"
   nm="_siz_${type}"
-  nm=`dosubst "${nm}" ' ' '_'`
+  dosubst nm ' ' '_'
 
   name=$nm
 
@@ -471,9 +485,9 @@ check_size () {
   if [ $rc -eq 0 ]; then return; fi
 
   code="main () { printf(\"%u\", sizeof(${type})); exit (0); }"
-  val=0
-  val=`_chk_run "${name}" "${code}" all`
+  _chk_run "${name}" "${code}" all
   rc=$?
+  val=$_retval
   if [ $rc -ne 0 ]; then
     val=0
   fi
@@ -523,7 +537,7 @@ check_npt () {
 
   has=1
   if [ "${req}" != "" ]; then
-    has=`getdata ${_MKCONFIG_PREFIX} "${req}"`
+    getdata has ${_MKCONFIG_PREFIX} "${req}"
   fi
   nm="_npt_${func}"
 
@@ -558,7 +572,8 @@ check_lib () {
 
   name=$nm
 
-  rfunc=`dosubst $func '_dollar_' '$'`
+  rfunc=$func
+  dosubst rfunc '_dollar_' '$'
   if [ "${otherlibs}" != "" ]; then
       printlabel $name "function: ${rfunc} [${otherlibs}]"
   else
@@ -578,8 +593,9 @@ _END_EXTERNS_
 main () {  i(); return (i==0); }
 "
 
-  dlibs=`_chk_link_libs "${name}" "${code}" all`
+  _chk_link_libs "${name}" "${code}" all
   rc=$?
+  dlibs=$_retdlibs
   if [ $rc -eq 0 ]; then
       trc=1
   fi
@@ -602,8 +618,9 @@ _BEGIN_EXTERNS_
 _END_EXTERNS_
   main () {  i(); return (i==0); }
   "
-    dlibs=`_chk_link_libs "${name}" "${code}" all`
+    _chk_link_libs "${name}" "${code}" all
     rc=$?
+    dlibs=$_retdlibs
     if [ $rc -eq 0 ]; then
         trc=1
     fi
@@ -624,7 +641,7 @@ check_class () {
   shift;shift
   libs="$*"
   nm="_class_${class}"
-  nm=`dosubst "${nm}" '/' '_' ':' '_'`
+  dosubst nm '/' '_' ':' '_'
   otherlibs="${libs}"
 
   name=$nm
@@ -640,7 +657,7 @@ check_class () {
       if [ $rc -eq 0 ]; then return; fi
   fi
 
-  _chk_link_libs "${name}" "${code}" all > /dev/null
+  _chk_link_libs "${name}" "${code}" all
   rc=$?
   if [ $rc -eq 0 ]; then
       trc=1
@@ -665,10 +682,10 @@ output_item () {
   fi
   case ${name} in
     _hdr*|_sys*|_command*)
-      echo "#define ${name} ${tval}" >> ${out}
+      echo "#define ${name} ${tval}" >&6
       ;;
     *)
-      echo "#define ${name} ${val}" >> ${out}
+      echo "#define ${name} ${val}" >&6
       ;;
   esac
 }
