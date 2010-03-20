@@ -82,7 +82,7 @@ testshcapability () {
 }
 
 getshelltype () {
-  shell="sh"   # unknown or old
+  shell=${_shell:-sh}   # unknown or old
   if [ "$KSH_VERSION" != "" ]; then
     shell=ksh
     case $KSH_VERSION in
@@ -128,6 +128,10 @@ getshelltype () {
 testshell () {
   rc=0
   shell=$1
+
+  if [ "$_shell" != "" ]; then
+    return $rc
+  fi
 
   # force shell type.
   if [ "$_MKCONFIG_SHELL" != "" ]; then
@@ -182,14 +186,17 @@ testshell () {
     fi
 
     # either of these are fine...no preference
-    if [ $noksh -eq 1 -a -x /bin/ash ]; then
-      SHELL=/bin/ash
-      shell=ash
-      rc=1
-    fi
     if [ $noksh -eq 1 -a -x /bin/dash ]; then
       SHELL=/bin/dash
       shell=dash
+      rc=1
+    elif [ $noksh -eq 1 -a -x /bin/ash ]; then
+      SHELL=/bin/ash
+      shell=ash
+      rc=1
+    elif [ $noksh -eq 1 -a -x /bin/sh ]; then
+      SHELL=/bin/sh
+      shell=sh
       rc=1
     fi
   fi
@@ -202,6 +209,7 @@ doshelltest () {
   shell=`getshelltype`
   testshell $shell
   if [ $? != 0 ]; then
+    export _shell=$shell
     exec $SHELL $0 $@
   fi
   testshcapability
