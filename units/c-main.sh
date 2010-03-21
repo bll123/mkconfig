@@ -194,16 +194,16 @@ _print_hdrs () {
 }
 
 _chk_run () {
-  name=$1
+  crname=$1
   code=$2
   inc=$3
 
-  _chk_link_libs "${name}" "${code}" $inc
+  _chk_link_libs ${crname} "${code}" $inc
   rc=$?
   echo "##  run test: link: $rc" >&9
   rval=0
   if [ $rc -eq 0 ]; then
-      rval=`./${name}.exe`
+      rval=`./${crname}.exe`
       rc=$?
       echo "##  run test: run: $rc" >&9
       if [ $rc -lt 0 ]; then
@@ -215,7 +215,7 @@ _chk_run () {
 }
 
 _chk_link_libs () {
-  name=$1
+  cllname=$1
   code=$2
   inc=$3
   shift;shift;shift
@@ -229,7 +229,8 @@ _chk_link_libs () {
       ocount=0
   fi
 
-  tcfile=${name}.c
+  tcfile=${cllname}.c
+  # $cllname should be unique
   exec 6>>${tcfile}
   echo "${precc}" >&6
   _print_headers $inc >&6
@@ -238,7 +239,7 @@ _chk_link_libs () {
 
   dlibs=""
   otherlibs=""
-  _chk_link $name
+  _chk_link $cllname
   rc=$?
   echo "##      link test (none): $rc" >&9
   if [ $rc -ne 0 ]; then
@@ -248,13 +249,13 @@ _chk_link_libs () {
           tcounter=0
           olibs=""
           while test $tcounter -lt $ocounter; do
-              olibs="${olibs} $1"
+              doappend olibs " $1"
               shift
               domath tcounter "$tcounter + 1"
           done
-          dlibs="${olibs}"
-          otherlibs="$olibs"
-          _chk_link $name
+          dlibs=${olibs}
+          otherlibs=${olibs}
+          _chk_link $cllname
           rc=$?
           echo "##      link test (${olibs}): $rc" >&9
           if [ $rc -eq 0 ]; then
@@ -267,16 +268,16 @@ _chk_link_libs () {
 }
 
 _chk_link () {
-  name=$1
+  clname=$1
 
-  cmd="${CC} ${CFLAGS} -o ${name}.exe ${name}.c "
+  cmd="${CC} ${CFLAGS} -o ${clname}.exe ${clname}.c "
   cmd="${cmd} ${LDFLAGS} ${LIBS} "
-  _clotherlibs="$otherlibs"
+  _clotherlibs=$otherlibs
   if [ "${_clotherlibs}" != "" ]; then
       cmd="${cmd} ${_clotherlibs} "
   fi
   echo "##  _link test: $cmd" >&9
-  cat ${name}.c >&9
+  cat ${clname}.c >&9
   eval $cmd >&9 2>&9
   rc=$?
   if [ $rc -lt 0 ]; then
@@ -284,7 +285,7 @@ _chk_link () {
   fi
   echo "##      _link test: $rc" >&9
   if [ $rc -eq 0 ]; then
-    if [ ! -x "${name}.exe" ]; then  # not executable
+    if [ ! -x "${clname}.exe" ]; then  # not executable
       rc=1
     fi
   fi
@@ -293,11 +294,12 @@ _chk_link () {
 
 
 _chk_compile () {
-  name=$1
+  ccname=$1
   code=$2
   inc=$3
 
-  tcfile=${name}.c
+  tcfile=${ccname}.c
+  # $ccname should be unique
   exec 6>>${tcfile}
   echo "${precc}" >&6
   _print_headers $inc >&6
@@ -306,7 +308,7 @@ _chk_compile () {
 
   cmd="${CC} ${CFLAGS} -c ${tcfile}"
   echo "##  compile test: $cmd" >&9
-  cat ${name}.c >&9
+  cat ${ccname}.c >&9
   eval ${cmd} >&9 2>&9
   rc=$?
   echo "##  compile test: $rc" >&9
@@ -315,25 +317,25 @@ _chk_compile () {
 
 
 do_check_compile () {
-  name="$1"
-  code="$2"
-  inc="$3"
+  dccname=$1
+  code=$2
+  inc=$3
 
-  _chk_compile "${name}" "${code}" $inc
+  _chk_compile ${dccname} "${code}" $inc
   rc=$?
-  try="0"
+  try=0
   if [ $rc -eq 0 ]; then
-      try="1"
+      try=1
   fi
-  printyesno $name $try
-  setdata ${_MKCONFIG_PREFIX} "${name}" "${try}"
+  printyesno $dccname $try
+  setdata ${_MKCONFIG_PREFIX} ${dccname} ${try}
 }
 
 check_hdr () {
   type=$1
   hdr=$2
   shift;shift
-  reqhdr="$*"
+  reqhdr=$*
   # input may be:  ctype.h kernel/fs_info.h
   #    storage/Directory.h
   nm1=`echo ${hdr} | sed -e 's,/.*,,'`
@@ -371,14 +373,14 @@ check_hdr () {
 main () { exit (0); }
 "
   rc=1
-  _chk_compile "${name}" "${code}" std
+  _chk_compile ${name} "${code}" std
   rc=$?
-  val="0"
+  val=0
   if [ $rc -eq 0 ]; then
       val=${file}
   fi
   printyesno $name $val
-  setdata ${_MKCONFIG_PREFIX} "${name}" "${val}"
+  setdata ${_MKCONFIG_PREFIX} ${name} ${val}
 }
 
 check_sys () {
@@ -388,7 +390,7 @@ check_sys () {
 check_const () {
   constant=$2
   shift;shift
-  reqhdr="$*"
+  reqhdr=$*
   nm="_const_${constant}"
 
   name=$nm
@@ -410,7 +412,7 @@ check_const () {
   doappend code "
 main () { if (${constant} == 0) { 1; } exit (0); }
 "
-  do_check_compile "${name}" "${code}" all
+  do_check_compile ${name} "${code}" all
 }
 
 check_key () {
@@ -423,14 +425,14 @@ check_key () {
 
   code="main () { int ${keyword}; ${keyword} = 1; exit (0); }"
 
-  _chk_compile "${name}" "${code}" std
+  _chk_compile ${name} "${code}" std
   rc=$?
   trc=0
   if [ $rc -ne 0 ]; then  # failure means it is reserved...
     trc=1
   fi
   printyesno $name $trc
-  setdata ${_MKCONFIG_PREFIX} "${name}" "${trc}"
+  setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
 }
 
 check_proto () {
@@ -447,7 +449,7 @@ _END_EXTERNS_
 int bar () { int rc; rc = foo (1,1); return 0; }
 '
 
-  do_check_compile "${name}" "${code}" std
+  do_check_compile ${name} "${code}" std
 }
 
 check_typ () {
@@ -467,7 +469,7 @@ struct xxx* f() { return &v; }
 main () { struct xxx *tmp; tmp = f(); exit (0); }
 "
 
-  do_check_compile "${name}" "${code}" all
+  do_check_compile ${name} "${code}" all
 }
 
 check_member () {
@@ -483,13 +485,13 @@ check_member () {
 
   code="main () { struct ${struct} s; int i; i = sizeof (s.${member}); }"
 
-  do_check_compile "${name}" "${code}" all
+  do_check_compile ${name} "${code}" all
 }
 
 
 check_size () {
   shift
-  type="$*"
+  type=$*
   nm="_siz_${type}"
   dosubst nm ' ' '_'
 
@@ -500,14 +502,14 @@ check_size () {
   if [ $rc -eq 0 ]; then return; fi
 
   code="main () { printf(\"%u\", sizeof(${type})); exit (0); }"
-  _chk_run "${name}" "${code}" all
+  _chk_run ${name} "${code}" all
   rc=$?
   val=$_retval
   if [ $rc -ne 0 ]; then
     val=0
   fi
   printyesno_val $name $val
-  setdata ${_MKCONFIG_PREFIX} "${name}" "${val}"
+  setdata ${_MKCONFIG_PREFIX} ${name} ${val}
 }
 
 check_dcl () {
@@ -531,7 +533,7 @@ check_int_declare () {
   if [ $rc -eq 0 ]; then return; fi
 
   code="main () { int x; x = ${function}; }"
-  do_check_compile "${name}" "${code}" all
+  do_check_compile ${name} "${code}" all
 }
 
 check_ptr_declare () {
@@ -543,7 +545,7 @@ check_ptr_declare () {
   if [ $rc -eq 0 ]; then return; fi
 
   code="main () { _VOID_ *x; x = ${function}; }"
-  do_check_compile "${name}" "${code}" all
+  do_check_compile ${name} "${code}" all
 }
 
 check_npt () {
@@ -564,7 +566,7 @@ check_npt () {
   if [ $rc -eq 0 ]; then return; fi
 
   if [ ${has} -eq 0 ]; then
-    setdata ${_MKCONFIG_PREFIX} "${name}" "0"
+    setdata ${_MKCONFIG_PREFIX} ${name} 0
     printyesno $name 0
     return
   fi
@@ -575,7 +577,7 @@ struct _TEST_struct { int _TEST_member; };
 extern struct _TEST_struct* ${proto} _ARG_((struct _TEST_struct*));
 _END_EXTERNS_
 "
-  do_check_compile "${name}" "${code}" all
+  do_check_compile ${name} "${code}" all
 }
 
 check_lib () {
@@ -583,7 +585,7 @@ check_lib () {
   shift;shift
   libs=$*
   nm="_lib_${func}"
-  otherlibs="${libs}"
+  otherlibs=${libs}
 
   name=$nm
 
@@ -608,7 +610,7 @@ _END_EXTERNS_
 main () {  i(); return (i==0); }
 "
 
-  _chk_link_libs "${name}" "${code}" all
+  _chk_link_libs ${name} "${code}" all
   rc=$?
   dlibs=$_retdlibs
   if [ $rc -eq 0 ]; then
@@ -617,7 +619,7 @@ main () {  i(); return (i==0); }
   tag=""
   if [ $rc -eq 0 -a "$dlibs" != "" ]; then
     tag=" with ${dlibs}"
-    reqlibs="${reqlibs} ${dlibs}"
+    doappend reqlibs " ${dlibs}"
   fi
 
   if [ ${trc} -eq 0 -a "$_MKCONFIG_TEST_EXTERN" != "" ]; then
@@ -633,7 +635,7 @@ _BEGIN_EXTERNS_
 _END_EXTERNS_
   main () {  i(); return (i==0); }
   "
-    _chk_link_libs "${name}" "${code}" all
+    _chk_link_libs ${name} "${code}" all
     rc=$?
     dlibs=$_retdlibs
     if [ $rc -eq 0 ]; then
@@ -642,22 +644,22 @@ _END_EXTERNS_
     tag=""
     if [ $rc -eq 0 -a "$dlibs" != "" ]; then
       tag=" with ${dlibs}"
-      reqlibs="${reqlibs} ${dlibs}"
+      doappend reqlibs " ${dlibs}"
     fi
   fi
 
   printyesno $name $trc "$tag"
-  setdata ${_MKCONFIG_PREFIX} "${name}" "${trc}"
+  setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
   return $trc
 }
 
 check_class () {
   class=$2
   shift;shift
-  libs="$*"
+  libs=$*
   nm="_class_${class}"
   dosubst nm '/' '_' ':' '_'
-  otherlibs="${libs}"
+  otherlibs=${libs}
 
   name=$nm
 
@@ -672,7 +674,7 @@ check_class () {
       if [ $rc -eq 0 ]; then return; fi
   fi
 
-  _chk_link_libs "${name}" "${code}" all
+  _chk_link_libs ${name} "${code}" all
   rc=$?
   if [ $rc -eq 0 ]; then
       trc=1
@@ -680,10 +682,10 @@ check_class () {
   tag=""
   if [ $rc -eq 0 -a "${dlibs}" != "" ]; then
       tag=" with ${dlibs}"
-      reqlibs="${reqlibs} ${dlibs}"
+      doappend reqlibs " ${dlibs}"
   fi
   printyesno $name $trc "$tag"
-  setdata ${_MKCONFIG_PREFIX} "${name}" "${trc}"
+  setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
 }
 
 output_item () {
