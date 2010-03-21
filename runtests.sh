@@ -6,6 +6,13 @@
 # Copyright 1994-2010 Brad Lanam, Walnut Creek, CA
 #
 
+#
+# speed at the cost of maintainability...
+# File Descriptors:
+#    7 - temporary for mkconfig.sh
+#    9 - $TSTRUNLOG
+#
+
 TESTORDER=test_order
 RUNTMP=_tmp_runtests
 export RUNTMP
@@ -20,7 +27,7 @@ mkconfigversion
 RUNTOPDIR=`pwd`
 export RUNTOPDIR
 RUNLOG=$RUNTOPDIR/tests.log
-TRUNLOG=$RUNTOPDIR/test_tmp.log
+TSTRUNLOG=$RUNTOPDIR/test_tmp.log
 
 testdir=$1
 if [ ! -d $testdir ]; then
@@ -108,17 +115,18 @@ while test $count -lt $tot; do
       continue
     fi
 
-    > $TRUNLOG
+    > $TSTRUNLOG
+    exec 9>>$TSTRUNLOG
     dt=`date`
-    echo "####" >> $TRUNLOG
-    echo "# Test: $tf $arg" >> $TRUNLOG
-    echo "# $dt" >> $TRUNLOG
-    echo "####" >> $TRUNLOG
+    echo "####" >&9
+    echo "# Test: $tf $arg" >&9
+    echo "# $dt" >&9
+    echo "####" >&9
     grc=0
     arg=""
     if [ -f $tmkconfig ]; then
-      echo "##==  mkconfig.sh " >> ${TRUNLOG}
-      arg="mkconfig.sh"
+      echo "##==  mkconfig.sh " >&9
+      arg="../../mkconfig.sh"
     fi
     echo ${EN} "$tf ... ${arg} ${EC}"
     if [ -f $tconfig ]; then
@@ -126,65 +134,66 @@ while test $count -lt $tot; do
     fi
 
     cd $RUNTMP
-    echo "##== stdout" >> ${TRUNLOG}
-    ${SHELL} ../$tf "${SHELL} ../../$arg" 3>&1 >> ${TRUNLOG} 2>&1
+    echo "##== stdout" >&9
+    ${SHELL} ../$tf "${SHELL} $arg" 3>&1 >&9 2>&1
     rc=$?
     if [ -f mkconfig.log ]; then
-      echo "##== mkconfig.log" >> ${TRUNLOG}
-      cat mkconfig.log >> ${TRUNLOG}
+      echo "##== mkconfig.log" >&9
+      cat mkconfig.log >&9
     fi
     cd ..
 
     dt=`date`
-    echo "####" >> $TRUNLOG
-    echo "# $dt" >> $TRUNLOG
-    echo "####" >> $TRUNLOG
+    echo "####" >&9
+    echo "# $dt" >&9
+    echo "####" >&9
     if [ $rc -ne 0 ]; then
       echo " ... failed"
       domath fcount "$fcount + 1"
       grc=1
-      cat $TRUNLOG >> $RUNLOG
+      cat $TSTRUNLOG >> $RUNLOG
     else
       echo " ... success"
     fi
-    rm -f $TRUNLOG
+    rm -f $TSTRUNLOG
     domath count "$count + 1"
 
     if [ -f $tmkconfig ]; then
-      > $TRUNLOG
+      > $TSTRUNLOG
       dt=`date`
-      echo "####" >> $TRUNLOG
-      echo "# Test: $tf mkconfig.pl" >> $TRUNLOG
-      echo "# $dt" >> $TRUNLOG
-      echo "####" >> $TRUNLOG
+      echo "####" >&9
+      echo "# Test: $tf mkconfig.pl" >&9
+      echo "# $dt" >&9
+      echo "####" >&9
       echo ${EN} "$tf ... mkconfig.pl ${EC}"
-      echo "##== mkconfig.pl " >> ${TRUNLOG}
+      echo "##== mkconfig.pl " >&9
       if [ -f $tconfig ]; then
         cat $tconfig > $RUNTMP/$tconfh
       fi
 
       cd $RUNTMP
-      echo "##== stdout" >> ${TRUNLOG}
-      ${SHELL} ../$tf perl ../../mkconfig.pl 3>&1 >> ${TRUNLOG} 2>&1
+      echo "##== stdout" >&9
+      ${SHELL} ../$tf perl ../../mkconfig.pl 3>&1 >&9 2>&1
       rc=$?
       if [ -f mkconfig.log ]; then
-        echo "##== mkconfig.log" >> ${TRUNLOG}
-        cat mkconfig.log >> ${TRUNLOG}
+        echo "##== mkconfig.log" >&9
+        cat mkconfig.log >&9
       fi
       cd ..
 
       dt=`date`
-      echo "####" >> $TRUNLOG
-      echo "# $dt" >> $TRUNLOG
-      echo "####" >> $TRUNLOG
+      echo "####" >&9
+      echo "# $dt" >&9
+      echo "####" >&9
+      exec 9>&-
       if [ $rc -ne 0 ]; then
         echo " ... failed"
         domath fcount "$fcount + 1"
-        cat $TRUNLOG >> $RUNLOG
+        cat $TSTRUNLOG >> $RUNLOG
       else
         echo " ... success"
       fi
-      rm -f $TRUNLOG
+      rm -f $TSTRUNLOG
       domath count "$count + 1"
     fi
   done
