@@ -44,7 +44,7 @@ savecache () {
     # And then there's: x='', which gets munged.
     set | grep "^di_" | \
       sed -e "s/=/='/" -e "s/$/'/" -e "s/''/'/g" -e "s/='$/=''/" \
-      > "${CACHEFILE}"
+      > ${CACHEFILE}
 }
 
 setdata () {
@@ -53,7 +53,7 @@ setdata () {
     sdval=$3
 
     cmd="test \"X\$di_${prefix}_${sdname}\" != X > /dev/null 2>&1"
-    eval "$cmd"
+    eval $cmd
     rc=$?
     # if already in the list of vars, don't add it again.
     if [ $rc -ne 0 ]; then
@@ -64,7 +64,7 @@ setdata () {
         rc=$?
       fi
       if [ $rc -ne 0 ]; then
-        echo "${sdname}" >&8
+        echo ${sdname} >&8
       fi
     fi
     cmd="di_${prefix}_${sdname}=\"${sdval}\""
@@ -82,8 +82,8 @@ getdata () {
 }
 
 printlabel () {
-  tname="$1"
-  tlabel="$2"
+  tname=$1
+  tlabel=$2
 
   echo "   [${tname}] ${tlabel} ... " >&9
   echo ${EN} "${tlabel} ... ${EC}" >&1
@@ -104,7 +104,7 @@ doexport () {
 printyesno_val () {
   ynname=$1
   ynval=$2
-  yntag="${3:-}"
+  yntag=${3:-}
 
   if [ "$ynval" != "0" ]; then
     echo "   [${ynname}] $ynval ${yntag}" >&9
@@ -115,17 +115,17 @@ printyesno_val () {
   fi
 
   if [ "$_MKCONFIG_EXPORT" = "T" ]; then
-    doexport "$ynname" "$ynval"
+    doexport $ynname $ynval
   fi
 }
 
 printyesno () {
     ynname=$1
     ynval=$2
-    yntag="${3:-}"
+    yntag=${3:-}
 
     if [ "$ynval" != "0" ]; then
-      ynval="yes"
+      ynval=yes
     fi
     printyesno_val $ynname $ynval "$yntag"
 }
@@ -137,7 +137,7 @@ checkcache_val () {
   getdata tval ${prefix} ${tname}
   rc=1
   if [ "$tval" != "" ]; then
-    printyesno_val "$tname" "$tval" " (cached)"
+    printyesno_val $tname $tval " (cached)"
     rc=0
   fi
   return $rc
@@ -150,7 +150,7 @@ checkcache () {
   getdata tval ${prefix} ${tname}
   rc=1
   if [ "$tval" != "" ]; then
-    printyesno "$tname" "$tval" " (cached)"
+    printyesno $tname $tval " (cached)"
     rc=0
   fi
   return $rc
@@ -167,7 +167,7 @@ check_command () {
     locatecmd trc $ccmd
     if [ "$trc" = "" ]; then trc=0; fi
     printyesno $name $trc
-    setdata ${_MKCONFIG_PREFIX} "${name}" "${trc}"
+    setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
 }
 
 require_unit () {
@@ -190,7 +190,7 @@ doloadunit () {
   lu=$1
   dep=$2
   if [ "$dep" = "Y" ]; then
-   slu="${lu}"
+   slu=${lu}
    tag=" (dependency)"
   fi
   if [ -f ../${mypath}/mkconfig.units/${lu}.sh ]; then
@@ -202,7 +202,7 @@ doloadunit () {
     eval "_MKCONFIG_UNIT_${tlu}=Y"
   fi
   if [ "$dep" = "Y" ]; then
-    lu="$slu"
+    lu=$slu
     tag=""
   fi
 }
@@ -277,10 +277,10 @@ create_config () {
           file=$2
           case ${file} in
             none)
-              CONFH="${file}"
+              CONFH=${file}
               ;;
             /*)
-              CONFH="${file}"
+              CONFH=${file}
               ;;
             *)
               CONFH="../${file}"
@@ -308,7 +308,7 @@ create_config () {
             set $tdatline
             cmd=$2
             nm="_command_${cmd}"
-            check_command "${nm}" "${cmd}"
+            check_command ${nm} ${cmd}
             ;;
         include)
             chkconfigfname
@@ -341,7 +341,7 @@ create_config () {
     exec 7<&0 < $VARSFILE
     while read cfgvar; do
       getdata val ${_MKCONFIG_PREFIX} $cfgvar
-      output_item ${CONFH} "${cfgvar}" "${val}" >&8
+      output_item ${CONFH} ${cfgvar} ${val} >&8
     done
     exec <&7 7<&-
 
@@ -372,19 +372,19 @@ mkconfigversion
 
 clearcache=0
 while test $# -gt 1; do
-  case "$1" in
+  case $1 in
     -C)
       shift
       clearcache=1
       ;;
     -c)
       shift
-      CACHEFILE="$1"
+      CACHEFILE=$1
       shift
       ;;
     -l)
       shift
-      LOG="$1"
+      LOG=$1
       shift
       ;;
   esac
