@@ -129,7 +129,6 @@ getshelltype () {
 
 testshell () {
   rc=0
-  shell=$1
 
   if [ "$_shell" != "" ]; then
     return $rc
@@ -161,7 +160,8 @@ testshell () {
       shell=sh5
     else
       SHELL=/bin/sh
-      shell=`/bin/sh -c ". $mypath/shellfuncs.sh;getshelltype"`
+      cmd="/bin/sh -c \". $mypath/shellfuncs.sh;getshelltype;echo \\\$shell\""
+      shell=`eval $cmd`
     fi
     rc=1
   else
@@ -172,7 +172,8 @@ testshell () {
   if [ $ok -eq 0 -o $shell = "bash" ]; then
     noksh=0
     if [ -x /usr/bin/ksh ]; then
-      tshell=`/usr/bin/ksh -c ". $mypath/shellfuncs.sh;getshelltype"`
+      cmd="/usr/bin/ksh -c \". $mypath/shellfuncs.sh;getshelltype;echo \\\$shell\""
+      tshell=`eval $cmd`
       case $tshell in
         pdksh)
           noksh=1               # but not w/pdksh; some versions crash
@@ -209,7 +210,7 @@ testshell () {
 
 doshelltest () {
   getshelltype
-  testshell $shell
+  testshell
   if [ $? != 0 ]; then
     export _shell=$shell
     exec $SHELL $0 $@
