@@ -19,6 +19,7 @@ RUNTMP=_tmp_runtests
 export RUNTMP
 
 mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
+export mypath
 . ${mypath}/shellfuncs.sh
 
 doshelltest $@
