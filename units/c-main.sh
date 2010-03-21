@@ -32,11 +32,11 @@
 #
 # speed at the cost of maintainability...
 # File Descriptors:
-#    9 - >>$LOG
-#    8 - >>$VARSFILE
-#    7 - temporary for mkconfig.sh
-#    6 - >>$CONFH
-#    5 - temporary for c-main.sh
+#    9 - >>$LOG                     (mkconfig.sh)
+#    8 - >>$VARSFILE, >>$CONFH      (mkconfig.sh)
+#    7 - temporary for mkconfig.sh  (mkconfig.sh)
+#    6 - temporary for c-main.sh    (c-main.sh)
+#    5 - temporary for c-main.sh    (c-main.sh)
 #
 
 _MKCONFIG_PREFIX=c
@@ -65,6 +65,7 @@ precc='
 '
 
 preconfigfile () {
+  pc_configfile=$1
 
   echo "CC: ${CC}" >&9
   echo "CFLAGS: ${CFLAGS}" >&9
@@ -76,8 +77,7 @@ preconfigfile () {
     return
   fi
 
-  pc_configfile=$1
-  cat  << _HERE_ >&6
+  cat  << _HERE_
 #ifndef __INC_CONFIG_H
 #define __INC_CONFIG_H 1
 
@@ -86,7 +86,7 @@ _HERE_
 
 stdconfigfile () {
   pc_configfile=$1
-  cat << _HERE_ >&6
+  cat << _HERE_
 
 #if ! _key_void
 # define void int
@@ -108,7 +108,7 @@ _HERE_
 
 postconfigfile () {
   pc_configfile=$1
-  cat << _HERE_ >&6
+  cat << _HERE_
 
 #endif /* __INC_CONFIG_H */
 _HERE_
@@ -140,13 +140,30 @@ _print_headers () {
     return
   fi
 
-  > $out
-  exec 4>>$out
+  if [ "$PH_STD" = "T" -a "$incheaders" = "std" ]; then
+    _print_hdrs std > $out
+    cat $out
+    return
+  fi
+
+  if [ "$incheaders" = "all" ]; then
+    _print_hdrs all > $out
+    cat $out
+    return
+  fi
+
+  # until PH_STD becomes true, just do normal processing.
+  _print_hdrs $incheaders
+}
+
+_print_hdrs () {
+  incheaders=$1
+
   if [ "${incheaders}" = "all" -o "${incheaders}" = "std" ]; then
       for tnm in '_hdr_stdio' '_hdr_stdlib' '_sys_types' '_sys_param'; do
           getdata tval ${_MKCONFIG_PREFIX} ${tnm}
           if [ "${tval}" != "0" -a "${tval}" != "" ]; then
-              echo "#include <${tval}>" >&4
+              echo "#include <${tval}>"
           fi
       done
   fi
@@ -162,23 +179,17 @@ _print_headers () {
             getdata htval ${_MKCONFIG_PREFIX} '_hdr_time'
             getdata itval ${_MKCONFIG_PREFIX} '_include_time'
             if [ "${htval}" = "0" -o "${itval}" != "0" ]; then
-              echo "#include <${hdval}>" >&4
+              echo "#include <${hdval}>"
             fi
             ;;
         _hdr_*|_sys_*)
             if [ "${hdval}" != "0" -a "${hdval}" != "" ]; then
-              echo "#include <${hdval}>" >&4
+              echo "#include <${hdval}>"
             fi
             ;;
       esac
     done
     exec <&5 5<&-
-  fi
-
-  exec 4<&-
-  cat $out
-  if [ "$PH_STD" = "F" ]; then
-    rm -f $out
   fi
 }
 
@@ -218,11 +229,12 @@ _chk_link_libs () {
       ocount=0
   fi
 
-  > ${name}.c
-  echo "${precc}" >> ${name}.c
-  _print_headers $inc >> ${name}.c
-  echo "${code}" | sed 's/_dollar_/$/g' >> ${name}.c
-  cat ${name}.c >&9
+  tcfile=${name}.c
+  exec 6>>${tcfile}
+  echo "${precc}" >&6
+  _print_headers $inc >&6
+  echo "${code}" | sed 's/_dollar_/$/g' >&6
+  exec 6>&-
 
   dlibs=""
   otherlibs=""
@@ -264,6 +276,7 @@ _chk_link () {
       cmd="${cmd} ${_clotherlibs} "
   fi
   echo "##  _link test: $cmd" >&9
+  cat ${name}.c >&9
   eval $cmd >&9 2>&9
   rc=$?
   if [ $rc -lt 0 ]; then
@@ -284,12 +297,14 @@ _chk_compile () {
   code=$2
   inc=$3
 
-  > ${name}.c
-  echo "${precc}" >> ${name}.c
-  _print_headers $inc >> ${name}.c
-  echo "${code}" >> ${name}.c
+  tcfile=${name}.c
+  exec 6>>${tcfile}
+  echo "${precc}" >&6
+  _print_headers $inc >&6
+  echo "${code}" >&6
+  exec 6>&-
 
-  cmd="${CC} ${CFLAGS} -c ${name}.c"
+  cmd="${CC} ${CFLAGS} -c ${tcfile}"
   echo "##  compile test: $cmd" >&9
   cat ${name}.c >&9
   eval ${cmd} >&9 2>&9
@@ -682,10 +697,10 @@ output_item () {
   fi
   case ${name} in
     _hdr*|_sys*|_command*)
-      echo "#define ${name} ${tval}" >&6
+      echo "#define ${name} ${tval}"
       ;;
     *)
-      echo "#define ${name} ${val}" >&6
+      echo "#define ${name} ${val}"
       ;;
   esac
 }

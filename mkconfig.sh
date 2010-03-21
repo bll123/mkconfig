@@ -8,11 +8,11 @@
 #
 # speed at the cost of maintainability...
 # File Descriptors:
-#    9 - >>$LOG
-#    8 - >>$VARSFILE
-#    7 - temporary for mkconfig.sh
-#    6 - >>$CONFH
-#    5 - temporary for c-main.sh
+#    9 - >>$LOG                     (mkconfig.sh)
+#    8 - >>$VARSFILE, >>$CONFH      (mkconfig.sh)
+#    7 - temporary for mkconfig.sh  (mkconfig.sh)
+#    6 - temporary for c-main.sh    (c-main.sh)
+#    5 - temporary for c-main.sh    (c-main.sh)
 #
 
 mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
@@ -288,10 +288,6 @@ create_config () {
           esac
           echo "output-file: ${file}" >&1
           echo "   config file name: ${CONFH}" >&9
-          if [ ${CONFH} != "none" ]; then
-            > ${CONFH}
-            exec 6>>${CONFH}
-          fi
           ;;
         loadunit*)
           set $tdatline
@@ -338,20 +334,23 @@ create_config () {
   savecache  # save the cache file.
 
   if [ ${CONFH} != "none" ]; then
-    preconfigfile ${CONFH}
+    > ${CONFH}
+    exec 8>>${CONFH}
+    preconfigfile ${CONFH} >&8
 
     exec 7<&0 < $VARSFILE
     while read cfgvar; do
       getdata val ${_MKCONFIG_PREFIX} $cfgvar
-      output_item ${CONFH} "${cfgvar}" "${val}"
+      output_item ${CONFH} "${cfgvar}" "${val}" >&8
     done
     exec <&7 7<&-
 
+    stdconfigfile ${CONFH} >&8
+    cat $INC >&8
+    postconfigfile ${CONFH} >&8
+    exec 8>&-
+
     output_other ${CONFH}
-    stdconfigfile ${CONFH}
-    cat $INC >&6
-    postconfigfile ${CONFH}
-    exec 6>&-
   fi
 }
 
