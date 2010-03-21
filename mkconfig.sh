@@ -333,6 +333,7 @@ create_config () {
   done
   # reset the file descriptors back to the norm.
   exec <&7 7<&-
+  exec 8>&-
 
   savecache  # save the cache file.
 
@@ -350,6 +351,7 @@ create_config () {
     stdconfigfile ${CONFH}
     cat $INC >&6
     postconfigfile ${CONFH}
+    exec 6>&-
   fi
 }
 
@@ -436,7 +438,7 @@ dt=`date`
 echo "#### " >&9
 echo "# End: $dt " >&9
 echo "#### " >&9
-exec 9<&-
+exec 9>&-
 
 cd ..
 test -d $_MKCONFIG_TMP && rm -rf $_MKCONFIG_TMP > /dev/null 2>&1
