@@ -7,11 +7,11 @@
 #
 # speed at the cost of maintainability...
 # File Descriptors:
-#    9 - >>$LOG
-#    8 - >>$VARSFILE
-#    7 - temporary for mkconfig.sh
-#    6 - >>$CONFH
-#    5 - temporary for c-main.sh
+#    9 - >>$LOG                     (mkconfig.sh)
+#    8 - >>$VARSFILE, >>$CONFH      (mkconfig.sh)
+#    7 - temporary for mkconfig.sh  (mkconfig.sh)
+#    6 - temporary for c-main.sh    (c-main.sh)
+#    5 - temporary for c-main.sh    (c-main.sh)
 #
 
 _MKCONFIG_PREFIX=env
@@ -42,8 +42,8 @@ output_item () {
   name=$2
   val=$3
 
-  echo "${name}=\"${val}\"" >&6
-  echo "export ${name}" >&6
+  echo "${name}=\"${val}\""
+  echo "export ${name}"
 }
 
 output_other () {
