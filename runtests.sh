@@ -11,6 +11,7 @@
 # File Descriptors:
 #    7 - temporary for mkconfig.sh
 #    9 - $TSTRUNLOG
+#    3 - stdout (as 1 is directed to the log)
 #
 
 TESTORDER=test_order
@@ -126,11 +127,14 @@ while test $count -lt $tot; do
     arg=""
     if [ -f $tmkconfig ]; then
       echo "##==  mkconfig.sh " >&9
-      arg="../../mkconfig.sh"
+      arg="mkconfig.sh"
     fi
     echo ${EN} "$tf ... ${arg} ${EC}"
     if [ -f $tconfig ]; then
       cat $tconfig > $RUNTMP/$tconfh
+    fi
+    if [ "$arg" != "" ]; then
+      arg="../../$arg"
     fi
 
     cd $RUNTMP
