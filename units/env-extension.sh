@@ -42,10 +42,10 @@ _HERE_
   ${CC} ${CFLAGS} -c $TMP.c > /dev/null 2>&1 # don't care about warnings...
   OBJ_EXT=".o"
   if [ -f "$TMP.obj" ]; then
-     echo "object extension is .obj" >> $LOG
+     echo "object extension is .obj" >&9
      OBJ_EXT=".obj"
   else
-     echo "object extension is .o" >> $LOG
+     echo "object extension is .o" >&9
   fi
 
   printyesno_val $name "${OBJ_EXT}"
@@ -77,10 +77,10 @@ _HERE_
   EXE_EXT=""
   if [ -f "$TMP.exe" ]
   then
-     echo "executable extension is .exe" >> $LOG
+     echo "executable extension is .exe" >&9
      EXE_EXT=".exe"
   else
-     echo "executable extension is none" >> $LOG
+     echo "executable extension is none" >&9
   fi
 
   printyesno_val $name "${EXE_EXT}"

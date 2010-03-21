@@ -30,7 +30,7 @@ _dogetconf () {
   locatecmd xgetconf getconf
   if [ "${xgetconf}" != "" ]
   then
-      echo "using flags from getconf" >> $LOG
+      echo "using flags from getconf" >&9
       lfccflags="`${xgetconf} LFS_CFLAGS 2>/dev/null`"
       lfldflags="`${xgetconf} LFS_LDFLAGS 2>/dev/null`"
       lflibs="`${xgetconf} LFS_LIBS 2>/dev/null`"
@@ -92,7 +92,7 @@ check_cc () {
         ;;
   esac
 
-  echo "cc:${CC}" >> $LOG
+  echo "cc:${CC}" >&9
 
   printyesno_val CC "${CC}"
   setdata ${_MKCONFIG_PREFIX} CC "${CC}"
@@ -110,7 +110,7 @@ check_using_gcc () {
   rc=$?
   if [ $rc -eq 0 ]
   then
-      echo "found gcc" >> $LOG
+      echo "found gcc" >&9
       usinggcc="Y"
   fi
 
@@ -138,7 +138,7 @@ check_cflags () {
 
   if [ "${_MKCONFIG_USING_GCC}" = "Y" ]
   then
-      echo "set gcc flags" >> $LOG
+      echo "set gcc flags" >&9
       gccflags="-Wall -Waggregate-return -Wconversion -Wformat -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wpointer-arith -Wshadow -Wstrict-prototypes -Wunused"
   fi
 
@@ -214,7 +214,7 @@ check_cflags () {
 
   case ${CC} in
     g++)
-      echo "set g++ flags" >> $LOG
+      echo "set g++ flags" >&9
       gccflags="-Wall -Waggregate-return -Wconversion -Wformat -Wpointer-arith -Wshadow -Wunused"
       ;;
   esac
@@ -224,7 +224,7 @@ check_cflags () {
   # largefile flags
   ccflags="$ccflags $lfccflags"
 
-  echo "ccflags:${ccflags}" >> $LOG
+  echo "ccflags:${ccflags}" >&9
 
   printyesno_val CFLAGS "$ccflags $ccincludes"
   setdata ${_MKCONFIG_PREFIX} CFLAGS "$ccflags $ccincludes"
@@ -277,7 +277,7 @@ check_ldflags () {
 
   ldflags="$ldflags $lfldflags"
 
-  echo "ldflags:${ldflags}" >> $LOG
+  echo "ldflags:${ldflags}" >&9
 
   printyesno_val LDFLAGS "$ldflags"
   setdata ${_MKCONFIG_PREFIX} LDFLAGS "$ldflags"
@@ -327,7 +327,7 @@ check_libs () {
   # largefile flags
   libs="$libs $lflibs"
 
-  echo "libs:${libs}" >> $LOG
+  echo "libs:${libs}" >&9
 
   printyesno_val LIBS "$libs"
   setdata ${_MKCONFIG_PREFIX} LIBS "$libs"

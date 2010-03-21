@@ -26,7 +26,7 @@ _dolocuname () {
   fi
 
   locatecmd xuname uname
-  echo "uname located: ${xuname}" >> $LOG
+  echo "uname located: ${xuname}" >&9
   env_dolocuname=T
 }
 
@@ -48,7 +48,7 @@ check_system () {
     then
       _MKCONFIG_SYSTYPE=`${xuname} -s`
     else
-      echo "no uname, try some guessing" >> $LOG
+      echo "no uname, try some guessing" >&9
       # no uname...we'll have to do some guessing.
       _MKCONFIG_SYSTYPE="unknown"
       if [ -f /vmunix ]; then
@@ -59,7 +59,7 @@ check_system () {
       fi
     fi
 
-    echo "type: ${_MKCONFIG_SYSTYPE}" >> $LOG
+    echo "type: ${_MKCONFIG_SYSTYPE}" >&9
 
     printyesno_val _MKCONFIG_SYSTYPE "${_MKCONFIG_SYSTYPE}"
     setdata ${_MKCONFIG_PREFIX} _MKCONFIG_SYSTYPE "${_MKCONFIG_SYSTYPE}"
@@ -98,7 +98,7 @@ check_system () {
           ;;
       esac
     else
-      echo "no uname, try some guessing" >> $LOG
+      echo "no uname, try some guessing" >&9
       # no uname...we'll have to do some guessing.
       _MKCONFIG_SYSREV="unknown"
       if [ -f /vmunix ]; then
@@ -113,7 +113,7 @@ check_system () {
       fi
     fi
 
-    echo "rev: ${_MKCONFIG_SYSREV}" >> $LOG
+    echo "rev: ${_MKCONFIG_SYSREV}" >&9
     printyesno_val _MKCONFIG_SYSREV "${_MKCONFIG_SYSREV}"
     setdata ${_MKCONFIG_PREFIX} _MKCONFIG_SYSREV "${_MKCONFIG_SYSREV}"
   fi
@@ -127,17 +127,17 @@ check_system () {
     then
       _MKCONFIG_SYSARCH=`${xuname} -m`
     else
-      echo "no uname, try some guessing" >> $LOG
+      echo "no uname, try some guessing" >&9
       # no uname...we'll have to do some guessing.
       _MKCONFIG_SYSARCH="unknown"
       locatecmd xarch arch
-      echo "arch located: ${xarch}" >> $LOG
+      echo "arch located: ${xarch}" >&9
       if [ "${xarch}" != "" ]; then
         _MKCONFIG_SYSARCH=`arch`
       fi
     fi
 
-    echo "arch: ${_MKCONFIG_SYSARCH}" >> $LOG
+    echo "arch: ${_MKCONFIG_SYSARCH}" >&9
 
     printyesno_val _MKCONFIG_SYSARCH "${_MKCONFIG_SYSARCH}"
     setdata ${_MKCONFIG_PREFIX} _MKCONFIG_SYSARCH "${_MKCONFIG_SYSARCH}"
