@@ -7,27 +7,48 @@ grc=0
 
 cd $RUNTOPDIR/mkconfig.units
 for f in *.sh; do
-  /bin/sh -n $f
-  rc=$?
-  if [ $rc -ne 0 ];then grc=$rc; fi
+  for s in /bin/sh /bin/bash /bin/posh /bin/ash /bin/dash; do
+    if [ -x $s ]; then
+      ls -l $s | grep -- '->' > /dev/null 2>&1
+      rc1=$?
+      ls -l $s | grep '/etc/alternatives' > /dev/null 2>&1
+      rc2=$?
+      if [ $rc1 -ne 0 -o $rc2 -eq 0 ]; then
+        $s -n $f
+        rc=$?
+        if [ $rc -ne 0 ];then grc=$rc; fi
+      fi
+    fi
+  done
 
-  if [ -x /bin/dash ]; then
-    /bin/dash -n $f
-    rc=$?
-    if [ $rc -ne 0 ];then grc=$rc; fi
-  fi
+  for s in /usr/bin/ksh /bin/ksh; do
+    if [ $s = "/bin/ksh" ]; then
+      ls -l /bin | grep -- '->' > /dev/null 2>&1
+      if [ $? -eq 0 ]; then
+        continue
+      fi
+    fi
 
-  if [ -x /usr/bin/ksh ]; then
-    /usr/bin/ksh -n $f
-    rc=$?
-    if [ $rc -ne 0 ];then grc=$rc; fi
-  fi
-
-  if [ -x /bin/bash ]; then
-    /bin/bash -n $f
-    rc=$?
-    if [ $rc -ne 0 ];then grc=$rc; fi
-  fi
+    if [ -x $s ]; then
+      ls -l $s | grep -- '->' > /dev/null 2>&1
+      rc1=$?
+      ls -l $s | grep '/etc/alternatives' > /dev/null 2>&1
+      rc2=$?
+      if [ $rc1 -ne 0 -o $rc2 -eq 0 ]; then
+        cmd="$s -c \". $mypath/shellfuncs.sh;getshelltype;echo \\\$shell\""
+        tshell=`eval $cmd`
+        case $tshell in
+          pdksh)
+            ;;
+          *)
+            $s -n $f
+            rc=$?
+            if [ $rc -ne 0 ];then grc=$rc; fi
+            ;;
+        esac
+      fi
+    fi
+  done
 done
 
 exit $grc
