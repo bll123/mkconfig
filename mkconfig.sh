@@ -60,7 +60,7 @@ setdata () {
       if [ "$_MKCONFIG_HASEMPTY" = "T" ]; then
         # have to check again, as empty vars don't work for the above test.
         # need a better way to do this.
-        grep -l "^${sdname}$" $VARSFILE > /dev/null 2>&1
+        grep -l "^${sdname}\$" $VARSFILE > /dev/null 2>&1
         rc=$?
       fi
       if [ $rc -ne 0 ]; then
