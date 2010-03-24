@@ -92,6 +92,9 @@ getshelltype () {
       *PD*)
         shell=pdksh
         ;;
+      *MIRBSD*)
+        shell=mksh
+        ;;
     esac
   elif [ "$BASH_VERSION" != "" ]; then
     shell=bash
@@ -169,31 +172,46 @@ testshell () {
   fi
 
   # bash is really slow, replace it if possible.
+  noksh=0
   if [ $ok -eq 0 -o $shell = "bash" ]; then
-    noksh=0
-    if [ -x /usr/bin/ksh ]; then
-      cmd="/usr/bin/ksh -c \". $mypath/shellfuncs.sh;getshelltype;echo \\\$shell\""
-      tshell=`eval $cmd`
-      case $tshell in
-        pdksh)
-          noksh=1               # but not w/pdksh; some versions crash
-          ;;
-        ksh)
-          SHELL=/usr/bin/ksh
-          shell=ksh
-          rc=1
-          ;;
-      esac
+    locatecmd wmksh mksh
+    if [ "$wmksh" != "" ]; then
+      SHELL=$wmksh
+      shell=mksh
+      rc=1
+      noksh=0
     else
       noksh=1
     fi
 
-    # either of these are fine...no preference
+    if [ $noksh -eq 1 ]; then
+      locatecmd wksh ksh
+      if [ "$wksh" != "" ]; then
+        cmd="$wksh -c \". $mypath/shellfuncs.sh;getshelltype;echo \\\$shell\""
+        tshell=`eval $cmd`
+        case $tshell in
+          pdksh)             # but not w/pdksh; some versions crash
+            ;;
+          ksh)
+            SHELL=$wksh
+            shell=ksh
+            rc=1
+            noksh=0
+            ;;
+        esac
+      fi
+    fi
+
+    # any of these are fine...no preference
     if [ $noksh -eq 1 -a -x /bin/dash ]; then
       SHELL=/bin/dash
       shell=dash
       rc=1
     elif [ $noksh -eq 1 -a -x /bin/ash ]; then
+      SHELL=/bin/ash
+      shell=ash
+      rc=1
+    elif [ $noksh -eq 1 -a -x /bin/posh ]; then
       SHELL=/bin/ash
       shell=ash
       rc=1
