@@ -231,7 +231,8 @@ doshelltest () {
   getshelltype
   testshell
   if [ $? != 0 ]; then
-    export _shell=$shell
+    _shell=$shell
+    export _shell
     exec $SHELL $dstscript $@
   fi
   testshcapability
