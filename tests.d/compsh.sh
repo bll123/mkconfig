@@ -17,7 +17,7 @@ fi
 plist="${plist} /usr/bin /usr/local/bin"
 
 for p in $plist; do
-  for s in sh bash posh ash dash; do
+  for s in sh bash posh ash dash mksh; do
     if [ -x $p/$s ]; then
       ls -l $p/$s | grep -- '->' > /dev/null 2>&1
       rc1=$?
