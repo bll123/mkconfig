@@ -197,8 +197,8 @@ check_cflags () {
                 # large files.  So we compile w/extensions.
                 ccflags="-Xa -v $ccflags"
                 # optimization; -xO3 is good. -xO4 must be set by user.
-                ccflags="`echo $ccflags | ${xsed} 's,-xO. *,-xO3 ,'`"
-                ccflags="`echo $ccflags | ${xsed} 's,-O *,-xO3 ,'`"
+                ccflags="`echo $ccflags | sed 's,-xO. *,-xO3 ,'`"
+                ccflags="`echo $ccflags | sed 's,-O *,-xO3 ,'`"
                 echo $ccflags | grep -- '-xO3' >/dev/null 2>&1
                 case $rc in
                     0)
