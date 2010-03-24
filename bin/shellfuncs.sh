@@ -7,9 +7,7 @@
 #
 
 mkconfigversion () {
-  exec 9<&0 < ${mypath}/VERSION
-  read vers
-  exec <&9 9<&-
+  read vers < ${mypath}/VERSION
   echo "mkconfig version ${vers}"
 }
 
