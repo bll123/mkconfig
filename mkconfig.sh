@@ -366,7 +366,7 @@ _HERE_
 
 # main
 
-doshelltest $@
+doshelltest $0 $@
 setechovars
 mkconfigversion
 

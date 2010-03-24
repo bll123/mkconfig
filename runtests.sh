@@ -22,7 +22,7 @@ mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
 export mypath
 . ${mypath}/shellfuncs.sh
 
-doshelltest $@
+doshelltest $0 $@
 setechovars
 mkconfigversion
 
