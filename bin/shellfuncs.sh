@@ -244,8 +244,7 @@ locatecmd () {
   ltcmd=$2
 
   if [ "$_pthlist" = "" ]; then
-    _pthlist=$PATH
-    dosubst _pthlist ';' ' ' ':' ' '
+    _pthlist=`echo $PATH | sed 's/:/ /g'`
   fi
 
   lcmd=""
