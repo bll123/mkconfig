@@ -11,6 +11,9 @@ getlistofshells
 for s in $shelllist; do
   cmd="$s -c \". $MKCONFIG_DIR/shellfuncs.sh;getshelltype;echo \\\$shell\""
   ss=`eval $cmd`
+  if [ "$ss" = "sh" ]; then
+    ss=`echo $s | sed 's,.*/,,'`
+  fi
   echo ${EN} "${ss} ${EC}" >&3
   echo "   testing with ${s} "
   $s -n $MKCONFIG_DIR/mkconfig.sh
