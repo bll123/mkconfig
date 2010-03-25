@@ -9,7 +9,6 @@
 #
 # speed at the cost of maintainability...
 # File Descriptors:
-#    7 - temporary for mkconfig.sh
 #    9 - $TSTRUNLOG
 #    3 - stdout (as 1 is directed to the log)
 #
@@ -18,16 +17,20 @@ TESTORDER=test_order
 RUNTMP=_tmp_runtests
 export RUNTMP
 
+RUNTOPDIR=`pwd`
+export RUNTOPDIR
+
 mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
-export mypath
-. ${mypath}/shellfuncs.sh
+cd $mypath
+MKCONFIG_DIR=`pwd`
+export MKCONFIG_DIR
+cd $RUNTOPDIR
+. ${MKCONFIG_DIR}/shellfuncs.sh
 
 doshelltest $0 $@
 setechovars
 mkconfigversion
 
-RUNTOPDIR=`pwd`
-export RUNTOPDIR
 RUNLOG=$RUNTOPDIR/tests.log
 TSTRUNLOG=$RUNTOPDIR/test_tmp.log
 
@@ -38,7 +41,7 @@ if [ ! -d $testdir ]; then
 fi
 
 shift
-teststorun="$*"
+teststorun=$*
 
 CC=${CC:-cc}
 export CC
@@ -49,98 +52,114 @@ if [ $? != 0 ]; then
   exit 1
 fi
 
-RUNTESTDIR="$RUNTOPDIR/$testdir"
+RUNTESTDIR=`pwd`
 export RUNTESTDIR
 RUNTMPDIR="$RUNTESTDIR/$RUNTMP"
 export RUNTMPDIR
 
-notestorder=F
-if [ ! -f "$TESTORDER" ]; then
-  notestorder=T
-  ls -1d *.d *.sh 2>/dev/null | grep -v $TESTORDER |
-    sed -e 's/^/1 /' -e 's/\.sh$//' > $TESTORDER
+if [ "$teststorun" = "" ]; then
+  if [ ! -f "$TESTORDER" ]; then
+    teststorun=`ls -1d *.d *.sh 2>/dev/null | sed 's/\.sh$//'`
+  else
+    teststorun=`sort $TESTORDER | sed 's/.* //'`
+  fi
 fi
 
 test -d "$RUNTMP" && rm -rf "$RUNTMP"
 mkdir $RUNTMP
 > $RUNLOG
 
-if [ "$teststorun" != "" ]; then
-  tot=`echo $teststorun | wc -w`
-else
-  tot=`wc -l $TESTORDER | sed -e 's/^ *//' -e 's/ .*//'`
-fi
-pass=1
 count=0
 fcount=0
-while test $count -lt $tot; do
-  exec 7<&0 < $TESTORDER
-  while read tfline; do
-    set $tfline
-    passnum=$1
-    tbase=$2
-    if [ $passnum -ne $pass ]; then
-      continue
-    fi
+for tbase in $teststorun; do
+  if [ -d "$tbase" ]; then
+    $0 $tbase
+    continue
+  fi
 
-    if [ "$teststorun" != "" ]; then
-      echo $teststorun | grep $tbase > /dev/null 2>&1
-      rc=$?
-      if [ $rc -ne 0 ]; then
-        continue
-      fi
-    fi
+  tf="${tbase}.sh"
+  tmkconfig="${tbase}.mkconfig"
+  tconfig="${tbase}.config"
+  tconfh="${tbase}.ctmp"
 
-    if [ -d "$tbase" ]; then
-      $0 $tbase
-      continue
-    fi
+  ok=T
+  if [ ! -f ./$tf ]; then
+    echo "$tf: missing"
+    ok=F
+  fi
+  if [ ! -x ./$tf ]; then
+    echo "$tf: permission denied"
+    ok=F
+  fi
+  if [ $ok = F ]; then
+    domath fcount "$fcount + 1"
+    domath count "$count + 1"
+    clean $tbase
+    continue
+  fi
 
-    tf="${tbase}.sh"
-    tmkconfig="${tbase}.mkconfig"
-    tconfig="${tbase}.config"
-    tconfh="${tbase}.ctmp"
+  > $TSTRUNLOG
+  exec 9>>$TSTRUNLOG
+  dt=`date`
+  echo "####" >&9
+  echo "# Test: $tf $arg" >&9
+  echo "# $dt" >&9
+  echo "####" >&9
+  grc=0
+  arg=""
+  if [ -f $tmkconfig ]; then
+    echo "##==  mkconfig.sh " >&9
+    arg="mkconfig.sh"
+  fi
+  echo ${EN} "$tf ... ${arg} ${EC}"
+  if [ -f $tconfig ]; then
+    cat $tconfig > $RUNTMP/$tconfh
+  fi
+  if [ "$arg" != "" ]; then
+    arg="$MKCONFIG_DIR/$arg"
+  fi
 
-    ok=T
-    if [ ! -f ./$tf ]; then
-      echo "$tf: missing"
-      ok=F
-    fi
-    if [ ! -x ./$tf ]; then
-      echo "$tf: permission denied"
-      ok=F
-    fi
-    if [ $ok = F ]; then
-      domath fcount "$fcount + 1"
-      domath count "$count + 1"
-      clean $tbase
-      continue
-    fi
+  cd $RUNTMP
+  echo "##== stdout" >&9
+  ${SHELL} ../$tf "${SHELL} $arg" 3>&1 >&9 2>&1
+  rc=$?
+  if [ -f mkconfig.log ]; then
+    echo "##== mkconfig.log" >&9
+    cat mkconfig.log >&9
+  fi
+  cd ..
 
+  dt=`date`
+  echo "####" >&9
+  echo "# $dt" >&9
+  echo "####" >&9
+  if [ $rc -ne 0 ]; then
+    echo " ... failed"
+    domath fcount "$fcount + 1"
+    grc=1
+    cat $TSTRUNLOG >> $RUNLOG
+  else
+    echo " ... success"
+  fi
+  rm -f $TSTRUNLOG
+  domath count "$count + 1"
+
+  if [ -f $tmkconfig ]; then
     > $TSTRUNLOG
-    exec 9>>$TSTRUNLOG
     dt=`date`
     echo "####" >&9
-    echo "# Test: $tf $arg" >&9
+    echo "# Test: $tf mkconfig.pl" >&9
     echo "# $dt" >&9
     echo "####" >&9
-    grc=0
-    arg=""
-    if [ -f $tmkconfig ]; then
-      echo "##==  mkconfig.sh " >&9
-      arg="mkconfig.sh"
-    fi
-    echo ${EN} "$tf ... ${arg} ${EC}"
+    echo ${EN} "$tf ... mkconfig.pl ${EC}"
+    echo "##== mkconfig.pl " >&9
     if [ -f $tconfig ]; then
       cat $tconfig > $RUNTMP/$tconfh
-    fi
-    if [ "$arg" != "" ]; then
-      arg="../../$arg"
     fi
 
     cd $RUNTMP
     echo "##== stdout" >&9
-    ${SHELL} ../$tf "${SHELL} $arg" 3>&1 >&9 2>&1
+    ${SHELL} ../$tf perl $MKCONFIG_DIR/mkconfig.pl 3>&1 >&9 2>&1
     rc=$?
     if [ -f mkconfig.log ]; then
       echo "##== mkconfig.log" >&9
@@ -152,63 +171,18 @@ while test $count -lt $tot; do
     echo "####" >&9
     echo "# $dt" >&9
     echo "####" >&9
+    exec 9>&-
     if [ $rc -ne 0 ]; then
       echo " ... failed"
       domath fcount "$fcount + 1"
-      grc=1
       cat $TSTRUNLOG >> $RUNLOG
     else
       echo " ... success"
     fi
     rm -f $TSTRUNLOG
     domath count "$count + 1"
-
-    if [ -f $tmkconfig ]; then
-      > $TSTRUNLOG
-      dt=`date`
-      echo "####" >&9
-      echo "# Test: $tf mkconfig.pl" >&9
-      echo "# $dt" >&9
-      echo "####" >&9
-      echo ${EN} "$tf ... mkconfig.pl ${EC}"
-      echo "##== mkconfig.pl " >&9
-      if [ -f $tconfig ]; then
-        cat $tconfig > $RUNTMP/$tconfh
-      fi
-
-      cd $RUNTMP
-      echo "##== stdout" >&9
-      ${SHELL} ../$tf perl ../../mkconfig.pl 3>&1 >&9 2>&1
-      rc=$?
-      if [ -f mkconfig.log ]; then
-        echo "##== mkconfig.log" >&9
-        cat mkconfig.log >&9
-      fi
-      cd ..
-
-      dt=`date`
-      echo "####" >&9
-      echo "# $dt" >&9
-      echo "####" >&9
-      exec 9>&-
-      if [ $rc -ne 0 ]; then
-        echo " ... failed"
-        domath fcount "$fcount + 1"
-        cat $TSTRUNLOG >> $RUNLOG
-      else
-        echo " ... success"
-      fi
-      rm -f $TSTRUNLOG
-      domath count "$count + 1"
-    fi
-  done
-  exec <&7 7<&-
-  domath pass "$pass + 1"
+  fi
 done
-
-if [ "$notestorder" = "T" ]; then
-  rm -f $TESTORDER > /dev/null 2>&1
-fi
 
 if [ $fcount -eq 0 ]; then
   rm -f $RUNLOG
