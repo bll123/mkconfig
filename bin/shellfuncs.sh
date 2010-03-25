@@ -213,7 +213,7 @@ testshell () {
         case $tshell in
           pdksh)             # but not w/pdksh; some versions crash
             ;;
-          ksh)
+          ksh*)
             SHELL=$wksh
             shell=$tshell
             rc=1
@@ -309,8 +309,11 @@ getlistofshells () {
               ;;
           esac
         fi
-        case $rs in
-          *pdksh)
+
+        cmd="$wksh -c \". $MKCONFIG_DIR/shellfuncs.sh;getshelltype;echo \\\$shell\""
+        shell=`eval $cmd`
+        case $shell in
+          pdksh)
             ;;
           *)
             shelllist="${shelllist}
