@@ -375,6 +375,13 @@ doshelltest $0 $@
 setechovars
 mkconfigversion
 
+unset GREP_OPTIONS
+unset DI_ARGS
+unset DI_FMT
+(eval 'unalias sed;unalias grep;unalias ls;unalias rm') 2>/dev/null
+LC_ALL=C
+export LC_ALL
+
 clearcache=0
 while test $# -gt 1; do
   case $1 in

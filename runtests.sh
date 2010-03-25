@@ -34,6 +34,13 @@ mkconfigversion
 RUNLOG=$RUNTOPDIR/tests.log
 TSTRUNLOG=$RUNTOPDIR/test_tmp.log
 
+unset GREP_OPTIONS
+unset DI_ARGS
+unset DI_FMT
+(eval 'unalias sed;unalias grep;unalias ls;unalias rm') 2>/dev/null
+LC_ALL=C
+export LC_ALL
+
 testdir=$1
 if [ ! -d $testdir ]; then
   echo "## Unable to locate $testdir"
