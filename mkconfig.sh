@@ -120,7 +120,7 @@ printyesno_val () {
   fi
 
   if [ "$_MKCONFIG_EXPORT" = "T" ]; then
-    doexport $ynname $ynval
+    doexport $ynname "$ynval"
   fi
 }
 
