@@ -211,8 +211,8 @@ testshell () {
       shell=ash
       rc=1
     elif [ $noksh -eq 1 -a -x /bin/posh ]; then
-      SHELL=/bin/ash
-      shell=ash
+      SHELL=/bin/posh
+      shell=posh
       rc=1
     elif [ $noksh -eq 1 -a -x /bin/sh ]; then
       SHELL=/bin/sh
