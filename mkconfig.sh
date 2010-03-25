@@ -15,8 +15,13 @@
 #    5 - temporary for c-main.sh    (c-main.sh)
 #
 
+RUNTOPDIR=`pwd`
 mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
-. ${mypath}/shellfuncs.sh
+cd $mypath
+MKCONFIG_DIR=`pwd`
+export MKCONFIG_DIR
+cd $RUNTOPDIR
+. ${MKCONFIG_DIR}/shellfuncs.sh
 
 LOG="mkconfig.log"
 _MKCONFIG_TMP="_tmp_mkconfig"
@@ -193,10 +198,10 @@ doloadunit () {
    slu=${lu}
    tag=" (dependency)"
   fi
-  if [ -f ../${mypath}/mkconfig.units/${lu}.sh ]; then
+  if [ -f ${MKCONFIG_DIR}/mkconfig.units/${lu}.sh ]; then
     echo "load-unit: ${lu} ${tag}" >&1
     echo "   found ${lu} ${tag}" >&9
-    . ../${mypath}/mkconfig.units/${lu}.sh
+    . ${MKCONFIG_DIR}/mkconfig.units/${lu}.sh
     tlu=$lu
     dosubst tlu '-' '_'
     eval "_MKCONFIG_UNIT_${tlu}=Y"
