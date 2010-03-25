@@ -191,9 +191,12 @@ testshell () {
         case $tshell in
           pdksh)             # but not w/pdksh; some versions crash
             ;;
-          ksh*)
+          *)
             SHELL=$wksh
             shell=$tshell
+            if [ "$shell" = "sh" ]; then
+              shell=ksh
+            fi
             rc=1
             noksh=0
             ;;
