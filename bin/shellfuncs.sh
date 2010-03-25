@@ -6,9 +6,11 @@
 # Copyright 2010 Brad Lanam Walnut Creek, CA, USA
 #
 
+read MKCONFIG_VERSION < ${MKCONFIG_DIR}/VERSION
+export MKCONFIG_VERSION
+
 mkconfigversion () {
-  read vers < ${MKCONFIG_DIR}/VERSION
-  echo "mkconfig version ${vers}"
+  echo "mkconfig version ${MKCONFIG_VERSION}"
 }
 
 setechovars () {
@@ -114,33 +116,9 @@ getshelltype () {
     shell=posh
   fi
 
-  if [ "$shell" = "sh" ]; then
-    line=`ls -l /bin/sh | grep -- '->' 2>/dev/null`
-    if [ "$line" != "" ]; then
-      shell=`echo $line | sed -e 's,.* ,,' -e 's,.*/,,'`
-      baseshell=$shell
-    fi
-  fi
-
-  # $SHELL is not reset when a new shell or script
-  # is started.  So it can't be depended upon to
-  # determine which shell is running.  So only use
-  # these tests if $SHELL = /bin/sh .
-  if [ "$shell" = "sh" -a "$SHELL" = "/bin/sh" ]; then
-    out=`$SHELL --version exit 2>&1`
-    echo $out | grep 'bash' > /dev/null 2>&1
-    if [ $? -eq 0 ]; then
-      shell=bash
-      baseshell=bash
-    fi
-    if [ "$shell" = "sh" ]; then
-      echo $out | grep 'AT&T' > /dev/null 2>&1
-      if [ $? -eq 0 ]; then
-        shell=ksh
-        baseshell=ksh
-      fi
-    fi
-  fi
+  # can try --version, but don't really know the path
+  # of the shell running us; can't depend on $SHELL.
+  # and it only works for bash and some versions of ksh.
 }
 
 testshell () {
