@@ -267,7 +267,7 @@ getlistofshells () {
 
   shelllist=""
   for d in $dlist; do
-    for s in sh bash posh ash dash mksh ksh; do
+    for s in bash sh posh ash dash ksh mksh; do
       if [ -x $d/$s ]; then
         rs=`ls -l $d/$s | sed 's/.* //'`
         case $rs in
