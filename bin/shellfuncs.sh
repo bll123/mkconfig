@@ -7,7 +7,7 @@
 #
 
 mkconfigversion () {
-  read vers < ${mypath}/VERSION
+  read vers < ${MKCONFIG_DIR}/VERSION
   echo "mkconfig version ${vers}"
 }
 
@@ -84,21 +84,33 @@ testshcapability () {
 
 getshelltype () {
   shell=${_shell:-sh}   # unknown or old
+  baseshell=${_shell:-sh}
   if [ "$KSH_VERSION" != "" ]; then
     shell=ksh
+    baseshell=ksh
     case $KSH_VERSION in
       *PD*)
         shell=pdksh
+        ;;
+      *93*)
+        shell=ksh93
+        ;;
+      *88*)
+        shell=ksh88
         ;;
       *MIRBSD*)
         shell=mksh
         ;;
     esac
   elif [ "$BASH_VERSION" != "" ]; then
-    shell=bash
+    baseshell=bash
+    ver=`echo $BASH_VERSION | sed 's/\..*//'`
+    shell=bash${ver}
   elif [ "$ZSH_VERSION" != "" ]; then
+    baseshell=zsh
     shell=zsh
   elif [ "$POSH_VERSION" != "" ]; then
+    baseshell=posh
     shell=posh
   fi
 
@@ -106,6 +118,7 @@ getshelltype () {
     line=`ls -l /bin/sh | grep -- '->' 2>/dev/null`
     if [ "$line" != "" ]; then
       shell=`echo $line | sed -e 's,.* ,,' -e 's,.*/,,'`
+      baseshell=$shell
     fi
   fi
 
@@ -118,11 +131,13 @@ getshelltype () {
     echo $out | grep 'bash' > /dev/null 2>&1
     if [ $? -eq 0 ]; then
       shell=bash
+      baseshell=bash
     fi
     if [ "$shell" = "sh" ]; then
       echo $out | grep 'AT&T' > /dev/null 2>&1
       if [ $? -eq 0 ]; then
         shell=ksh
+        baseshell=ksh
       fi
     fi
   fi
@@ -161,17 +176,25 @@ testshell () {
       shell=sh5
     else
       SHELL=/bin/sh
-      cmd="/bin/sh -c \". $mypath/shellfuncs.sh;getshelltype;echo \\\$shell\""
+      cmd="/bin/sh -c \". $MKCONFIG_DIR/shellfuncs.sh;getshelltype;echo \\\$shell\""
       shell=`eval $cmd`
     fi
     rc=1
   else
-    SHELL=$shell   # make sure SHELL gets reset.
+    locatecmd wsh $baseshell
+    SHELL=$wsh
   fi
+
+  isbash=F
+  case $shell in
+    bash*)
+      isbash=T
+      ;;
+  esac
 
   # bash is really slow, replace it if possible.
   noksh=0
-  if [ $ok -eq 0 -o $shell = "bash" ]; then
+  if [ $ok -eq 0 -o $isbash = "T" ]; then
     locatecmd wmksh mksh
     if [ "$wmksh" != "" ]; then
       SHELL=$wmksh
@@ -185,14 +208,14 @@ testshell () {
     if [ $noksh -eq 1 ]; then
       locatecmd wksh ksh
       if [ "$wksh" != "" ]; then
-        cmd="$wksh -c \". $mypath/shellfuncs.sh;getshelltype;echo \\\$shell\""
+        cmd="$wksh -c \". $MKCONFIG_DIR/shellfuncs.sh;getshelltype;echo \\\$shell\""
         tshell=`eval $cmd`
         case $tshell in
           pdksh)             # but not w/pdksh; some versions crash
             ;;
           ksh)
             SHELL=$wksh
-            shell=ksh
+            shell=$tshell
             rc=1
             noksh=0
             ;;
@@ -254,4 +277,48 @@ locatecmd () {
     fi
   done
   eval $lvar=$lcmd
+}
+
+getlistofshells () {
+  dlist=""
+  ls -ld /bin | grep -- '->' > /dev/null 2>&1
+  if [ $? -ne 0 ]; then
+    dlist=/bin
+  fi
+  dlist="${dlist} /usr/bin /usr/local/bin"
+
+  shelllist=""
+  for d in $dlist; do
+    for s in sh bash posh ash dash mksh ksh; do
+      if [ -x $d/$s ]; then
+        rs=`ls -l $d/$s | sed 's/.* //'`
+        case $rs in
+          /*)
+            ;;
+          *)
+            rs=$d/$rs
+            ;;
+        esac
+        if [ "$rs" != "$d/$s" ]; then
+          rs=`ls -l $rs | sed 's/.* //'`
+          case $rs in
+            /*)
+              ;;
+            *)
+              rs=$d/$rs
+              ;;
+          esac
+        fi
+        case $rs in
+          *pdksh)
+            ;;
+          *)
+            shelllist="${shelllist}
+$rs"
+            ;;
+        esac
+      fi
+    done
+  done
+  shelllist=`echo "$shelllist" | sort -u`
 }
