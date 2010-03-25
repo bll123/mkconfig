@@ -6,7 +6,7 @@ CP = cp
 RM = rm
 
 clean:
-	-rm -rf _tmp_mkconfig tests.done > /dev/null 2>&1
+	-rm -rf _tmp_mkconfig tests.done tests.log > /dev/null 2>&1
 
 distclean:
 	$(MAKE) clean
