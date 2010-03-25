@@ -346,7 +346,7 @@ create_config () {
     exec 7<&0 < $VARSFILE
     while read cfgvar; do
       getdata val ${_MKCONFIG_PREFIX} $cfgvar
-      output_item ${CONFH} ${cfgvar} ${val} >&8
+      output_item ${CONFH} ${cfgvar} "${val}" >&8
     done
     exec <&7 7<&-
 
