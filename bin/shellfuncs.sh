@@ -310,7 +310,7 @@ getlistofshells () {
           esac
         fi
 
-        cmd="$wksh -c \". $MKCONFIG_DIR/shellfuncs.sh;getshelltype;echo \\\$shell\""
+        cmd="$rs -c \". $MKCONFIG_DIR/shellfuncs.sh;getshelltype;echo \\\$shell\""
         shell=`eval $cmd`
         case $shell in
           pdksh)
