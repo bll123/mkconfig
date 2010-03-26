@@ -145,6 +145,9 @@ testshell () {
   if [ "$shell" = "zsh" ]; then   # broken
     ok=0
   fi
+  if [ "$shell" = "posh" ]; then   # currently broken on my machine
+    ok=0
+  fi
 
   if [ $ok -eq 0 ]; then
     # if this system is old enough to have /bin/sh5,
@@ -213,10 +216,6 @@ testshell () {
       SHELL=/bin/ash
       shell=ash
       rc=1
-    elif [ $noksh -eq 1 -a -x /bin/posh ]; then
-      SHELL=/bin/posh
-      shell=posh
-      rc=1
     elif [ $noksh -eq 1 -a -x /bin/sh ]; then
       SHELL=/bin/sh
       shell=sh
@@ -270,7 +269,7 @@ getlistofshells () {
 
   shelllist=""
   for d in $dlist; do
-    for s in bash sh posh ash dash ksh mksh; do
+    for s in bash sh ash dash ksh mksh; do
       if [ -x $d/$s ]; then
         rs=`ls -l $d/$s | sed 's/.* //'`
         case $rs in
