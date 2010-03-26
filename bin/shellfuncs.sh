@@ -87,7 +87,7 @@ testshcapability () {
 getshelltype () {
   shell=${_shell:-sh}   # unknown or old
   baseshell=${_shell:-sh}
-  if [ "$KSH_VERSION" != "" ]; then
+  if [ "$KSH_VERSION" != "" -o "${.sh.version}" != "" ]; then
     shell=ksh
     baseshell=ksh
     case $KSH_VERSION in
@@ -138,20 +138,19 @@ testshell () {
     return $rc
   fi
 
-  ok=1
+  ok=T
   if [ "$shell" = "pdksh" ]; then   # often broken
-    ok=0
-  fi
-  if [ "$shell" = "zsh" ]; then   # broken
-    ok=0
-  fi
-  if [ "$shell" = "posh" ]; then   # currently broken on my machine
-    ok=0
+    ok=F
   fi
 
-  if [ $ok -eq 0 ]; then
+  testshellcap $s           # this will kick out zsh, posh
+  if [ $? -ne 0 ]; then
+    ok=F
+  fi
+
+  if [ $ok = "F" ]; then
     # if this system is old enough to have /bin/sh5,
-    # we want it in preference to other shells
+    # we want it in preference to /bin/sh
     if [ -f /bin/sh5 ]; then
       SHELL=/bin/sh5
       shell=sh5
@@ -175,7 +174,7 @@ testshell () {
 
   # bash is really slow, replace it if possible.
   noksh=0
-  if [ $ok -eq 0 -o $isbash = "T" ]; then
+  if [ $ok = "F" -o $isbash = "T" ]; then
     locatecmd wmksh mksh
     if [ "$wmksh" != "" ]; then
       SHELL=$wmksh
@@ -259,17 +258,40 @@ locatecmd () {
   eval $lvar=$lcmd
 }
 
+# function to make sure the shell has
+# some basic capabilities w/o weirdness.
+testshellcap () {
+  sh=$1
+
+  # test to make sure the set command works properly
+  (
+    cmd="$sh -c 'xyzzy=\"abc def\"; val=\`set | grep \"^xyzzy\"\`; test \"\$val\" = \"xyzzy=abc def\"'"
+    eval $cmd 2>/dev/null
+    if [ $? -eq 0 ]; then
+      exit 0
+    fi
+    cmd="$sh -c 'xyzzy=\"abc def\"; val=\`set | grep \"^xyzzy\"\`; test \"\$val\" = \"xyzzy='\''abc def'\''\"'"
+    eval $cmd 2>/dev/null
+    if [ $? -eq 0 ]; then
+      exit 0
+    fi
+    exit 1
+  )
+  grc=$?
+
+  return $grc
+}
+
 getlistofshells () {
-  dlist=""
+  pthlist=`echo $PATH | sed 's/:/ /g'`
   ls -ld /bin | grep -- '->' > /dev/null 2>&1
   if [ $? -ne 0 ]; then
-    dlist=/bin
+    pthlist=`echo $pthlist | sed 's,/bin ,,'`
   fi
-  dlist="${dlist} /usr/bin /usr/local/bin"
 
-  shelllist=""
-  for d in $dlist; do
-    for s in bash sh ash dash ksh mksh; do
+  tshelllist=""
+  for d in $pthlist; do
+    for s in bash sh ash dash posh ksh mksh; do
       if [ -x $d/$s ]; then
         rs=`ls -l $d/$s | sed 's/.* //'`
         case $rs in
@@ -296,12 +318,20 @@ getlistofshells () {
           pdksh)
             ;;
           *)
-            shelllist="${shelllist}
+            tshelllist="${tshelllist}
 $rs"
             ;;
         esac
       fi
     done
   done
-  shelllist=`echo "$shelllist" | sort -u`
+  tshelllist=`echo "$tshelllist" | sort -u`
+
+  shelllist=""
+  for s in $tshelllist; do
+    testshellcap $s
+    if [ $? -eq 0 ]; then
+      shelllist="${shelllist} $s"
+    fi
+  done
 }
