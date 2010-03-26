@@ -378,6 +378,7 @@ mkconfigversion
 unset GREP_OPTIONS
 unset DI_ARGS
 unset DI_FMT
+unset ENV
 unalias sed > /dev/null 2>&1
 unalias grep > /dev/null 2>&1
 unalias ls > /dev/null 2>&1

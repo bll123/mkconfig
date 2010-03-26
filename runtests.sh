@@ -19,7 +19,6 @@ export RUNTMP
 
 RUNTOPDIR=`pwd`
 export RUNTOPDIR
-
 mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
 cd $mypath
 MKCONFIG_DIR=`pwd`
@@ -37,6 +36,7 @@ TSTRUNLOG=$RUNTOPDIR/test_tmp.log
 unset GREP_OPTIONS
 unset DI_ARGS
 unset DI_FMT
+unset ENV
 unalias sed > /dev/null 2>&1
 unalias grep > /dev/null 2>&1
 unalias ls > /dev/null 2>&1
