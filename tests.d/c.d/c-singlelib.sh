@@ -5,8 +5,6 @@ echo ${EN} "w/single lib${EC}" >&3
 
 grc=0
 
-set -x
-
 CFLAGS="-I$RUNTMPDIR ${CFLAGS}"
 LDFLAGS="-L$RUNTMPDIR ${LDFLAGS}"
 export CFLAGS LDFLAGS
