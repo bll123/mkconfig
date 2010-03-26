@@ -11,6 +11,8 @@ cd $MKCONFIG_DIR/mkconfig.units
 echo ${EN} " ${EC}" >&3
 getlistofshells
 for s in $shelllist; do
+  unset _shell
+  unset shell
   cmd="$s -c \". $MKCONFIG_DIR/shellfuncs.sh;getshelltype;echo \\\$shell\""
   ss=`eval $cmd`
   if [ "$ss" = "sh" ]; then

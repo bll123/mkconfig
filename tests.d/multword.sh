@@ -9,6 +9,8 @@ grc=0
 echo ${EN} " ${EC}" >&3
 getlistofshells
 for s in $shelllist; do
+  unset _shell
+  unset shell
   cmd="$s -c \". $MKCONFIG_DIR/shellfuncs.sh;getshelltype;echo \\\$shell\""
   ss=`eval $cmd`
   if [ "$ss" = "sh" ]; then
@@ -20,7 +22,7 @@ for s in $shelllist; do
   export _MKCONFIG_SHELL
   shell=$ss
   rm -f mkconfig.cache multword.env mkconfig.log > /dev/null 2>&1
-  eval "$SHELL -x $MKCONFIG_DIR/mkconfig.sh -C $RUNTESTDIR/multword.dat"
+  eval "$_MKCONFIG_SHELL $MKCONFIG_DIR/mkconfig.sh -C $RUNTESTDIR/multword.dat"
   . ./mkconfig.cache
   if [ "$di_env_test_multword" != "word1 word2" ]; then
     echo "   failed with ${s}: cache: $di_env_test_multword"
