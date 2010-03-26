@@ -18,6 +18,9 @@ README          	README
 runtests.sh		runs regression tests
 shellfuncs.sh		mkconfig functions
 tests.d/			regression tests for mkconfig
+tests.d/cache.dat
+tests.d/cache.mkconfig
+tests.d/cache.sh
 tests.d/compmksh.sh
 tests.d/compmkperl.sh
 tests.d/compunits.sh
@@ -35,7 +38,6 @@ tests.d/multlib.dat
 tests.d/multlib.mkconfig
 tests.d/multlib.reqlibs
 tests.d/multlib.sh
-tests.d/cache.dat
-tests.d/cache.mkconfig
-tests.d/cache.sh
+tests.d/multword.dat
+tests.d/multword.sh
 VERSION			version
