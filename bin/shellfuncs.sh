@@ -289,7 +289,7 @@ testshellcap () {
 getlistofshells () {
   pthlist=`echo $PATH | sed 's/:/ /g'`
   ls -ld /bin | grep -- '->' > /dev/null 2>&1
-  if [ $? -ne 0 ]; then
+  if [ $? -eq 0 ]; then
     pthlist=`echo $pthlist | sed 's,/bin ,,'`
   fi
 
