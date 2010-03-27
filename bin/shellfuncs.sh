@@ -87,7 +87,11 @@ testshcapability () {
 getshelltype () {
   shell=${_shell:-sh}   # unknown or old
   baseshell=${_shell:-sh}
-  if [ "$KSH_VERSION" != "" -o "${.sh.version}" != "" ]; then
+  ( eval 'echo ${.sh.version}' ) >/dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    eval 'KSH_VERSION=${.sh.version}'
+  fi
+  if [ "$KSH_VERSION" != "" ]; then
     shell=ksh
     baseshell=ksh
     case $KSH_VERSION in
@@ -277,9 +281,9 @@ testshellcap () {
     fi
     exit 1
   )
-  grc=$?
+  rc=$?
 
-  return $grc
+  return $rc
 }
 
 getlistofshells () {
