@@ -138,7 +138,8 @@ doshelltest () {
   getshelltype
   chkshell
   if [ $? -ne 0 ]; then
-    echo "The shell in use ($shell) does not have the correct functionality." >&2
+    echo "The shell in use ($shell) does not have the correct functionality:" >&2
+    echo $chkmsg >&2
     echo "Please try another shell." >&2
     exit 1
   fi
@@ -206,13 +207,14 @@ chkshell () {
     rm -f xyzzy xyzzy.out > /dev/null 2>&1
     exit $rc
   )
+  rc=$?
   if [ $rc -ne 0 ]; then
     grc=$rc
     chkmsg="${chkmsg}
 Does not support > filename."
   fi
 
-  return $rc
+  return $grc
 }
 
 getlistofshells () {
