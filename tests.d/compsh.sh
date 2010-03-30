@@ -3,17 +3,17 @@
 script=$@
 echo ${EN} "compile mkconfig units${EC}" >&3
 
-. $MKCONFIG_DIR/shellfuncs.sh
+. $_MKCONFIG_DIR/shellfuncs.sh
 grc=0
 
-cd $MKCONFIG_DIR/mkconfig.units
+cd $_MKCONFIG_DIR/mkconfig.units
 
 echo ${EN} " ${EC}" >&3
 getlistofshells
 for s in $shelllist; do
   unset _shell
   unset shell
-  cmd="$s -c \". $MKCONFIG_DIR/shellfuncs.sh;getshelltype;echo \\\$shell\""
+  cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;getshelltype;echo \\\$shell\""
   ss=`eval $cmd`
   if [ "$ss" = "sh" ]; then
     ss=`echo $s | sed 's,.*/,,'`
