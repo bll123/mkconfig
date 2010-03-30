@@ -6,11 +6,11 @@
 # Copyright 2010 Brad Lanam Walnut Creek, CA, USA
 #
 
-read MKCONFIG_VERSION < ${MKCONFIG_DIR}/VERSION
-export MKCONFIG_VERSION
+read _MKCONFIG_VERSION < ${_MKCONFIG_DIR}/VERSION
+export _MKCONFIG_VERSION
 
 mkconfigversion () {
-  echo "mkconfig version ${MKCONFIG_VERSION}"
+  echo "mkconfig version ${_MKCONFIG_VERSION}"
 }
 
 setechovars () {
@@ -126,6 +126,15 @@ getshelltype () {
 }
 
 doshelltest () {
+  # force shell type.
+  if [ "$_MKCONFIG_SHELL" != "" ]; then
+    if [ "$SHELL" != "$_MKCONFIG_SHELL" ]; then
+      SHELL="$_MKCONFIG_SHELL"
+      export SHELL
+      exec $SHELL $dstscript $@
+    fi
+  fi
+
   getshelltype
   chkshell
   if [ $? -ne 0 ]; then
@@ -236,7 +245,7 @@ getlistofshells () {
           esac
         fi
 
-        cmd="$rs -c \". $MKCONFIG_DIR/shellfuncs.sh;getshelltype;echo \\\$shell\""
+        cmd="$rs -c \". $_MKCONFIG_DIR/shellfuncs.sh;getshelltype;echo \\\$shell\""
         shell=`eval $cmd`
         case $shell in
           pdksh)
@@ -253,7 +262,7 @@ $rs"
 
   shelllist=""
   for s in $tshelllist; do
-    cmd="$s -c \". $MKCONFIG_DIR/shellfuncs.sh;chkshell\""
+    cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;chkshell\""
     eval $cmd
     if [ $? -eq 0 ]; then
       shelllist="${shelllist} $s"
