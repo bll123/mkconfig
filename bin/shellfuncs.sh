@@ -215,7 +215,7 @@ getlistofshells () {
 
   tshelllist=""
   for d in $pthlist; do
-    for s in bash sh ash dash posh ksh mksh; do
+    for s in ash bash dash ksh mksh posh sh sh5 ; do
       if [ -x $d/$s ]; then
         rs=`ls -l $d/$s | sed 's/.* //'`
         case $rs in
