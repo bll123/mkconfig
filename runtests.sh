@@ -21,12 +21,12 @@ RUNTOPDIR=`pwd`
 export RUNTOPDIR
 mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
 cd $mypath
-MKCONFIG_DIR=`pwd`
-export MKCONFIG_DIR
+_MKCONFIG_DIR=`pwd`
+export _MKCONFIG_DIR
 cd $RUNTOPDIR
-. ${MKCONFIG_DIR}/shellfuncs.sh
+. ${_MKCONFIG_DIR}/shellfuncs.sh
 
-doshelltest
+doshelltest $0 $@
 setechovars
 mkconfigversion
 
@@ -126,12 +126,12 @@ for tbase in $teststorun; do
     cat $tconfig > $RUNTMP/$tconfh
   fi
   if [ "$arg" != "" ]; then
-    arg="$MKCONFIG_DIR/$arg"
+    arg="$_MKCONFIG_DIR/$arg"
   fi
 
   cd $RUNTMP
   echo "##== stdout" >&9
-  ${SHELL} ../$tf "${SHELL} $arg" 3>&1 >&9 2>&1
+  ../$tf $arg 3>&1 >&9 2>&1
   rc=$?
   if [ -f mkconfig.log ]; then
     echo "##== mkconfig.log" >&9
@@ -169,7 +169,7 @@ for tbase in $teststorun; do
 
     cd $RUNTMP
     echo "##== stdout" >&9
-    ${SHELL} ../$tf perl $MKCONFIG_DIR/mkconfig.pl 3>&1 >&9 2>&1
+    ../$tf perl $_MKCONFIG_DIR/mkconfig.pl 3>&1 >&9 2>&1
     rc=$?
     if [ -f mkconfig.log ]; then
       echo "##== mkconfig.log" >&9

@@ -18,10 +18,10 @@
 RUNTOPDIR=`pwd`
 mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
 cd $mypath
-MKCONFIG_DIR=`pwd`
-export MKCONFIG_DIR
+_MKCONFIG_DIR=`pwd`
+export _MKCONFIG_DIR
 cd $RUNTOPDIR
-. ${MKCONFIG_DIR}/shellfuncs.sh
+. ${_MKCONFIG_DIR}/shellfuncs.sh
 
 LOG="mkconfig.log"
 _MKCONFIG_TMP="_tmp_mkconfig"
@@ -198,10 +198,10 @@ doloadunit () {
    slu=${lu}
    tag=" (dependency)"
   fi
-  if [ -f ${MKCONFIG_DIR}/mkconfig.units/${lu}.sh ]; then
+  if [ -f ${_MKCONFIG_DIR}/mkconfig.units/${lu}.sh ]; then
     echo "load-unit: ${lu} ${tag}" >&1
     echo "   found ${lu} ${tag}" >&9
-    . ${MKCONFIG_DIR}/mkconfig.units/${lu}.sh
+    . ${_MKCONFIG_DIR}/mkconfig.units/${lu}.sh
     tlu=$lu
     dosubst tlu '-' '_'
     eval "_MKCONFIG_UNIT_${tlu}=Y"
@@ -371,7 +371,7 @@ _HERE_
 
 # main
 
-doshelltest
+doshelltest $0 $@
 setechovars
 mkconfigversion
 
@@ -438,7 +438,6 @@ echo "#### " >&9
 echo "# Start: $dt " >&9
 echo "# $0 ($shell) using $configfile " >&9
 echo "#### " >&9
-echo "SHELL: $SHELL" >&9
 echo "shell: $shell" >&9
 echo "has append: ${shhasappend}" >&9
 echo "has paramsub: ${shhasparamsub}" >&9
