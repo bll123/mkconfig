@@ -26,7 +26,7 @@ export MKCONFIG_DIR
 cd $RUNTOPDIR
 . ${MKCONFIG_DIR}/shellfuncs.sh
 
-doshelltest $0 $@
+doshelltest
 setechovars
 mkconfigversion
 
