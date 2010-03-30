@@ -125,121 +125,13 @@ getshelltype () {
   # and it only works for bash and some versions of ksh.
 }
 
-testshell () {
-  rc=0
-
-  if [ "$_shell" != "" ]; then
-    return $rc
-  fi
-
-  # force shell type.
-  if [ "$_MKCONFIG_SHELL" != "" ]; then
-    if [ "$SHELL" != "$_MKCONFIG_SHELL" ]; then
-      SHELL="$_MKCONFIG_SHELL"
-      export SHELL
-      rc=1
-    fi
-    return $rc
-  fi
-
-  ok=T
-  if [ "$shell" = "pdksh" ]; then   # often broken
-    ok=F
-  fi
-
-  testshellcap $s           # this will kick out zsh, posh
-  if [ $? -ne 0 ]; then
-    ok=F
-  fi
-
-  if [ $ok = "F" ]; then
-    # if this system is old enough to have /bin/sh5,
-    # we want it in preference to /bin/sh
-    if [ -f /bin/sh5 ]; then
-      SHELL=/bin/sh5
-      shell=sh5
-    else
-      SHELL=/bin/sh
-      cmd="/bin/sh -c \". $MKCONFIG_DIR/shellfuncs.sh;getshelltype;echo \\\$shell\""
-      shell=`eval $cmd`
-    fi
-    rc=1
-  else
-    locatecmd wsh $baseshell
-    SHELL=$wsh
-  fi
-
-  isbash=F
-  case $shell in
-    bash*)
-      isbash=T
-      ;;
-  esac
-
-  # bash is really slow, replace it if possible.
-  noksh=0
-  if [ $ok = "F" -o $isbash = "T" ]; then
-    locatecmd wmksh mksh
-    if [ "$wmksh" != "" ]; then
-      SHELL=$wmksh
-      shell=mksh
-      rc=1
-      noksh=0
-    else
-      noksh=1
-    fi
-
-    if [ $noksh -eq 1 ]; then
-      locatecmd wksh ksh
-      if [ "$wksh" != "" ]; then
-        cmd="$wksh -c \". $MKCONFIG_DIR/shellfuncs.sh;getshelltype;echo \\\$shell\""
-        tshell=`eval $cmd`
-        case $tshell in
-          pdksh)             # but not w/pdksh; some versions crash
-            ;;
-          *)
-            SHELL=$wksh
-            shell=$tshell
-            if [ "$shell" = "sh" ]; then
-              shell=ksh
-            fi
-            rc=1
-            noksh=0
-            ;;
-        esac
-      fi
-    fi
-
-    # any of these are fine...no preference
-    if [ $noksh -eq 1 -a -x /bin/dash ]; then
-      SHELL=/bin/dash
-      shell=dash
-      rc=1
-    elif [ $noksh -eq 1 -a -x /bin/ash ]; then
-      SHELL=/bin/ash
-      shell=ash
-      rc=1
-    elif [ $noksh -eq 1 -a -x /bin/sh ]; then
-      SHELL=/bin/sh
-      shell=sh
-      rc=1
-    fi
-  fi
-
-  export SHELL
-  return $rc
-}
-
 doshelltest () {
-  dstscript=$1
-  shift
-
   getshelltype
-  testshell
-  if [ $? != 0 ]; then
-    _shell=$shell
-    export _shell
-    exec $SHELL $dstscript $@
+  chkshell
+  if [ $? -ne 0 ]; then
+    echo "The shell in use ($shell) does not have the correct functionality." >&2
+    echo "Please try another shell." >&2
+    exit 1
   fi
   testshcapability
 }
@@ -264,17 +156,19 @@ locatecmd () {
 
 # function to make sure the shell has
 # some basic capabilities w/o weirdness.
-testshellcap () {
-  sh=$1
+chkshell () {
 
+  grc=0
+
+  chkmsg=""
   # test to make sure the set command works properly
   (
-    cmd="$sh -c 'xyzzy=\"abc def\"; val=\`set | grep \"^xyzzy\"\`; test \"\$val\" = \"xyzzy=abc def\"'"
+    cmd='xyzzy="abc def"; val=`set | grep "^xyzzy"`; test "$val" = "xyzzy=abc def"'
     eval $cmd 2>/dev/null
     if [ $? -eq 0 ]; then
       exit 0
     fi
-    cmd="$sh -c 'xyzzy=\"abc def\"; val=\`set | grep \"^xyzzy\"\`; test \"\$val\" = \"xyzzy='\''abc def'\''\"'"
+    cmd="xyzzy=\"abc def\"; val=\`set | grep \"^xyzzy\"\`; test \"$val\" = \"xyzzy='abc def'\""
     eval $cmd 2>/dev/null
     if [ $? -eq 0 ]; then
       exit 0
@@ -282,6 +176,32 @@ testshellcap () {
     exit 1
   )
   rc=$?
+  if [ $rc -ne 0 ]; then
+    grc=$rc
+    chkmsg="${chkmsg}
+'set' output not x=a b or x='a b'."
+  fi
+
+  # test for broken output redirect (e.g. zsh hangs)
+  (
+    cmd="> xyzzy;test -f xyzzy;echo $? > xyzzy.out"
+    eval $cmd &
+    job=$!
+    sleep 1
+    rc=1
+    if [ ! -f xyzzy.out ]; then
+      kill $job
+    else
+      rc=`cat xyzzy.out`
+    fi
+    rm -f xyzzy xyzzy.out > /dev/null 2>&1
+    exit $rc
+  )
+  if [ $rc -ne 0 ]; then
+    grc=$rc
+    chkmsg="${chkmsg}
+Does not support > filename."
+  fi
 
   return $rc
 }
@@ -333,7 +253,8 @@ $rs"
 
   shelllist=""
   for s in $tshelllist; do
-    testshellcap $s
+    cmd="$s -c \". $MKCONFIG_DIR/shellfuncs.sh;chkshell\""
+    eval $cmd
     if [ $? -eq 0 ]; then
       shelllist="${shelllist} $s"
     fi
