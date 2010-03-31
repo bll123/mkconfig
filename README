@@ -12,7 +12,6 @@ CHANGES
     1.2                                     [12 mar 2010]
         Rewrite mkconfig.sh to use unit scripts and increase performance.
         Add environment units.
-        Force type of shell used during build (for performance reasons).
         Allow _MKCONFIG_SHELL to override shell.
 
     1.1 (di ver 4.19)                       [1 Feb 2010]
