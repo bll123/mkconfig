@@ -29,6 +29,27 @@ CACHEFILE="mkconfig.cache"
 
 INC="include.txt"                   # temporary
 
+initifs () {
+  hasifs=0
+  if [ "$IFS" != "" ]; then
+    OIFS="$IFS"
+    hasifs=1
+  fi
+}
+
+setifs () {
+  IFS="
+"
+}
+
+resetifs () {
+  if [ $hasifs -eq 1 ]; then
+    IFS="$OIFS"
+  else
+    unset IFS
+  fi
+}
+
 chkconfigfname () {
   if [ "$CONFH" = "" ]; then
     echo "Config file name not set.  Exiting."
@@ -225,11 +246,7 @@ create_config () {
 
   ininclude=0
   linenumber=0
-  hasifs=0
-  if [ "$IFS" != "" ]; then
-    OIFS="$IFS"
-    hasifs=1
-  fi
+  initifs
   > $INC
   case ${configfile} in
     /*)
@@ -244,17 +261,14 @@ create_config () {
   # current shell rather than a subshell.
   exec 7<&0 < ${configfile}
   while read tdatline; do
+    resetifs
     domath linenumber "$linenumber + 1"
 
     if [ $ininclude -eq 1 ]; then
         if [ "${tdatline}" = "endinclude" ]; then
           echo "#### ${linenumber}: ${tdatline}" >&9
           ininclude=0
-          if [ $hasifs -eq 1 ]; then
-            IFS="$OIFS"
-          else
-            unset IFS
-          fi
+          resetifs
         else
           echo "${tdatline}" >> $INC
         fi
@@ -318,8 +332,6 @@ create_config () {
         include)
             chkconfigfname
             ininclude=1
-            IFS="
-"
             ;;
         *)
             chkconfigfname
@@ -330,6 +342,9 @@ create_config () {
             eval $cmd
             ;;
       esac
+    fi
+    if [ $ininclude -eq 1 ]; then
+      setifs
     fi
   done
   # reset the file descriptors back to the norm.
