@@ -69,6 +69,7 @@ preconfigfile () {
 
   echo "CC: ${CC}" >&9
   echo "CFLAGS: ${CFLAGS}" >&9
+  echo "CPPFLAGS: ${CPPFLAGS}" >&9
   echo "LDFLAGS: ${LDFLAGS}" >&9
   echo "LIBS: ${LIBS}" >&9
 
@@ -270,7 +271,7 @@ _chk_link_libs () {
 _chk_link () {
   clname=$1
 
-  cmd="${CC} ${CFLAGS} -o ${clname}.exe ${clname}.c "
+  cmd="${CC} ${CFLAGS} ${CPPFLAGS} -o ${clname}.exe ${clname}.c "
   cmd="${cmd} ${LDFLAGS} ${LIBS} "
   _clotherlibs=$otherlibs
   if [ "${_clotherlibs}" != "" ]; then
@@ -306,7 +307,7 @@ _chk_compile () {
   echo "${code}" >&6
   exec 6>&-
 
-  cmd="${CC} ${CFLAGS} -c ${tcfile}"
+  cmd="${CC} ${CFLAGS} ${CPPFLAGS} -c ${tcfile}"
   echo "##  compile test: $cmd" >&9
   cat ${ccname}.c >&9
   eval ${cmd} >&9 2>&9

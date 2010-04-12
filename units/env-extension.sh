@@ -39,7 +39,7 @@ check_objext () {
   }
 _HERE_
 
-  ${CC} ${CFLAGS} -c $TMP.c > /dev/null 2>&1 # don't care about warnings...
+  ${CC} ${CFLAGS} ${CPPFLAGS} -c $TMP.c > /dev/null 2>&1 # don't care about warnings...
   OBJ_EXT=".o"
   if [ -f "$TMP.obj" ]; then
      echo "object extension is .obj" >&9
@@ -73,7 +73,7 @@ check_exeext () {
   }
 _HERE_
 
-  ${CC} ${CFLAGS} -o $TMP $TMP.c > /dev/null 2>&1 # don't care about warnings
+  ${CC} ${CFLAGS} ${CPPFLAGS} -o $TMP $TMP.c > /dev/null 2>&1 # don't care about warnings
   EXE_EXT=""
   if [ -f "$TMP.exe" ]
   then

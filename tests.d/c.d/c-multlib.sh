@@ -23,7 +23,7 @@ cat > tst2libb.c <<_HERE_
 #include <tst2libc.h>
 int tst2libb () { tst2libc(); return 0; }
 _HERE_
-${CC} -c ${CFLAGS} tst2libb.c
+${CC} -c ${CFLAGS} ${CPPFLAGS} tst2libb.c
 if [ $? -ne 0 ]; then
   echo "compile tst2libb.c failed"
   exit 1
@@ -36,7 +36,7 @@ cat > tst2libc.c <<_HERE_
 #include <tst2libc.h>
 int tst2libc () { printf ("hello world\n"); return 0; }
 _HERE_
-${CC} -c ${CFLAGS} tst2libc.c
+${CC} -c ${CFLAGS} ${CPPFLAGS} tst2libc.c
 if [ $? -ne 0 ]; then
   echo "compile tst2libb.c failed"
   exit 1

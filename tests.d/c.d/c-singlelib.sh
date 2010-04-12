@@ -19,7 +19,7 @@ cat > tst1lib.c <<_HERE_
 #include <tst1lib.h>
 int tst1lib () { printf ("hello world\n"); return 0; }
 _HERE_
-${CC} -c ${CFLAGS} tst1lib.c
+${CC} -c ${CFLAGS} ${CPPFLAGS} tst1lib.c
 if [ $? -ne 0 ]; then
   echo "compile tst1lib.c failed"
   exit 1
