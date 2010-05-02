@@ -45,8 +45,6 @@ _MKCONFIG_EXPORT=F
 PH_PREFIX="mkc_ph."
 PH_STD=F
 
-REQLIB="../reqlibs.txt"
-
 precc='
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
 # define _ARG_(x) x
@@ -620,7 +618,8 @@ main () {  i(); return (i==0); }
   tag=""
   if [ $rc -eq 0 -a "$dlibs" != "" ]; then
     tag=" with ${dlibs}"
-    doappend reqlibs " ${dlibs}"
+    cmd="di_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
+    eval $cmd
   fi
 
   if [ ${trc} -eq 0 -a "$_MKCONFIG_TEST_EXTERN" != "" ]; then
@@ -645,7 +644,8 @@ _END_EXTERNS_
     tag=""
     if [ $rc -eq 0 -a "$dlibs" != "" ]; then
       tag=" with ${dlibs}"
-      doappend reqlibs " ${dlibs}"
+      cmd="di_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
+      eval $cmd
     fi
   fi
 
@@ -682,8 +682,9 @@ check_class () {
   fi
   tag=""
   if [ $rc -eq 0 -a "${dlibs}" != "" ]; then
-      tag=" with ${dlibs}"
-      doappend reqlibs " ${dlibs}"
+    tag=" with ${dlibs}"
+    cmd="di_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
+    eval $cmd
   fi
   printyesno $name $trc "$tag"
   setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
@@ -709,8 +710,5 @@ output_item () {
 }
 
 output_other () {
-  out=$1
-
-  > $REQLIB
-  echo $reqlibs >> $REQLIB
+  return
 }
