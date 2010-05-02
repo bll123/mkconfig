@@ -3,4 +3,4 @@ loadunit c-main
 standard
 hdr tst2libb.h
 hdr tst2libc.h
-lib tst2libb -ltst2libb -ltst2libc
+lib tst2libb -ltst2libb, -ltst2libc, -ltst2libb -ltst2libc
