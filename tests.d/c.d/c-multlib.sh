@@ -44,8 +44,15 @@ fi
 ar cq libtst2libc.a tst2libc.o
 
 eval "${script} -C $RUNTESTDIR/multlib.dat"
+case $script in
+  *mkconfig.sh)
+    $RUNTOPDIR/mkreqlib.sh multlib.ctest
+    ;;
+esac
+
 cat multlib.ctest | sed -e '/^#define _key_/d' -e '/^#define _proto_/d' > t
 mv t multlib.ctest
+
 echo "## diff 1"
 diff -b multlib.ctmp multlib.ctest
 rc=$?

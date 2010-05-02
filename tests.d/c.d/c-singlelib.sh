@@ -27,8 +27,15 @@ fi
 ar cq libtst1lib.a tst1lib.o
 
 eval "${script} -C $RUNTESTDIR/singlelib.dat"
+case $script in
+  *mkconfig.sh)
+    $RUNTOPDIR/mkreqlib.sh singlelib.ctest
+    ;;
+esac
+
 cat singlelib.ctest | sed -e '/^#define _key_/d' -e '/^#define _proto_/d' > t
 mv t singlelib.ctest
+
 echo "## diff 1"
 diff -b singlelib.ctmp singlelib.ctest
 rc=$?
