@@ -14,6 +14,7 @@ mkconfig.units/env-extension.sh
 mkconfig.units/env-main.sh
 mkconfig.units/env-msgfmt.sh
 mkconfig.units/env-systype.sh
+mkreqlib.sh		required link libraries
 README          	README
 runtests.sh		runs regression tests
 shellfuncs.sh		mkconfig functions
