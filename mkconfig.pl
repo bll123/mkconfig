@@ -87,8 +87,14 @@ savecache
     open (MKCV, ">$VARSFILE");
     foreach my $val (@{$r_clist->{'list'}})
     {
-      print MKCC "di_c_${val}='" . $r_config->{$val} . "'\n";
-      print MKCV $val, "\n";
+      if ($val =~ /^lib__lib_/o) {
+        $tval = $val;
+        $tval =~ s/^lib_//o;
+        print MKCC "di_c_lib_${tval}='" . $r_config->{$val} . "'\n";
+      } else {
+        print MKCC "di_c_${val}='" . $r_config->{$val} . "'\n";
+        print MKCV $val, "\n";
+      }
     }
     close (MKCC);
     close (MKCV);
@@ -607,6 +613,8 @@ _HERE_
       if ($a{'dlibs'} ne '')
       {
           $tag = " with $a{'dlibs'}";
+          $r_config->{"lib_$name"} = $a{'dlibs'};
+          setlist $r_clist, "lib_$name";
       }
     }
     printyesno $name, $r_config->{$name}, $tag;
@@ -650,6 +658,8 @@ _HERE_
       if ($a{'dlibs'} ne '')
       {
           $tag = " with $a{'dlibs'}";
+          $r_config->{"lib_$name"} = $a{'dlibs'};
+          setlist $r_clist, "lib_$name";
       }
     }
     printyesno $name, $r_config->{$name}, $tag;
@@ -1134,17 +1144,16 @@ _HERE_
 
     foreach my $val (@{$clist{'list'}})
     {
+      if ($val =~ m#^lib__lib_#o) {
+        next;
+      }
       my $tval = 0;
-      if ($config{$val} ne "0")
-      {
+      if ($config{$val} ne "0") {
           $tval = 1;
       }
-      if ($val =~ m#^(_hdr|_sys|_command)#o)
-      {
+      if ($val =~ m#^(_hdr|_sys|_command)#o) {
         print CCOFH "#define $val $tval\n";
-      }
-      else
-      {
+      } else {
         print CCOFH "#define $val $config{$val}\n";
       }
     }
