@@ -13,6 +13,7 @@
 #    3 - stdout (as 1 is directed to the log)
 #
 
+DOPERL=T
 TESTORDER=test_order
 RUNTMP=_tmp_runtests
 export RUNTMP
@@ -154,7 +155,7 @@ for tbase in $teststorun; do
   rm -f $TSTRUNLOG
   domath count "$count + 1"
 
-  if [ -f $tmkconfig ]; then
+  if [ "$DOPERL" = "T" -a -f $tmkconfig ]; then
     > $TSTRUNLOG
     dt=`date`
     echo "####" >&9
