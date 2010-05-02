@@ -220,9 +220,10 @@ _chk_link_libs () {
   shift;shift;shift
 
   ocounter=0
-  clotherlibs=$otherlibs
+  clotherlibs="'$otherlibs'"
+  dosubst clotherlibs ',' "' '"
   if [ "${clotherlibs}" != "" ]; then
-      set -- $clotherlibs
+      eval "set -- $clotherlibs"
       ocount=$#
   else
       ocount=0
@@ -244,14 +245,9 @@ _chk_link_libs () {
   if [ $rc -ne 0 ]; then
       while test $ocounter -lt $ocount; do
           domath ocounter "$ocounter + 1"
-          set -- $clotherlibs
-          tcounter=0
-          olibs=""
-          while test $tcounter -lt $ocounter; do
-              doappend olibs " $1"
-              shift
-              domath tcounter "$tcounter + 1"
-          done
+          eval "set -- $clotherlibs"
+          cmd="olibs=\$${ocounter}"
+          eval $cmd
           dlibs=${olibs}
           otherlibs=${olibs}
           _chk_link $cllname
