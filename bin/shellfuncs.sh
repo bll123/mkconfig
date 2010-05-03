@@ -24,6 +24,21 @@ setechovars () {
   export EC
 }
 
+dosubst () { 
+  subvar=$1
+  shift
+  sa=""
+  while test $# -gt 0; do 
+    pattern=$1
+    sub=$2
+    shift
+    shift
+    sa="${sa} -e \"s~${pattern}~${sub}~g\""
+  done
+  cmd="${subvar}=\`echo \${${subvar}} | sed ${sa}\`"
+  eval $cmd; 
+}
+
 test_append () {
   shhasappend=0
   (eval 'x=a;x+=b; test z$x = zab') 2>/dev/null
@@ -32,26 +47,6 @@ test_append () {
     eval 'doappend () { eval $1+=\$2; }'
   else
     eval 'doappend () { eval $1=\$${1}\$2; }'
-  fi
-}
-
-# some shells don't do character classes in conjunction
-# with parameter substitution.
-test_paramsub () {
-  shhasparamsub=0
-  ( eval 'x=bcb;y=${x/c/_};test z${y} = zb_b') 2>/dev/null
-  if [ $? -eq 0 ]; then
-    shhasparamsub=1
-    eval 'dosubst () { subvar=$1; shift;
-        while test $# -gt 0; do
-        pattern=$1; sub=$2;
-        eval $subvar=\${${subvar}//${pattern}/${sub}};
-        shift; shift; done; }'
-  else
-    eval 'dosubst () { subvar=$1; shift; sa="";
-      while test $# -gt 0; do pattern=$1; sub=$2; shift; shift;
-      sa="${sa} -e \"s~${pattern}~${sub}~g\""; done;
-      cmd="${subvar}=\`echo \${${subvar}} | sed ${sa}\`"; eval $cmd; }'
   fi
 }
 
@@ -79,7 +74,6 @@ test_upper () {
 
 testshcapability () {
   test_append
-  test_paramsub
   test_math
   test_upper
 }
