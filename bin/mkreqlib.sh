@@ -61,7 +61,9 @@ while read cline; do
   dosubst cline '#define ' '' ' 1' ''
   getlibdata var $cline
   if [ "$var" != "" ]; then
-    if ! echo $reqlibs | grep -- $var > /dev/null 2>&1; then
+    echo $reqlibs | grep -- $var > /dev/null 2>&1
+    rc=$?
+    if [ $rc -ne 0 ]; then
       doappend reqlibs " $var"
     fi
   fi
