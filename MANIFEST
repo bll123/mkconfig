@@ -24,6 +24,7 @@ tests.d/cache.mkconfig
 tests.d/cache.sh
 tests.d/compmksh.sh
 tests.d/compmkperl.sh
+tests.d/compmkrl.sh
 tests.d/compunits.sh
 tests.d/include.config
 tests.d/include.dat
