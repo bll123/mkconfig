@@ -58,7 +58,8 @@ while read cline; do
       ;;
   esac
 
-  dosubst cline '#define ' '' ' 1' ''
+  # bash2 can't handle # in subst
+  dosubst cline '?define ' '' ' 1' ''
   getlibdata var $cline
   if [ "$var" != "" ]; then
     echo $reqlibs | grep -- $var > /dev/null 2>&1
