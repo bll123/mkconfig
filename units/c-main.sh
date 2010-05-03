@@ -221,8 +221,7 @@ _chk_link_libs () {
 
   ocounter=0
   clotherlibs="'$otherlibs'"
-  # don't use dosubst() here
-  clotherlibs=`echo $clotherlibs | sed "s~,~' '~g"`
+  dosubst clotherlibs ',' "' '"
   if [ "${clotherlibs}" != "" ]; then
       eval "set -- $clotherlibs"
       ocount=$#
