@@ -8,16 +8,22 @@
 .\"
 .\" bll6969di_at_gmail.com
 .\"
-.TH mkconfig 7 "12 Mar 2010"
+.TH mkconfig 7 "1 May 2010"
 .SH Name
 mkconfig \- build configuration utilities
 .SH Synopsis
 .\" mkconfig.sh [-C] [-c <cache-file>]
 .\"       [-l <log-file>] config-file
+.\" mkreqlib.sh [-c <cache-file>] [-o <output-file>] config-file
 .B mkconfig.sh
 [\fB\-C\fP]
 [\fB\-c\fP <cache\-file>]
 [\fB\-l\fP <log\-file>]
+.PP
+.B mkreqlib.sh
+[\fB\-c\fP <cache\-file>]
+[\fB\-o\fP <output\-file>]
+config\-file
 .br
 .RS
 config\-file
@@ -43,6 +49,11 @@ faster.
 \fImkconfig.sh\fP
 is intended to generate a file that can be used as an included file,
 a shell script, a configuration file, or any other use.
+.PP
+\fImkreqlib.sh\fP
+is used in conjunction with the c\-main language unit to output the
+libraries required for linking.  See the description for the 'lib'
+check routine for the c\-main language unit below.
 .SH Basic Configuration Commands (mkconfig.sh)
 .TP
 \fB#\fP comment
@@ -183,11 +194,13 @@ e.g. sys types.h
 Check to see if class \fIclass\fP exists.
 If the optional \fIlibs\fP are specified,
 the test will try first without the libraries, then with
-the first library, then the first and next, etc.
+the first set of libraries specified, then the next set, etc.
+Sets of libraries to be tested are separated by commas.
 e.g.: class os::Volumes
 .br
-Any libraries that are found to be needed for compilation will be
-output to the 'reqlibs.txt' file.
+Execute \fImkreqlib.sh\fP after creating the configuration file
+to output the libraries required for linking.  See the usage for
+\fImkreqlib.sh\fP in the lib check below.
 .TP
 \fBconst\fP constant\-name [required\-headers]
 .br
@@ -209,17 +222,27 @@ e.g. dcl int errno; dcl ptr optarg
 Check to see if a C-language keyword is reserved.
 e.g. key volatile
 .TP
-\fBlib\fP function [libs]
+\fBlib\fP function [libs, ...]
 .br
 Check to see if library function \fIfunction\fP exists.
 If the optional \fIlibs\fP are specified,
 the test will try first without the libraries, then with
-the first library, then the first and next, etc.
-e.g. lib gettext -lintl -liconv
+the first set of libraries specified, then the next set, etc.
+Sets of libraries to be tested are separated by commas.
+e.g. lib gettext -lintl, -lintl -liconv
 will first test gettext, then gettext -lintl, then gettext -lintl -liconv.
 .br
-Any libraries that are found to be needed for compilation will be
-output to the 'reqlibs.txt' file.
+Execute \fImkreqlib.sh\fP after creating the configuration file
+to output the libraries required for linking.
+.br
+\fImkreqlib.sh\fP creates the list of libraries required for linking
+based on the configuration file.  This allows the user to modify
+the configuration file and only the necessary libraries will be 
+linked in.
+.br
+\fImkreqlib.sh\fP is executed with a command line argument of the
+configuration file name.  The output file defaults to 'reqlibs.txt',
+but may be changed with the \-o command line option.
 .br
 The string '_dollar_', if included in the library function name
 will be replaced with the '$' symbol.
@@ -235,7 +258,7 @@ Check to see if if \fIfunction\fP needs to have a prototype declared.
 The optional \fIlibrary\-requirement\fP should be written
 as: _lib_<funcname>
 If \fIlibrary\-requirement\fP does not exist, _npt_<function>
-will set set to false in the output file.
+will be set to false in the output file.
 e.g. npt getopt; npt statfs _lib_statfs
 .TP
 \fBtyp\fP type\-name
