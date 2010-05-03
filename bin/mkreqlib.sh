@@ -13,10 +13,9 @@ export _MKCONFIG_DIR
 cd $RUNTOPDIR
 . ${_MKCONFIG_DIR}/shellfuncs.sh
 
-CONFH=$1
 CACHEFILE="mkconfig.cache"
 
-getdata () {
+getlibdata () {
     var=$1
     gdname=$2
 
@@ -28,25 +27,25 @@ doshelltest $0 $@
 setechovars
 mkconfigversion
 
-ofile="reqlibs.txt"
+OFILE="reqlibs.txt"
 while test $# -gt 1; do
   case $1 in
+    -c)
+      shift
+      CACHEFILE=$1
+      shift
+      ;;
     -o)
       shift
-      ofile=$1
+      OFILE=$1
       shift
       ;;
   esac
 done
 
+CONFH=$1
+
 reqlibs=""
-echo "####"
-ls -1 ..
-echo "####"
-echo "####"
-ls -1
-echo "####"
-echo "RUNTOPDIR:$RUNTOPDIR"
 . ${RUNTOPDIR}/$CACHEFILE
 
 exec 7<&0 < ${CONFH}
@@ -60,10 +59,12 @@ while read cline; do
   esac
 
   dosubst cline '#define ' '' ' 1' ''
-  getdata var $cline
+  getlibdata var $cline
   if [ "$var" != "" ]; then
-    doappend reqlibs " $var"
+    if ! echo $reqlibs | grep -- $var > /dev/null 2>&1; then
+      doappend reqlibs " $var"
+    fi
   fi
 done
 exec <&7 7<&-
-echo $reqlibs > $RUNTOPDIR/$ofile
+echo $reqlibs > $RUNTOPDIR/$OFILE
