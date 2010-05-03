@@ -247,7 +247,7 @@ check_link
     {
       if ($otherlibs ne '')
       {
-        my @olibs = split (/\s+/, $otherlibs);
+        my @olibs = split (/,/, $otherlibs);
         my $oliblist = '';
         foreach my $olib (@olibs)
         {
