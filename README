@@ -11,9 +11,10 @@ CHANGES
 
     1.3                                     [1 may 2010]
         Use the configuration file to determine the necessary 
-        libraries to link in rather than linking in all found.
+          libraries to link in rather than linking in all found.
         Change library format to allow better control of link
-        tests.
+          tests.
+        Change dosubst() to always use sed.  It's more reliable.
 
     1.2                                     [12 mar 2010]
         Rewrite mkconfig.sh to use unit scripts and increase performance.
