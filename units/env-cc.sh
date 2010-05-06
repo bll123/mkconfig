@@ -48,19 +48,13 @@ _dohpcflags () {
 
   # check for libintl in other places...
   if [ -d /usr/local/include -a \
-      -d /usr/local/lib -a \
-      -f /usr/local/lib/libintl.sl -a \
-      -f /usr/local/lib/libiconv.sl ]
+      -d /usr/local/lib ]
   then
-      hpccincludes="-I/usr/local/include"
-      hpldflags="-L/usr/local/lib"
-  elif [ -d /opt/gnome/include -a \
-      -d /opt/gnome/lib -a \
-      -f /opt/gnome/lib/libintl.sl -a \
-      -f /opt/gnome/lib/libiconv.sl ]
-  then
-      hpccincludes="-I/opt/gnome/include"
-      hpldflags="-L/opt/gnome/lib"
+    hpccincludes="-I/usr/local/include"
+    hpldflags="-L/usr/local/lib"
+    if [ -d /usr/local/lib/hpux32 ]; then
+      hpldflags="$hpldflags -L/usr/local/lib/hpux32"
+    fi
   fi
   env_dohpcflags=T
 }
