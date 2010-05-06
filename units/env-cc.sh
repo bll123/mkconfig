@@ -45,7 +45,6 @@ _dohpcflags () {
 
   hpccincludes=""
   hpldflags=""
-  hplibs=""
 
   # check for libintl in other places...
   if [ -d /usr/local/include -a \
@@ -55,7 +54,6 @@ _dohpcflags () {
   then
       hpccincludes="-I/usr/local/include"
       hpldflags="-L/usr/local/lib"
-      hplibs="-lintl"
   elif [ -d /opt/gnome/include -a \
       -d /opt/gnome/lib -a \
       -f /opt/gnome/lib/libintl.sl -a \
@@ -63,7 +61,6 @@ _dohpcflags () {
   then
       hpccincludes="-I/opt/gnome/include"
       hpldflags="-L/opt/gnome/lib"
-      hplibs="-lintl"
   fi
   env_dohpcflags=T
 }
@@ -252,7 +249,7 @@ check_ldflags () {
         ;;
       HP-UX)
         _dohpcflags
-        ldflags="$hpldflags $ldflags"
+        ldflags="+s $hpldflags -L/usr/lib $ldflags"
         ;;
       OS/2)
         ldflags="-Zexe"
@@ -310,10 +307,6 @@ check_libs () {
         ;;
       DYNIX/ptx)
         libs="-lseq $libs"
-        ;;
-      HP-UX)
-        _dohpcflags
-        libs="$hplibs $libs"
         ;;
       IRIX*)
         case ${_MKCONFIG_SYSREV} in
