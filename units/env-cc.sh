@@ -20,7 +20,7 @@ require_unit env-main
 require_unit env-systype
 
 env_dogetconf=F
-env_dohpcflags=F
+env_dohpflags=F
 
 _dogetconf () {
   if [ "$env_dogetconf" = T ]; then
@@ -38,8 +38,8 @@ _dogetconf () {
   env_dogetconf=T
 }
 
-_dohpcflags () {
-  if [ "$env_dohpcflags" = T ]; then
+_dohpflags () {
+  if [ "$env_dohpflags" = T ]; then
     return
   fi
 
@@ -56,7 +56,7 @@ _dohpcflags () {
       hpldflags="$hpldflags -L/usr/local/lib/hpux32"
     fi
   fi
-  env_dohpcflags=T
+  env_dohpflags=T
 }
 
 check_cc () {
@@ -172,7 +172,7 @@ check_cflags () {
             ;;
         esac
 
-        _dohpcflags
+        _dohpflags
         ccincludes="$hpccincludes $ccincludes"
         ;;
       OSF1)
@@ -242,8 +242,13 @@ check_ldflags () {
         ldflags="-L/usr/local/lib $ldflags"
         ;;
       HP-UX)
-        _dohpcflags
-        ldflags="+s $hpldflags -L/usr/lib $ldflags"
+        _dohpflags
+        ldflags="$hpldflags $ldflags"
+        case ${TCC} in
+          cc)
+            ldflags="+s $ldflags"
+            ;;
+        esac
         ;;
       OS/2)
         ldflags="-Zexe"
