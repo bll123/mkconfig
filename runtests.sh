@@ -80,6 +80,8 @@ test -d "$RUNTMP" && rm -rf "$RUNTMP"
 mkdir $RUNTMP
 > $RUNLOG
 
+getlistofshells
+export shelllist
 count=0
 fcount=0
 for tbase in $teststorun; do
