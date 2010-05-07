@@ -3,11 +3,9 @@
 script=$@
 echo ${EN} "compile mkreqlib.sh${EC}" >&3
 
-. $_MKCONFIG_DIR/shellfuncs.sh
 grc=0
 
 echo ${EN} " ${EC}" >&3
-getlistofshells
 for s in $shelllist; do
   unset _shell
   unset shell
