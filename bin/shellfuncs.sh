@@ -215,7 +215,7 @@ Does not support > filename."
   fi
 
   if [ "$TSHELL" != "" ]; then
-    # test for broken output redirect (e.g. zsh hangs)
+    # test for -n not supported.
     (
       rm -f $TMP $TMP.out > /dev/null 2>&1
       echo 'exit 1' > $TMP
@@ -289,8 +289,13 @@ $rs"
   done
   tshelllist=`echo "$tshelllist" | sort -u`
 
+  systype=`uname -s`
   shelllist=""
   for s in $tshelllist; do
+    # OSF1 /sbin/sh hangs on compilation.
+    if [ "$systype" = "OSF1" -a "$s" = "/sbin/sh" ]; then
+      continue
+    fi
     cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;TSHELL=$s;chkshell\""
     eval $cmd
     if [ $? -eq 0 ]; then
