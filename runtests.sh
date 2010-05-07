@@ -152,6 +152,9 @@ for tbase in $teststorun; do
   else
     echo " ... success"
   fi
+  if [ "$DI_KEEP_RUN_LOG" != "" ]; then
+    cat $TSTRUNLOG >> $RUNLOG
+  fi
   rm -f $TSTRUNLOG
   domath count "$count + 1"
 
@@ -190,18 +193,25 @@ for tbase in $teststorun; do
     else
       echo " ... success"
     fi
+    if [ "$DI_KEEP_RUN_LOG" != "" ]; then
+      cat $TSTRUNLOG >> $RUNLOG
+    fi
     rm -f $TSTRUNLOG
     domath count "$count + 1"
   fi
 done
 
 if [ $fcount -eq 0 ]; then
-  rm -f $RUNLOG
+  if [ "$DI_KEEP_RUN_LOG" = "" ]; then
+    rm -f $RUNLOG
+  fi
 fi
 if [ $count -eq 0 ]; then  # this can't be right...
   $fcount = -1
 fi
 
 echo "$count tests $fcount failures"
-test -d "$RUNTMP" && rm -rf "$RUNTMP"
+if [ "$DI_KEEP_RUN_TMP" = "" ]; then
+  test -d "$RUNTMP" && rm -rf "$RUNTMP"
+fi
 exit $fcount
