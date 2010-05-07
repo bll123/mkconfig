@@ -9,6 +9,8 @@
 read _MKCONFIG_VERSION < ${_MKCONFIG_DIR}/VERSION
 export _MKCONFIG_VERSION
 
+tryshell="ash bash dash ksh mksh posh sh sh5"
+
 mkconfigversion () {
   echo "mkconfig version ${_MKCONFIG_VERSION}"
 }
@@ -164,15 +166,18 @@ chkshell () {
 
   grc=0
 
+  TMP=x$$
   chkmsg=""
   # test to make sure the set command works properly
+  # some shells output xyzzy='abc def'
+  # some shells output xyzzy=$'abc def' (ok; handled in mkconfig.sh)
   (
     cmd='xyzzy="abc def"; val=`set | grep "^xyzzy"`; test "$val" = "xyzzy=abc def"'
     eval $cmd 2>/dev/null
     if [ $? -eq 0 ]; then
       exit 0
     fi
-    cmd="xyzzy=\"abc def\"; val=\`set | grep \"^xyzzy\"\`; test \"$val\" = \"xyzzy='abc def'\""
+    cmd="xyzzy=\"abc def\"; val=\`set | grep \"^xyzzy\"\`; test \"\$val\" = \"xyzzy='abc def'\" -o \"\$val\" = \"xyzzy=\\$'abc def'\""
     eval $cmd 2>/dev/null
     if [ $? -eq 0 ]; then
       exit 0
@@ -188,17 +193,18 @@ chkshell () {
 
   # test for broken output redirect (e.g. zsh hangs)
   (
-    cmd="> xyzzy;test -f xyzzy;echo $? > xyzzy.out"
+    rm -f $TMP $TMP.out > /dev/null 2>&1
+    cmd="> $TMP;test -f $TMP;echo \$? > $TMP.out"
     eval $cmd &
     job=$!
     sleep 1
     rc=1
-    if [ ! -f xyzzy.out ]; then
+    if [ ! -f $TMP.out ]; then
       kill $job
     else
-      rc=`cat xyzzy.out`
+      rc=`cat $TMP.out`
     fi
-    rm -f xyzzy xyzzy.out > /dev/null 2>&1
+    rm -f $TMP $TMP.out > /dev/null 2>&1
     exit $rc
   )
   rc=$?
@@ -206,6 +212,33 @@ chkshell () {
     grc=$rc
     chkmsg="${chkmsg}
 Does not support > filename."
+  fi
+
+  if [ "$TSHELL" != "" ]; then
+    # test for broken output redirect (e.g. zsh hangs)
+    (
+      rm -f $TMP $TMP.out > /dev/null 2>&1
+      echo 'exit 1' > $TMP
+      chmod a+rx $TMP
+      cmd="$TSHELL -n $TMP;echo \$? > $TMP.out"
+      eval $cmd &
+      job=$!
+      sleep 1
+      rc=1
+      if [ ! -f $TMP.out ]; then
+        kill $job
+      else
+        rc=`cat $TMP.out`
+      fi
+      rm -f $TMP $TMP.out > /dev/null 2>&1
+      exit $rc
+    )
+    rc=$?
+    if [ $rc -ne 0 ]; then
+      grc=$rc
+      chkmsg="${chkmsg}
+Does not support -n."
+    fi
   fi
 
   return $grc
@@ -220,7 +253,7 @@ getlistofshells () {
 
   tshelllist=""
   for d in $pthlist; do
-    for s in ash bash dash ksh mksh posh sh sh5 ; do
+    for s in $tryshell ; do
       if [ -x $d/$s ]; then
         rs=`ls -l $d/$s | sed 's/.* //'`
         case $rs in
@@ -258,7 +291,7 @@ $rs"
 
   shelllist=""
   for s in $tshelllist; do
-    cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;chkshell\""
+    cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;TSHELL=$s;chkshell\""
     eval $cmd
     if [ $? -eq 0 ]; then
       shelllist="${shelllist} $s"
