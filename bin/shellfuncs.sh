@@ -215,7 +215,7 @@ getlistofshells () {
   pthlist=`echo $PATH | sed 's/:/ /g'`
   ls -ld /bin | grep -- '->' > /dev/null 2>&1
   if [ $? -eq 0 ]; then
-    pthlist=`echo $pthlist | sed 's,/bin ,,'`
+    pthlist=`echo $pthlist | sed -e 's,^/bin ,,' -e 's, /bin ,,'`
   fi
 
   tshelllist=""
