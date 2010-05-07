@@ -70,7 +70,8 @@ savecache () {
     # Other shells do: x=$''; remove the $
     # And then there's: x='', which gets munged.
     set | grep "^di_" | \
-      sed -e "s/=/='/" -e "s/$/'/" -e "s/''/'/g" -e "s/='$/=''/" -e "s/=\$//" \
+      sed -e "s/=/='/" -e "s/$/'/" -e "s/''/'/g" \
+      -e "s/='$/=''/" -e "s/='\$'/='/" \
       > ${CACHEFILE}
 }
 
