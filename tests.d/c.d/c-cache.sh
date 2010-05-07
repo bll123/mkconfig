@@ -29,7 +29,6 @@ case $script in
 esac
 
 if [ $dosh = "T" ]; then
-  getlistofshells
   echo ${EN} " ${EC}" >&3
   for s in $shelllist; do
     unset _shell

@@ -3,13 +3,11 @@
 script=$@
 echo ${EN} "compile mkconfig units${EC}" >&3
 
-. $_MKCONFIG_DIR/shellfuncs.sh
 grc=0
 
 cd $_MKCONFIG_DIR/mkconfig.units
 
 echo ${EN} " ${EC}" >&3
-getlistofshells
 for s in $shelllist; do
   unset _shell
   unset shell
