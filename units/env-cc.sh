@@ -255,7 +255,7 @@ check_ldflags () {
         ldflags="$hpldflags $ldflags"
         case ${TCC} in
           cc)
-            ldflags="+s $ldflags"
+            ldflags="-Wl,+s $ldflags"
             ;;
         esac
         ;;
