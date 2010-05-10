@@ -251,11 +251,11 @@ getpaths () {
   # remove symlinks
   for d in $tpthlist; do
     if [ ! -d $d ]; then
-      tpthlist=`echo $tpthlist | sed -e "s,^$d ,," -e "s, $d ,,"`
+      tpthlist=`echo $tpthlist | sed -e "s,^$d ,," -e "s, $d,,"`
     else
       ls -ld $d | grep -- '->' > /dev/null 2>&1
       if [ $? -eq 0 ]; then
-        tpthlist=`echo $tpthlist | sed -e "s,^$d ,," -e "s, $d ,,"`
+        tpthlist=`echo $tpthlist | sed -e "s,^$d ,," -e "s, $d,,"`
         # make sure path symlink is pointing to is in the list
         npath=`ls -ld $d | sed 's/.*-> //'`
         tpthlist="$tpthlist $npath"
