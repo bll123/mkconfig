@@ -250,12 +250,16 @@ getpaths () {
   tpthlist=`echo $PATH | sed 's/:/ /g'`
   # remove symlinks
   for d in $tpthlist; do
-    ls -ld $d | grep -- '->' > /dev/null 2>&1
-    if [ $? -eq 0 ]; then
+    if [ ! -d $d ]; then
       tpthlist=`echo $tpthlist | sed -e "s,^$d ,," -e "s, $d ,,"`
-      # make sure path symlink is pointing to is in the list
-      npath=`ls -ld $d | sed 's/.*-> //'`
-      tpthlist="$tpthlist $npath"
+    else
+      ls -ld $d | grep -- '->' > /dev/null 2>&1
+      if [ $? -eq 0 ]; then
+        tpthlist=`echo $tpthlist | sed -e "s,^$d ,," -e "s, $d ,,"`
+        # make sure path symlink is pointing to is in the list
+        npath=`ls -ld $d | sed 's/.*-> //'`
+        tpthlist="$tpthlist $npath"
+      fi
     fi
   done
   # remove dups
