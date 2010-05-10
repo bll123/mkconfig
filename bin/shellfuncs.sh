@@ -316,10 +316,6 @@ $rs"
   systype=`uname -s`
   shelllist=""
   for s in $tshelllist; do
-    # OSF1 /sbin/sh hangs on compilation.
-    if [ "$systype" = "OSF1" -a "$s" = "/sbin/sh" ]; then
-      continue
-    fi
     cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;TSHELL=$s;chkshell\""
     eval $cmd
     if [ $? -eq 0 ]; then
