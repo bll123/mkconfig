@@ -18,6 +18,7 @@ CHANGES
         Skip /sbin/sh on OSF1; It hangs.
         Added support to mkconfig.sh to munge set output that has $s in it.
         Export shelllist in runtests.sh; more efficient.
+        Redo paths in shellfuncs; make sure symlinked paths are present.
 
     1.3                                     [1 may 2010]
         Use the configuration file to determine the necessary 
