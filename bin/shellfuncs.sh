@@ -146,9 +146,7 @@ locatecmd () {
   lvar=$1
   ltcmd=$2
 
-  if [ "$_pthlist" = "" ]; then
-    _pthlist=`echo $PATH | sed 's/:/ /g'`
-  fi
+  getpaths
 
   lcmd=""
   for p in $_pthlist; do
@@ -244,15 +242,37 @@ Does not support -n."
   return $grc
 }
 
-getlistofshells () {
-  pthlist=`echo $PATH | sed 's/:/ /g'`
-  ls -ld /bin | grep -- '->' > /dev/null 2>&1
-  if [ $? -eq 0 ]; then
-    pthlist=`echo $pthlist | sed -e 's,^/bin ,,' -e 's, /bin ,,'`
+getpaths () {
+  if [ "$_pthlist" != "" ]; then
+    return
   fi
 
+  tpthlist=`echo $PATH | sed 's/:/ /g'`
+  # remove symlinks
+  for d in $tpthlist; do
+    ls -ld $d | grep -- '->' > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+      tpthlist=`echo $tpthlist | sed -e "s,^$d ,," -e "s, $d ,,"`
+      # make sure path symlink is pointing to is in the list
+      npath=`ls -ld $d | sed 's/.*-> //'`
+      tpthlist="$tpthlist $npath"
+    fi
+  done
+  # remove dups
+  _pthlist=""
+  for d in $tpthlist; do
+    _pthlist="$_pthlist
+$d"
+  done
+  _pthlist=`echo $_pthlist | sort -u`
+}
+
+getlistofshells () {
+
+  getpaths
+
   tshelllist=""
-  for d in $pthlist; do
+  for d in $_pthlist; do
     for s in $tryshell ; do
       if [ -x $d/$s ]; then
         rs=`ls -l $d/$s | sed 's/.* //'`
