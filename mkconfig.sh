@@ -457,7 +457,6 @@ echo "# $0 ($shell) using $configfile " >&9
 echo "#### " >&9
 echo "shell: $shell" >&9
 echo "has append: ${shhasappend}" >&9
-echo "has paramsub: ${shhasparamsub}" >&9
 echo "has math: ${shhasmath}" >&9
 echo "has upper: ${shhasupper}" >&9
 
