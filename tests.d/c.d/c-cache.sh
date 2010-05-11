@@ -6,17 +6,18 @@ script=$@
 testshcapability
 
 count=1
+if [ -f ${_MKCONFIG_RUNTMPDIR}/cache.${count} ]; then
+  domath count "$count + 1"
+fi
 while test -f cache.${count}; do
   domath count "$count + 1"
 done
 
 if [ $count -eq 1 ]; then
   echo ${EN} "cache${EC}" >&3
-  pwd
-  eval "${script} -C $RUNTESTDIR/cache.dat"
-  mv -f cache.ctest cache.${count}
-  cp -f mkconfig_c.vars cache.${count}.vars
-  pwd
+  eval "${script} -C $_MKCONFIG_RUNTESTDIR/cache.dat"
+  mv -f cache.ctest ${_MKCONFIG_RUNTMPDIR}/cache.${count}
+  cp -f mkconfig_c.vars ${_MKCONFIG_RUNTMPDIR}/cache.${count}.vars
   $0 $@
   exit $?
 fi
@@ -41,29 +42,29 @@ if [ $dosh = "T" ]; then
       ss=`echo $s | sed 's,.*/,,'`
     fi
     echo ${EN} "${ss} ${EC}" >&3
-    eval "${s} -c '${script} $RUNTESTDIR/cache.dat'"
+    eval "${s} -c '${script} $_MKCONFIG_RUNTESTDIR/cache.dat'"
     mv -f cache.ctest cache.${count}
     mv -f mkconfig_c.vars cache.${count}.vars
-    cp -f cache.1.vars mkconfig_c.vars
+    cp -f ${_MKCONFIG_RUNTMPDIR}/cache.1.vars mkconfig_c.vars
     domath count "$count + 1"
   done
 else
   echo ${EN} "cache${EC}" >&3
-  eval "${script} $RUNTESTDIR/cache.dat"
+  eval "${script} $_MKCONFIG_RUNTESTDIR/cache.dat"
   mv -f cache.ctest cache.${count}
   mv -f mkconfig_c.vars cache.${count}.vars
-  cp -f cache.1.vars mkconfig_c.vars
+  cp -f ${_MKCONFIG_RUNTMPDIR}/cache.1.vars mkconfig_c.vars
 fi
 
 grc=0
 c=2
 while test $c -lt $count; do
   echo "## diff config.h 1 ${c}"
-  diff -b cache.1 cache.${c}
+  diff -b ${_MKCONFIG_RUNTMPDIR}/cache.1 cache.${c}
   rc=$?
   if [ $rc -ne 0 ]; then grc=$rc; fi
   echo "## diff vars 1 $c"
-  diff -b cache.1.vars cache.${c}.vars
+  diff -b ${_MKCONFIG_RUNTMPDIR}/cache.1.vars cache.${c}.vars
   rc=$?
   if [ $? -ne 0 ]; then grc=$rc; fi
   domath c "$c + 1"

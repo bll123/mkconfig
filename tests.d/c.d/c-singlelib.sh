@@ -5,8 +5,8 @@ echo ${EN} "w/single lib${EC}" >&3
 
 grc=0
 
-CFLAGS="-I$RUNTMPDIR ${CFLAGS}"
-LDFLAGS="-L$RUNTMPDIR ${LDFLAGS}"
+CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
+LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
 export CFLAGS LDFLAGS
 
 cat > tst1lib.h <<_HERE_
@@ -26,14 +26,15 @@ if [ $? -ne 0 ]; then
 fi
 ar cq libtst1lib.a tst1lib.o
 
-eval "${script} -C $RUNTESTDIR/singlelib.dat"
+eval "${script} -C ${_MKCONFIG_RUNTESTDIR}/singlelib.dat"
 case $script in
   *mkconfig.sh)
-    $RUNTOPDIR/mkreqlib.sh singlelib.ctest
+    ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh singlelib.ctest
     ;;
 esac
 
-cat singlelib.ctest | sed -e '/^#define _key_/d' -e '/^#define _proto_/d' > t
+cat singlelib.ctest |
+    sed -e '/^#define _key_/d' -e '/^#define _proto_/d' > t
 mv t singlelib.ctest
 
 echo "## diff 1"
@@ -42,13 +43,8 @@ rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
 
 echo "## diff 2"
-diff -b $RUNTESTDIR/singlelib.reqlibs reqlibs.txt
+diff -b ${_MKCONFIG_RUNTESTDIR}/singlelib.reqlibs reqlibs.txt
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
-
-echo "## config.h"
-cat singlelib.ctest
-echo "## reqlibs.txt"
-cat reqlibs.txt
 
 exit $grc

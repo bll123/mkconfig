@@ -5,8 +5,8 @@ echo ${EN} "w/multiple lib${EC}" >&3
 
 grc=0
 
-CFLAGS="-I$RUNTMPDIR ${CFLAGS}"
-LDFLAGS="-L$RUNTMPDIR ${LDFLAGS}"
+CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
+LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
 export CFLAGS LDFLAGS
 
 cat > tst2libb.h <<_HERE_
@@ -43,14 +43,15 @@ if [ $? -ne 0 ]; then
 fi
 ar cq libtst2libc.a tst2libc.o
 
-eval "${script} -C $RUNTESTDIR/multlib.dat"
+eval "${script} -C ${_MKCONFIG_RUNTESTDIR}/multlib.dat"
 case $script in
   *mkconfig.sh)
-    $RUNTOPDIR/mkreqlib.sh multlib.ctest
+    ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh multlib.ctest
     ;;
 esac
 
-cat multlib.ctest | sed -e '/^#define _key_/d' -e '/^#define _proto_/d' > t
+cat multlib.ctest |
+    sed -e '/^#define _key_/d' -e '/^#define _proto_/d' > t
 mv t multlib.ctest
 
 echo "## diff 1"
@@ -59,13 +60,8 @@ rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
 
 echo "## diff 2"
-diff -b $RUNTESTDIR/multlib.reqlibs reqlibs.txt
+diff -b ${_MKCONFIG_RUNTESTDIR}/multlib.reqlibs reqlibs.txt
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
-
-echo "## config.h"
-cat multlib.ctest
-echo "## reqlibs.txt"
-cat reqlibs.txt
 
 exit $grc
