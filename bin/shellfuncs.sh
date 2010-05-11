@@ -26,11 +26,11 @@ setechovars () {
   export EC
 }
 
-dosubst () { 
+dosubst () {
   subvar=$1
   shift
   sa=""
-  while test $# -gt 0; do 
+  while test $# -gt 0; do
     pattern=$1
     sub=$2
     shift
@@ -38,7 +38,7 @@ dosubst () {
     sa="${sa} -e \"s~${pattern}~${sub}~g\""
   done
   cmd="${subvar}=\`echo \${${subvar}} | sed ${sa}\`"
-  eval $cmd; 
+  eval $cmd;
 }
 
 test_append () {
@@ -186,7 +186,7 @@ chkshell () {
   if [ $rc -ne 0 ]; then
     grc=$rc
     chkmsg="${chkmsg}
-'set' output not x=a b or x='a b'."
+  'set' output not x=a b or x='a b'."
   fi
 
   # test for broken output redirect (e.g. zsh hangs)
@@ -209,7 +209,7 @@ chkshell () {
   if [ $rc -ne 0 ]; then
     grc=$rc
     chkmsg="${chkmsg}
-Does not support > filename."
+  Does not support > filename."
   fi
 
   if [ "$TSHELL" != "" ]; then
@@ -235,7 +235,7 @@ Does not support > filename."
     if [ $rc -ne 0 ]; then
       grc=$rc
       chkmsg="${chkmsg}
-Does not support -n."
+  Does not support -n."
     fi
   fi
 
@@ -253,8 +253,7 @@ getpaths () {
     if [ ! -d $d ]; then
       tpthlist=`echo $tpthlist | sed -e "s,^$d ,," -e "s, $d,,"`
     else
-      ls -ld $d | grep -- '->' > /dev/null 2>&1
-      if [ $? -eq 0 ]; then
+      if [ -h $d ]; then
         tpthlist=`echo $tpthlist | sed -e "s,^$d ,," -e "s, $d,,"`
         # make sure path symlink is pointing to is in the list
         npath=`ls -ld $d | sed 's/.*-> //'`
@@ -274,6 +273,8 @@ $d"
 getlistofshells () {
 
   getpaths
+  echo "## PATH: $PATH"
+  echo "## paths: $_pthlist"
 
   tshelllist=""
   for d in $_pthlist; do
@@ -300,8 +301,10 @@ getlistofshells () {
 
         cmd="$rs -c \". $_MKCONFIG_DIR/shellfuncs.sh;getshelltype;echo \\\$shell\""
         shell=`eval $cmd`
+        echo "  found: $rs ($shell)"
         case $shell in
           pdksh)
+            echo "    skip"
             ;;
           *)
             tshelllist="${tshelllist}
@@ -316,10 +319,15 @@ $rs"
   systype=`uname -s`
   shelllist=""
   for s in $tshelllist; do
+    echo ${EN} "  check $s${EC}"
     cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;TSHELL=$s;chkshell\""
     eval $cmd
     if [ $? -eq 0 ]; then
+      echo " ok"
       shelllist="${shelllist} $s"
+    else
+      echo " ng"
+      echo $chkmsg
     fi
   done
 }
