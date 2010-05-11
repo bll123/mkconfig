@@ -876,6 +876,29 @@ _HERE_
     printyesno $name, $r_config->{$name};
 }
 
+sub
+check_standard
+{
+  my ($r_clist, $r_config) = @_;
+  # FreeBSD has buggy headers, requires sys/param.h as a required include.
+  # always check for these headers.
+  my @headlist1 = (
+      [ "_hdr_stdio", "stdio.h", ],
+      [ "_hdr_stdlib", "stdlib.h", ],
+      [ "_sys_types", "sys/types.h", ],
+      [ "_sys_param", "sys/param.h", ],
+      );
+
+  foreach my $r_arr (@headlist1)
+  {
+      check_header ($$r_arr[0], $$r_arr[1], $r_clist, $r_config,
+              { 'reqhdr' => [], });
+  }
+  check_keyword ('_key_void', 'void', $r_clist, $r_config);
+  check_keyword ('_key_const', 'const', $r_clist, $r_config);
+  check_proto ('_proto_stdc', $r_clist, $r_config);
+}
+
 
 sub
 create_config
@@ -913,25 +936,11 @@ create_config
     }
 
 
-    # FreeBSD has buggy headers, requires sys/param.h as a required include.
-    # always check for these headers.
-    my @headlist1 = (
-        [ "_hdr_stdio", "stdio.h", ],
-        [ "_hdr_stdlib", "stdlib.h", ],
-        [ "_sys_types", "sys/types.h", ],
-        [ "_sys_param", "sys/param.h", ],
-        );
-
-    foreach my $r_arr (@headlist1)
-    {
-        check_header ($$r_arr[0], $$r_arr[1], \%clist, \%config,
-                { 'reqhdr' => [], });
+    my $tconfigfile = $configfile;
+    if ($configfile !~ m#^/#) {
+      $tconfigfile = "../$configfile";
     }
-    check_keyword ('_key_void', 'void', \%clist, \%config);
-    check_keyword ('_key_const', 'const', \%clist, \%config);
-    check_proto ('_proto_stdc', \%clist, \%config);
-
-    if (! open (DATAIN, "<../$configfile"))
+    if (! open (DATAIN, "<$tconfigfile"))
     {
         print STDOUT "$configfile: $!\n";
         exit 1;
@@ -974,10 +983,19 @@ create_config
         if ($line =~ m#^output\s+([^\s]+)#o)
         {
             print "output-file: $1\n";
-            print LOGFH "config file: $1\n";
-            $CONFH="../$1";
+            my $tconfh = $1;
+            if ($tconfh =~ m#^/#o) {
+              $CONFH = $tconfh;
+            } else {
+              $CONFH = "../$tconfh";
+            }
+            print LOGFH "config file: $CONFH\n";
         }
-        elsif ($line =~ m#^(loadunit|standard)#o)
+        elsif ($line =~ m#^standard#o)
+        {
+            check_standard (\%clist, \%config);
+        }
+        elsif ($line =~ m#^loadunit#o)
         {
             ;
         }
