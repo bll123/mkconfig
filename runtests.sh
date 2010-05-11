@@ -97,17 +97,15 @@ for tbase in $teststorun; do
 
   ok=T
   if [ ! -f ./$tf ]; then
-    echo "$tf: missing"
+    echo "$tf ... missing ... failed"
     ok=F
-  fi
-  if [ ! -x ./$tf ]; then
-    echo "$tf: permission denied"
+  elif [ ! -x ./$tf ]; then
+    echo "$tf ... permission denied ... failed"
     ok=F
   fi
   if [ $ok = F ]; then
     domath fcount "$fcount + 1"
     domath count "$count + 1"
-    clean $tbase
     continue
   fi
 
