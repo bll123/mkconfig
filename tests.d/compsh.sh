@@ -17,7 +17,7 @@ for s in $shelllist; do
     ss=`echo $s | sed 's,.*/,,'`
   fi
   echo ${EN} "${ss} ${EC}" >&3
-  echo "   testing with ${s} "
+  echo "## testing with ${s} "
   for f in *.sh; do
     $s -n $f
     rc=$?

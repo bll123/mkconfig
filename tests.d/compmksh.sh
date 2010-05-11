@@ -15,7 +15,7 @@ for s in $shelllist; do
     ss=`echo $s | sed 's,.*/,,'`
   fi
   echo ${EN} "${ss} ${EC}" >&3
-  echo "   testing with ${s} "
+  echo "## testing with ${s} "
   $s -n $_MKCONFIG_DIR/mkconfig.sh
   rc=$?
   if [ $rc -ne 0 ];then grc=$rc; fi
