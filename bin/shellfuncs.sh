@@ -247,7 +247,17 @@ getpaths () {
     return
   fi
 
+  systype=`uname -s`
   tpthlist=`echo $PATH | sed 's/:/ /g'`
+
+  # cygwin's /bin and /usr/bin are both mounted on same spot
+  case ${systype} in
+    CYGWIN*)
+      d=/bin
+      tpthlist=`echo $tpthlist | sed -e "s,^$d ,," -e "s, $d,,"`
+      ;;
+  esac
+
   # remove symlinks
   for d in $tpthlist; do
     if [ ! -d $d ]; then
@@ -261,6 +271,7 @@ getpaths () {
       fi
     fi
   done
+
   # remove dups
   _pthlist=""
   for d in $tpthlist; do
