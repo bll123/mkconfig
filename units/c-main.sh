@@ -37,6 +37,7 @@
 #    7 - temporary for mkconfig.sh  (mkconfig.sh)
 #    6 - temporary for c-main.sh    (c-main.sh)
 #    5 - temporary for c-main.sh    (c-main.sh)
+#    4 - runtests.sh: >>$MAINLOG    (runtests.sh)
 #
 
 _MKCONFIG_PREFIX=c
