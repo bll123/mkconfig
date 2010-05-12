@@ -36,7 +36,6 @@
 #    8 - >>$VARSFILE, >>$CONFH      (mkconfig.sh)
 #    7 - temporary for mkconfig.sh  (mkconfig.sh)
 #    6 - temporary for c-main.sh    (c-main.sh)
-#    5 - temporary for c-main.sh    (c-main.sh)
 #
 
 _MKCONFIG_PREFIX=c
@@ -168,7 +167,7 @@ _print_hdrs () {
   fi
 
   if [ "${incheaders}" = "all" -a -f "$VARSFILE" ]; then
-    exec 5<&0 < ${VARSFILE}
+    exec 6<&0 < ${VARSFILE}
     while read cfgvar; do
       getdata hdval ${_MKCONFIG_PREFIX} ${cfgvar}
       case ${cfgvar} in
@@ -188,7 +187,7 @@ _print_hdrs () {
             ;;
       esac
     done
-    exec <&5 5<&-
+    exec <&6 6<&-
   fi
 }
 
@@ -231,11 +230,10 @@ _chk_link_libs () {
 
   tcfile=${cllname}.c
   # $cllname should be unique
-  exec 6>>${tcfile}
-  echo "${precc}" >&6
-  _print_headers $inc >&6
-  echo "${code}" | sed 's/_dollar_/$/g' >&6
-  exec 6>&-
+  >${tcfile}
+  echo "${precc}" >>${tcfile}
+  _print_headers $inc >>${tcfile}
+  echo "${code}" | sed 's/_dollar_/$/g' >>${tcfile}
 
   dlibs=""
   otherlibs=""
@@ -295,11 +293,10 @@ _chk_compile () {
 
   tcfile=${ccname}.c
   # $ccname should be unique
-  exec 6>>${tcfile}
-  echo "${precc}" >&6
-  _print_headers $inc >&6
-  echo "${code}" >&6
-  exec 6>&-
+  > ${tcfile}
+  echo "${precc}" >>${tcfile}
+  _print_headers $inc >>${tcfile}
+  echo "${code}" | sed 's/_dollar_/$/g' >>${tcfile}
 
   cmd="${CC} ${CFLAGS} ${CPPFLAGS} -c ${tcfile}"
   echo "##  compile test: $cmd" >&9
