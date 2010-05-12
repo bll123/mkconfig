@@ -10,7 +10,7 @@
 # speed at the cost of maintainability...
 # File Descriptors:
 #    9 - $TSTRUNLOG
-#    8 - $MAINLOG
+#    4 - $MAINLOG
 #    3 - stdout (as 1 is directed to the log)
 #
 
@@ -77,8 +77,8 @@ mkdir -p $_MKCONFIG_RUNTMPDIR
 
 MAINLOG=${_MKCONFIG_RUNTMPDIR}/main.log
 > $MAINLOG
-exec 8>>$MAINLOG
-getlistofshells >&8
+exec 4>>$MAINLOG
+getlistofshells >&4
 export shelllist
 count=0
 fcount=0
@@ -96,11 +96,11 @@ for tbase in $teststorun; do
   ok=T
   if [ ! -f ./$tf ]; then
     echo "$tf ... missing ... failed"
-    echo "$tf ... missing ... failed" >&8
+    echo "$tf ... missing ... failed" >&4
     ok=F
   elif [ ! -x ./$tf ]; then
     echo "$tf ... permission denied ... failed"
-    echo "$tf ... permission denied ... failed" >&8
+    echo "$tf ... permission denied ... failed" >&4
     ok=F
   fi
   if [ $ok = F ]; then
@@ -131,7 +131,7 @@ for tbase in $teststorun; do
   echo "####" >&9
   grc=0
   echo ${EN} "$tf ... ${arg} ${EC}"
-  echo ${EN} "$tf ... ${arg} ${EC}" >&8
+  echo ${EN} "$tf ... ${arg} ${EC}" >&4
   if [ -f $tconfig ]; then
     cp $tconfig $_MKCONFIG_TSTRUNTMPDIR/$tconfh
   fi
@@ -152,12 +152,12 @@ for tbase in $teststorun; do
   exec 9>&-
   if [ $rc -ne 0 ]; then
     echo " ... failed"
-    echo " failed" >&8
+    echo " failed" >&4
     domath fcount "$fcount + 1"
     grc=1
   else
     echo " ... success"
-    echo " success" >&8
+    echo " success" >&4
   fi
   domath count "$count + 1"
 
@@ -174,7 +174,7 @@ for tbase in $teststorun; do
     echo "# $dt" >&9
     echo "####" >&9
     echo ${EN} "$tf ... mkconfig.pl ${EC}"
-    echo ${EN} "$tf ... mkconfig.pl ${EC}" >&8
+    echo ${EN} "$tf ... mkconfig.pl ${EC}" >&4
     echo "## Using mkconfig.pl " >&9
     if [ -f $tconfig ]; then
       cp $tconfig $_MKCONFIG_TSTRUNTMPDIR/$tconfh
@@ -193,17 +193,17 @@ for tbase in $teststorun; do
     exec 9>&-
     if [ $rc -ne 0 ]; then
       echo " ... failed"
-      echo " failed" >&8
+      echo " failed" >&4
       domath fcount "$fcount + 1"
     else
       echo " ... success"
-      echo " success" >&8
+      echo " success" >&4
     fi
     domath count "$count + 1"
   fi
 done
 
-exec 8>&-
+exec 4>&-
 
 if [ $count -eq 0 ]; then  # this can't be right...
   $fcount = -1
