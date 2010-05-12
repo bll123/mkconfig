@@ -12,7 +12,6 @@
 #    8 - >>$VARSFILE, >>$CONFH      (mkconfig.sh)
 #    7 - temporary for mkconfig.sh  (mkconfig.sh)
 #    6 - temporary for c-main.sh    (c-main.sh)
-#    5 - temporary for c-main.sh    (c-main.sh)
 #
 
 RUNTOPDIR=`pwd`
