@@ -9,9 +9,9 @@ CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
 LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
 export CFLAGS LDFLAGS
 
-cat > tst1lib.h <<_HERE_
+> tst1lib.h echo '
 int tst1lib ();
-_HERE_
+'
 
 cat > tst1lib.c <<_HERE_
 #include <stdio.h>
@@ -19,6 +19,7 @@ cat > tst1lib.c <<_HERE_
 #include <tst1lib.h>
 int tst1lib () { printf ("hello world\n"); return 0; }
 _HERE_
+
 ${CC} -c ${CFLAGS} ${CPPFLAGS} tst1lib.c
 if [ $? -ne 0 ]; then
   echo "compile tst1lib.c failed"
@@ -33,8 +34,7 @@ case $script in
     ;;
 esac
 
-cat singlelib.ctest |
-    sed -e '/^#define _key_/d' -e '/^#define _proto_/d' > t
+sed -e '/^#define _key_/d' -e '/^#define _proto_/d' singlelib.ctest > t
 mv t singlelib.ctest
 
 echo "## diff 1"
