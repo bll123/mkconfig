@@ -208,7 +208,7 @@ fi
 
 echo "$count tests $fcount failures"
 if [ $fcount -eq 0 ]; then
-  if [ "$DI_KEEP_RUN_TMP" = "" ]; then
+  if [ "$MKC_KEEP_RUN_TMP" = "" ]; then
     test -d "$_MKCONFIG_RUNTMPDIR" && rm -rf "$_MKCONFIG_RUNTMPDIR"
   fi
 fi
