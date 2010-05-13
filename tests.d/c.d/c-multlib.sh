@@ -9,20 +9,21 @@ CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
 LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
 export CFLAGS LDFLAGS
 
-cat > tst2libb.h <<_HERE_
+> tst2libb.h echo '
 int tst2libb ();
-_HERE_
-cat > tst2libc.h <<_HERE_
+'
+> tst2libc.h echo '
 int tst2libc ();
-_HERE_
+'
 
-cat > tst2libb.c <<_HERE_
+> tst2libb.c echo '
 #include <stdio.h>
 #include <stdlib.h>
 #include <tst2libb.h>
 #include <tst2libc.h>
 int tst2libb () { tst2libc(); return 0; }
-_HERE_
+'
+
 ${CC} -c ${CFLAGS} ${CPPFLAGS} tst2libb.c
 if [ $? -ne 0 ]; then
   echo "compile tst2libb.c failed"
@@ -36,6 +37,7 @@ cat > tst2libc.c <<_HERE_
 #include <tst2libc.h>
 int tst2libc () { printf ("hello world\n"); return 0; }
 _HERE_
+
 ${CC} -c ${CFLAGS} ${CPPFLAGS} tst2libc.c
 if [ $? -ne 0 ]; then
   echo "compile tst2libb.c failed"
@@ -50,8 +52,7 @@ case $script in
     ;;
 esac
 
-cat multlib.ctest |
-    sed -e '/^#define _key_/d' -e '/^#define _proto_/d' > t
+sed -e '/^#define _key_/d' -e '/^#define _proto_/d' multlib.ctest > t
 mv t multlib.ctest
 
 echo "## diff 1"
