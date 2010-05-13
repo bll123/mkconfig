@@ -10,8 +10,9 @@
 # File Descriptors:
 #    9 - >>$LOG                     (mkconfig.sh)
 #    8 - >>$VARSFILE, >>$CONFH      (mkconfig.sh)
-#    7 - temporary for mkconfig.sh  (mkconfig.sh)
+#    7 - saved stdin                (mkconfig.sh)
 #    6 - temporary for c-main.sh    (c-main.sh)
+#    4 - temporary for c-main.sh    (c-main.sh)
 #
 
 RUNTOPDIR=`pwd`
@@ -260,6 +261,8 @@ create_config () {
   # and reset stdin to get from the configfile.
   # this allows us to run the while loop in the
   # current shell rather than a subshell.
+
+  # save stdin in fd 7; open stdin
   exec 7<&0 < ${configfile}
   while read tdatline; do
     resetifs
@@ -349,6 +352,7 @@ create_config () {
     fi
   done
   # reset the file descriptors back to the norm.
+  # set stdin to saved fd 7; close fd 7
   exec <&7 7<&-
   exec 8>&-
 
@@ -470,5 +474,8 @@ echo "#### " >&9
 exec 9>&-
 
 cd ..
-test -d $_MKCONFIG_TMP && rm -rf $_MKCONFIG_TMP > /dev/null 2>&1
+
+if [ "$MKC_KEEP_TMP" = "" ]; then
+  test -d $_MKCONFIG_TMP && rm -rf $_MKCONFIG_TMP > /dev/null 2>&1
+fi
 exit 0
