@@ -1,13 +1,13 @@
 #!/bin/sh
 
 script=$@
-echo ${EN} "compile mkconfig units${EC}" >&3
+echo ${EN} "compile mkconfig units${EC}" >&5
 
 grc=0
 
 cd $_MKCONFIG_DIR/mkconfig.units
 
-echo ${EN} " ${EC}" >&3
+echo ${EN} " ${EC}" >&5
 for s in $shelllist; do
   unset _shell
   unset shell
@@ -16,7 +16,7 @@ for s in $shelllist; do
   if [ "$ss" = "sh" ]; then
     ss=`echo $s | sed 's,.*/,,'`
   fi
-  echo ${EN} "${ss} ${EC}" >&3
+  echo ${EN} "${ss} ${EC}" >&5
   echo "## testing with ${s} "
   for f in *.sh; do
     $s -n $f

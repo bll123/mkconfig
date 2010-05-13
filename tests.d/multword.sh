@@ -1,11 +1,11 @@
 #!/bin/sh
 
 script=$@
-echo ${EN} "output multiple words${EC}" >&3
+echo ${EN} "output multiple words${EC}" >&5
 
 grc=0
 
-echo ${EN} " ${EC}" >&3
+echo ${EN} " ${EC}" >&5
 for s in $shelllist; do
   unset _shell
   unset shell
@@ -14,7 +14,7 @@ for s in $shelllist; do
   if [ "$ss" = "sh" ]; then
     ss=`echo $s | sed 's,.*/,,'`
   fi
-  echo ${EN} "${ss} ${EC}" >&3
+  echo ${EN} "${ss} ${EC}" >&5
   echo "   testing with ${s} "
   _MKCONFIG_SHELL=$s
   export _MKCONFIG_SHELL

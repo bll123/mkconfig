@@ -2,7 +2,7 @@
 
 script=$@
 
-echo ${EN} "include${EC}" >&3
+echo ${EN} "include${EC}" >&5
 eval "${script} -C ${_MKCONFIG_RUNTESTDIR}/include.dat"
 echo "## diff include.ctmp include.ctest"
 cat include.ctest |

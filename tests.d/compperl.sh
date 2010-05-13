@@ -1,7 +1,7 @@
 #!/bin/sh
 
 script=$@
-echo ${EN} "compile mkconfig.pl${EC}" >&3
+echo ${EN} "compile mkconfig.pl${EC}" >&5
 
 grc=0
 

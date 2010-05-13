@@ -1,7 +1,7 @@
 #!/bin/sh
 
 script=$@
-echo ${EN} "w/multiple lib${EC}" >&3
+echo ${EN} "w/multiple lib${EC}" >&5
 
 grc=0
 

@@ -14,7 +14,7 @@ while test -f cache.${count}; do
 done
 
 if [ $count -eq 1 ]; then
-  echo ${EN} "cache${EC}" >&3
+  echo ${EN} "cache${EC}" >&5
   eval "${script} -C $_MKCONFIG_RUNTESTDIR/cache.dat"
   mv -f cache.ctest ${_MKCONFIG_RUNTMPDIR}/cache.${count}
   cp -f mkconfig_c.vars ${_MKCONFIG_RUNTMPDIR}/cache.${count}.vars
@@ -30,7 +30,7 @@ case $script in
 esac
 
 if [ $dosh = "T" ]; then
-  echo ${EN} " ${EC}" >&3
+  echo ${EN} " ${EC}" >&5
   for s in $shelllist; do
     unset _shell
     unset shell
@@ -41,7 +41,7 @@ if [ $dosh = "T" ]; then
     if [ "$ss" = "sh" ]; then
       ss=`echo $s | sed 's,.*/,,'`
     fi
-    echo ${EN} "${ss} ${EC}" >&3
+    echo ${EN} "${ss} ${EC}" >&5
     eval "${s} -c '${script} $_MKCONFIG_RUNTESTDIR/cache.dat'"
     mv -f cache.ctest cache.${count}
     mv -f mkconfig_c.vars cache.${count}.vars
@@ -49,7 +49,7 @@ if [ $dosh = "T" ]; then
     domath count "$count + 1"
   done
 else
-  echo ${EN} "cache${EC}" >&3
+  echo ${EN} "cache${EC}" >&5
   eval "${script} $_MKCONFIG_RUNTESTDIR/cache.dat"
   mv -f cache.ctest cache.${count}
   mv -f mkconfig_c.vars cache.${count}.vars

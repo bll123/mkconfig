@@ -1,7 +1,7 @@
 #!/bin/sh
 
 script=$@
-echo ${EN} "w/single lib${EC}" >&3
+echo ${EN} "w/single lib${EC}" >&5
 
 grc=0
 
