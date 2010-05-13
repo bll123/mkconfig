@@ -8,26 +8,19 @@
 .\"
 .\" bll6969di_at_gmail.com
 .\"
-.TH mkconfig 7 "1 May 2010"
+.TH mkconfig 7 "12 May 2010"
 .SH Name
 mkconfig \- build configuration utilities
 .SH Synopsis
 .\" mkconfig.sh [-C] [-c <cache-file>]
 .\"       [-l <log-file>] config-file
 .\" mkreqlib.sh [-c <cache-file>] [-o <output-file>] config-file
+.\" runtests.sh <tests-dir> [test1, ...]
 .B mkconfig.sh
 [\fB\-C\fP]
 [\fB\-c\fP <cache\-file>]
 [\fB\-l\fP <log\-file>]
-.PP
-.B mkreqlib.sh
-[\fB\-c\fP <cache\-file>]
-[\fB\-o\fP <output\-file>]
-config\-file
-.br
-.RS
-config\-file
-.RE
+config-file
 .PP
 The \-C option clears any cache file before processing the units.
 .PP
@@ -37,6 +30,24 @@ log\-file defaults to 'mkconfig.log'.
 .PP
 config\-file is a file containing a list of configuration commands.
 .PP
+.B mkreqlib.sh
+[\fB\-c\fP <cache\-file>]
+[\fB\-o\fP <output\-file>]
+input\-file
+.PP
+cache\-file defaults to 'mkconfig.cache'.
+.PP
+output\-file defaults to 'reqlibs.txt'.
+.PP
+input\-file is the C/C++ output\-file created by mkconfig.sh.
+.PP
+.B runtests.sh
+tests\-dir
+[test1, ...]
+.PP
+tests\-dir is a directory containing test scripts.
+.PP
+The tests to be run may be specified on the command line.
 .SH Description
 \fImkconfig.sh\fP
 is a build configuration utility.
@@ -54,6 +65,9 @@ a shell script, a configuration file, or any other use.
 is used in conjunction with the c\-main language unit to output the
 libraries required for linking.  See the description for the 'lib'
 check routine for the c\-main language unit below.
+.PP
+\fIruntests.sh\fP
+is a simple test harness for mkconfig.
 .SH Basic Configuration Commands (mkconfig.sh)
 .TP
 \fB#\fP comment
@@ -157,7 +171,7 @@ extension (none or .exe) per the operating system and compiler.
 \fBcmd_msgfmt\fP
 .br
 Sets the XMSGFMT environment variable to the path of the
-msgfmt command, if any.
+msgfmt or gmsgfmt command, if any.
 .RE
 .SH C Language Units
 .TP
@@ -197,10 +211,12 @@ the test will try first without the libraries, then with
 the first set of libraries specified, then the next set, etc.
 Sets of libraries to be tested are separated by commas.
 e.g.: class os::Volumes
-.br
+.RS
+.PP
 Execute \fImkreqlib.sh\fP after creating the configuration file
 to output the libraries required for linking.  See the usage for
 \fImkreqlib.sh\fP in the lib check below.
+.RE
 .TP
 \fBconst\fP constant\-name [required\-headers]
 .br
@@ -231,21 +247,23 @@ the first set of libraries specified, then the next set, etc.
 Sets of libraries to be tested are separated by commas.
 e.g. lib gettext -lintl, -lintl -liconv
 will first test gettext, then gettext -lintl, then gettext -lintl -liconv.
-.br
+.RS
+.PP
 Execute \fImkreqlib.sh\fP after creating the configuration file
 to output the libraries required for linking.
-.br
+.PP
 \fImkreqlib.sh\fP creates the list of libraries required for linking
 based on the configuration file.  This allows the user to modify
-the configuration file and only the necessary libraries will be 
+the configuration file and only the necessary libraries will be
 linked in.
-.br
+.PP
 \fImkreqlib.sh\fP is executed with a command line argument of the
 configuration file name.  The output file defaults to 'reqlibs.txt',
 but may be changed with the \-o command line option.
-.br
+.PP
 The string '_dollar_', if included in the library function name
 will be replaced with the '$' symbol.
+.RE
 .TP
 \fBmember\fP struct member
 .br
@@ -256,7 +274,7 @@ e.g.: member statfs f_bsize
 .br
 Check to see if if \fIfunction\fP needs to have a prototype declared.
 The optional \fIlibrary\-requirement\fP should be written
-as: _lib_<funcname>
+as: _lib_<funcname>.
 If \fIlibrary\-requirement\fP does not exist, _npt_<function>
 will be set to false in the output file.
 e.g. npt getopt; npt statfs _lib_statfs
@@ -290,6 +308,55 @@ Check to see how many arguments the setmntent() system call accepts.
 .br
 Check to see if there is a conflict between time.h and sys/times.h.
 .RE
+.SH Tests (runtests.sh)
+The test directory contains shell scripts that are executed
+by \fIruntests.sh\fP.  If a 'test_order' file exists in the test
+directory, it indicates the order the tests are run in.  The 'test_order'
+file consists of a pass number followed by the test name (no trailing .sh).
+If the 'test_order' file exists, only those tests in the file will be run.
+.SH Writing a mkconfig Unit (mkconfig.sh)
+To be completed.
+.SH Environment Variables (mkconfig.sh)
+_MKCONFIG_DIR - The directory where mkconfig.sh is installed.
+.SH File Descriptors (mkconfig.sh)
+The file descriptors are allocated as follows:
+.br
+9 - The mkconfig log file
+.br
+8 - Used by mkconfig.sh; not available for mkconfig unit scripts.
+.br
+7 - Used by mkconfig.sh; not available for mkconfig unit scripts.
+.br
+6 - Used by c-main.sh; not available for c language unit scripts.
+.SH Writing a test script (runtests.sh)
+To be completed.
+.SH Environment Variables (runtests.sh)
+.TP
+_MKCONFIG_DIR
+.br
+The directory where mkconfig.sh is installed.
+.TP
+_MKCONFIG_RUNTOPDIR
+.br
+The original directory where the tests were started.
+.TP
+_MKCONFIG_RUNTSTDIR
+.br
+The directory containing the test scripts and associated
+files.
+.TP
+_MKCONFIG_RUNTMPDIR
+.br
+The top level temporary directory.  Sub\-directories
+are created for each test that is run.
+.TP
+_MKCONFIG_TSTRUNTMPDIR
+.br
+The temporary directory in which the test is run.
+.TP
+shelllist
+.br
+A list of valid shells installed on the system.
 .SH See Also
 iffe(1) autoconf(1) dist(7)
 .SH Bugs
