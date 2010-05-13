@@ -10,7 +10,7 @@
 # speed at the cost of maintainability...
 # File Descriptors:
 #    9 - $TSTRUNLOG
-#    3 - stdout (as 1 is directed to the log)
+#    5 - stdout (as 1 is directed to the log)
 #
 
 DOPERL=T
@@ -138,7 +138,7 @@ for tbase in $teststorun; do
   fi
 
   cd $_MKCONFIG_TSTRUNTMPDIR
-  $_MKCONFIG_RUNTESTDIR/$tf $arg 3>&1 >&9 2>&1
+  $_MKCONFIG_RUNTESTDIR/$tf $arg 5>&1 >&9 2>&1
   rc=$?
   cd $_MKCONFIG_RUNTESTDIR
 
@@ -179,7 +179,7 @@ for tbase in $teststorun; do
     fi
 
     cd $_MKCONFIG_TSTRUNTMPDIR
-    $_MKCONFIG_RUNTESTDIR/$tf perl $_MKCONFIG_DIR/mkconfig.pl 3>&1 >&9 2>&1
+    $_MKCONFIG_RUNTESTDIR/$tf perl $_MKCONFIG_DIR/mkconfig.pl 5>&1 >&9 2>&1
     rc=$?
     cd $_MKCONFIG_RUNTESTDIR
 
