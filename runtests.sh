@@ -138,6 +138,7 @@ for tbase in $teststorun; do
   fi
 
   cd $_MKCONFIG_TSTRUNTMPDIR
+  # dup stdout to 5; redirect stdout to 9; redirect stderr to new 1.
   $_MKCONFIG_RUNTESTDIR/$tf $arg 5>&1 >&9 2>&1
   rc=$?
   cd $_MKCONFIG_RUNTESTDIR
@@ -179,6 +180,7 @@ for tbase in $teststorun; do
     fi
 
     cd $_MKCONFIG_TSTRUNTMPDIR
+    # dup stdout to 5; redirect stdout to 9; redirect stderr to new 1.
     $_MKCONFIG_RUNTESTDIR/$tf perl $_MKCONFIG_DIR/mkconfig.pl 5>&1 >&9 2>&1
     rc=$?
     cd $_MKCONFIG_RUNTESTDIR
