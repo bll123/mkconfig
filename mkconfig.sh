@@ -380,13 +380,11 @@ create_config () {
 }
 
 usage () {
-  cat << _HERE_
-Usage: $0 [-C] [-c <cache-file>] [-l <log-file>] <config-file>
+  echo "Usage: $0 [-C] [-c <cache-file>] [-l <log-file>] <config-file>
   -C : clear cache-file
-defaults:"
+defaults:
   <cache-file> : mkconfig.cache
-  <log-file>   : mkconfig.log
-_HERE_
+  <log-file>   : mkconfig.log"
 }
 
 # main
