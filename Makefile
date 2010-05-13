@@ -22,4 +22,4 @@ tests.done: runtests.sh tests.d/cache.sh tests.d/include.sh \
 	touch tests.done
 
 tar:
-	$(SHELL) mktar.sh
+	./mktar.sh
