@@ -30,14 +30,14 @@ check_objext () {
 
   CC=${CC:-cc}
 
-  cat > $TMP.c << _HERE_
+  > $TMP.c echo '
   #include <stdio.h>
   main ()
   {
     printf ("hello\n");
     return 0;
   }
-_HERE_
+'
 
   ${CC} ${CFLAGS} ${CPPFLAGS} -c $TMP.c > /dev/null 2>&1 # don't care about warnings...
   OBJ_EXT=".o"
@@ -64,14 +64,14 @@ check_exeext () {
 
   CC=${CC:-cc}
 
-  cat > $TMP.c << _HERE_
+  > $TMP.c echo '
   #include <stdio.h>
   main ()
   {
     printf ("hello\n");
     return 0;
   }
-_HERE_
+'
 
   ${CC} ${CFLAGS} ${CPPFLAGS} -o $TMP $TMP.c > /dev/null 2>&1 # don't care about warnings
   EXE_EXT=""
