@@ -136,7 +136,9 @@ doshelltest () {
   if [ $? -ne 0 ]; then
     echo "The shell in use ($shell) does not have the correct functionality:" >&2
     echo $chkmsg >&2
-    echo "Please try another shell." >&2
+    echo "Please try another shell.
+_MKCONFIG_SHELL can be set to the path of another shell
+to override /bin/sh." >&2
     exit 1
   fi
   testshcapability
