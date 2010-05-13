@@ -9,7 +9,7 @@
 read _MKCONFIG_VERSION < ${_MKCONFIG_DIR}/VERSION
 export _MKCONFIG_VERSION
 
-tryshell="ash bash dash dtksh ksh mksh posh sh sh5"
+tryshell="ash bash dash dtksh ksh mksh sh sh5"
 
 mkconfigversion () {
   echo "mkconfig version ${_MKCONFIG_VERSION}"
@@ -164,7 +164,7 @@ chkshell () {
 
   grc=0
 
-  TMP=x$$
+  TMP=chksh$$
   chkmsg=""
   # test to make sure the set command works properly
   # some shells output xyzzy='abc def'
