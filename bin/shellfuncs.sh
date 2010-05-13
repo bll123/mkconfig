@@ -292,26 +292,16 @@ getlistofshells () {
   tshelllist=""
   for d in $_pthlist; do
     for s in $tryshell ; do
-      if [ -x $d/$s ]; then
-        rs=`ls -l $d/$s | sed 's/.* //'`
-        case $rs in
-          /*)
-            ;;
-          *)
-            rs=$d/$rs
-            ;;
-        esac
-        if [ "$rs" != "$d/$s" ]; then
-          rs=`ls -l $rs | sed 's/.* //'`
-          case $rs in
-            /*)
-              ;;
-            *)
-              rs=$d/$rs
-              ;;
-          esac
-        fi
-
+      rs=$d/$s
+      if [ -h $rs ]; then
+        while [ -h $rs ]; do
+          rs="$d/`ls -l $rs | sed 's/.* //'`"
+          rs=`echo $rs | sed 's,/[^/]*/\.\./,/,'`
+          rs=`echo $rs | sed 's,/[^/]*/\.\./,/,'`
+          rs=`echo $rs | sed 's,/[^/]*/\.\./,/,'`
+        done
+      fi
+      if [ -x $rs ]; then
         cmd="$rs -c \". $_MKCONFIG_DIR/shellfuncs.sh;getshelltype;echo \\\$shell\""
         shell=`eval $cmd`
         echo "  found: $rs ($shell)"
