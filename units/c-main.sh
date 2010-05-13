@@ -76,17 +76,14 @@ preconfigfile () {
     return
   fi
 
-  cat  << _HERE_
-#ifndef __INC_CONFIG_H
+  echo '#ifndef __INC_CONFIG_H
 #define __INC_CONFIG_H 1
-
-_HERE_
+'
 }
 
 stdconfigfile () {
   pc_configfile=$1
-  cat << _HERE_
-
+  echo '
 #if ! _key_void
 # define void int
 #endif
@@ -101,16 +98,13 @@ stdconfigfile () {
 #  define _(args) ()
 # endif
 #endif
-
-_HERE_
+'
 }
 
 postconfigfile () {
   pc_configfile=$1
-  cat << _HERE_
-
-#endif /* __INC_CONFIG_H */
-_HERE_
+  echo '
+#endif /* __INC_CONFIG_H */'
 }
 
 standard_checks () {
