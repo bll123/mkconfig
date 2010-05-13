@@ -8,7 +8,7 @@ rm -rf ${dir} > /dev/null 2>&1
 mkdir ${dir}
 chmod 755 ${dir}
 
-cat MANIFEST | sed 's,[/]*[	 ].*$,,' |
+sed 's,[/]*[	 ].*$,,' MANIFEST |
 while read f; do
   if [ -d $f ]; then
     mkdir ${dir}/${f}
