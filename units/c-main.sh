@@ -169,6 +169,13 @@ _print_hdrs () {
       case ${cfgvar} in
         _hdr_stdio|_hdr_stdlib|_sys_types|_sys_param)
             ;;
+        _hdr_linux_quota)
+            getdata hsqval ${_MKCONFIG_PREFIX} '_sys_quota'
+            getdata iqval ${_MKCONFIG_PREFIX} '_include_quota'
+            if [ "${hsqval}" = "0" -o "${iqval}" != "0" ]; then
+              echo "#include <${hdval}>"
+            fi
+            ;;
         _sys_time)
             getdata htval ${_MKCONFIG_PREFIX} '_hdr_time'
             getdata itval ${_MKCONFIG_PREFIX} '_include_time'
@@ -583,11 +590,12 @@ check_lib () {
   rfunc=$func
   dosubst rfunc '_dollar_' '$'
   if [ "${otherlibs}" != "" ]; then
-      printlabel $name "function: ${rfunc} [${otherlibs}]"
+    printlabel $name "function: ${rfunc} [${otherlibs}]"
+    # code to check the cache for which libraries is not written
   else
-      printlabel $name "function: ${rfunc}"
-      checkcache ${_MKCONFIG_PREFIX} $name
-      if [ $rc -eq 0 ]; then return; fi
+    printlabel $name "function: ${rfunc}"
+    checkcache ${_MKCONFIG_PREFIX} $name
+    if [ $rc -eq 0 ]; then return; fi
   fi
 
   trc=0
