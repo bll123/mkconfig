@@ -1,12 +1,13 @@
 LICENSE			LICENSE
 MANIFEST		MANIFEST
-Makefile		
+Makefile
 mkconfig.7		manual page
 mkconfig.pl		perl config program
 mkconfig.sh		shell config program
 mkconfig.units/		units for mkconfig.sh
-mkconfig.units/c-include-time.sh
+mkconfig.units/c-include-conflict.sh
 mkconfig.units/c-main.sh
+mkconfig.units/c-quotactl.sh
 mkconfig.units/c-setmntent-args.sh
 mkconfig.units/c-statfs-args.sh
 mkconfig.units/env-cc.sh
