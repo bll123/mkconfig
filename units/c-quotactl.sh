@@ -20,6 +20,7 @@ require_unit c-main
 
 check_quotactl_special_pos () {
     name="_$1"
+    TMP=qctlpos
 
     printlabel $name "quotactl special pos"
     checkcache ${_MKCONFIG_PREFIX} $name
@@ -32,21 +33,37 @@ check_quotactl_special_pos () {
       return
     fi
 
-    getdata hdrlinux ${_MKCONFIG_PREFIX} _sys_quota
-    getdata hdrbsd ${_MKCONFIG_PREFIX} _ufs_ufs_quota
-
-    # this is not the best way to do this, but it works.
-
-    if [ "$hdrbsd" != 0 ]; then
-      setdata ${_MKCONFIG_PREFIX} "${name}" 1
-      printyesno_val "${name}" 1 ""
-      return
+    getdata hdr ${_MKCONFIG_PREFIX} _sys_quota
+    if [ "$hdr" = 0 ]; then
+      getdata hdr ${_MKCONFIG_PREFIX} _hdr_ufs_ufs_quota
+    fi
+    if [ "$hdr" = 0 ]; then
+      getdata hdr ${_MKCONFIG_PREFIX} _hdr_ufs_quota
+    fi
+    if [ "$hdr" = 0 ]; then
+      getdata hdr ${_MKCONFIG_PREFIX} _hdr_linux_quota
     fi
 
-    if [ "$hdrlinux" != 0 ]; then
-      setdata ${_MKCONFIG_PREFIX} "${name}" 2
-      printyesno_val "${name}" 2 ""
-      return
+    echo "header: $hdr" >&9
+    if [ "$hdr" != 0 ]; then
+      echo "#include <$hdr>" > $TMP.c
+      ${CC} -E $TMP.c > $TMP.x
+
+      egrep 'quotactl *\( *int.*, *(const *)?char' $TMP.x >&9
+      rc=$?
+      if [ $rc -eq 0 ]; then
+        setdata ${_MKCONFIG_PREFIX} "${name}" 2
+        printyesno_val "${name}" 2 ""
+        return
+      fi
+
+      egrep 'quotactl *\( *(const *)?char.*, *int' $TMP.x >&9
+      rc=$?
+      if [ $rc -eq 0 ]; then
+        setdata ${_MKCONFIG_PREFIX} "${name}" 1
+        printyesno_val "${name}" 1 ""
+        return
+      fi
     fi
 
     setdata ${_MKCONFIG_PREFIX} "${name}" 0
