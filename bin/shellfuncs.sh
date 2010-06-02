@@ -188,10 +188,10 @@ chkshell () {
   if [ $rc -ne 0 ]; then
     grc=$rc
     chkmsg="${chkmsg}
-  'set' output not x=a b or x='a b'."
+  'set' output not x=a b or x='a b' or x=\$'a b'."
   fi
 
-  # test for broken output redirect (e.g. zsh hangs)
+  # test for broken output redirect (A)
   (
     rm -f $TMP $TMP.out > /dev/null 2>&1
     cmd="> $TMP;test -f $TMP;echo \$? > $TMP.out"
@@ -212,6 +212,34 @@ chkshell () {
     grc=$rc
     chkmsg="${chkmsg}
   Does not support > filename."
+  fi
+
+  # test for broken output redirect (B)
+  (
+    rm -f $TMP $TMP.out > /dev/null 2>&1
+    cmd="cat > $TMP <<_HERE_
+a
+b
+c
+_HERE_
+;test -f $TMP;echo \$? > $TMP.out"
+    eval $cmd &
+    job=$!
+    sleep 1
+    rc=1
+    if [ ! -f $TMP.out ]; then
+      kill $job
+    else
+      rc=`cat $TMP.out`
+    fi
+    rm -f $TMP $TMP.out > /dev/null 2>&1
+    exit $rc
+  )
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    grc=$rc
+    chkmsg="${chkmsg}
+  Does not support cat > filename << _HERE_."
   fi
 
   if [ "$TSHELL" != "" ]; then
@@ -283,6 +311,7 @@ $d"
   _pthlist=`echo $_pthlist | sort -u`
 }
 
+# this is used for regression testing.
 getlistofshells () {
 
   getpaths
