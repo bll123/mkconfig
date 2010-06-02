@@ -170,17 +170,21 @@ _print_hdrs () {
         _hdr_stdio|_hdr_stdlib|_sys_types|_sys_param)
             ;;
         _hdr_linux_quota)
-            getdata hsqval ${_MKCONFIG_PREFIX} '_sys_quota'
-            getdata iqval ${_MKCONFIG_PREFIX} '_include_quota'
-            if [ "${hsqval}" = "0" -o "${iqval}" != "0" ]; then
-              echo "#include <${hdval}>"
+            if [ "${hdval}" != "0" ]; then
+              getdata hsqval ${_MKCONFIG_PREFIX} '_sys_quota'
+              getdata iqval ${_MKCONFIG_PREFIX} '_include_quota'
+              if [ "${hsqval}" = "0" -o "${iqval}" != "0" ]; then
+                echo "#include <${hdval}>"
+              fi
             fi
             ;;
         _sys_time)
-            getdata htval ${_MKCONFIG_PREFIX} '_hdr_time'
-            getdata itval ${_MKCONFIG_PREFIX} '_include_time'
-            if [ "${htval}" = "0" -o "${itval}" != "0" ]; then
-              echo "#include <${hdval}>"
+            if [ "${hdval}" != "0" ]; then
+              getdata htval ${_MKCONFIG_PREFIX} '_hdr_time'
+              getdata itval ${_MKCONFIG_PREFIX} '_include_time'
+              if [ "${htval}" = "0" -o "${itval}" != "0" ]; then
+                echo "#include <${hdval}>"
+              fi
             fi
             ;;
         _hdr_*|_sys_*)
@@ -451,9 +455,10 @@ int bar () { int rc; rc = foo (1,1); return 0; }
 }
 
 check_typ () {
-  type=$2
+  shift
+  type=$@
   nm="_typ_${type}"
-
+  dosubst nm ' ' '_'
   name=$nm
 
   printlabel $name "type: ${type}"
