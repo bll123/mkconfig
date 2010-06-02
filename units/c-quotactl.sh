@@ -18,11 +18,11 @@
 
 require_unit c-main
 
-check_quotactl_special_pos () {
+check_quotactl_pos () {
     name="_$1"
     TMP=qctlpos
 
-    printlabel $name "quotactl special pos"
+    printlabel $name "quotactl position"
     checkcache ${_MKCONFIG_PREFIX} $name
     if [ $rc -eq 0 ]; then return; fi
 
@@ -43,10 +43,14 @@ check_quotactl_special_pos () {
     if [ "$hdr" = 0 ]; then
       getdata hdr ${_MKCONFIG_PREFIX} _hdr_linux_quota
     fi
+    getdata uhdr ${_MKCONFIG_PREFIX} _hdr_unistd
 
     echo "header: $hdr" >&9
     if [ "$hdr" != 0 ]; then
       echo "#include <$hdr>" > $TMP.c
+      if [ "$uhdr" != 0 ]; then
+        echo "#include <$uhdr>" >> $TMP.c
+      fi
       ${CC} -E $TMP.c > $TMP.x
 
       egrep 'quotactl *\( *int.*, *(const *)?char' $TMP.x >&9
