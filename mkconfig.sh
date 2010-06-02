@@ -316,6 +316,11 @@ create_config () {
           set $tdatline
           type=$1
           file=$2
+          # backwards compatibility w/1.5
+          if [ "$file" = "c-include-time" ]; then
+            file="c-include-conflict"
+            echo "mkconfig: warning: c-include-time has been renamed to c-include-conflict"
+          fi
           doloadunit ${file} N
           if [ "$VARSFILE" = "" -a "${_MKCONFIG_PREFIX}" != "" ]; then
             VARSFILE="../mkconfig_${_MKCONFIG_PREFIX}.vars"
