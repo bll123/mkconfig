@@ -222,8 +222,8 @@ a
 b
 c
 _HERE_
-;test -f $TMP;echo \$? > $TMP.out"
-    eval $cmd &
+test -f $TMP;echo \$? > $TMP.out"
+    eval "$cmd" &
     job=$!
     sleep 1
     rc=1
