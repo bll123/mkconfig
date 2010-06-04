@@ -346,6 +346,12 @@ create_config () {
             chkconfigfname
             set $tdatline
             type=$1
+            # backwards compatibility w/1.5
+            if [ $type = "include_time" ]; then
+              tdatline="include_conflict time.h sys/time.h"
+              set $tdatline
+              type=$1
+            fi
             chk="check_${type}"
             cmd="$chk $@"
             eval $cmd
