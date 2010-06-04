@@ -20,7 +20,6 @@ require_unit c-main
 
 check_quotactl_pos () {
     name="_$1"
-    TMP=qctlpos
 
     printlabel $name "quotactl position"
     checkcache ${_MKCONFIG_PREFIX} $name
