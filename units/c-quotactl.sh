@@ -33,40 +33,42 @@ check_quotactl_pos () {
       return
     fi
 
-    getdata hdr ${_MKCONFIG_PREFIX} _sys_quota
-    if [ "$hdr" = 0 ]; then
-      getdata hdr ${_MKCONFIG_PREFIX} _hdr_ufs_ufs_quota
-    fi
-    if [ "$hdr" = 0 ]; then
-      getdata hdr ${_MKCONFIG_PREFIX} _hdr_ufs_quota
-    fi
-    if [ "$hdr" = 0 ]; then
-      getdata hdr ${_MKCONFIG_PREFIX} _hdr_linux_quota
-    fi
+    for hnm in _sys_quota _hdr_ufs_ufs_quota _hdr_ufs_quota \
+        _hdr_linux_quota; do
+      getdata hdr ${_MKCONFIG_PREFIX} $hnm
+      if [ "$hdr" != 0 ]; then
+        break
+      fi
+    done
     getdata uhdr ${_MKCONFIG_PREFIX} _hdr_unistd
 
     echo "header: $hdr" >&9
+    code=""
     if [ "$hdr" != 0 ]; then
-      echo "#include <$hdr>" > $TMP.c
+      code="#include <$hdr>"
       if [ "$uhdr" != 0 ]; then
-        echo "#include <$uhdr>" >> $TMP.c
+        code="$code
+#include <$uhdr>"
       fi
-      ${CC} -E $TMP.c > $TMP.x
-
-      egrep 'quotactl *\( *int.*, *(const *)?char' $TMP.x >&9
+      _chk_cpp $name "$code"
       rc=$?
-      if [ $rc -eq 0 ]; then
-        setdata ${_MKCONFIG_PREFIX} "${name}" 2
-        printyesno_val "${name}" 2 ""
-        return
-      fi
 
-      egrep 'quotactl *\( *(const *)?char.*, *int' $TMP.x >&9
-      rc=$?
       if [ $rc -eq 0 ]; then
-        setdata ${_MKCONFIG_PREFIX} "${name}" 1
-        printyesno_val "${name}" 1 ""
-        return
+        egrep -l 'quotactl *\( *int[^,]*, *(const *)?char' $name.out >&9 2>&1
+        rc=$?
+        if [ $rc -eq 0 ]; then
+          setdata ${_MKCONFIG_PREFIX} "${name}" 2
+          printyesno_val "${name}" 2 ""
+          return
+        fi
+
+        egrep -l 'quotactl *\( *(const *)?char[^,]*, *int' $name.out >&9 2>&1
+        rc=$?
+        if [ $rc -eq 0 ]; then
+          setdata ${_MKCONFIG_PREFIX} "${name}" 1
+          printyesno_val "${name}" 1 ""
+          return
+        fi
       fi
     fi
 
