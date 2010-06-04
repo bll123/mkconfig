@@ -538,6 +538,8 @@ check_quotactl_pos
     return;
   }
 
+  setlist $r_clist, $name;
+
   if ($r_config->{'_lib_quotactl'} eq '0') {
     $r_config->{$name} = '0';
     printyesno_val $name, $r_config->{$name};
@@ -553,8 +555,6 @@ check_quotactl_pos
     }
   }
   my $uhdr = $r_config->{'_hdr_unistd'};
-
-  setlist $r_clist, $name;
 
   my $code = '';
   if ($hdr ne '') {
