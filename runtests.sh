@@ -76,7 +76,10 @@ mkdir -p $_MKCONFIG_RUNTMPDIR
 
 MAINLOG=${_MKCONFIG_RUNTMPDIR}/main.log
 > $MAINLOG
-getlistofshells >> $MAINLOG 2>&1
+echo "## locating valid shells"
+echo ${EN} "   ${EC}"
+getlistofshells 5>&1 >> $MAINLOG 2>&1
+echo ""
 export shelllist
 count=0
 fcount=0
