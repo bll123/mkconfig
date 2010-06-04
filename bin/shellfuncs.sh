@@ -9,6 +9,9 @@
 read _MKCONFIG_VERSION < ${_MKCONFIG_DIR}/VERSION
 export _MKCONFIG_VERSION
 
+# posh set command doesn't output correct data; don't bother with it.
+# pdksh is often broken; avoid it.
+# zsh set command is broken
 tryshell="ash bash dash ksh mksh sh sh5"
 
 mkconfigversion () {
@@ -352,13 +355,16 @@ $rs"
   shelllist=""
   for s in $tshelllist; do
     echo ${EN} "  check $s${EC}"
+    echo ${EN} "$s${EC}" >&5
     cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;TSHELL=$s;chkshell\""
     eval $cmd
     if [ $? -eq 0 ]; then
       echo " ok"
+      echo ${EN} "(ok) ${EC}" >&5
       shelllist="${shelllist} $s"
     else
       echo " ng"
+      echo ${EN} "(ng) ${EC}" >&5
       echo $chkmsg
     fi
   done
