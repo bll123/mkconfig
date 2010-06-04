@@ -3,7 +3,7 @@
 # Copyright 2010 Brad Lanam Walnut Creek CA USA
 #
 #
-# check and see if there is a conflict between time.h and sys/time.h
+# check and see if there is a conflict between include files.
 #
 
 #
@@ -18,55 +18,49 @@
 
 require_unit c-main
 
-check_include_time () {
-    name="_$1"
-
-    if [ "${CC}" = "" ]; then
-      echo "No compiler specified" >&2
-      return
-    fi
-
-    trc=0
-    printlabel $name "header: include both time.h & sys/time.h"
-
-    getdata _hdr_time ${_MKCONFIG_PREFIX} _hdr_time
-    getdata _sys_time ${_MKCONFIG_PREFIX} _sys_time
-    if [ "${_hdr_time}" = "time.h" -a "${_sys_time}" = "sys/time.h" ]; then
-      checkcache ${_MKCONFIG_PREFIX} $name
-      if [ $rc -eq 0 ]; then return; fi
-
-      code="#include <time.h>
-#include <sys/time.h>
-main () { struct tm x; }
-"
-      do_check_compile "${name}" "${code}" std
-    else
-      setdata ${_MKCONFIG_PREFIX} "${name}" "${trc}"
-      printyesno_val "${name}" $trc ""
-    fi
+_prefix_header () {
+  nm=$1
+  val=$2
+  case $val in
+    sys*)
+      eval "$nm=_${val}"
+      ;;
+    *)
+      eval "$nm=_hdr_${val}"
+      ;;
+  esac
 }
 
-check_include_quota () {
-    name="_$1"
+check_include_conflict () {
+    i1=$2
+    i2=$3
 
     if [ "${CC}" = "" ]; then
       echo "No compiler specified" >&2
       return
     fi
 
-    trc=0
-    printlabel $name "header: include both sys/quota.h & linux/quota.h"
+    dosubst i1 '/' '_' ':' '_' '\.h' ''
+    _prefix_header i1 $i1
+    dosubst i2 '/' '_' ':' '_' '\.h' ''
+    _prefix_header i2 $i2
+    name="_inc_conflict_${i1}_${i2}"
 
-    getdata _hdr_linux_quota ${_MKCONFIG_PREFIX} _hdr_linux_quota
-    getdata _sys_quota ${_MKCONFIG_PREFIX} _sys_quota
-    if [ "${_hdr_linux_quota}" = "linux/quota.h" -a \
-        "${_sys_quota}" = "sys/quota.h" ]; then
+    # by default, ok to include both
+    # if one or the other does not exist, the flag will be true.
+    # if it compiles ok with both, the flag will be true.
+    trc=1
+    printlabel $name "header: include both ${i1} & ${i2}"
+
+    getdata h1 ${_MKCONFIG_PREFIX} $i1
+    getdata h2 ${_MKCONFIG_PREFIX} $i2
+    if [ "${h1}" != "0" -a "${h2}" != "0" ]; then
       checkcache ${_MKCONFIG_PREFIX} $name
       if [ $rc -eq 0 ]; then return; fi
 
-      code="#include <sys/quota.h>
-#include <linux/quota.h>
-main () { int x; return; }
+      code="#include <${h1}>
+#include <${h2}>
+main () { return; }
 "
       do_check_compile "${name}" "${code}" std
     else
