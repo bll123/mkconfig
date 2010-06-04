@@ -171,18 +171,16 @@ _print_hdrs () {
             ;;
         _hdr_linux_quota)
             if [ "${hdval}" != "0" ]; then
-              getdata hsqval ${_MKCONFIG_PREFIX} '_sys_quota'
-              getdata iqval ${_MKCONFIG_PREFIX} '_include_quota'
-              if [ "${hsqval}" = "0" -o "${iqval}" != "0" ]; then
+              getdata iqval ${_MKCONFIG_PREFIX} '_inc_conflict__sys_quota__hdr_linux_quota'
+              if [ "${iqval}" = "1" ]; then
                 echo "#include <${hdval}>"
               fi
             fi
             ;;
         _sys_time)
             if [ "${hdval}" != "0" ]; then
-              getdata htval ${_MKCONFIG_PREFIX} '_hdr_time'
-              getdata itval ${_MKCONFIG_PREFIX} '_include_time'
-              if [ "${htval}" = "0" -o "${itval}" != "0" ]; then
+              getdata itval ${_MKCONFIG_PREFIX} '_inc_conflict__hdr_time__sys_time'
+              if [ "${itval}" = "1" ]; then
                 echo "#include <${hdval}>"
               fi
             fi
@@ -266,6 +264,31 @@ _chk_link_libs () {
       done
   fi
   _retdlibs=$dlibs
+  return $rc
+}
+
+_chk_cpp () {
+  cppname=$1
+  code="$2"
+  inc=$3
+
+  tcppfile=${cppname}.c
+  # $cppname should be unique
+  exec 4>>${tcppfile}
+  echo "${precc}" >&4
+  _print_headers $inc >&4
+  echo "${code}" | sed 's/_dollar_/$/g' >&4
+  exec 4>&-
+
+  cmd="${CC} ${CFLAGS} ${CPPFLAGS} -E ${cppname}.c > ${cppname}.out "
+  echo "##  _cpp test: $cmd" >&9
+  cat ${cppname}.c >&9
+  eval $cmd >&9 2>&9
+  rc=$?
+  if [ $rc -lt 0 ]; then
+      exitmkconfig $rc
+  fi
+  echo "##      _cpp test: $rc" >&9
   return $rc
 }
 
