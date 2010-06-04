@@ -178,8 +178,14 @@ print_headers
                 next;
             }
             if ($val eq '_sys_time' &&
-                $r_config->{'_hdr_time'} ne '0' &&
-                $r_config->{'_include_time'} eq '0')
+                $r_config->{'_sys_time'} ne '0' &&
+                $r_config->{'_inc_conflict__hdr_time__sys_time'} eq '0')
+            {
+                next;
+            }
+            if ($val eq '_hdr_linux_quota' &&
+                $r_config->{'_hdr_linux_quota'} ne '0' &&
+                $r_config->{'_inc_conflict__sys_quota__hdr_linux_quota'} eq '0')
             {
                 next;
             }
@@ -195,11 +201,11 @@ print_headers
 }
 
 sub
-check_run
+_chk_run
 {
     my ($name, $code, $r_val, $r_clist, $r_config, $r_a) = @_;
 
-    my $rc = check_link ($name, $code, $r_clist, $r_config,
+    my $rc = _chk_link ($name, $code, $r_clist, $r_config,
         { 'incheaders' => 'all', %$r_a, });
     print LOGFH "##  run test: link: $rc\n";
     $$r_val = 0;
@@ -220,7 +226,7 @@ check_run
 }
 
 sub
-check_link
+_chk_link
 {
     my ($name, $code, $r_clist, $r_config, $r_a) = @_;
 
@@ -242,7 +248,7 @@ check_link
     if ($rc & 127) { exitmkconfig ($rc); }
 
     my $dlibs = '';
-    $rc = _check_link ($name, {} );
+    $rc = _chk_link_libs ($name, {} );
     if ($rc != 0)
     {
       if ($otherlibs ne '')
@@ -252,7 +258,7 @@ check_link
         foreach my $olib (@olibs)
         {
           $oliblist = $oliblist . ' ' . $olib;
-          $rc = _check_link ($name, { 'otherlibs' => $oliblist, } );
+          $rc = _chk_link_libs ($name, { 'otherlibs' => $oliblist, } );
           if ($rc == 0)
           {
 
@@ -284,11 +290,11 @@ check_link
 }
 
 sub
-_check_link
+_chk_link_libs
 {
     my ($name, $r_a) = @_;
 
-    my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} ";
+    my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} $ENV{'CPPFLAGS'} ";
     if (defined ($r_a->{'cflags'}))
     {
         $cmd .= ' ' . $r_a->{'cflags'} . ' ';
@@ -314,7 +320,36 @@ _check_link
 }
 
 sub
-check_compile
+_check_cpp
+{
+    my ($name, $code, $r_a, $r_clist, $r_config) = @_;
+
+    open (CCFH, ">$name.c");
+    print CCFH $precc;
+    print CCFH $code;
+    close CCFH;
+
+    my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} $ENV{'CPPFLAGS'} ";
+    if (defined ($r_a->{'cflags'}))
+    {
+        $cmd .= ' ' . $r_a->{'cflags'} . ' ';
+    }
+    $cmd .= "-E $name.c > $name.out ";
+    my $rc = system ("cat $name.c >> $LOG");
+    if ($rc & 127) { exitmkconfig ($rc); }
+    $rc = system ("$cmd 2>>$LOG");
+    print LOGFH "##  cpp test: $cmd\n";
+    if ($rc & 127) { exitmkconfig ($rc); }
+    print LOGFH "##      cpp test: $rc\n";
+    if ($rc == 0 && ! -f "$name.out") {
+      print LOGFH "##      can't locate $name.out\n";
+      $rc = -2;
+    }
+    return $rc;
+}
+
+sub
+_chk_compile
 {
     my ($name, $code, $r_clist, $r_config, $r_a) = @_;
 
@@ -327,7 +362,7 @@ check_compile
     print CCFH $code;
     close CCFH;
 
-    my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} -c $name.c";
+    my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} $ENV{'CPPFLAGS'} -c $name.c";
     print LOGFH "##  compile test: $cmd\n";
     my $rc = system ("cat $name.c >> $LOG");
     if ($rc & 127) { exitmkconfig ($rc); }
@@ -338,11 +373,11 @@ check_compile
 }
 
 sub
-do_check_compile
+do_chk_compile
 {
     my ($name, $code, $inc, $r_clist, $r_config) = @_;
 
-    my $rc = check_compile ($name, $code, $r_clist, $r_config,
+    my $rc = _chk_compile ($name, $code, $r_clist, $r_config,
         { 'incheaders' => $inc, });
     my $trc = 0;
     if ($rc == 0)
@@ -378,7 +413,7 @@ _HERE_
 main () { exit (0); }
 _HERE_
     my $rc = 1;
-    $rc = check_compile ($name, $code, $r_clist, $r_config,
+    $rc = _chk_compile ($name, $code, $r_clist, $r_config,
         { 'incheaders' => 'std', });
     my $val = 0;
     if ($rc == 0)
@@ -412,7 +447,7 @@ _HERE_
     $code .= <<"_HERE_";
 main () { if (${constant} == 0) { 1; } exit (0); }
 _HERE_
-    do_check_compile ($name, $code, 'all', $r_clist, $r_config);
+    do_chk_compile ($name, $code, 'all', $r_clist, $r_config);
 }
 
 # if the keyword is reserved, the compile will fail.
@@ -431,7 +466,7 @@ check_keyword
     my $code = <<"_HERE_";
 main () { int ${keyword}; ${keyword} = 1; exit (0); }
 _HERE_
-    my $rc = check_compile ($name, $code, $r_clist, $r_config,
+    my $rc = _chk_compile ($name, $code, $r_clist, $r_config,
         { 'incheaders' => 'std', });
     setlist $r_clist, $name;
     if ($rc != 0)  # failure means it is reserved...
@@ -458,7 +493,7 @@ extern int foo (int, int);
 _END_EXTERNS_
 int bar () { int rc; rc = foo (1,1); return 0; }
 _HERE_
-    my $rc = check_compile ($name, $code, $r_clist, $r_config,
+    my $rc = _chk_compile ($name, $code, $r_clist, $r_config,
         { 'incheaders' => 'all', });
     setlist $r_clist, $name;
     $r_config->{$name} = 0;
@@ -494,30 +529,112 @@ check_command
 }
 
 sub
-check_include_time
+check_quotactl_pos
 {
-    my ($name, $r_clist, $r_config) = @_;
+  my ($name, $r_clist, $r_config) = @_;
 
-    if (defined ($r_config->{'_hdr_time'}) &&
-        $r_config->{'_hdr_time'} ne '0' &&
-        defined ($r_config->{'_sys_time'}) &&
-        $r_config->{'_sys_time'} ne '0')
+  printlabel $name, "quotactl position";
+  if (checkcache ($name, $r_config) == 0) {
+    return;
+  }
+
+  if ($r_config->{'_lib_quotactl'} eq '0') {
+    $r_config->{$name} = '0';
+    printyesno_val $name, $r_config->{$name};
+    return;
+  }
+
+  my $hdr = '';
+  foreach my $hnm ('_sys_quota', '_hdr_ufs_ufs_quota', '_hdr_ufs_quota',
+      '_hdr_linux_quota') {
+    if ($r_config->{$hnm} ne '0') {
+      $hdr = $r_config->{$hnm};
+      last;
+    }
+  }
+  my $uhdr = $r_config->{'_hdr_unistd'};
+
+  setlist $r_clist, $name;
+
+  my $code = '';
+  if ($hdr ne '') {
+    $code .= "#include <${hdr}>\n";
+    if ($uhdr ne '0') {
+      $code .= "#include <${uhdr}>\n";
+    }
+    my $rc = _check_cpp ($name, $code, {}, $r_clist, $r_config);
+    if ($rc == 0) {
+       $cmd = "egrep -l 'quotactl *\\( *int[^,]*, *(const *)?char' $name.out >>$LOG 2>&1";
+       print LOGFH "##  quotactl_pos: $cmd\n";
+       $rc = system ($cmd);
+       if ($rc == 0) {
+         $r_config->{$name} = 2;
+         printyesno_val $name, $r_config->{$name};
+         return;
+       }
+
+       $cmd = "egrep -l 'quotactl *\\( *(const *)?char[^,]*, *int' $name.out >>$LOG 2>&1";
+       print LOGFH "##  quotactl_pos: $cmd\n";
+       $rc = system ($cmd);
+       if ($rc == 0) {
+         $r_config->{$name} = 1;
+         printyesno_val $name, $r_config->{$name};
+         return;
+       }
+    }
+  }
+
+  $r_config->{$name} = 0;
+  printyesno_val $name, $r_config->{$name};
+}
+
+sub
+check_include_conflict
+{
+    my ($name, $h1, $h2, $r_clist, $r_config) = @_;
+
+    my $i1 = $h1;
+    $i1 =~ s,/,_,go;
+    $i1 =~ s,\.h$,,o;
+    $i1 =~ s,:,,go;
+    if ($i1 =~ m#^sys#o) {
+      $i1 = "_${i1}";
+    } else {
+      $i1 = "_hdr_${i1}";
+    }
+    my $i2 = $h2;
+    $i2 =~ s,/,_,go;
+    $i2 =~ s,\.h$,,o;
+    $i2 =~ s,:,,go;
+    if ($i2 =~ m#^sys#o) {
+      $i2 = "_${i2}";
+    } else {
+      $i2 = "_hdr_${i2}";
+    }
+
+    $name = "${name}_${i1}_${i2}";
+    printlabel $name, "header: include both $h1 & $h2";
+
+    if (defined ($r_config->{${i1}}) &&
+        $r_config->{${i1}} ne '0' &&
+        defined ($r_config->{${i2}}) &&
+        $r_config->{${i2}} ne '0')
     {
-        printlabel $name, "header: include both time.h & sys/time.h";
         if (checkcache ($name, $r_config) == 0)
         {
             return;
         }
 
         my $code = <<"_HERE_";
-#include <time.h>
-#include <sys/time.h>
-main () { struct tm x; }
+#include <$h1>
+#include <$h2>
+main () { return; }
 _HERE_
-        do_check_compile ($name, $code, 'std', $r_clist, $r_config);
+        do_chk_compile ($name, $code, 'std', $r_clist, $r_config);
     } else {
         setlist $r_clist, $name;
-        $r_config->{$name} = 0;
+        $r_config->{$name} = 1;
+        printyesno $name, $r_config->{$name};
     }
 }
 
@@ -546,7 +663,7 @@ struct _TEST_struct { int _TEST_member; };
 extern struct _TEST_struct* $proto _ARG_((struct _TEST_struct*));
 _END_EXTERNS_
 _HERE_
-    do_check_compile ($name, $code, 'all', $r_clist, $r_config);
+    do_chk_compile ($name, $code, 'all', $r_clist, $r_config);
 }
 
 sub
@@ -566,7 +683,7 @@ static struct xxx v;
 struct xxx* f() { return &v; }
 main () { struct xxx *tmp; tmp = f(); exit (0); }
 _HERE_
-    do_check_compile ($name, $code, 'all', $r_clist, $r_config);
+    do_chk_compile ($name, $code, 'all', $r_clist, $r_config);
 }
 
 sub
@@ -605,7 +722,7 @@ _HERE_
          'incheaders' => 'all',
          'otherlibs' => $val,
          );
-    my $rc = check_link ($name, $code, $r_clist, $r_config, \%a);
+    my $rc = _chk_link ($name, $code, $r_clist, $r_config, \%a);
     my $tag = '';
     if ($rc == 0)
     {
@@ -650,7 +767,7 @@ _HERE_
          'incheaders' => 'all',
          'otherlibs' => $val,
          );
-    my $rc = check_link ($name, $code, $r_clist, $r_config, \%a);
+    my $rc = _chk_link ($name, $code, $r_clist, $r_config, \%a);
     my $tag = '';
     if ($rc == 0)
     {
@@ -687,7 +804,7 @@ check_setmntent_args
     my $code = <<"_HERE_";
 main () { setmntent ("/etc/mnttab"); }
 _HERE_
-    my $rc = check_link ($name, $code, $r_clist, $r_config,
+    my $rc = _chk_link ($name, $code, $r_clist, $r_config,
         { 'incheaders' => 'all', 'otherlibs' => undef, });
     if ($rc == 0)
     {
@@ -699,7 +816,7 @@ _HERE_
     $code = <<"_HERE_";
 main () { setmntent ("/etc/mnttab", "r"); }
 _HERE_
-    $rc = check_link ($name, $code, $r_clist, $r_config,
+    $rc = _chk_link ($name, $code, $r_clist, $r_config,
         { 'incheaders' => 'all', 'otherlibs' => undef, });
     if ($rc == 0)
     {
@@ -734,7 +851,7 @@ main () {
     statfs (name, &statBuf);
 }
 _HERE_
-    my $rc = check_link ($name, $code, $r_clist, $r_config,
+    my $rc = _chk_link ($name, $code, $r_clist, $r_config,
         { 'incheaders' => 'all', 'otherlibs' => undef, });
     if ($rc == 0)
     {
@@ -749,7 +866,7 @@ main () {
     statfs (name, &statBuf, sizeof (statBuf));
 }
 _HERE_
-    $rc = check_link ($name, $code, $r_clist, $r_config,
+    $rc = _chk_link ($name, $code, $r_clist, $r_config,
         { 'incheaders' => 'all', 'otherlibs' => undef, });
     if ($rc == 0)
     {
@@ -764,7 +881,7 @@ main () {
     statfs (name, &statBuf, sizeof (statBuf), 0);
 }
 _HERE_
-    $rc = check_link ($name, $code, $r_clist, $r_config,
+    $rc = _chk_link ($name, $code, $r_clist, $r_config,
         { 'incheaders' => 'all', 'otherlibs' => undef, });
     if ($rc == 0)
     {
@@ -793,7 +910,7 @@ main () {
     }
 _HERE_
     my $val = 0;
-    my $rc = check_run ($name, $code, \$val, $r_clist, $r_config, {});
+    my $rc = _chk_run ($name, $code, \$val, $r_clist, $r_config, {});
     if ($rc == 0)
     {
         $r_config->{$name} = $val;
@@ -817,7 +934,7 @@ check_member
     my $code = <<"_HERE_";
 main () { struct $struct s; int i; i = sizeof (s.$member); }
 _HERE_
-    my $rc = check_compile ($name, $code, $r_clist, $r_config,
+    my $rc = _chk_compile ($name, $code, $r_clist, $r_config,
             { 'incheaders' => 'all', });
     if ($rc == 0)
     {
@@ -842,7 +959,7 @@ check_int_declare
     my $code = <<"_HERE_";
     main () { int x; x = $function; }
 _HERE_
-    my $rc = check_compile ($name, $code, $r_clist, $r_config,
+    my $rc = _chk_compile ($name, $code, $r_clist, $r_config,
             { 'incheaders' => 'all', });
     if ($rc == 0)
     {
@@ -867,7 +984,7 @@ check_ptr_declare
     my $code = <<"_HERE_";
 main () { _VOID_ *x; x = $function; }
 _HERE_
-    my $rc = check_compile ($name, $code, $r_clist, $r_config,
+    my $rc = _chk_compile ($name, $code, $r_clist, $r_config,
             { 'incheaders' => 'all', });
     if ($rc == 0)
     {
@@ -1007,9 +1124,15 @@ create_config
         {
             check_statfs_args ('_statfs_args', \%clist, \%config);
         }
-        elsif ($line =~ m#^include_time#o)
+        elsif ($line =~ m#^include_conflict\s+([^\s]+)\s+([^\s]+)#o)
         {
-            check_include_time ('_include_time', \%clist, \%config);
+            my $i1 = $1;
+            my $i2 = $2;
+            check_include_conflict ('_inc_conflict', $i1, $i2, \%clist, \%config);
+        }
+        elsif ($line =~ m#^quotactl_pos$#o)
+        {
+            check_quotactl_pos ('_quotactl_pos', \%clist, \%config);
         }
         elsif ($line =~ m#^include$#o)
         {
@@ -1023,13 +1146,12 @@ create_config
             my $reqhdr = $3;
             my $nm = "_${typ}_";
             # create the standard header name for config.h
-            my @h = split (/\//, $hdr);
-            $nm .= join ('_', @h);
+            $nm .= $hdr;
+            $nm =~ s,/,_,go;
             $nm =~ s,\.h$,,o;
             $nm =~ s,:,_,go;
-            if ($typ eq 'sys')
-            {
-                $hdr = 'sys/' . $hdr;
+            if ($typ eq 'sys') {
+              $hdr = 'sys/' . $hdr;
             }
             $reqhdr =~ s/^\s*//o;
             $reqhdr =~ s/\s*$//o;
@@ -1087,6 +1209,7 @@ create_config
         {
             my $tnm = $1;
             my $nm = "_typ_" . $tnm;
+            $nm =~ s, ,_,go;
             if (! defined ($config{$nm}) ||
                 $config{$nm} eq '0')
             {
@@ -1123,7 +1246,7 @@ create_config
                 }
             }
         }
-        elsif ($line =~ m#^member\s+(.*)\s+(.*)#o)
+        elsif ($line =~ m#^member\s+(.*?)\s+(.*)#o)
         {
             my $struct = $1;
             my $member = $2;
@@ -1289,9 +1412,10 @@ if ($clearcache)
 print STDOUT "$0 using $configfile\n";
 unlink $LOG;
 open (LOGFH, ">>$LOG");
-$ENV{'CFLAGS'} = $ENV{'CFLAGS'} . ' ' . $ENV{'CINCLUDES'};
+$ENV{'CFLAGS'} = $ENV{'CFLAGS'};
 print LOGFH "CC: $ENV{'CC'}\n";
 print LOGFH "CFLAGS: $ENV{'CFLAGS'}\n";
+print LOGFH "CPPFLAGS: $ENV{'CPPFLAGS'}\n";
 print LOGFH "LDFLAGS: $ENV{'LDFLAGS'}\n";
 print LOGFH "LIBS: $ENV{'LIBS'}\n";
 
