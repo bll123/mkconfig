@@ -16,6 +16,7 @@ mkconfig.units/env-main.sh
 mkconfig.units/env-msgfmt.sh
 mkconfig.units/env-systype.sh
 mkreqlib.sh		required link libraries
+mktar.sh		creates tar file
 README          	README
 runtests.sh		runs regression tests
 shellfuncs.sh		mkconfig functions
