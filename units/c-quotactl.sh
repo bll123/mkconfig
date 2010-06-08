@@ -22,7 +22,7 @@ check_quotactl_pos () {
     name="_$1"
 
     printlabel $name "quotactl position"
-    checkcache ${_MKCONFIG_PREFIX} $name
+    checkcache_val ${_MKCONFIG_PREFIX} $name
     if [ $rc -eq 0 ]; then return; fi
 
     getdata val ${_MKCONFIG_PREFIX} _lib_quotactl
