@@ -499,9 +499,12 @@ main () { struct xxx *tmp; tmp = f(); exit (0); }
 }
 
 check_member () {
-  struct=$2
-  member=$3
+  shift
+  struct=$1
+  shift
+  member=$1
   nm="_mem_${member}_${struct}"
+  dosubst nm ' ' '_'
 
   name=$nm
 
