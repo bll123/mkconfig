@@ -1246,11 +1246,12 @@ create_config
                 }
             }
         }
-        elsif ($line =~ m#^member\s+(.*?)\s+(.*)#o)
+        elsif ($line =~ m#^member\s+(.*?)\s+([^\s]*)\s*$#o)
         {
             my $struct = $1;
             my $member = $2;
             my $nm = "_mem_" . $member . '_' . $struct;
+            $nm =~ s/ /_/go;
             if (! defined ($config{$nm}) ||
                 $config{$nm} eq '0')
             {
