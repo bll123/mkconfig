@@ -321,6 +321,14 @@ create_config () {
             file="c-include-conflict"
             echo "mkconfig: warning: c-include-time has been renamed to c-include-conflict"
           fi
+          if [ "$file" = "c-setmntent-args" ]; then
+            file="c-setmntent"
+            echo "mkconfig: warning: c-setmntent-args has been renamed to c-setmntent"
+          fi
+          if [ "$file" = "c-statfs-args" ]; then
+            file="c-statfs"
+            echo "mkconfig: warning: c-statfs-args has been renamed to c-statfs"
+          fi
           doloadunit ${file} N
           if [ "$VARSFILE" = "" -a "${_MKCONFIG_PREFIX}" != "" ]; then
             VARSFILE="../mkconfig_${_MKCONFIG_PREFIX}.vars"
