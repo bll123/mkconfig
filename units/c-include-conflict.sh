@@ -40,17 +40,21 @@ check_include_conflict () {
       return
     fi
 
+    oi1=$i1
     dosubst i1 '/' '_' ':' '_' '\.h' ''
     _prefix_header i1 $i1
+    oi2=$i2
     dosubst i2 '/' '_' ':' '_' '\.h' ''
     _prefix_header i2 $i2
+
     name="_inc_conflict_${i1}_${i2}"
 
     # by default, ok to include both
     # if one or the other does not exist, the flag will be true.
     # if it compiles ok with both, the flag will be true.
     trc=1
-    printlabel $name "header: include both ${i1} & ${i2}"
+
+    printlabel $name "header: include both ${oi1} & ${oi2}"
 
     getdata h1 ${_MKCONFIG_PREFIX} $i1
     getdata h2 ${_MKCONFIG_PREFIX} $i2
@@ -65,6 +69,6 @@ main () { return; }
       do_check_compile "${name}" "${code}" std
     else
       setdata ${_MKCONFIG_PREFIX} "${name}" "${trc}"
-      printyesno_val "${name}" $trc ""
+      printyesno "${name}" $trc ""
     fi
 }
