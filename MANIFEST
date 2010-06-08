@@ -8,8 +8,8 @@ mkconfig.units/		units for mkconfig.sh
 mkconfig.units/c-include-conflict.sh
 mkconfig.units/c-main.sh
 mkconfig.units/c-quotactl.sh
-mkconfig.units/c-setmntent-args.sh
-mkconfig.units/c-statfs-args.sh
+mkconfig.units/c-setmntent.sh
+mkconfig.units/c-statfs.sh
 mkconfig.units/env-cc.sh
 mkconfig.units/env-extension.sh
 mkconfig.units/env-main.sh
