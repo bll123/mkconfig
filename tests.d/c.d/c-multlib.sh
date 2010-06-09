@@ -52,7 +52,8 @@ case $script in
     ;;
 esac
 
-sed -e '/^#define _key_/d' -e '/^#define _proto_/d' multlib.ctest > t
+sed -e '/^#define _key_/d' -e '/^#define _proto_/d' \
+    -e '/^#define _param_/d' multlib.ctest > t
 mv t multlib.ctest
 
 echo "## diff 1"
