@@ -671,6 +671,7 @@ check_type
 {
     my ($name, $type, $r_clist, $r_config) = @_;
 
+    $type =~ s/star/*/og;
     printlabel $name, "type: $type";
     if (checkcache ($name, $r_config) == 0)
     {
@@ -682,6 +683,29 @@ struct xxx { $type mem; };
 static struct xxx v;
 struct xxx* f() { return &v; }
 main () { struct xxx *tmp; tmp = f(); exit (0); }
+_HERE_
+    do_chk_compile ($name, $code, 'all', $r_clist, $r_config);
+}
+
+sub
+check_param_void_star
+{
+    my ($name, $r_clist, $r_config) = @_;
+
+    printlabel $name, "parameter: void *";
+    if (checkcache ($name, $r_config) == 0)
+    {
+        return;
+    }
+
+    my $code = <<"_HERE_";
+char *
+tparamvs (ptr)
+  void *ptr;
+{
+  ptr = (void *) NULL;
+  return (char *) ptr;
+}
 _HERE_
     do_chk_compile ($name, $code, 'all', $r_clist, $r_config);
 }
@@ -1013,6 +1037,7 @@ check_standard
   }
   check_keyword ('_key_void', 'void', $r_clist, $r_config);
   check_keyword ('_key_const', 'const', $r_clist, $r_config);
+  check_param_void_star ('_param_void_star', $r_clist, $r_config);
   check_proto ('_proto_stdc', $r_clist, $r_config);
 }
 
@@ -1305,6 +1330,11 @@ _HERE_
 
 #if ! _key_void
 # define void int
+#endif
+#if ! _key_void || ! _param_void_star
+  typedef char *_pvoid;
+#else
+  typedef void *_pvoid;
 #endif
 #if ! _key_const
 # define const

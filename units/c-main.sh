@@ -19,6 +19,11 @@
 #       #if ! _key_const
 #       # define const
 #       #endif
+#       #if ! _key_void || ! _param_void_star
+#         typedef char *_pvoid;
+#       #else
+#         typedef void *_pvoid;
+#       #endif
 #
 #       #ifndef _
 #       # if _proto_stdc
@@ -44,6 +49,7 @@ _MKCONFIG_HASEMPTY=F
 _MKCONFIG_EXPORT=F
 PH_PREFIX="mkc_ph."
 PH_STD=F
+PH_ALL=F
 
 precc='
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
@@ -87,6 +93,11 @@ stdconfigfile () {
 #if ! _key_void
 # define void int
 #endif
+#if ! _key_void || ! _param_void_star
+  typedef char *_pvoid;
+#else
+  typedef void *_pvoid;
+#endif
 #if ! _key_const
 # define const
 #endif
@@ -120,7 +131,9 @@ standard_checks () {
   PH_STD=T
   check_key key "void"
   check_key key "const"
+  check_param_void_star
   check_proto "_proto_stdc"
+  PH_ALL=T
 }
 
 _print_headers () {
@@ -139,13 +152,13 @@ _print_headers () {
     return
   fi
 
-  if [ "$incheaders" = "all" ]; then
+  if [ "$PH_ALL" = "T" -a "$incheaders" = "all" ]; then
     _print_hdrs all > $out
     cat $out
     return
   fi
 
-  # until PH_STD becomes true, just do normal processing.
+  # until PH_STD/PH_ALL becomes true, just do normal processing.
   _print_hdrs $incheaders
 }
 
@@ -195,6 +208,7 @@ _print_hdrs () {
     # set std to saved fd 6; close 6
     exec <&6 6<&-
   fi
+set +x
 }
 
 _chk_run () {
@@ -483,6 +497,7 @@ check_typ () {
   nm="_typ_${type}"
   dosubst nm ' ' '_'
   name=$nm
+  dosubst type 'star' '*'
 
   printlabel $name "type: ${type}"
   checkcache ${_MKCONFIG_PREFIX} $name
@@ -493,6 +508,26 @@ struct xxx { ${type} mem; };
 static struct xxx v;
 struct xxx* f() { return &v; }
 main () { struct xxx *tmp; tmp = f(); exit (0); }
+"
+
+  do_check_compile ${name} "${code}" all
+}
+
+check_param_void_star () {
+  name="_param_void_star"
+
+  printlabel $name "parameter: void *"
+  checkcache ${_MKCONFIG_PREFIX} $name
+  if [ $rc -eq 0 ]; then return; fi
+
+  code="
+char *
+tparamvs (ptr)
+  void *ptr;
+{
+  ptr = (void *) NULL;
+  return (char *) ptr;
+}
 "
 
   do_check_compile ${name} "${code}" all
