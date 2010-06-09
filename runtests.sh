@@ -72,7 +72,7 @@ if [ "$teststorun" = "" ]; then
 fi
 
 test -d "$_MKCONFIG_RUNTMPDIR" && rm -rf "$_MKCONFIG_RUNTMPDIR"
-mkdir -p $_MKCONFIG_RUNTMPDIR
+mkdir $_MKCONFIG_RUNTMPDIR
 
 MAINLOG=${_MKCONFIG_RUNTMPDIR}/main.log
 > $MAINLOG
@@ -120,7 +120,7 @@ for tbase in $teststorun; do
 
   _MKCONFIG_TSTRUNTMPDIR=$_MKCONFIG_RUNTMPDIR/${tbase}${suffix}
   export _MKCONFIG_TSTRUNTMPDIR
-  mkdir -p ${_MKCONFIG_TSTRUNTMPDIR}
+  mkdir ${_MKCONFIG_TSTRUNTMPDIR}
 
   TSTRUNLOG=${_MKCONFIG_TSTRUNTMPDIR}/${tbase}.log
   > $TSTRUNLOG
@@ -166,7 +166,7 @@ for tbase in $teststorun; do
   if [ "$DOPERL" = "T" -a -f $tmkconfig ]; then
     _MKCONFIG_TSTRUNTMPDIR=$_MKCONFIG_RUNTMPDIR/${tbase}_pl
     export _MKCONFIG_TSTRUNTMPDIR
-    mkdir -p ${_MKCONFIG_TSTRUNTMPDIR}
+    mkdir ${_MKCONFIG_TSTRUNTMPDIR}
     TSTRUNLOG=$_MKCONFIG_TSTRUNTMPDIR/${tbase}.log
     > $TSTRUNLOG
     exec 9>>$TSTRUNLOG
