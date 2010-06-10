@@ -2,6 +2,9 @@
 
 script=$@
 
+. $_MKCONFIG_DIR/shellfuncs.sh
+testshcapability
+
 echo ${EN} "include${EC}" >&5
 grc=0
 count=1
