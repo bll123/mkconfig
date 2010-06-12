@@ -11,7 +11,7 @@ export _MKCONFIG_VERSION
 
 # posh set command doesn't output correct data; don't bother with it.
 # pdksh is often broken; avoid it.
-# zsh set command is broken
+# zsh set output not correct.
 tryshell="ash bash dash ksh mksh sh sh5"
 
 mkconfigversion () {
@@ -77,10 +77,22 @@ test_upper () {
   fi
 }
 
+test_lower () {
+  shhaslower=0
+  (eval 'typeset -l var;var=x;test z$var = zX') 2>/dev/null
+  if [ $? -eq 0 ]; then
+    shhaslower=1
+    eval 'tolower () { lcvar=$1; typeset -l lval; eval "lval=\${$lcvar};$lcvar=\$lval"; }'
+  else
+    eval 'tolower () { lcvar=$1; cmd="$lcvar=\`echo \${$lcvar} | tr \"[A-Z]\" \"[a-z]\"\`"; eval "$cmd"; }'
+  fi
+}
+
 testshcapability () {
   test_append
   test_math
   test_upper
+  test_lower
 }
 
 getshelltype () {
@@ -135,6 +147,7 @@ doshelltest () {
   fi
 
   getshelltype
+
   chkshell
   if [ $? -ne 0 ]; then
     echo "The shell in use ($shell) does not have the correct functionality:" >&2
@@ -327,7 +340,14 @@ getlistofshells () {
       rs=$d/$s
       if [ -h $rs ]; then
         while [ -h $rs ]; do
-          rs="$d/`ls -l $rs | sed 's/.* //'`"
+          rs="`ls -l $rs | sed 's/.* //'`"
+          case $rs in
+            /*)
+              ;;
+            *)
+              rs="$d/$rs"
+              ;;
+          esac
           rs=`echo $rs | sed 's,/[^/]*/\.\./,/,'`
           rs=`echo $rs | sed 's,/[^/]*/\.\./,/,'`
           rs=`echo $rs | sed 's,/[^/]*/\.\./,/,'`
