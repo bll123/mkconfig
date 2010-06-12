@@ -213,6 +213,7 @@ _chk_run
     {
         $rc = system ("./$name.exe > $name.out");
         if ($rc & 127) { exitmkconfig ($rc); }
+        $rc >>= 8;
         print LOGFH "##  run test: run: $rc\n";
         if ($rc == 0)
         {
@@ -685,6 +686,33 @@ struct xxx* f() { return &v; }
 main () { struct xxx *tmp; tmp = f(); exit (0); }
 _HERE_
     do_chk_compile ($name, $code, 'all', $r_clist, $r_config);
+}
+
+sub
+check_defined
+{
+    my ($name, $def, $r_clist, $r_config) = @_;
+
+    printlabel $name, "defined: $def";
+    if (checkcache ($name, $r_config) == 0)
+    {
+        return;
+    }
+
+    setlist $r_clist, $name;
+    my $code = <<"_HERE_";
+main () {
+#ifdef ${def}
+exit (0);
+#else
+exit (1);
+#endif
+}
+_HERE_
+    my $val = 0;
+    my $rc = _chk_run ($name, $code, \$val, $r_clist, $r_config, {});
+    $r_config->{$name} = $rc;
+    printyesno $name, $r_config->{$name};
 }
 
 sub
@@ -1239,6 +1267,16 @@ create_config
                 $config{$nm} eq '0')
             {
                 check_type ($nm, $tnm, \%clist, \%config);
+            }
+        }
+        elsif ($line =~ m#^def\s+(.*)#o)
+        {
+            my $tnm = $1;
+            my $nm = "_def_" . lc $tnm;
+            if (! defined ($config{$nm}) ||
+                $config{$nm} eq '0')
+            {
+                check_defined ($nm, $tnm, \%clist, \%config);
             }
         }
         elsif ($line =~ m#^lib\s+([^\s]+)\s*(.*)?#o)
