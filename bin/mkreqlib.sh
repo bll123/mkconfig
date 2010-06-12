@@ -45,12 +45,25 @@ done
 
 CONFH=$1
 
+ok=0
+if [ ! -f "${CONFH}" ]; then
+  echo "Unable to locate ${CONFH}"
+  ok=1
+fi
+if [ ! -f "${RUNTOPDIR}/$CACHEFILE" ]; then
+  echo "Unable to locate ${RUNTOPDIR}/$CACHEFILE"
+  ok=1
+fi
+if [ $ok -ne 0 ]; then
+  exit 1
+fi
+
 reqlibs=""
 . ${RUNTOPDIR}/$CACHEFILE
 
 exec 7<&0 < ${CONFH}
 while read cline; do
-  case $cline in 
+  case $cline in
     "#define _lib_"*1)
       ;;
     *)
