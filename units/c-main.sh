@@ -208,7 +208,6 @@ _print_hdrs () {
     # set std to saved fd 6; close 6
     exec <&6 6<&-
   fi
-set +x
 }
 
 _chk_run () {
@@ -511,6 +510,31 @@ main () { struct xxx *tmp; tmp = f(); exit (0); }
 "
 
   do_check_compile ${name} "${code}" all
+}
+
+check_def () {
+  shift
+  def=$1
+  nm="_def_${def}"
+  name=$nm
+  tolower name
+
+  printlabel $name "defined: ${def}"
+  checkcache ${_MKCONFIG_PREFIX} $name
+  if [ $rc -eq 0 ]; then return; fi
+
+  code="main () {
+#ifdef ${def}
+exit (0);
+#else
+exit (1);
+#endif
+}"
+
+  _chk_run "$name" "$code" all
+  rc=$?
+  setdata ${_MKCONFIG_PREFIX} ${name} ${rc}
+  printyesno $name $rc
 }
 
 check_param_void_star () {
