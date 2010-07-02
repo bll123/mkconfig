@@ -5,7 +5,7 @@ script=$@
 . $_MKCONFIG_DIR/shellfuncs.sh
 testshcapability
 
-echo ${EN} "def${EC}" >&5
+echo ${EN} "define${EC}" >&5
 grc=0
 count=1
 
