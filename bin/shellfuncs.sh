@@ -79,7 +79,7 @@ test_upper () {
 
 test_lower () {
   shhaslower=0
-  (eval 'typeset -l var;var=x;test z$var = zX') 2>/dev/null
+  (eval 'typeset -l var;var=X;test z$var = zx') 2>/dev/null
   if [ $? -eq 0 ]; then
     shhaslower=1
     eval 'tolower () { lcvar=$1; typeset -l lval; eval "lval=\${$lcvar};$lcvar=\$lval"; }'
@@ -338,3 +338,25 @@ $rs"
     fi
   done
 }
+
+initifs () {
+  hasifs=0
+  if [ "$IFS" != "" ]; then
+    OIFS="$IFS"
+    hasifs=1
+  fi
+}
+
+setifs () {
+  IFS="
+"
+}
+
+resetifs () {
+  if [ $hasifs -eq 1 ]; then
+    IFS="$OIFS"
+  else
+    unset IFS
+  fi
+}
+
