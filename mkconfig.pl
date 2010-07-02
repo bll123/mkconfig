@@ -1352,10 +1352,10 @@ create_config
                 check_type ($nm, $tnm, \%clist, \%config);
             }
         }
-        elsif ($line =~ m#^def\s+(.*)#o)
+        elsif ($line =~ m#^define\s+(.*)#o)
         {
             my $tnm = $1;
-            my $nm = "_def_" . lc $tnm;
+            my $nm = "_define_" . $tnm;
             if (! defined ($config{$nm}) ||
                 $config{$nm} eq '0')
             {
