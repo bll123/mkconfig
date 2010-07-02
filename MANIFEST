@@ -15,6 +15,7 @@ mkconfig.units/env-extension.sh
 mkconfig.units/env-main.sh
 mkconfig.units/env-msgfmt.sh
 mkconfig.units/env-systype.sh
+mkpostconf.sh		post configuration options
 mkreqlib.sh		required link libraries
 mktar.sh		creates tar file
 README          	README
@@ -28,10 +29,16 @@ tests.d/compmksh.sh
 tests.d/compmkperl.sh
 tests.d/compmkrl.sh
 tests.d/compunits.sh
+tests.d/def.dat
+tests.d/def.mkconfig
+tests.d/def.sh
 tests.d/include.config
 tests.d/include.dat
 tests.d/include.mkconfig
 tests.d/include.sh
+tests.d/option.dat
+tests.d/option.mkconfig
+tests.d/option.sh
 tests.d/singlelib.config
 tests.d/singlelib.dat
 tests.d/singlelib.mkconfig
