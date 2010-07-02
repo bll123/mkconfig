@@ -176,7 +176,11 @@ check_cflags () {
                 ccflags="+DAportable $ccflags"
                 ;;
             esac
-            ccflags="-Ae $ccflags"
+            cc -v 2>&1 | grep -l Bundled > /dev/null 2>&1
+            rc=$?
+            if [ $rc -ne 0 ]; then
+              ccflags="-Ae $ccflags"
+            fi
             _MKCONFIG_USING_GCC="N"
             ;;
         esac
