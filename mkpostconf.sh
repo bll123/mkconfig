@@ -24,7 +24,7 @@ while test $# -gt 1; do
       CACHEFILE=$1
       shift
       ;;
-    -o)
+    -i)
       shift
       OPTFILE=$1
       shift
