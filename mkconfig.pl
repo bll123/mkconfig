@@ -530,6 +530,74 @@ check_command
 }
 
 sub
+check_option
+{
+    my ($name, $opt, $def, $otherflag, $otheropt, $r_clist, $r_config) = @_;
+
+    printlabel $name, "option: $opt($def)";
+
+    setlist $r_clist, $name;
+    my $trc = $def;
+
+    my $oenv=OPTIONS;
+    if (defined ($r_config->{'_opt_envvar'})) {
+      $oenv=$r_config->{'_opt_envvar'};
+    }
+
+    print LOGFH "##  $oenv: $ENV{$oenv}\n";
+    foreach my $o (split (/\s+/, $ENV{$oenv})) {
+      foreach my $p ('NO', 'WITHOUT') {
+        if ($o eq "${p}_${opt}") {
+          print LOGFH "##  found: $o (0)\n";
+          $trc = 'F';
+        }
+      }
+      foreach my $p ('YES', 'WITH') {
+        if ($o eq "${p}_${opt}") {
+          print LOGFH "##  found: $o (1)\n";
+          $trc = 'T';
+        }
+      }
+      if ($o =~ /^${opt}=(.*)/) {
+        print LOGFH "##  found: $o\n";
+        $trc = $1;
+      }
+      if ($trc eq 't') { $trc = 'T'; }
+      if ($trc eq 'f') { $trc = 'F'; }
+      if ($trc eq 'true') { $trc = 'T'; }
+      if ($trc eq 'false') { $trc = 'F'; }
+    }
+
+    if ($trc eq $otherflag) {
+      print LOGFH "##  other: $otherflag\n";
+      foreach my $o (split (/\s+/, $otheropt)) {
+        my ($onm, $tval) = split (/=/, $o);
+        print LOGFH "##  $onm => $tval\n";
+        $r_config->{$onm} = $tval;
+      }
+    }
+
+    if ($trc eq 'T') { $trc = 1; }
+    if ($trc eq 'F') { $trc = 0; }
+
+    $r_config->{$name} = $trc;
+    printyesno $name, $r_config->{$name};
+}
+
+sub
+check_opt_envvar
+{
+    my ($name, $optnm, $r_clist, $r_config) = @_;
+
+    printlabel $name, "option envvar: $optnm";
+
+    setlist $r_clist, $name;
+    my $trc = $optnm;
+    $r_config->{$name} = $trc;
+    printyesno_val $name, $r_config->{$name};
+}
+
+sub
 check_quotactl_pos
 {
   my ($name, $r_clist, $r_config) = @_;
@@ -711,7 +779,7 @@ exit (1);
 _HERE_
     my $val = 0;
     my $rc = _chk_run ($name, $code, \$val, $r_clist, $r_config, {});
-    $r_config->{$name} = $rc;
+    $r_config->{$name} = $rc == 0 ? 1 : 0;
     printyesno $name, $r_config->{$name};
 }
 
@@ -1227,6 +1295,21 @@ create_config
             my $cmd = $1;
             my $nm = "_command_" . $cmd;
             check_command ($nm, $cmd, \%clist, \%config);
+        }
+        elsif ($line =~ m#^opt_envvar\s+([^\s]*)#o)
+        {
+            my $optnm = $1;
+            my $nm = "_opt_envvar";
+            check_opt_envvar ($nm, $optnm, \%clist, \%config);
+        }
+        elsif ($line =~ m#^option\s+([^\s]*)\s+([TF])\s*([TF])?\s*(.*)#o)
+        {
+            my $opt = $1;
+            my $def = $2;
+            my $otherflag = $3;
+            my $otheropt = $4;
+            my $nm = "_option_" . $opt;
+            check_option ($nm, $opt, $def, $otherflag, $otheropt, \%clist, \%config);
         }
         elsif ($line =~ m#^npt\s+([^\s]*)\s*(.*)#o)
         {
