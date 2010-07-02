@@ -4,9 +4,10 @@
 1 compmksh
 1 compunits
 2 cache
-2 def
+2 define
 2 include
-2 option
+2 option_c
+2 option_env
 3 multword
 4 singlelib
 5 multlib
