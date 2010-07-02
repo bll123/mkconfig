@@ -25,9 +25,10 @@ tests.d/			regression tests for mkconfig
 tests.d/cache.dat
 tests.d/cache.mkconfig
 tests.d/cache.sh
-tests.d/compmksh.sh
 tests.d/compmkperl.sh
+tests.d/compmkpost.sh
 tests.d/compmkrl.sh
+tests.d/compmksh.sh
 tests.d/compunits.sh
 tests.d/def.dat
 tests.d/def.mkconfig
