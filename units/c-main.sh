@@ -533,6 +533,7 @@ exit (1);
 
   _chk_run "$name" "$code" all
   rc=$?
+  if [ $rc -eq 0 ]; then rc=1; else rc=0; fi
   setdata ${_MKCONFIG_PREFIX} ${name} ${rc}
   printyesno $name $rc
 }
