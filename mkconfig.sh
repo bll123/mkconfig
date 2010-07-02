@@ -29,27 +29,6 @@ CACHEFILE="mkconfig.cache"
 
 INC="include.txt"                   # temporary
 
-initifs () {
-  hasifs=0
-  if [ "$IFS" != "" ]; then
-    OIFS="$IFS"
-    hasifs=1
-  fi
-}
-
-setifs () {
-  IFS="
-"
-}
-
-resetifs () {
-  if [ $hasifs -eq 1 ]; then
-    IFS="$OIFS"
-  else
-    unset IFS
-  fi
-}
-
 chkconfigfname () {
   if [ "$CONFH" = "" ]; then
     echo "Config file name not set.  Exiting."
@@ -198,6 +177,75 @@ check_command () {
     setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
 }
 
+check_option () {
+    name=$1
+    oopt=$2
+    odef=$3
+    otherflag=$4
+    shift; shift; shift; shift
+    oother=$@
+
+    printlabel $name "option: ${oopt}(${odef})"
+
+    trc=${odef}
+    getdata eval ${_MKCONFIG_PREFIX} _opt_envvar
+    if [ "$eval" = "" ]; then eval=OPTIONS; fi
+    eval "tval=\$${eval}"
+
+    echo "  opt_envvar: $eval" >&9
+    echo "  $eval: $tval" >&9
+    for o in ${tval}; do
+      for p in NO WITHOUT; do
+        if [ "$o" = "${p}_${oopt}" ]; then trc=F; echo "  found: $o (0)" >&9; fi
+      done
+      for p in YES WITH; do
+        if [ "$o" = "${p}_${oopt}" ]; then trc=T; echo "  found: $o (1)" >&9; fi
+      done
+      case $o in
+        ${oopt}=*)
+          echo "  found: $o" >&9
+          tval=`echo $o | sed 's/.*=//'`
+          trc=$tval
+          ;;
+      esac
+      if [ "$trc" = "t" ]; then trc=T; fi
+      if [ "$trc" = "f" ]; then trc=F; fi
+      if [ "$trc" = "true" ]; then trc=T; fi
+      if [ "$trc" = "false" ]; then trc=F; fi
+    done
+
+    echo "  trc: $trc; otherflag: $otherflag" >&9
+    if [ "$trc" = "$otherflag" ]; then
+      echo "  otherflag: $otherflag" >&9
+      for o in $oother; do
+        otmp=`echo $o | sed 's/=/ /'`
+        set $otmp
+        onm=$1
+        tval=$2
+        echo "  found: $o => $tval" >&9
+        setdata ${_MKCONFIG_PREFIX} $onm $tval
+      done
+    fi
+
+    if [ "$trc" = "T" ]; then trc=1; fi
+    if [ "$trc" = "F" ]; then trc=0; fi
+
+    printyesno $name $trc
+    setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
+}
+
+check_opt_envvar () {
+    name=$1
+    onm=$2
+
+    printlabel $name "option envvar: ${onm}"
+
+    trc=${onm}
+
+    printyesno_val $name $trc
+    setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
+}
+
 require_unit () {
   units=$@
   for rqu in $units; do
@@ -339,31 +387,54 @@ create_config () {
           chkconfigfname
           standard_checks
           ;;
+        opt_envvar*)
+          chkconfigfname
+          set $tdatline
+          optnm=$2
+          nm="_option_${optnm}"
+          check_opt_envvar ${nm} ${optnm}
+          ;;
+        option*)
+          chkconfigfname
+          set $tdatline
+          opt=$2
+          def=$3
+          shift; shift; shift
+          otherflag=""
+          otheropts=""
+          if [ $# -gt 0 ]; then
+            otherflag=$1
+            shift
+            otheropts=$@
+          fi
+          nm="_option_${opt}"
+          check_option ${nm} ${opt} ${def} "$otherflag" "${otheropts}"
+          ;;
         command*)
-            chkconfigfname
-            set $tdatline
-            cmd=$2
-            nm="_command_${cmd}"
-            check_command ${nm} ${cmd}
-            ;;
+          chkconfigfname
+          set $tdatline
+          cmd=$2
+          nm="_command_${cmd}"
+          check_command ${nm} ${cmd}
+          ;;
         include)
-            chkconfigfname
-            ininclude=1
-            ;;
+          chkconfigfname
+          ininclude=1
+          ;;
         *)
-            chkconfigfname
+          chkconfigfname
+          set $tdatline
+          type=$1
+          # backwards compatibility w/1.5
+          if [ $type = "include_time" ]; then
+            tdatline="include_conflict time.h sys/time.h"
             set $tdatline
             type=$1
-            # backwards compatibility w/1.5
-            if [ $type = "include_time" ]; then
-              tdatline="include_conflict time.h sys/time.h"
-              set $tdatline
-              type=$1
-            fi
-            chk="check_${type}"
-            cmd="$chk $@"
-            eval $cmd
-            ;;
+          fi
+          chk="check_${type}"
+          cmd="$chk $@"
+          eval $cmd
+          ;;
       esac
     fi
     if [ $ininclude -eq 1 ]; then
