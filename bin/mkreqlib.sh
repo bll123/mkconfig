@@ -45,16 +45,16 @@ done
 
 CONFH=$1
 
-ok=0
+ok=1
 if [ ! -f "${CONFH}" ]; then
   echo "Unable to locate ${CONFH}"
-  ok=1
+  ok=0
 fi
 if [ ! -f "${RUNTOPDIR}/$CACHEFILE" ]; then
   echo "Unable to locate ${RUNTOPDIR}/$CACHEFILE"
-  ok=1
+  ok=0
 fi
-if [ $ok -ne 0 ]; then
+if [ $ok -eq 0 ]; then
   exit 1
 fi
 
