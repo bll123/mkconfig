@@ -1,6 +1,6 @@
-# test def
+# test define
 
-output def.ctest
+output define.ctest
 loadunit c-main
 standard
-def EOF
+define EOF

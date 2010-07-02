@@ -32,19 +32,19 @@ if [ "$dosh" = "T" ]; then
     export _MKCONFIG_SHELL
     shell=$ss
 
-    eval "${s} ${script} -C ${_MKCONFIG_RUNTESTDIR}/def.dat"
-    grep "^#define _def_eof 1$" def.ctest
+    eval "${s} ${script} -C ${_MKCONFIG_RUNTESTDIR}/define.dat"
+    grep "^#define _define_EOF 1$" define.ctest
     rc=$?
     if [ $rc -ne 0 ]; then grc=$rc; fi
-    mv def.ctest def.ctest.${count}
+    mv define.ctest define.ctest.${count}
     mv mkconfig.log mkconfig.log.${count}
     mv mkconfig.cache mkconfig.cache.${count}
     mv mkconfig_c.vars mkconfig_c.vars.${count}
     domath count "$count + 1"
   done
 else
-  eval "${script} -C ${_MKCONFIG_RUNTESTDIR}/def.dat"
-  grep "^#define _def_eof 1$" def.ctest
+  eval "${script} -C ${_MKCONFIG_RUNTESTDIR}/define.dat"
+  grep "^#define _define_EOF 1$" define.ctest
   rc=$?
   if [ $rc -ne 0 ]; then grc=$rc; fi
 fi

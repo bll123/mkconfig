@@ -512,12 +512,11 @@ main () { struct xxx *tmp; tmp = f(); exit (0); }
   do_check_compile ${name} "${code}" all
 }
 
-check_def () {
+check_define () {
   shift
   def=$1
-  nm="_def_${def}"
+  nm="_define_${def}"
   name=$nm
-  tolower name
 
   printlabel $name "defined: ${def}"
   checkcache ${_MKCONFIG_PREFIX} $name
