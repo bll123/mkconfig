@@ -1,0 +1,6 @@
+# test def
+
+output def.ctest
+loadunit c-main
+standard
+def EOF
