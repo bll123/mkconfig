@@ -1,0 +1,15 @@
+# test mkconfig option
+
+output option_env.ctest
+loadunit env-main
+standard
+option TEST_TEMP T
+option TEST_T T
+option TEST_F F
+option TEST_NO T
+option TEST_YES F
+option TEST_WITHOUT T
+option TEST_WITH F
+option TEST_OPT_T F
+option TEST_OPT_F T
+option TEST_F_OTHER T F _option_TEST_TEMP=0
