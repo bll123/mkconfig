@@ -1,0 +1,8 @@
+# test set
+
+output set_env.ctest
+loadunit env-main
+standard
+set _test1 0
+set _test1 1
+setval _test2 a b c
