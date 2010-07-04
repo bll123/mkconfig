@@ -33,6 +33,12 @@ if [ "$dosh" = "T" ]; then
     shell=$ss
 
     eval "${s} ${script} -C ${_MKCONFIG_RUNTESTDIR}/set_c.dat"
+    grep "^#define _define_EOF 0$" set_c.ctest
+    rc=$?
+    if [ $rc -ne 0 ]; then grc=$rc; fi
+    grep "^#define _lib_something" set_c.ctest
+    rc=$?
+    if [ $rc -eq 0 ]; then grc=1; fi
     l=`grep "^#define _test1 1$" set_c.ctest | wc -l`
     rc=$?
     if [ $rc -ne 0 ]; then grc=$rc; fi
@@ -48,6 +54,12 @@ if [ "$dosh" = "T" ]; then
   done
 else
   eval "${script} -C ${_MKCONFIG_RUNTESTDIR}/set_c.dat"
+  grep "^#define _define_EOF 0$" set_c.ctest
+  rc=$?
+  if [ $rc -ne 0 ]; then grc=$rc; fi
+  grep "^#define _lib_something" set_c.ctest
+  rc=$?
+  if [ $rc -eq 0 ]; then grc=1; fi
   l=`grep "^#define _test1 1$" set_c.ctest | wc -l`
   rc=$?
   if [ $rc -ne 0 ]; then grc=$rc; fi
