@@ -36,7 +36,7 @@ while test $# -gt 1; do
 done
 
 CONFH=$1
-cmd=$2
+pcmd=$2
 opt=$3
 
 ok=1
@@ -53,19 +53,21 @@ while read oline; do
   set $oline
   if [ "$1" = "$opt" ]; then
     shift
-    count=$#
     defs=$@
+    boolclean defs
     break
   fi
 done
 exec <&7 7<&-
 
-dcount=0
-
 initifs
 setifs
 
-if [ "$cmd" = "disable" ]; then
+donew=F
+if [ "$pcmd" = "disable" ]; then
+  donew=T
+fi
+if [ $donew = "T" ]; then
   exec 8>>${CONFH}.new
 fi
 
@@ -78,8 +80,10 @@ while read cline; do
     "#define"*)
       ;;
     *)
-      if [ "$cmd" = "disable" ]; then
+      if [ $donew = "T" ]; then
+        set -f
         echo $cline >&8
+        set +f
       fi
       continue
       ;;
@@ -91,41 +95,70 @@ while read cline; do
   dval=$3
 
   for d in $defs; do
-    if [ "$d" = "$nm" -a "$dval" = "1" ]; then
-      dval=0
-      domath dcount "$dcount + 1"
-    fi
+    case $d in
+      \(|\)|-a|-o|!)
+        ;;
+      *)
+        eval $d=$dval
+        if [ "$d" = "$nm" -a "$dval" = "1" ]; then
+          dval=0
+        fi
+        ;;
+    esac
   done
 
-  if [ "$cmd" = "disable" ]; then
+  if [ $donew = "T" ]; then
+    set -f
     echo "#define $nm $dval" >&8
+    set +f
   fi
   setifs
 done
 exec <&7 7<&-
-if [ "$cmd" = "disable" ]; then
+if [ $donew = "T" ]; then
   exec 8>&-
 fi
 resetifs
 
-# have is zero if enabled...
-have=1
-if [ $count -eq $dcount ]; then
-  have=0
+ndefs="test "
+for d in $defs; do
+  case $d in
+    \(|\)|-a|-o|!)
+      doappend ndefs " $d"
+      ;;
+    *)
+      eval tvar=\$$d
+      if [ "$tvar" != "0" ]; then tvar=1; fi
+      tvar="( $tvar = 1 )"
+      doappend ndefs " $tvar"
+      ;;
+  esac
+done
+
+have=F
+dosubst ndefs '(' '\\\\\\(' ')' '\\\\\\)'
+eval $ndefs
+trc=$?
+if [ $trc -eq 0 ]; then
+  have=T
 fi
 
 rc=0
-case $cmd in
+case $pcmd in
   check)
-    rc=$have
+    rc=1
+    if [ $have = "T" ]; then
+      rc=0
+    fi
     ;;
   status)
-    if [ $have -eq 0 ]; then
+    rc=1
+    if [ $have = "T" ]; then
       echo "# $opt is enabled"
+      rc=0
     else
       echo "# $opt is disabled"
     fi
-    rc=$have
     ;;
   disable)
     mv ${CONFH}.new ${CONFH}
