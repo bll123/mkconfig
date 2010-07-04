@@ -3,43 +3,25 @@
 output ifoption_env.ctest
 loadunit env-main
 standard
-set _test_with 0
-set _test_without 0
 set _test_enable 0
 set _test_disable 0
 set _test_assign_t 0
 set _test_assign_f 0
-set _test_else_with 1
-set _test_else_without 1
 set _test_else_enable 1
 set _test_else_disable 1
 set _test_else_assign_t 1
 set _test_else_assign_f 1
-set _test_neg_with 1
-set _test_neg_without 1
 set _test_neg_enable 1
 set _test_neg_disable 1
 set _test_neg_assign_t 1
 set _test_neg_assign_f 1
-set _test_else_neg_with 0
-set _test_else_neg_without 0
 set _test_else_neg_enable 0
 set _test_else_neg_disable 0
 set _test_else_neg_assign_t 0
 set _test_else_neg_assign_f 0
 
 set _test_h 1
-ifoption TEST_WITH
-  set _test_with 1
-else
-  set _test_else_with 0
-endif
 set _test_i 1
-ifnotoption TEST_WITHOUT
-  set _test_without 1
-else
-  set _test_else_without 0
-endif
 set _test_j 1
 ifoption TEST_ENABLE
   set _test_enable 1
@@ -68,17 +50,7 @@ set _test_n 1
 
 # none of these set statements in the if..option blocks should be active
 set _test_a 1
-ifnotoption TEST_WITH
-  set _test_neg_with 0
-else
-  set _test_else_neg_with 1
-endif
 set _test_b 1
-ifoption TEST_WITHOUT
-  set _test_neg_without 0
-else
-  set _test_else_neg_without 1
-endif
 set _test_c 1
 ifnotoption TEST_ENABLE
   set _test_neg_enable 0
