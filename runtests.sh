@@ -90,7 +90,6 @@ for tbase in $teststorun; do
   fi
 
   tf="${tbase}.sh"
-  tmkconfig="${tbase}.mkconfig"
   tconfig="${tbase}.config"
   tconfh="${tbase}.ctmp"
 
@@ -113,7 +112,7 @@ for tbase in $teststorun; do
   dt=`date`
   arg=""
   suffix=""
-  if [ -f $tmkconfig ]; then
+  if [ -f ${tbase}.mksh -o -f ${tbase}.mkshpl ]; then
     arg="mkconfig.sh"
     suffix="_sh"
   fi
@@ -163,7 +162,7 @@ for tbase in $teststorun; do
   fi
   domath count "$count + 1"
 
-  if [ "$DOPERL" = "T" -a -f $tmkconfig ]; then
+  if [ "$DOPERL" = "T" -a \( -f ${tbase}.mkshpl -o -f ${tbase}.mkpl \) ]; then
     _MKCONFIG_TSTRUNTMPDIR=$_MKCONFIG_RUNTMPDIR/${tbase}_pl
     export _MKCONFIG_TSTRUNTMPDIR
     mkdir ${_MKCONFIG_TSTRUNTMPDIR}
