@@ -42,8 +42,18 @@ output_item () {
   name=$2
   val=$3
 
-  echo "${name}=\"${val}\""
-  echo "export ${name}"
+  case $name in
+    _set*)
+      tname=$name
+      dosubst tname '_set_' '' '_setval_' ''
+      echo "${tname}=\"${val}\""
+      echo "export ${tname}"
+      ;;
+    *)
+      echo "${name}=\"${val}\""
+      echo "export ${name}"
+      ;;
+  esac
 }
 
 output_other () {

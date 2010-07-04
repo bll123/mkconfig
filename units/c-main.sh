@@ -71,11 +71,13 @@ precc='
 preconfigfile () {
   pc_configfile=$1
 
+  set -f
   echo "CC: ${CC}" >&9
   echo "CFLAGS: ${CFLAGS}" >&9
   echo "CPPFLAGS: ${CPPFLAGS}" >&9
   echo "LDFLAGS: ${LDFLAGS}" >&9
   echo "LIBS: ${LIBS}" >&9
+  set +f
 
   if [ "${CC}" = "" ]; then
     echo "No compiler specified" >&2
@@ -790,6 +792,18 @@ output_item () {
     tval=1
   fi
   case ${name} in
+    _set_*)
+      tname=$name
+      dosubst tname '_set_' ''
+      echo "#define ${tname} ${tval}"
+      ;;
+    _setval_*)
+      tname=$name
+      dosubst tname '_setval_' ''
+      set -f
+      echo "#define ${tname} \"${val}\""
+      set +f
+      ;;
     _hdr*|_sys*|_command*)
       echo "#define ${name} ${tval}"
       ;;
