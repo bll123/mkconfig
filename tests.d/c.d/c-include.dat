@@ -5,6 +5,10 @@ loadunit c-main
 standard
 include
 
+/* test comment */
+/*
+  test comment 2
+*/
 /* TEST 1 */
 /* a \\ b \' \" ' " */
 /* TEST 2 */
