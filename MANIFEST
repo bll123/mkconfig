@@ -15,7 +15,7 @@ mkconfig.units/env-extension.sh
 mkconfig.units/env-main.sh
 mkconfig.units/env-msgfmt.sh
 mkconfig.units/env-systype.sh
-mkpostconf.sh		post configuration options
+mkcsetopt.sh		set options in options file.
 mkreqlib.sh		required link libraries
 mktar.sh		creates tar file
 README          	README
