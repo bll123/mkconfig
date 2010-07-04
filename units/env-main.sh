@@ -43,9 +43,9 @@ output_item () {
   val=$3
 
   case $name in
-    _set*)
+    _setint*|_setstr*)
       tname=$name
-      dosubst tname '_set_' '' '_setval_' ''
+      dosubst tname '_setint_' '' '_setstr_' ''
       echo "${tname}=\"${val}\""
       echo "export ${tname}"
       ;;

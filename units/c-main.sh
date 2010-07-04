@@ -792,14 +792,16 @@ output_item () {
     tval=1
   fi
   case ${name} in
-    _set_*)
+    _setint_*)
       tname=$name
-      dosubst tname '_set_' ''
-      echo "#define ${tname} ${tval}"
+      dosubst tname '_setint_' ''
+      set -f
+      echo "#define ${tname} ${val}"
+      set +f
       ;;
-    _setval_*)
+    _setstr_*)
       tname=$name
-      dosubst tname '_setval_' ''
+      dosubst tname '_setstr_' ''
       set -f
       echo "#define ${tname} \"${val}\""
       set +f
