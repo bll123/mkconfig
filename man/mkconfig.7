@@ -6,20 +6,22 @@
 .\"
 .\" Copyright 2010 Brad Lanam  Walnut Creek CA USA
 .\"
-.\" bll6969di_at_gmail.com
+.\" brad.lanam.di_at_gmail.com
 .\"
-.TH mkconfig 7 "12 May 2010"
+.TH mkconfig 7 "4 Jul 2010"
 .SH Name
 mkconfig \- build configuration utilities
 .SH Synopsis
 .\" mkconfig.sh [-C] [-c <cache-file>]
-.\"       [-l <log-file>] config-file
+.\"       [-o <option-file>] [-l <log-file>] config-file
 .\" mkreqlib.sh [-c <cache-file>] [-o <output-file>] config-file
+.\" mkcsetopt.sh [-o <option-file>] option value
 .\" runtests.sh <tests-dir> [test1, ...]
 .B mkconfig.sh
 [\fB\-C\fP]
 [\fB\-c\fP <cache\-file>]
 [\fB\-l\fP <log\-file>]
+[\fB\-o\fP <option\-file>]
 config-file
 .PP
 The \-C option clears any cache file before processing the units.
@@ -27,6 +29,8 @@ The \-C option clears any cache file before processing the units.
 cache\-file defaults to 'mkconfig.cache'.
 .PP
 log\-file defaults to 'mkconfig.log'.
+.PP
+option\-file defaults to 'options.dat'.
 .PP
 config\-file is a file containing a list of configuration commands.
 .PP
@@ -41,6 +45,12 @@ output\-file defaults to 'reqlibs.txt'.
 .PP
 input\-file is the C/C++ output\-file created by mkconfig.sh.
 .PP
+.B mkcsetopt.sh
+[\fB\-o\fP <option\-file>]
+option value
+.PP
+option\-file defaults to 'options.dat'.
+.PP
 .B runtests.sh
 tests\-dir
 [test1, ...]
@@ -53,9 +63,7 @@ The tests to be run may be specified on the command line.
 is a build configuration utility.
 It is written in portable shell script and
 designed to be extensible for any configuration use.  Most Bourne
-Shell compatible shells will work.  \fImkconfig.sh\fP will choose
-\fIksh\fP, \fIash\fP or \fIdash\fP over \fIbash\fP since they are
-faster.
+Shell compatible shells will work.
 .PP
 \fImkconfig.sh\fP
 is intended to generate a file that can be used as an included file,
@@ -65,6 +73,9 @@ a shell script, a configuration file, or any other use.
 is used in conjunction with the c\-main language unit to output the
 libraries required for linking.  See the description for the 'lib'
 check routine for the c\-main language unit below.
+.PP
+\fImkcsetopt.sh\fP
+is a utility used to change the value of the options in the option file.
 .PP
 \fIruntests.sh\fP
 is a simple test harness for mkconfig.
@@ -78,19 +89,78 @@ Comments begin with a '#' in column 1.  Blank lines are ignored.
 .br
 Specify the name of the output file.
 .TP
+\fBoption\-file\fP file\-name
+.br
+Specify the name of the options file.
+.TP
 \fBloadunit\fP unit\-name
 .br
 Include a mkconfig unit for testing.
 Units may include specific check routines that may be performed.
 .TP
+\fBifoption\fP option\-name ... [else ...] endif
+.br
+\fBifnotoption\fP option\-name ... [else ...] endif
+.br
+The \fIifoption\fP and \fIifnotoption\fP statements check the options
+setting in the options file and process the appropriate block of statements.
+.PP
+If there is no options file, or the option does not exist, both
+\fIifoption\fP and \fIifnotoption\fP will return a false return.
+.PP
+The \fIifoption\fP, \fIifnotoption\fP and \fIif\fP statements may be
+nested.
+.TP
+\fBif\fP if\-statement ... [else ...] endif
+.br
+The \fIif\fP statement is a combination of test\-variables, &&, ||,
+! (not) and parentheses.  It is recommended that parentheses be used
+copiously to avoid any possible precedence differences between different
+shells.
+.br
+e.g. if _lib_func1 && _hdr_header1 && ( ! (_lib_func3 || _lib_func4)) &&
+_setint_my_var
+.PP
+The \fIifoption\fP, \fIifnotoption\fP and \fIif\fP statements may be
+nested.
+.TP
+\fBset\fP test\-variable value
+.br
+Set a test\-variable to a value.  The test\-variable must already exist.
+.IP
+e.g.
+.br
+lib quotactl
+.br
+set _lib_quotactl 0
+.TP
+\fBsetint\fP variable\-name value
+.br
+Set an integer variable to a value.  The variable name will be output as
+specified, but when used in if statements, the variable is named
+_setint_<name>.
+.IP
+e.g. setint _enable_nls 1
+.TP
+\fBsetstr\fP variable\-name value
+.br
+Set an string variable to a value.  The variable name will be output as
+specified, but when used in if statements, the variable is named
+_setstr_<name>.
+.IP
+e.g. setstr _my_lib_path /lib
+.TP
 \fBstandard\fP
 .br
-Perform any standard checks for the language unit that was loaded.
+Perform any standard checks for the unit that was loaded.
 .TP
 \fBcommand\fP name\-of\-command
 .br
 Check if command exists in the path.
+.IP
 e.g.: command sed
+.br
+Output: _command_sed
 .TP
 .B include endinclude
 .br
@@ -186,8 +256,12 @@ available for use in the other tests.
 \fBstandard\fP
 .br
 The \fIstandard\fP checks are for: the headers stdio.h, stdlib.h, sys/types.h
-and sys/param.h, the keywords \fIvoid\fP and \fIconst\fP,
+and sys/param.h, the keywords \fIvoid\fP and \fIconst\fP, the
+\fIvoid *\fP type as a parameter,
 and C function prototypes.
+.TP
+Output: _hdr_stdio, _hdr_stdlib, _sys_types, _sys_param,
+_key_void, _key_const, _param_void_star and _proto_stdc.
 .TP
 \fBhdr\fP name\-of\-header [required\-headers]
 .br
@@ -196,21 +270,30 @@ The standard include path as set in CFLAGS is used.
 If \fIrequired\-headers\fP is specified, those headers
 are included in the compilation test before attempting
 the compilation test.
+.IP
 e.g. hdr storage/volumes.h gui/window.h
+.br
+Output: _hdr_storage_volumes, _hdr_gui_window
 .TP
 \fBsys\fP name\-of\-sys\-header [required\-headers]
 .br
 Like \fIhdr\fP, but looks in the sys/ directory.
+.IP
 e.g. sys types.h
+.br
+Output: _sys_types
 .TP
-\fBclass\fP class [libs]
+\fBclass\fP class [libs, ...]
 .br
 Check to see if class \fIclass\fP exists.
 If the optional \fIlibs\fP are specified,
 the test will try first without the libraries, then with
 the first set of libraries specified, then the next set, etc.
 Sets of libraries to be tested are separated by commas.
+.IP
 e.g.: class os::Volumes
+.br
+Output: _class_os__Volumes
 .RS
 .PP
 Execute \fImkreqlib.sh\fP after creating the configuration file
@@ -224,19 +307,37 @@ Check to see that a constant exists.
 If \fIrequired\-headers\fP is specified, those headers
 are included in the compilation test before attempting
 the compilation test.
+.IP
 e.g. const O_RDONLY
+.br
+Output: _const_O_RDONLY
 .TP
 \fBdcl\fP {int|ptr} variable
 .br
 Check to see if the variable is declared.
 If \fIint\fP is specified, the variable is a numeric type.
 If \fIptr\fP is specified, the variable is a pointer type.
+.IP
 e.g. dcl int errno; dcl ptr optarg
+.br
+Output: _dcl_errno, _dcl_optarg
+.TP
+\fBdefine\fP definition\-name
+.br
+Check to see if definition\-name is defined.
+.br
+.IP
+e.g. define MOUNT_LOFS
+.br
+Output: _define_mount_lofs
 .TP
 \fBkey\fP keyword
 .br
-Check to see if a C-language keyword is reserved.
+Check to see if a C\-language keyword is reserved.
+.IP
 e.g. key volatile
+.br
+Output: _key_volatile
 .TP
 \fBlib\fP function [libs, ...]
 .br
@@ -245,8 +346,11 @@ If the optional \fIlibs\fP are specified,
 the test will try first without the libraries, then with
 the first set of libraries specified, then the next set, etc.
 Sets of libraries to be tested are separated by commas.
+.IP
 e.g. lib gettext -lintl, -lintl -liconv
 will first test gettext, then gettext -lintl, then gettext -lintl -liconv.
+.br
+Output: _lib_gettext
 .RS
 .PP
 Execute \fImkreqlib.sh\fP after creating the configuration file
@@ -268,7 +372,10 @@ will be replaced with the '$' symbol.
 \fBmember\fP struct member
 .br
 Check to see if \fImember\fP is a member of \fIstruct\fP.
+.IP
 e.g.: member statfs f_bsize
+.br
+Output: _mem_f_bsize_statfs
 .TP
 \fBnpt\fP function [library\-requirement]
 .br
@@ -277,36 +384,60 @@ The optional \fIlibrary\-requirement\fP should be written
 as: _lib_<funcname>.
 If \fIlibrary\-requirement\fP does not exist, _npt_<function>
 will be set to false in the output file.
+.IP
 e.g. npt getopt; npt statfs _lib_statfs
+.br
+Output: _npt_getopt
 .TP
 \fBtyp\fP type\-name
 .br
-Check to see if type\-name exists.
-e.g. typ size_t
+Check to see if a type\-name exists.  type\-name may be a type or a
+structure.
+.IP
+e.g. typ size_t; typ struct tm
+.br
+Output: _typ_size_t, _typ_struct_tm
 .RE
 .TP
-.B c-statfs\-args
+.B c\-statfs\-args
 .RS
 .TP
 \fBstatfs_args\fP
 .br
 Checks to see how many arguments the statfs() system call accepts.
+.br
+Output: _statfs_args
 .RE
 .TP
-.B c-setmntent\-args
+.B c\-setmntent\-args
 .RS
 .TP
 \fBsetmentent_args\fP
 .br
 Check to see how many arguments the setmntent() system call accepts.
+.br
+Output: _setmntent_args
 .RE
 .TP
-.B c-include\-time
+.B c\-include\-conflict
 .RS
 .TP
-\fBinclude_time\fP
+\fBinclude_conflict <header\-1> <header\-2>\fP
 .br
-Check to see if there is a conflict between time.h and sys/times.h.
+Check to see if there is a compile conflict when including two headers.
+.IP
+e.g. include_conflict time.h sys/time.h
+.br
+Output: _inc_conflict_hdr_time__sys_time
+.RE
+.TP
+.B c\-quotactl
+.RS
+.TP
+\fBquotactl_pos\fP
+.br
+Check to see if character argument is argument 1 or 2 for the quotactl()
+library function.
 .RE
 .SH Tests (runtests.sh)
 The test directory contains shell scripts that are executed
@@ -317,7 +448,15 @@ If the 'test_order' file exists, only those tests in the file will be run.
 .SH Writing a mkconfig Unit (mkconfig.sh)
 To be completed.
 .SH Environment Variables (mkconfig.sh)
-_MKCONFIG_DIR - The directory where mkconfig.sh is installed.
+.TP
+_MKCONFIG_DIR
+The directory where mkconfig.sh is installed.
+.br
+.TP
+_MKCONFIG_SHELL
+.br
+If set, mkconfig.sh and runtests.sh will restart using the shell
+specified.
 .SH File Descriptors (mkconfig.sh)
 The file descriptors are allocated as follows:
 .br
@@ -327,7 +466,7 @@ The file descriptors are allocated as follows:
 .br
 7 - Used by mkconfig.sh; not available for mkconfig unit scripts.
 .br
-6 - Used by c-main.sh; not available for c language unit scripts.
+6 - Used by c\-main.sh; not available for c language unit scripts.
 .SH Writing a test script (runtests.sh)
 To be completed.
 .SH Environment Variables (runtests.sh)
@@ -360,12 +499,10 @@ A list of valid shells installed on the system.
 .SH See Also
 iffe(1) autoconf(1) dist(7)
 .SH Bugs
-Send bug reports to: bll6969di_at_gmail.com
+Send bug reports to: brad.lanam.di_at_gmail.com
 .SH Website
-\fImkconfig\fP is currently packaged in conjunction with \fIdi\fP
-.PP
-http://www.gentoo.com/di/
+http://www.gentoo.com/di/mkconfig.html
 .SH Author
 This program is Copyright 2010 by Brad Lanam, Walnut Creek CA
 .PP
-Brad Lanam, Walnut Creek, CA (bll6969di_at_gmail.com)
+Brad Lanam, Walnut Creek, CA (brad.lanam.di_at_gmail.com)
