@@ -1,13 +1,22 @@
-mkconfig - configuration tool (version 1.5).
+mkconfig - configuration tool (version 1.6).
 
 Please e-mail any configuration units and the corresponding
-manual page entry to bll6969di_at_gmail.com.
+manual page entry to brad.lanam.di_at_gmail.com.
 They will be included in the next release.
 Please try to give them a name that reflects what the unit does.
 If you have a test that can verify the unit works, please include
 that also.
 
 CHANGES
+
+    1.6                                     [4 Jul 2010]
+        Fix getlistofshells() when absolute path.
+        Added c-quotactl unit.
+        Renamed c-include-time to c-include-conflict, and changed
+            how c-include-conflict works.
+        Added define, set, setint, setstr, ifoption, ifnotoption, if.
+        Added option-file.
+        Added mkcsetopt.sh
 
     1.5                                     [13 May 2010]
         Change tmp directory structure and where logs go.
@@ -28,7 +37,7 @@ CHANGES
         Needed for Tru64, do: export BIN_SH=svr4 beforehand.
 
     1.3                                     [1 may 2010]
-        Use the configuration file to determine the necessary
+        Use the configuration file and cache to determine the necessary
           libraries to link in rather than linking in all found.
         Change library format to allow better control of link
           tests.
