@@ -54,16 +54,8 @@ printyesno_val
 {
     my ($name, $val, $tag) = @_;
 
-    if ($val ne "0")
-    {
-        print LOGFH "## [$name] $val $tag\n";
-        print STDOUT "$val $tag\n";
-    }
-    else
-    {
-        print LOGFH "## [$name] no $tag\n";
-        print STDOUT "no $tag\n";
-    }
+    print LOGFH "## [$name] $val $tag\n";
+    print STDOUT "$val $tag\n";
 }
 
 sub
@@ -530,14 +522,26 @@ check_command
 }
 
 sub
-check_option
+check_opt_envvar
 {
-    my ($name, $opt, $def, $otherflag, $otheropt, $r_clist, $r_config) = @_;
+    my ($name, $optnm, $r_clist, $r_config) = @_;
 
-    printlabel $name, "option: $opt($def)";
+    printlabel $name, "option envvar: $optnm";
 
     setlist $r_clist, $name;
-    my $trc = $def;
+    my $trc = $optnm;
+    $r_config->{$name} = $trc;
+    printyesno_val $name, $r_config->{$name};
+}
+
+sub
+check_ifoption
+{
+    my ($type, $name, $opt, $r_clist, $r_config) = @_;
+
+    printlabel $name, "$type: $opt";
+
+    my $trc = 'F';
 
     my $oenv=OPTIONS;
     if (defined ($r_config->{'_opt_envvar'})) {
@@ -546,13 +550,13 @@ check_option
 
     print LOGFH "##  $oenv: $ENV{$oenv}\n";
     foreach my $o (split (/\s+/, $ENV{$oenv})) {
-      foreach my $p ('NO', 'WITHOUT') {
+      foreach my $p ('DISABLE', 'WITHOUT') {
         if ($o eq "${p}_${opt}") {
           print LOGFH "##  found: $o (0)\n";
           $trc = 'F';
         }
       }
-      foreach my $p ('YES', 'WITH') {
+      foreach my $p ('ENABLE', 'WITH') {
         if ($o eq "${p}_${opt}") {
           print LOGFH "##  found: $o (1)\n";
           $trc = 'T';
@@ -568,32 +572,68 @@ check_option
       if ($trc eq 'false') { $trc = 'F'; }
     }
 
-    if ($trc eq $otherflag) {
-      print LOGFH "##  other: $otherflag\n";
-      foreach my $o (split (/\s+/, $otheropt)) {
-        my ($onm, $tval) = split (/=/, $o);
-        print LOGFH "##  $onm => $tval\n";
-        $r_config->{$onm} = $tval;
-      }
-    }
-
     if ($trc eq 'T') { $trc = 1; }
     if ($trc eq 'F') { $trc = 0; }
 
-    $r_config->{$name} = $trc;
-    printyesno $name, $r_config->{$name};
+    if ($type eq 'ifnotoption') {
+      $trc = $trc == 0 ? 1 : 0;
+    }
+    printyesno $name, $trc;
+    return $trc;
 }
 
 sub
-check_opt_envvar
+check_if
 {
-    my ($name, $optnm, $r_clist, $r_config) = @_;
+    my ($ifline, $r_clist, $r_config) = @_;
 
-    printlabel $name, "option envvar: $optnm";
+    my $name = $ifline;
+    my $trc = 0;
+    # make parseable
+    $ifline =~ s/!/ ! /og;
+    $ifline =~ s/\(/ ( /og;
+    $ifline =~ s/\)/ ) /og;
+    $ifline =~ s/&&/ \&\& /og;
+    $ifline =~ s/\|\|/ || /og;
+    $ifline =~ s/ +/ /og;
+    $ifline =~ s/^ *//og;
+    $ifline =~ s/ *$//og;
+
+    printlabel $name, "if: $ifline";
+    my $nline = '';
+    print LOGFH "## ifline: $ifline\n";
+    foreach my $token (split (/\s/, $ifline)) {
+      if ($token eq '(' || $token eq ')' || $token eq '&&' ||
+          $token eq '||' || $token eq '!' ||
+          $token eq 'and' || $token eq 'or' || $token eq 'not') {
+        if ($token eq 'and') { $token = '&&'; }
+        if ($token eq 'or') { $token = '||'; }
+        if ($token eq 'not') { $token = '!'; }
+        $nline .= $token . ' ';
+      } else {
+        print LOGFH "## value of $token: " . $r_config->{$token} . "\n";
+        $nline .= $r_config->{$token} ne '0' ? 1 : 0;
+        $nline .= ' ';
+      }
+    }
+    print LOGFH "## nline: $nline\n";
+    $trc = eval $nline;
+    printyesno $name, $trc;
+    return $trc;
+}
+
+sub
+check_set
+{
+    my ($name, $val, $r_clist, $r_config) = @_;
+
+    my $tnm = $name;
+    $tnm =~ s/^_set_//;
+    $tnm =~ s/^_setval_//;
+    printlabel $name, "set: $tnm";
 
     setlist $r_clist, $name;
-    my $trc = $optnm;
-    $r_config->{$name} = $trc;
+    $r_config->{$name} = $val;
     printyesno_val $name, $r_config->{$name};
 }
 
@@ -1145,7 +1185,7 @@ create_config
     my (%clist, %config);
 
     $clist{'list'} = ();
-    $clist{'hash'} = ();
+    $clist{'hash'} = {};
     $config{'reqlibs'} = {};
     $config{'reqlibs_list'} = ();
 
@@ -1187,38 +1227,68 @@ create_config
     my $linenumber = 0;
     my $inheaders = 1;
     my $ininclude = 0;
+    my @doproclist;
+    my $doproc = 1;
     my $include = '';
+    my $tline = '';
     while (my $line = <DATAIN>)
     {
-        chomp $line;
-        ++$linenumber;
+      chomp $line;
+      ++$linenumber;
 
-        if ($ininclude == 0 && ($line =~ /^#/o || $line eq ''))
-        {
-            next;
+      if ($ininclude == 0 && ($line =~ /^#/o || $line eq ''))
+      {
+          next;
+      }
+
+      if ($tline ne '') {
+        $line = $tline . ' ' . $line;
+        $tline = '';
+      }
+      if ($line =~ /[^\\]\\$/o) {
+        $tline = $line;
+        $tline =~ s/\\$//o;
+        next;
+      }
+
+      if ($ininclude == 1 && $line =~ m#^\s*endinclude$#o)
+      {
+          print LOGFH "end include\n";
+          $ininclude = 0;
+          next;
+      }
+      elsif ($ininclude == 1)
+      {
+          $line =~ s,\\(.),$1,g;
+          $include .= $line . "\n";
+          next;
+      }
+
+      if ($inheaders && $line !~ m#^\s*(hdr|sys)#o)
+      {
+          $inheaders = 0;
+      }
+
+      print LOGFH "#### ${linenumber}: ${line}\n";
+
+      if ($line =~ m#^\s*else#o)
+      {
+          $doproc = $doproc == 0 ? 1 : 0;
+      }
+      elsif ($line =~ m#^\s*endif#o)
+      {
+        if ($#doproclist >= 0) {
+          print LOGFH "## endif: doproclist: " . join (' ', @doproclist) . "\n";
+          $doproc = shift @doproclist;
+          print LOGFH "## endif: doproclist now : " . join (' ', @doproclist) . "\n";
+          print LOGFH "## endif: doproc: $doproc\n";
+        } else {
+          $doproc = 1;
         }
+      }
 
-        if ($ininclude == 1 && $line =~ m#^endinclude$#o)
-        {
-            print LOGFH "end include\n";
-            $ininclude = 0;
-            next;
-        }
-        elsif ($ininclude == 1)
-        {
-            $line =~ s,\\(.),$1,g;
-            $include .= $line . "\n";
-            next;
-        }
-
-        if ($inheaders && $line !~ m#^(hdr|sys)#o)
-        {
-            $inheaders = 0;
-        }
-
-        print LOGFH "#### ${linenumber}: ${line}\n";
-
-        if ($line =~ m#^output\s+([^\s]+)#o)
+      if ($doproc == 1) {
+        if ($line =~ m#^\s*output\s+([^\s]+)#o)
         {
             print "output-file: $1\n";
             my $tconfh = $1;
@@ -1229,38 +1299,38 @@ create_config
             }
             print LOGFH "config file: $CONFH\n";
         }
-        elsif ($line =~ m#^standard#o)
+        elsif ($line =~ m#^\s*standard#o)
         {
             check_standard (\%clist, \%config);
         }
-        elsif ($line =~ m#^loadunit#o)
+        elsif ($line =~ m#^\s*loadunit#o)
         {
             ;
         }
-        elsif ($line =~ m#^setmntent_args#o)
+        elsif ($line =~ m#^\s*setmntent_args#o)
         {
             check_setmntent_args ('_setmntent_args', \%clist, \%config);
         }
-        elsif ($line =~ m#^statfs_args#o)
+        elsif ($line =~ m#^\s*statfs_args#o)
         {
             check_statfs_args ('_statfs_args', \%clist, \%config);
         }
-        elsif ($line =~ m#^include_conflict\s+([^\s]+)\s+([^\s]+)#o)
+        elsif ($line =~ m#^\s*include_conflict\s+([^\s]+)\s+([^\s]+)#o)
         {
             my $i1 = $1;
             my $i2 = $2;
             check_include_conflict ('_inc_conflict', $i1, $i2, \%clist, \%config);
         }
-        elsif ($line =~ m#^quotactl_pos$#o)
+        elsif ($line =~ m#^\s*quotactl_pos$#o)
         {
             check_quotactl_pos ('_quotactl_pos', \%clist, \%config);
         }
-        elsif ($line =~ m#^include$#o)
+        elsif ($line =~ m#^\s*include$#o)
         {
             print LOGFH "start include\n";
             $ininclude = 1;
         }
-        elsif ($line =~ m#^(hdr|sys)\s+([^\s]+)\s*(.*)#o)
+        elsif ($line =~ m#^\s*(hdr|sys)\s+([^\s]+)\s*(.*)#o)
         {
             my $typ = $1;
             my $hdr = $2;
@@ -1279,7 +1349,7 @@ create_config
             my @oh = split (/\s+/, $reqhdr);
             check_header ($nm, $hdr, \%clist, \%config, { 'reqhdr' => \@oh, });
         }
-        elsif ($line =~ m#^const\s+([^\s]+)\s*(.*)#o)
+        elsif ($line =~ m#^\s*const\s+([^\s]+)\s*(.*)#o)
         {
             my $tnm = $1;
             my $reqhdr = $2;
@@ -1290,35 +1360,57 @@ create_config
             check_constant ($nm, $tnm, \%clist, \%config,
                 { 'reqhdr' => \@oh, });
         }
-        elsif ($line =~ m#^command\s+(.*)#o)
+        elsif ($line =~ m#^\s*command\s+(.*)#o)
         {
             my $cmd = $1;
             my $nm = "_command_" . $cmd;
             check_command ($nm, $cmd, \%clist, \%config);
         }
-        elsif ($line =~ m#^opt_envvar\s+([^\s]*)#o)
+        elsif ($line =~ m#^\s*opt_envvar\s+([^\s]*)#o)
         {
             my $optnm = $1;
             my $nm = "_opt_envvar";
             check_opt_envvar ($nm, $optnm, \%clist, \%config);
         }
-        elsif ($line =~ m#^option\s+([^\s]*)\s+([TF])\s*([TF])?\s*(.*)#o)
+        elsif ($line =~ m#^\s*(if(not)?option)\s+([^\s]+)#o)
         {
-            my $opt = $1;
-            my $def = $2;
-            my $otherflag = $3;
-            my $otheropt = $4;
-            my $nm = "_option_" . $opt;
-            check_option ($nm, $opt, $def, $otherflag, $otheropt, \%clist, \%config);
+            my $type = $1;
+            my $opt = $3;
+            my $nm = "_${type}_${opt}";
+            my $rc = check_ifoption ($type, $nm, $opt, \%clist, \%config);
+            unshift @doproclist, $doproc;
+            $doproc = $rc;
+            print LOGFH "## ifoption: doproclist: " . join (' ', @doproclist) . "\n";
+            print LOGFH "## ifoption: doproc: $doproc\n";
         }
-        elsif ($line =~ m#^npt\s+([^\s]*)\s*(.*)#o)
+        elsif ($line =~ m#^\s*if\s+(.*)#o)
+        {
+            my $ifline = $1;
+            my $nm = "_if_";
+            my $rc = check_if ($ifline, \%clist, \%config);
+            unshift @doproclist, $doproc;
+            $doproc = $rc;
+            print LOGFH "## if: doproclist: " . join (' ', @doproclist) . "\n";
+            print LOGFH "## if: doproc: $doproc\n";
+        }
+        elsif ($line =~ m#^\s*(endif|else)#o)
+        {
+            ;
+        }
+        elsif ($line =~ m#^\s*(set(val)?)\s+([^\s]+)\s*(.*)#o)
+        {
+            my $nm = "_$1_$3";
+            my $val = $4;
+            check_set ($nm, $val, \%clist, \%config);
+        }
+        elsif ($line =~ m#^\s*npt\s+([^\s]*)\s*(.*)#o)
         {
             my $func = $1;
             my $req = $2;
             my $nm = "_npt_" . $func;
             check_npt ($nm, $func, $req, \%clist, \%config);
         }
-        elsif ($line =~ m#^key\s+(.*)#o)
+        elsif ($line =~ m#^\s*key\s+(.*)#o)
         {
             my $tnm = $1;
             my $nm = "_key_" . $tnm;
@@ -1328,7 +1420,7 @@ create_config
                 check_keyword ($nm, $tnm, \%clist, \%config);
             }
         }
-        elsif ($line =~ m#^class\s+([^\s]+)\s*(.*)?#o)
+        elsif ($line =~ m#^\s*class\s+([^\s]+)\s*(.*)?#o)
         {
             my $class = $1;
             my $libs = $2 || '';
@@ -1341,7 +1433,7 @@ create_config
                        { 'otherlibs' => $libs, });
             }
         }
-        elsif ($line =~ m#^typ\s+(.*)#o)
+        elsif ($line =~ m#^\s*typ\s+(.*)#o)
         {
             my $tnm = $1;
             my $nm = "_typ_" . $tnm;
@@ -1352,7 +1444,7 @@ create_config
                 check_type ($nm, $tnm, \%clist, \%config);
             }
         }
-        elsif ($line =~ m#^define\s+(.*)#o)
+        elsif ($line =~ m#^\s*define\s+(.*)#o)
         {
             my $tnm = $1;
             my $nm = "_define_" . $tnm;
@@ -1362,7 +1454,7 @@ create_config
                 check_defined ($nm, $tnm, \%clist, \%config);
             }
         }
-        elsif ($line =~ m#^lib\s+([^\s]+)\s*(.*)?#o)
+        elsif ($line =~ m#^\s*lib\s+([^\s]+)\s*(.*)?#o)
         {
             my $func = $1;
             my $libs = $2 || '';
@@ -1374,7 +1466,7 @@ create_config
                        { 'otherlibs' => $libs, });
             }
         }
-        elsif ($line =~ m#^dcl\s+([^\s]*)\s+(.*)#o)
+        elsif ($line =~ m#^\s*dcl\s+([^\s]*)\s+(.*)#o)
         {
             my $type = $1;
             my $var = $2;
@@ -1392,7 +1484,7 @@ create_config
                 }
             }
         }
-        elsif ($line =~ m#^member\s+(.*?)\s+([^\s]*)\s*$#o)
+        elsif ($line =~ m#^\s*member\s+(.*?)\s+([^\s]*)\s*$#o)
         {
             my $struct = $1;
             my $member = $2;
@@ -1404,7 +1496,7 @@ create_config
                 check_member ($nm, $struct, $member, \%clist, \%config);
             }
         }
-        elsif ($line =~ m#^size\s+(.*)#o)
+        elsif ($line =~ m#^\s*size\s+(.*)#o)
         {
             my $typ = $1;
             $typ =~ s/\s*$//o;
@@ -1421,6 +1513,7 @@ create_config
             print LOGFH "unknown command: $line\n";
             print STDOUT "unknown command: $line\n";
         }
+      }
     }
 
     open (CCOFH, ">$CONFH");
@@ -1439,7 +1532,15 @@ _HERE_
       if ($config{$val} ne "0") {
           $tval = 1;
       }
-      if ($val =~ m#^(_hdr|_sys|_command)#o) {
+      if ($val =~ m#^_set_#o) {
+        $tnm = $val;
+        $tnm =~ s/^_set_//;
+        print CCOFH "#define $tnm $tval\n";
+      } elsif ($val =~ m#^_setval_#o) {
+        $tnm = $val;
+        $tnm =~ s/^_setval_//;
+        print CCOFH "#define $tnm \"$config{$val}\"\n";
+      } elsif ($val =~ m#^(_hdr|_sys|_command)#o) {
         print CCOFH "#define $val $tval\n";
       } else {
         print CCOFH "#define $val $config{$val}\n";

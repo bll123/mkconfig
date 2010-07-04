@@ -108,17 +108,28 @@ doexport () {
   eval $cmd
 }
 
+printyesno_actual () {
+  ynname=$1
+  ynval=$2
+  yntag=${3:-}
+
+  echo "   [${ynname}] $ynval ${yntag}" >&9
+  echo "$ynval ${yntag}" >&1
+
+  if [ "$_MKCONFIG_EXPORT" = "T" ]; then
+    doexport $ynname "$ynval"
+  fi
+}
+
 printyesno_val () {
   ynname=$1
   ynval=$2
   yntag=${3:-}
 
   if [ "$ynval" != "0" ]; then
-    echo "   [${ynname}] $ynval ${yntag}" >&9
-    echo "$ynval ${yntag}" >&1
+    printyesno_actual "$ynname" "$ynval" ${yntag}
   else
-    echo "   [${ynname}] no ${yntag}" >&9
-    echo "no ${yntag}" >&1
+    printyesno_actual "$ynname" no ${yntag}
   fi
 
   if [ "$_MKCONFIG_EXPORT" = "T" ]; then
@@ -134,7 +145,7 @@ printyesno () {
     if [ "$ynval" != "0" ]; then
       ynval=yes
     fi
-    printyesno_val $ynname $ynval "$yntag"
+    printyesno_val "$ynname" $ynval "$yntag"
 }
 
 checkcache_val () {
@@ -177,28 +188,37 @@ check_command () {
     setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
 }
 
-check_option () {
+check_opt_envvar () {
     name=$1
-    oopt=$2
-    odef=$3
-    otherflag=$4
-    shift; shift; shift; shift
-    oother=$@
+    onm=$2
 
-    printlabel $name "option: ${oopt}(${odef})"
+    printlabel $name "option envvar: ${onm}"
 
-    trc=${odef}
-    getdata eval ${_MKCONFIG_PREFIX} _opt_envvar
-    if [ "$eval" = "" ]; then eval=OPTIONS; fi
-    eval "tval=\$${eval}"
+    trc=${onm}
 
-    echo "  opt_envvar: $eval" >&9
-    echo "  $eval: $tval" >&9
+    printyesno_val $name $trc
+    setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
+}
+
+check_ifoption () {
+    type=$1
+    name=$2
+    oopt=$3
+
+    printlabel $name "$type: ${oopt}"
+
+    trc=F  # if option is not set, it's false
+    getdata teval ${_MKCONFIG_PREFIX} _opt_envvar
+    if [ "$teval" = "" ]; then teval=OPTIONS; fi
+    eval "tval=\$${teval}"
+
+    echo "  opt_envvar: $teval" >&9
+    echo "  $teval: $tval" >&9
     for o in ${tval}; do
-      for p in NO WITHOUT; do
+      for p in DISABLE WITHOUT; do
         if [ "$o" = "${p}_${oopt}" ]; then trc=F; echo "  found: $o (0)" >&9; fi
       done
-      for p in YES WITH; do
+      for p in ENABLE WITH; do
         if [ "$o" = "${p}_${oopt}" ]; then trc=T; echo "  found: $o (1)" >&9; fi
       done
       case $o in
@@ -214,36 +234,70 @@ check_option () {
       if [ "$trc" = "false" ]; then trc=F; fi
     done
 
-    echo "  trc: $trc; otherflag: $otherflag" >&9
-    if [ "$trc" = "$otherflag" ]; then
-      echo "  otherflag: $otherflag" >&9
-      for o in $oother; do
-        otmp=`echo $o | sed 's/=/ /'`
-        set $otmp
-        onm=$1
-        tval=$2
-        echo "  found: $o => $tval" >&9
-        setdata ${_MKCONFIG_PREFIX} $onm $tval
-      done
-    fi
-
     if [ "$trc" = "T" ]; then trc=1; fi
     if [ "$trc" = "F" ]; then trc=0; fi
 
+    if [ $type = "ifnotoption" ]; then
+      if [ $trc -eq 0 ]; then trc=1; else trc=0; fi
+    fi
+
     printyesno $name $trc
-    setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
+    return $trc
 }
 
-check_opt_envvar () {
-    name=$1
-    onm=$2
+check_if () {
+    ifline=$1
 
-    printlabel $name "option envvar: ${onm}"
+    name="$ifline"
+    dosubst name ' ' ''
 
-    trc=${onm}
+    boolclean ifline
+    echo "## ifline: $ifline" >&9
 
-    printyesno_val $name $trc
-    setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
+    trc=0  # if option is not set, it's false
+
+    nline="test "
+    for token in $ifline; do
+      case $token in
+        \(|\)|-a|-o|!)
+          doappend nline " $token"
+          ;;
+        *)
+          getdata tvar ${_MKCONFIG_PREFIX} $token
+          if [ "$tvar" != "0" ]; then tvar=1; fi
+          tvar="( $tvar = 1 )"
+          doappend nline " $tvar"
+        ;;
+      esac
+    done
+
+    if [ "$ifline" != "" ]; then
+      dosubst nline '(' '\\\\\\(' ')' '\\\\\\)'
+      echo "## nline: $nline" >&9
+      eval $nline
+      trc=$?
+      echo "## eval nline: $trc" >&9
+      # replace w/ shell return
+      if [ $trc -eq 0 ]; then trc=1; else trc=0; fi
+      echo "## eval nline final: $trc" >&9
+    fi
+
+    texp=$_MKCONFIG_EXPORT
+    printyesno "$name" $trc
+    _MKCONFIG_EXPORT=$texp
+    return $trc
+}
+
+check_set () {
+  nm=$1
+  sval=$2
+
+  tnm=$1
+  dosubst tnm '_set_' '' '_setval_' ''
+
+  printlabel $name "set: ${tnm}"
+  printyesno_actual $nm "${sval}"
+  setdata ${_MKCONFIG_PREFIX} ${nm} "${sval}"
 }
 
 require_unit () {
@@ -295,6 +349,8 @@ create_config () {
   reqhdr=""
 
   ininclude=0
+  doproclist=""
+  doproc=1
   linenumber=0
   initifs
   > $INC
@@ -322,7 +378,9 @@ create_config () {
           ininclude=0
           resetifs
         else
+          set -f
           echo "${tdatline}" >> $INC
+          set +f
         fi
     else
         case ${tdatline} in
@@ -340,103 +398,143 @@ create_config () {
 
     if [ $ininclude -eq 0 ]; then
       case ${tdatline} in
-        endinclude)
+        else)
+          if [ $doproc -eq 0 ]; then doproc=1; else doproc=0; fi
           ;;
-        output*)
-          set $tdatline
-          type=$1
-          file=$2
-          case ${file} in
-            none)
-              CONFH=${file}
-              ;;
-            /*)
-              CONFH=${file}
-              ;;
-            *)
-              CONFH="../${file}"
-              ;;
-          esac
-          echo "output-file: ${file}" >&1
-          echo "   config file name: ${CONFH}" >&9
-          ;;
-        loadunit*)
-          set $tdatline
-          type=$1
-          file=$2
-          # backwards compatibility w/1.5
-          if [ "$file" = "c-include-time" ]; then
-            file="c-include-conflict"
-            echo "mkconfig: warning: c-include-time has been renamed to c-include-conflict"
-          fi
-          if [ "$file" = "c-setmntent-args" ]; then
-            file="c-setmntent"
-            echo "mkconfig: warning: c-setmntent-args has been renamed to c-setmntent"
-          fi
-          if [ "$file" = "c-statfs-args" ]; then
-            file="c-statfs"
-            echo "mkconfig: warning: c-statfs-args has been renamed to c-statfs"
-          fi
-          doloadunit ${file} N
-          if [ "$VARSFILE" = "" -a "${_MKCONFIG_PREFIX}" != "" ]; then
-            VARSFILE="../mkconfig_${_MKCONFIG_PREFIX}.vars"
-          fi
-          exec 8>>$VARSFILE
-          ;;
-        standard)
-          chkconfigfname
-          standard_checks
-          ;;
-        opt_envvar*)
-          chkconfigfname
-          set $tdatline
-          optnm=$2
-          nm="_option_${optnm}"
-          check_opt_envvar ${nm} ${optnm}
-          ;;
-        option*)
-          chkconfigfname
-          set $tdatline
-          opt=$2
-          def=$3
-          shift; shift; shift
-          otherflag=""
-          otheropts=""
-          if [ $# -gt 0 ]; then
-            otherflag=$1
+        endif)
+          set $doproclist
+          c=$#
+          if [ $c -gt 0 ]; then
+            echo "## doproclist: $doproclist" >&9
+            doproc=$1
             shift
-            otheropts=$@
+            doproclist=$@
+            echo "## doproc: $doproc doproclist: $doproclist" >&9
+          else
+            doproc=1
           fi
-          nm="_option_${opt}"
-          check_option ${nm} ${opt} ${def} "$otherflag" "${otheropts}"
-          ;;
-        command*)
-          chkconfigfname
-          set $tdatline
-          cmd=$2
-          nm="_command_${cmd}"
-          check_command ${nm} ${cmd}
-          ;;
-        include)
-          chkconfigfname
-          ininclude=1
-          ;;
-        *)
-          chkconfigfname
-          set $tdatline
-          type=$1
-          # backwards compatibility w/1.5
-          if [ $type = "include_time" ]; then
-            tdatline="include_conflict time.h sys/time.h"
-            set $tdatline
-            type=$1
-          fi
-          chk="check_${type}"
-          cmd="$chk $@"
-          eval $cmd
           ;;
       esac
-    fi
+
+      if [ $doproc -eq 1 ]; then
+        case ${tdatline} in
+          endinclude)
+            ;;
+          output*)
+            set $tdatline
+            type=$1
+            file=$2
+            case ${file} in
+              none)
+                CONFH=${file}
+                ;;
+              /*)
+                CONFH=${file}
+                ;;
+              *)
+                CONFH="../${file}"
+                ;;
+            esac
+            echo "output-file: ${file}" >&1
+            echo "   config file name: ${CONFH}" >&9
+            ;;
+          loadunit*)
+            set $tdatline
+            type=$1
+            file=$2
+            # backwards compatibility w/1.5
+            if [ "$file" = "c-include-time" ]; then
+              file="c-include-conflict"
+              echo "mkconfig: warning: c-include-time has been renamed to c-include-conflict"
+            fi
+            if [ "$file" = "c-setmntent-args" ]; then
+              file="c-setmntent"
+              echo "mkconfig: warning: c-setmntent-args has been renamed to c-setmntent"
+            fi
+            if [ "$file" = "c-statfs-args" ]; then
+              file="c-statfs"
+              echo "mkconfig: warning: c-statfs-args has been renamed to c-statfs"
+            fi
+            doloadunit ${file} N
+            if [ "$VARSFILE" = "" -a "${_MKCONFIG_PREFIX}" != "" ]; then
+              VARSFILE="../mkconfig_${_MKCONFIG_PREFIX}.vars"
+            fi
+            exec 8>>$VARSFILE
+            ;;
+          standard)
+            chkconfigfname
+            standard_checks
+            ;;
+          opt_envvar*)
+            chkconfigfname
+            set $tdatline
+            optnm=$2
+            nm="_option_${optnm}"
+            check_opt_envvar ${nm} ${optnm}
+            ;;
+          set\ *|setval*)
+            chkconfigfname
+            set $tdatline
+            nm="_$1_$2"
+            shift; shift
+            tval=$@
+            check_set ${nm} "${tval}"
+            ;;
+          ifoption*|ifnotoption*)
+            chkconfigfname
+            set $tdatline
+            type=$1
+            opt=$2
+            nm="_${type}_${opt}"
+            check_ifoption $type ${nm} ${opt}
+            rc=$?
+            doproclist="$doproc $doproclist"
+            doproc=$rc
+            echo "## doproc: $doproc doproclist: $doproclist" >&9
+            ;;
+          if\ *)
+            chkconfigfname
+            set $tdatline
+            shift
+            ifline=$@
+            check_if "$ifline"
+            rc=$?
+            doproclist="$doproc $doproclist"
+            doproc=$rc
+            echo "## doproc: $doproc doproclist: $doproclist" >&9
+            ;;
+          else)
+            ;;
+          endif)
+            ;;
+          command*)
+            chkconfigfname
+            set $tdatline
+            cmd=$2
+            nm="_command_${cmd}"
+            check_command ${nm} ${cmd}
+            ;;
+          include)
+            chkconfigfname
+            ininclude=1
+            ;;
+          *)
+            chkconfigfname
+            set $tdatline
+            type=$1
+            # backwards compatibility w/1.5
+            if [ $type = "include_time" ]; then
+              tdatline="include_conflict time.h sys/time.h"
+              set $tdatline
+              type=$1
+            fi
+            chk="check_${type}"
+            cmd="$chk $@"
+            eval $cmd
+            ;;
+        esac
+      fi  # doproc
+    fi # ininclude
     if [ $ininclude -eq 1 ]; then
       setifs
     fi
