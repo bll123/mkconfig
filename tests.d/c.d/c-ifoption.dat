@@ -1,79 +1,80 @@
 # test ifoption, ifnotoption
 
 output ifoption_env.ctest
+option-file ifoption_env.opts
 loadunit env-main
 standard
-set _test_enable 0
-set _test_disable 0
-set _test_assign_t 0
-set _test_assign_f 0
-set _test_else_enable 1
-set _test_else_disable 1
-set _test_else_assign_t 1
-set _test_else_assign_f 1
-set _test_neg_enable 1
-set _test_neg_disable 1
-set _test_neg_assign_t 1
-set _test_neg_assign_f 1
-set _test_else_neg_enable 0
-set _test_else_neg_disable 0
-set _test_else_neg_assign_t 0
-set _test_else_neg_assign_f 0
+setint _test_enable 0
+setint _test_disable 0
+setint _test_assign_t 0
+setint _test_assign_f 0
+setint _test_else_enable 1
+setint _test_else_disable 1
+setint _test_else_assign_t 1
+setint _test_else_assign_f 1
+setint _test_neg_enable 1
+setint _test_neg_disable 1
+setint _test_neg_assign_t 1
+setint _test_neg_assign_f 1
+setint _test_else_neg_enable 0
+setint _test_else_neg_disable 0
+setint _test_else_neg_assign_t 0
+setint _test_else_neg_assign_f 0
 
-set _test_h 1
-set _test_i 1
-set _test_j 1
+setint _test_h 1
+setint _test_i 1
+setint _test_j 1
 ifoption TEST_ENABLE
-  set _test_enable 1
+  setint _test_enable 1
 else
-  set _test_else_enable 0
+  setint _test_else_enable 0
 endif
-set _test_k 1
+setint _test_k 1
 ifnotoption TEST_DISABLE
-  set _test_disable 1
+  setint _test_disable 1
 else
-  set _test_else_disable 0
+  setint _test_else_disable 0
 endif
-set _test_l 1
+setint _test_l 1
 ifoption TEST_ASSIGN_T
-  set _test_assign_t 1
+  setint _test_assign_t 1
 else
-  set _test_else_assign_t 0
+  setint _test_else_assign_t 0
 endif
-set _test_m 1
+setint _test_m 1
 ifnotoption TEST_ASSIGN_F
-  set _test_assign_f 1
+  setint _test_assign_f 1
 else
-  set _test_else_assign_f 0
+  setint _test_else_assign_f 0
 endif
-set _test_n 1
+setint _test_n 1
 
-# none of these set statements in the if..option blocks should be active
-set _test_a 1
-set _test_b 1
-set _test_c 1
+# none of these setint statements in the if..option blocks should be active
+setint _test_a 1
+setint _test_b 1
+setint _test_c 1
 ifnotoption TEST_ENABLE
-  set _test_neg_enable 0
+  setint _test_neg_enable 0
 else
-  set _test_else_neg_enable 1
+  setint _test_else_neg_enable 1
 endif
-set _test_d 1
+setint _test_d 1
 ifoption TEST_DISABLE
-  set _test_neg_disable 0
+  setint _test_neg_disable 0
 else
-  set _test_else_neg_disable 1
+  setint _test_else_neg_disable 1
 endif
-set _test_e 1
+setint _test_e 1
 ifnotoption TEST_ASSIGN_T
-  set _test_neg_assign_t 0
+  setint _test_neg_assign_t 0
 else
-  set _test_else_neg_assign_t 1
+  setint _test_else_neg_assign_t 1
 endif
-set _test_f 1
+setint _test_f 1
 ifoption TEST_ASSIGN_F
-  set _test_neg_assign_f 0
+  setint _test_neg_assign_f 0
 else
-  set _test_else_neg_assign_f 1
+  setint _test_else_neg_assign_f 1
 endif
-set _test_g 1
+setint _test_g 1
 
