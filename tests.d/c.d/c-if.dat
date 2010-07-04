@@ -1,0 +1,89 @@
+# test if
+
+output if_env.ctest
+loadunit env-main
+standard
+
+set _var_a 1
+set _var_b 1
+set _var_c 0
+set _var_d 0
+
+set _test_b1_ok 0
+set _test_b2_ok 0
+set _test_b3_ok 0
+set _test_b4_ok 0
+
+# basic
+if _set__var_a
+  set _test_b1_ok 1
+endif
+if ! _set__var_c
+  set _test_b2_ok 1
+endif
+if ( _set__var_a )
+  set _test_b3_ok 1
+endif
+if ((_set__var_a))
+  set _test_b4_ok 1
+endif
+
+set _test_a1_ok 0
+set _test_a2_ok 0
+set _test_a3_ok 0
+set _test_a4_ok 0
+set _test_a5_ok 0
+
+# &&
+if _set__var_a && _set__var_b
+  set _test_a1_ok 1
+endif
+if ( _set__var_a && _set__var_b )
+  set _test_a2_ok 1
+endif
+if ( _set__var_a && ( _set__var_b ) )
+  set _test_a3_ok 1
+endif
+if (_set__var_a&&(_set__var_b))
+  set _test_a4_ok 1
+endif
+if ! ( _set__var_a && _set__var_c )
+  set _test_a5_ok 1
+endif
+
+set _test_o1_ok 0
+set _test_o2_ok 0
+set _test_o3_ok 0
+set _test_o4_ok 0
+set _test_o5_ok 0
+set _test_o6_ok 0
+
+# ||
+if _set__var_a || _set__var_b
+  set _test_o1_ok 1
+endif
+if _set__var_a || _set__var_c
+  set _test_o2_ok 1
+endif
+if _set__var_c || _set__var_a
+  set _test_o3_ok 1
+endif
+if ( _set__var_c || _set__var_a )
+  set _test_o4_ok 1
+endif
+if ! ( _set__var_c || _set__var_d )
+  set _test_o5_ok 1
+endif
+if !(_set__var_c||_set__var_d)
+  set _test_o6_ok 1
+endif
+
+set _test_m1_ok 0
+set _test_m2_ok 0
+
+if (_set__var_a && (_set__var_b||_set__var_d))
+  set _test_m1_ok 1
+endif
+if !(_set__var_c && (_set__var_b||_set__var_d))
+  set _test_m2_ok 1
+endif
