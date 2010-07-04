@@ -18,10 +18,13 @@ case $script in
     ;;
 esac
 
-OPTIONS="WITH_TEST_WITH WITHOUT_TEST_WITHOUT
-    ENABLE_TEST_ENABLE DISABLE_TEST_DISABLE
-    TEST_ASSIGN_T=T TEST_ASSIGN_F=F"
-export OPTIONS
+TMP=ifoption_env.opts
+cat > $TMP << _HERE_
+TEST_ENABLE=enable
+TEST_DISABLE=disable
+TEST_ASSIGN_T=t
+TEST_ASSIGN_F=f
+_HERE_
 
 if [ "$dosh" = "T" ]; then
   echo ${EN} " ${EC}" >&5
@@ -39,18 +42,14 @@ if [ "$dosh" = "T" ]; then
     export _MKCONFIG_SHELL
     shell=$ss
 
-    eval "${s} ${script} -C ${_MKCONFIG_RUNTESTDIR}/ifoption_env.dat"
+    eval "${s} ${script}  -o ifoption_env.opts -C ${_MKCONFIG_RUNTESTDIR}/ifoption_env.dat"
     for t in \
-        _test_with _test_without \
         _test_enable _test_disable \
         _test_assign_t _test_assign_f \
-        _test_else_with _test_else_without \
         _test_else_enable _test_else_disable \
         _test_else_assign_t _test_else_assign_f \
-        _test_neg_with _test_neg_without \
         _test_neg_enable _test_neg_disable \
         _test_neg_assign_t _test_neg_assign_f \
-        _test_else_neg_with _test_else_neg_without \
         _test_else_neg_enable _test_else_neg_disable \
         _test_else_neg_assign_t _test_else_neg_assign_f \
         _test_a _test_b _test_c _test_d _test_e _test_f _test_g \
