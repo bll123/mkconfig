@@ -1,6 +1,5 @@
 #!/bin/sh
 
-set -x
 script=$@
 
 . $_MKCONFIG_DIR/shellfuncs.sh
@@ -42,7 +41,7 @@ if [ "$dosh" = "T" ]; then
     export _MKCONFIG_SHELL
     shell=$ss
 
-    eval "${s} ${script}  -o ifoption_env.opts -C ${_MKCONFIG_RUNTESTDIR}/ifoption_env.dat"
+    eval "${s} ${script}  -C ${_MKCONFIG_RUNTESTDIR}/ifoption_env.dat"
     for t in \
         _test_enable _test_disable \
         _test_assign_t _test_assign_f \
