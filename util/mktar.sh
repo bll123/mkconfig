@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/sh
 
-ver=$(cat VERSION)
+ver=`cat VERSION`
 
 PKG=mkconfig
 dir="${PKG}-${ver}"
@@ -14,7 +14,7 @@ while read f; do
     mkdir ${dir}/${f}
     chmod 755 ${dir}/${f}
   else
-    d=$(dirname $f)
+    d=`dirname $f`
     cp $f ${dir}/${d}
   fi
 done
