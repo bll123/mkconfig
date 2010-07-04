@@ -1,0 +1,14 @@
+# test when no options file
+
+output nooptfile_c.ctest
+loadunit c-main
+standard
+
+setint _test_a 0
+setint _test_b 0
+ifoption TEST_A
+  setint _test_a 1
+endif
+ifnotoption TEST_B
+  setint _test_b 1
+endif
