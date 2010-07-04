@@ -1,15 +1,107 @@
-# test mkconfig option
+# test ifoption, ifnotoption
 
-output option_env.ctest
+output ifoption_env.ctest
 loadunit env-main
 standard
-option TEST_TEMP T
-option TEST_T T
-option TEST_F F
-option TEST_NO T
-option TEST_YES F
-option TEST_WITHOUT T
-option TEST_WITH F
-option TEST_OPT_T F
-option TEST_OPT_F T
-option TEST_F_OTHER T F _option_TEST_TEMP=0
+set _test_with 0
+set _test_without 0
+set _test_enable 0
+set _test_disable 0
+set _test_assign_t 0
+set _test_assign_f 0
+set _test_else_with 1
+set _test_else_without 1
+set _test_else_enable 1
+set _test_else_disable 1
+set _test_else_assign_t 1
+set _test_else_assign_f 1
+set _test_neg_with 1
+set _test_neg_without 1
+set _test_neg_enable 1
+set _test_neg_disable 1
+set _test_neg_assign_t 1
+set _test_neg_assign_f 1
+set _test_else_neg_with 0
+set _test_else_neg_without 0
+set _test_else_neg_enable 0
+set _test_else_neg_disable 0
+set _test_else_neg_assign_t 0
+set _test_else_neg_assign_f 0
+
+set _test_h 1
+ifoption TEST_WITH
+  set _test_with 1
+else
+  set _test_else_with 0
+endif
+set _test_i 1
+ifnotoption TEST_WITHOUT
+  set _test_without 1
+else
+  set _test_else_without 0
+endif
+set _test_j 1
+ifoption TEST_ENABLE
+  set _test_enable 1
+else
+  set _test_else_enable 0
+endif
+set _test_k 1
+ifnotoption TEST_DISABLE
+  set _test_disable 1
+else
+  set _test_else_disable 0
+endif
+set _test_l 1
+ifoption TEST_ASSIGN_T
+  set _test_assign_t 1
+else
+  set _test_else_assign_t 0
+endif
+set _test_m 1
+ifnotoption TEST_ASSIGN_F
+  set _test_assign_f 1
+else
+  set _test_else_assign_f 0
+endif
+set _test_n 1
+
+# none of these set statements in the if..option blocks should be active
+set _test_a 1
+ifnotoption TEST_WITH
+  set _test_neg_with 0
+else
+  set _test_else_neg_with 1
+endif
+set _test_b 1
+ifoption TEST_WITHOUT
+  set _test_neg_without 0
+else
+  set _test_else_neg_without 1
+endif
+set _test_c 1
+ifnotoption TEST_ENABLE
+  set _test_neg_enable 0
+else
+  set _test_else_neg_enable 1
+endif
+set _test_d 1
+ifoption TEST_DISABLE
+  set _test_neg_disable 0
+else
+  set _test_else_neg_disable 1
+endif
+set _test_e 1
+ifnotoption TEST_ASSIGN_T
+  set _test_neg_assign_t 0
+else
+  set _test_else_neg_assign_t 1
+endif
+set _test_f 1
+ifoption TEST_ASSIGN_F
+  set _test_neg_assign_f 0
+else
+  set _test_else_neg_assign_f 1
+endif
+set _test_g 1
+
