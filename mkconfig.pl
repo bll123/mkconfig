@@ -13,6 +13,7 @@ require 5.005;
 my $CONFH;
 my $LOG = "mkconfig.log";
 my $TMP = "_tmp_mkconfig";
+my $OPTIONFILE = "options.dat";
 my $CACHEFILE = "mkconfig.cache";
 my $VARSFILE = "mkconfig_c.vars";
 my $REQLIB = "reqlibs.txt";
@@ -33,6 +34,9 @@ my $precc = <<'_HERE_';
 # define _END_EXTERNS_
 #endif
 _HERE_
+
+my $optionsloaded = 0;
+my %optionshash;
 
 sub
 exitmkconfig
@@ -522,52 +526,37 @@ check_command
 }
 
 sub
-check_opt_envvar
-{
-    my ($name, $optnm, $r_clist, $r_config) = @_;
-
-    printlabel $name, "option envvar: $optnm";
-
-    setlist $r_clist, $name;
-    my $trc = $optnm;
-    $r_config->{$name} = $trc;
-    printyesno_val $name, $r_config->{$name};
-}
-
-sub
 check_ifoption
 {
     my ($type, $name, $opt, $r_clist, $r_config) = @_;
 
     printlabel $name, "$type: $opt";
 
-    my $trc = 'F';
-
-    my $oenv=OPTIONS;
-    if (defined ($r_config->{'_opt_envvar'})) {
-      $oenv=$r_config->{'_opt_envvar'};
+    if ($optionsloaded == 0 && open (OPTS, "<$OPTIONFILE")) {
+      while (my $o = <OPTS>) {
+        chomp $o;
+        if ($o =~ /^$/o || $o =~ /^#/o) {
+          next;
+        }
+        my ($onm, $val) = split (/=/, $o);
+        printf LOGFH "## load: $onm = $val\n";
+        $optionshash{$onm} = $val;
+      }
+      $optionsloaded = 1;
+      close (OPTS);
     }
 
-    print LOGFH "##  $oenv: $ENV{$oenv}\n";
-    foreach my $o (split (/\s+/, $ENV{$oenv})) {
-      foreach my $p ('DISABLE', 'WITHOUT') {
-        if ($o eq "${p}_${opt}") {
-          print LOGFH "##  found: $o (0)\n";
-          $trc = 'F';
-        }
-      }
-      foreach my $p ('ENABLE', 'WITH') {
-        if ($o eq "${p}_${opt}") {
-          print LOGFH "##  found: $o (1)\n";
-          $trc = 'T';
-        }
-      }
-      if ($o =~ /^${opt}=(.*)/) {
-        print LOGFH "##  found: $o\n";
-        $trc = $1;
-      }
+    my $trc = 'F';
+
+    my $found = 'F';
+    if ($optionsloaded && defined ($optionshash{$opt})) {
+      $found = 'T';
+      $trc = lc $optionshash{$opt};
+      print LOGFH "##  found: $opt => $trc\n";
       if ($trc eq 't') { $trc = 'T'; }
+      if ($trc eq 'enable') { $trc = 'T'; }
       if ($trc eq 'f') { $trc = 'F'; }
+      if ($trc eq 'disable') { $trc = 'F'; }
       if ($trc eq 'true') { $trc = 'T'; }
       if ($trc eq 'false') { $trc = 'F'; }
     }
@@ -578,7 +567,16 @@ check_ifoption
     if ($type eq 'ifnotoption') {
       $trc = $trc == 0 ? 1 : 0;
     }
-    printyesno $name, $trc;
+
+    if (! $optionsloaded) {
+      $trc = 0;
+      printyesno_val $name, "no options file";
+    } elsif ($found eq 'F') {
+      $trc = 0;
+      printyesno_val $name, "option not found";
+    } else {
+      printyesno $name, $trc;
+    }
     return $trc;
 }
 
@@ -625,16 +623,30 @@ check_if
 sub
 check_set
 {
-    my ($name, $val, $r_clist, $r_config) = @_;
+    my ($name, $type, $val, $r_clist, $r_config) = @_;
 
     my $tnm = $name;
-    $tnm =~ s/^_set_//;
-    $tnm =~ s/^_setval_//;
-    printlabel $name, "set: $tnm";
+    $tnm =~ s/^_setint_//;
+    $tnm =~ s/^_setstr_//;
+    printlabel $name, "${type}: $tnm";
 
-    setlist $r_clist, $name;
-    $r_config->{$name} = $val;
-    printyesno_val $name, $r_config->{$name};
+    if ($type eq 'set') {
+      if (defined ($r_config->{$name})) {
+        setlist $r_clist, $name;
+        $r_config->{$name} = $val;
+        printyesno $name, $r_config->{$name};
+      } else {
+        printyesno_val $name, 'no such variable';
+      }
+    } elsif ($type eq 'setint') {
+      setlist $r_clist, $name;
+      $r_config->{$name} = $val;
+      printyesno $name, $r_config->{$name};
+    } else {
+      setlist $r_clist, $name;
+      $r_config->{$name} = $val;
+      printyesno_val $name, $r_config->{$name};
+    }
 }
 
 sub
@@ -1299,6 +1311,17 @@ create_config
             }
             print LOGFH "config file: $CONFH\n";
         }
+        elsif ($line =~ m#^\s*option\-file\s+([^\s]+)#o)
+        {
+            print "options-file: $1\n";
+            my $tfile = $1;
+            if ($tfile =~ m#^/#o) {
+              $OPTIONFILE = $tfile;
+            } else {
+              $OPTIONFILE = "../$tfile";
+            }
+            print LOGFH "options file: $OPTIONFILE\n";
+        }
         elsif ($line =~ m#^\s*standard#o)
         {
             check_standard (\%clist, \%config);
@@ -1366,12 +1389,6 @@ create_config
             my $nm = "_command_" . $cmd;
             check_command ($nm, $cmd, \%clist, \%config);
         }
-        elsif ($line =~ m#^\s*opt_envvar\s+([^\s]*)#o)
-        {
-            my $optnm = $1;
-            my $nm = "_opt_envvar";
-            check_opt_envvar ($nm, $optnm, \%clist, \%config);
-        }
         elsif ($line =~ m#^\s*(if(not)?option)\s+([^\s]+)#o)
         {
             my $type = $1;
@@ -1397,11 +1414,15 @@ create_config
         {
             ;
         }
-        elsif ($line =~ m#^\s*(set(val)?)\s+([^\s]+)\s*(.*)#o)
+        elsif ($line =~ m#^\s*(set(int|str)?)\s+([^\s]+)\s*(.*)#o)
         {
-            my $nm = "_$1_$3";
+            my $type = $1;
+            my $nm = $3;
+            if ($type eq 'setint' || $type eq 'setstr') {
+              $nm = "_${type}_$3";
+            }
             my $val = $4;
-            check_set ($nm, $val, \%clist, \%config);
+            check_set ($nm, $type, $val, \%clist, \%config);
         }
         elsif ($line =~ m#^\s*npt\s+([^\s]*)\s*(.*)#o)
         {
@@ -1532,13 +1553,13 @@ _HERE_
       if ($config{$val} ne "0") {
           $tval = 1;
       }
-      if ($val =~ m#^_set_#o) {
+      if ($val =~ m#^_setint_#o) {
         $tnm = $val;
-        $tnm =~ s/^_set_//;
-        print CCOFH "#define $tnm $tval\n";
-      } elsif ($val =~ m#^_setval_#o) {
+        $tnm =~ s/^_setint_//;
+        print CCOFH "#define $tnm $config{$val}\n";
+      } elsif ($val =~ m#^_setstr_#o) {
         $tnm = $val;
-        $tnm =~ s/^_setval_//;
+        $tnm =~ s/^_setstr_//;
         print CCOFH "#define $tnm \"$config{$val}\"\n";
       } elsif ($val =~ m#^(_hdr|_sys|_command)#o) {
         print CCOFH "#define $val $tval\n";
@@ -1594,7 +1615,7 @@ usage
 {
   print STDOUT "Usage: $0 [-c <cache-file>] [-v <vars-file>] \n";
   print STDOUT "       [-l <log-file>] [-t <tmp-dir>] [-r <reqlib-file>]\n";
-  print STDOUT "       [-C] <config-file>\n";
+  print STDOUT "       [-o <option-file>] [-C] <config-file>\n";
   print STDOUT "  -C : clear cache-file\n";
   print STDOUT "<tmp-dir> must not exist.\n";
   print STDOUT "defaults:\n";
@@ -1603,6 +1624,7 @@ usage
   print STDOUT "  <log-file>   : mkconfig.log\n";
   print STDOUT "  <tmp-dir>    : _tmp_mkconfig\n";
   print STDOUT "  <reqlib-file>: reqlibs.txt\n";
+  print STDOUT "  <option-file>: options.dat\n";
 }
 
 # main
@@ -1633,6 +1655,12 @@ while ($#ARGV > 0)
       $TMP = $ARGV[0];
       shift @ARGV;
   }
+  if ($ARGV[0] eq "-o")
+  {
+      shift @ARGV;
+      $OPTIONFILE = $ARGV[0];
+      shift @ARGV;
+  }
 }
 
 my $configfile = $ARGV[0];
@@ -1651,6 +1679,7 @@ $LOG = "../$LOG";
 $REQLIB = "../$REQLIB";
 $CACHEFILE = "../$CACHEFILE";
 $VARSFILE = "../$VARSFILE";
+$OPTIONFILE = "../$OPTIONFILE";
 
 if (-d $TMP) { system ("rm -rf $TMP"); }
 mkdir $TMP, 0777;
