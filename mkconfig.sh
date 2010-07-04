@@ -420,10 +420,10 @@ create_config () {
 
     if [ $ininclude -eq 0 ]; then
       case ${tdatline} in
-        else)
+        "else")
           if [ $doproc -eq 0 ]; then doproc=1; else doproc=0; fi
           ;;
-        endif)
+        "endif")
           set $doproclist
           c=$#
           if [ $c -gt 0 ]; then
@@ -537,9 +537,9 @@ create_config () {
             doproc=$rc
             echo "## doproc: $doproc doproclist: $doproclist" >&9
             ;;
-          else)
+          "else")
             ;;
-          endif)
+          "endif")
             ;;
           command*)
             chkconfigfname
