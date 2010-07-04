@@ -1,11 +1,9 @@
 #!/bin/sh
 
 script=$@
-echo ${EN} "compile mkconfig units${EC}" >&5
+echo ${EN} "compile shell scripts${EC}" >&5
 
 grc=0
-
-cd $_MKCONFIG_DIR/mkconfig.units
 
 echo ${EN} " ${EC}" >&5
 for s in $shelllist; do
@@ -18,6 +16,19 @@ for s in $shelllist; do
   fi
   echo ${EN} "${ss} ${EC}" >&5
   echo "## testing with ${s} "
+  cd $_MKCONFIG_DIR
+  for f in *.sh; do
+    $s -n $f
+    rc=$?
+    if [ $rc -ne 0 ];then grc=$rc; fi
+  done
+  cd $_MKCONFIG_DIR/mkconfig.units
+  for f in *.sh; do
+    $s -n $f
+    rc=$?
+    if [ $rc -ne 0 ];then grc=$rc; fi
+  done
+  cd $_MKCONFIG_DIR/tests.d
   for f in *.sh; do
     $s -n $f
     rc=$?
