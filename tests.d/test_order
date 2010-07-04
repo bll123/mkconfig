@@ -1,8 +1,5 @@
-1 compmkperl
-1 compmkpost
-1 compmkrl
-1 compmksh
-1 compunits
+1 compperl
+1 compsh
 2 cache
 2 define
 2 include
