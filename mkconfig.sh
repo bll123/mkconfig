@@ -90,12 +90,22 @@ getdata () {
     eval $cmd
 }
 
+setifleveldisp () {
+  ifleveldisp=""
+  for il in $iflevels; do
+    ifleveldisp="${il}${ifleveldisp}"
+  done
+  if [ "$ifleveldisp" != "" ]; then
+    doappend ifleveldisp " "
+  fi
+}
+
 printlabel () {
   tname=$1
   tlabel=$2
 
-  echo "   [${tname}] ${tlabel} ... " >&9
-  echo ${EN} "${tlabel} ... ${EC}" >&1
+  echo "   $ifleveldisp[${tname}] ${tlabel} ... " >&9
+  echo ${EN} "${ifleveldisp}${tlabel} ... ${EC}" >&1
 }
 
 
@@ -187,11 +197,12 @@ check_command () {
 }
 
 check_ifoption () {
-    type=$1
-    name=$2
-    oopt=$3
+    ifdispcount=$1
+    type=$2
+    name=$3
+    oopt=$4
 
-    printlabel $name "$type: ${oopt}"
+    printlabel $name "$type ($ifdispcount): ${oopt}"
 
     if [ $optionsloaded = "F" -a -f "${OPTIONFILE}" ]; then
       exec 6<&0 < ${OPTIONFILE}
@@ -251,11 +262,12 @@ check_ifoption () {
 }
 
 check_if () {
-    ifline=$1
+    iflabel=$1
+    ifdispcount=$2
+    ifline=$3
 
-    name="$ifline"
-    dosubst name ' ' ''
-    printlabel $name, "if: $ifline";
+    name=$iflabel
+    printlabel $name, "if ($ifdispcount): $iflabel";
 
     boolclean ifline
     echo "## ifline: $ifline" >&9
@@ -374,6 +386,9 @@ create_config () {
   doproclist=""
   doproc=1
   linenumber=0
+  ifstmtcount=0
+  ifleveldisp=""
+  iflevels=""
   initifs
   > $INC
   case ${configfile} in
@@ -422,6 +437,12 @@ create_config () {
       case ${tdatline} in
         "else")
           if [ $doproc -eq 0 ]; then doproc=1; else doproc=0; fi
+          set -- $iflevels
+          shift
+          iflevels=$@
+          iflevels="-$ifstmtcount $iflevels"
+          setifleveldisp
+          echo "## else iflevels: $iflevels" >&9
           ;;
         "endif")
           set $doproclist
@@ -432,8 +453,15 @@ create_config () {
             shift
             doproclist=$@
             echo "## doproc: $doproc doproclist: $doproclist" >&9
+            set -- $iflevels
+            shift
+            iflevels=$@
+            setifleveldisp
+            echo "## endif iflevels: $iflevels" >&9
           else
             doproc=1
+            ifleveldisp=""
+            iflevels=""
           fi
           ;;
       esac
@@ -520,8 +548,12 @@ create_config () {
             type=$1
             opt=$2
             nm="_${type}_${opt}"
-            check_ifoption $type ${nm} ${opt}
+            domath ifstmtcount "$ifstmtcount + 1"
+            check_ifoption $ifstmtcount $type ${nm} ${opt}
             rc=$?
+            iflevels="+$ifstmtcount $iflevels"
+            setifleveldisp
+            echo "## ifopt iflevels: $iflevels" >&9
             doproclist="$doproc $doproclist"
             doproc=$rc
             echo "## doproc: $doproc doproclist: $doproclist" >&9
@@ -530,9 +562,15 @@ create_config () {
             chkconfigfname
             set $tdatline
             shift
+            label=$1
+            shift
             ifline=$@
-            check_if "$ifline"
+            domath ifstmtcount "$ifstmtcount + 1"
+            check_if $label $ifstmtcount "$ifline"
             rc=$?
+            iflevels="+$ifstmtcount $iflevels"
+            setifleveldisp
+            echo "## if iflevels: $iflevels" >&9
             doproclist="$doproc $doproclist"
             doproc=$rc
             echo "## doproc: $doproc doproclist: $doproclist" >&9

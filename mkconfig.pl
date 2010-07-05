@@ -37,6 +37,7 @@ _HERE_
 
 my $optionsloaded = 0;
 my %optionshash;
+my $iflevels = '';
 
 sub
 exitmkconfig
@@ -49,8 +50,8 @@ sub
 printlabel
 {
     my ($name, $label) = @_;
-    print LOGFH "## [$name] $label ... \n";
-    print STDOUT "$label ... ";
+    print LOGFH "## ${iflevels}[$name] $label ... \n";
+    print STDOUT "${iflevels}$label ... ";
 }
 
 sub
@@ -540,9 +541,9 @@ check_command
 sub
 check_ifoption
 {
-    my ($type, $name, $opt, $r_clist, $r_config) = @_;
+    my ($ifcount, $type, $name, $opt, $r_clist, $r_config) = @_;
 
-    printlabel $name, "$type: $opt";
+    printlabel $name, "$type ($ifcount): $opt";
 
     if ($optionsloaded == 0 && open (OPTS, "<$OPTIONFILE")) {
       while (my $o = <OPTS>) {
@@ -595,9 +596,9 @@ check_ifoption
 sub
 check_if
 {
-    my ($ifline, $r_clist, $r_config) = @_;
+    my ($iflabel, $ifcount, $ifline, $r_clist, $r_config) = @_;
 
-    my $name = $ifline;
+    my $name = "_if_$iflabel";
     my $trc = 0;
     # make parseable
     $ifline =~ s/!/ ! /og;
@@ -605,20 +606,19 @@ check_if
     $ifline =~ s/\)/ ) /og;
     $ifline =~ s/&&/ \&\& /og;
     $ifline =~ s/\|\|/ || /og;
+    $ifline =~ s/ and / && /og;
+    $ifline =~ s/ or / || /og;
+    $ifline =~ s/ not / ! /og;
     $ifline =~ s/ +/ /og;
     $ifline =~ s/^ *//og;
     $ifline =~ s/ *$//og;
 
-    printlabel $name, "if: $ifline";
+    printlabel $name, "if ($ifcount): $iflabel";
     my $nline = '';
     print LOGFH "## ifline: $ifline\n";
     foreach my $token (split (/\s/, $ifline)) {
       if ($token eq '(' || $token eq ')' || $token eq '&&' ||
-          $token eq '||' || $token eq '!' ||
-          $token eq 'and' || $token eq 'or' || $token eq 'not') {
-        if ($token eq 'and') { $token = '&&'; }
-        if ($token eq 'or') { $token = '||'; }
-        if ($token eq 'not') { $token = '!'; }
+          $token eq '||' || $token eq '!') {
         $nline .= $token . ' ';
       } else {
         print LOGFH "## value of $token: " . $r_config->{$token} . "\n";
@@ -1255,6 +1255,7 @@ create_config
     my $doproc = 1;
     my $include = '';
     my $tline = '';
+    my $ifstmtcount = 0;
     while (my $line = <DATAIN>)
     {
       chomp $line;
@@ -1298,6 +1299,8 @@ create_config
       if ($line =~ m#^\s*else#o)
       {
           $doproc = $doproc == 0 ? 1 : 0;
+          $iflevels =~ s/.\d+\s$//;
+          $iflevels .= "-$ifstmtcount ";
       }
       elsif ($line =~ m#^\s*endif#o)
       {
@@ -1306,8 +1309,10 @@ create_config
           $doproc = shift @doproclist;
           print LOGFH "## endif: doproclist now : " . join (' ', @doproclist) . "\n";
           print LOGFH "## endif: doproc: $doproc\n";
+          $iflevels =~ s/.\d+\s$//;
         } else {
           $doproc = 1;
+          $iflevels = '';
         }
       }
 
@@ -1325,7 +1330,7 @@ create_config
         }
         elsif ($line =~ m#^\s*option\-file\s+([^\s]+)#o)
         {
-            print "options-file: $1\n";
+            print "option-file: $1\n";
             my $tfile = $1;
             if ($tfile =~ m#^/#o) {
               $OPTIONFILE = $tfile;
@@ -1406,17 +1411,22 @@ create_config
             my $type = $1;
             my $opt = $3;
             my $nm = "_${type}_${opt}";
-            my $rc = check_ifoption ($type, $nm, $opt, \%clist, \%config);
+            ++$ifstmtcount;
+            my $rc = check_ifoption ($ifstmtcount, $type, $nm, $opt, \%clist, \%config);
+            $iflevels .= "+$ifstmtcount ";
             unshift @doproclist, $doproc;
             $doproc = $rc;
             print LOGFH "## ifoption: doproclist: " . join (' ', @doproclist) . "\n";
             print LOGFH "## ifoption: doproc: $doproc\n";
         }
-        elsif ($line =~ m#^\s*if\s+(.*)#o)
+        elsif ($line =~ m#^\s*if\s+([^\s]+)\s+(.*)#o)
         {
-            my $ifline = $1;
-            my $nm = "_if_";
-            my $rc = check_if ($ifline, \%clist, \%config);
+            my $iflabel = $1;
+            my $ifline = $2;
+            ++$ifstmtcount;
+            print LOGFH "## if: label: $iflabel count $ifstmtcount line: $ifline\n";
+            my $rc = check_if ($iflabel, $ifstmtcount, $ifline, \%clist, \%config);
+            $iflevels .= "+$ifstmtcount ";
             unshift @doproclist, $doproc;
             $doproc = $rc;
             print LOGFH "## if: doproclist: " . join (' ', @doproclist) . "\n";
