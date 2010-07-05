@@ -314,7 +314,7 @@ check_set () {
       printyesno_actual $nm "no such variable"
     fi
   elif [ "$type" = "setint" ]; then
-    printyesno $nm "${sval}"
+    printyesno_actual $nm "${sval}"
     setdata ${_MKCONFIG_PREFIX} ${nm} "${sval}"
   else
     printyesno_actual $nm "${sval}"
