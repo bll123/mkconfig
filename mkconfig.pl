@@ -54,12 +54,24 @@ printlabel
 }
 
 sub
-printyesno_val
+printyesno_actual
 {
     my ($name, $val, $tag) = @_;
 
     print LOGFH "## [$name] $val $tag\n";
     print STDOUT "$val $tag\n";
+}
+
+sub
+printyesno_val
+{
+  my ($name, $val, $tag) = @_;
+
+  if ($val ne '0') {
+    printyesno_actual ($name, $val, $tag);
+  } else {
+    printyesno_actual ($name, 'no', $tag);
+  }
 }
 
 sub
@@ -570,10 +582,10 @@ check_ifoption
 
     if (! $optionsloaded) {
       $trc = 0;
-      printyesno_val $name, "no options file";
+      printyesno_actual $name, "no options file";
     } elsif ($found eq 'F') {
       $trc = 0;
-      printyesno_val $name, "option not found";
+      printyesno_actual $name, "option not found";
     } else {
       printyesno $name, $trc;
     }
@@ -636,16 +648,16 @@ check_set
         $r_config->{$name} = $val;
         printyesno $name, $r_config->{$name};
       } else {
-        printyesno_val $name, 'no such variable';
+        printyesno_actual $name, 'no such variable';
       }
     } elsif ($type eq 'setint') {
       setlist $r_clist, $name;
       $r_config->{$name} = $val;
-      printyesno $name, $r_config->{$name};
+      printyesno_actual $name, $r_config->{$name};
     } else {
       setlist $r_clist, $name;
       $r_config->{$name} = $val;
-      printyesno_val $name, $r_config->{$name};
+      printyesno_actual $name, $r_config->{$name};
     }
 }
 
