@@ -1,4 +1,4 @@
-mkconfig - configuration tool (version 1.6).
+mkconfig - configuration tool (version 1.7).
 
 Please e-mail any configuration units and the corresponding
 manual page entry to brad.lanam.di_at_gmail.com.
@@ -8,6 +8,10 @@ If you have a test that can verify the unit works, please include
 that also.
 
 CHANGES
+
+    1.7                                     [5 Jul 2010]
+        Add labels to if statement.
+        if statement counter and display.
 
     1.6                                     [4 Jul 2010]
         Fix getlistofshells() when absolute path.
