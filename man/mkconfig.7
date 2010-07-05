@@ -111,14 +111,14 @@ If there is no options file, or the option does not exist, both
 The \fIifoption\fP, \fIifnotoption\fP and \fIif\fP statements may be
 nested.
 .TP
-\fBif\fP if\-statement ... [else ...] endif
+\fBif\fP label if\-statement ... [else ...] endif
 .br
 The \fIif\fP statement is a combination of test\-variables, &&, ||,
 ! (not) and parentheses.  It is recommended that parentheses be used
 copiously to avoid any possible precedence differences between different
 shells.
 .br
-e.g. if _lib_func1 && _hdr_header1 && ( ! (_lib_func3 || _lib_func4)) &&
+e.g. if mylabel _lib_func1 && _hdr_header1 && ( ! (_lib_func3 || _lib_func4)) &&
 _setint_my_var
 .PP
 The \fIifoption\fP, \fIifnotoption\fP and \fIif\fP statements may be
