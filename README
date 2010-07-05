@@ -18,13 +18,13 @@ CHANGES
         Added option-file.
         Added mkcsetopt.sh
 
-    1.5                                     [13 May 2010]
+    1.5                                     [13 May 2010 - separate release]
         Change tmp directory structure and where logs go.
         Fixes for mkconfig.pl to handle absolute paths.
         Remove /bin from path for cygwin (duplicate of /usr/bin).
         Code cleanup.
 
-    1.4                                     [10 May 2010]
+    1.4 (di ver 4.23)                       [10 May 2010]
         Move -lsun, -lseq out of env-cc.sh
         Update env-cc.sh to handle QNX getconf 'undefined' output.
         Fix cache test (tests.d/cache.sh).
@@ -36,14 +36,14 @@ CHANGES
         Redo paths in shellfuncs; make sure symlinked paths are present.
         Needed for Tru64, do: export BIN_SH=svr4 beforehand.
 
-    1.3                                     [1 may 2010]
+    1.3 (di ver 4.22)                       [1 may 2010]
         Use the configuration file and cache to determine the necessary
           libraries to link in rather than linking in all found.
         Change library format to allow better control of link
           tests.
         Change dosubst() to always use sed.  It's more reliable.
 
-    1.2                                     [12 mar 2010]
+    1.2 (di ver 4.20, 4.21)                 [12 mar 2010]
         Rewrite mkconfig.sh to use unit scripts and increase performance.
         Add environment units.
         Allow _MKCONFIG_SHELL to override shell.
