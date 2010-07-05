@@ -20,8 +20,8 @@ while read f; do
 done
 chmod -R a+r ${dir}
 
-tar cf - ./${dir} |
-gzip -9 > ${dir}.tar.gz
+tar cf - ${dir} |
+  gzip -9 > ${dir}.tar.gz
 
 rm -rf ${dir} > /dev/null 2>&1
 
