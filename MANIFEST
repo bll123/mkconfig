@@ -26,6 +26,7 @@ tests.d/cache.dat
 tests.d/cache.mkshpl
 tests.d/cache.sh
 tests.d/compperl.sh
+tests.d/compsh.mksh
 tests.d/compsh.sh
 tests.d/define.dat
 tests.d/define.mkshpl
@@ -69,6 +70,7 @@ tests.d/multlib.mkshpl
 tests.d/multlib.reqlibs
 tests.d/multlib.sh
 tests.d/multword.dat
+tests.d/multword.mksh
 tests.d/multword.sh
 tests.d/test_order
 VERSION			version
