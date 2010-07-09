@@ -1,7 +1,11 @@
 #!/bin/sh
 
+if [ "$1" = "-d" ]; then
+  echo ${EN} " w/single lib${EC}"
+  exit 0
+fi
+
 script=$@
-echo ${EN} "w/single lib${EC}" >&5
 
 grc=0
 
@@ -27,7 +31,7 @@ if [ $? -ne 0 ]; then
 fi
 ar cq libtst1lib.a tst1lib.o
 
-eval "${script} -C ${_MKCONFIG_RUNTESTDIR}/singlelib.dat"
+${_MKCONFIG_SHELL} ${script} -C ${_MKCONFIG_RUNTESTDIR}/singlelib.dat
 case $script in
   *mkconfig.sh)
     ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh singlelib.ctest

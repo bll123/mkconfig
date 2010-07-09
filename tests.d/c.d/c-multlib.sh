@@ -1,7 +1,11 @@
 #!/bin/sh
 
+if [ "$1" = "-d" ]; then
+  echo ${EN} " w/multiple libs${EC}"
+  exit 0
+fi
+
 script=$@
-echo ${EN} "w/multiple lib${EC}" >&5
 
 grc=0
 
@@ -45,7 +49,7 @@ if [ $? -ne 0 ]; then
 fi
 ar cq libtst2libc.a tst2libc.o
 
-eval "${script} -C ${_MKCONFIG_RUNTESTDIR}/multlib.dat"
+${script} -C ${_MKCONFIG_RUNTESTDIR}/multlib.dat
 case $script in
   *mkconfig.sh)
     ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh multlib.ctest

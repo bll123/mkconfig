@@ -1,23 +1,27 @@
 #!/bin/sh
 
+if [ "$1" = "-d" ]; then
+  echo ${EN} " cache${EC}"
+  exit 0
+fi
+
 script=$@
 
 . $_MKCONFIG_DIR/shellfuncs.sh
 testshcapability
 
-count=1
-if [ -f ${_MKCONFIG_RUNTMPDIR}/cache.${count} ]; then
-  domath count "$count + 1"
+ccount=1
+if [ -f ${_MKCONFIG_RUNTMPDIR}/cache.${ccount} ]; then
+  domath ccount "$ccount + 1"
 fi
-while test -f cache.${count}; do
-  domath count "$count + 1"
+while test -f cache.${ccount}; do
+  domath ccount "$ccount + 1"
 done
 
-if [ $count -eq 1 ]; then
-  echo ${EN} "cache${EC}" >&5
+if [ $ccount -eq 1 ]; then
   eval "${script} -C $_MKCONFIG_RUNTESTDIR/cache.dat"
-  mv -f cache.ctest ${_MKCONFIG_RUNTMPDIR}/cache.${count}
-  cp -f mkconfig_c.vars ${_MKCONFIG_RUNTMPDIR}/cache.${count}.vars
+  mv -f cache.ctest ${_MKCONFIG_RUNTMPDIR}/cache.${ccount}
+  cp -f mkconfig_c.vars ${_MKCONFIG_RUNTMPDIR}/cache.${ccount}.vars
   $0 $@
   exit $?
 fi
@@ -29,36 +33,14 @@ case $script in
     ;;
 esac
 
-if [ $dosh = "T" ]; then
-  echo ${EN} " ${EC}" >&5
-  for s in $shelllist; do
-    unset _shell
-    unset shell
-    cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;getshelltype;echo \\\$shell\""
-    ss=`eval $cmd`
-    cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;getshelltype;echo \\\$shell\""
-    ss=`eval $cmd`
-    if [ "$ss" = "sh" ]; then
-      ss=`echo $s | sed 's,.*/,,'`
-    fi
-    echo ${EN} "${ss} ${EC}" >&5
-    eval "${s} -c '${script} $_MKCONFIG_RUNTESTDIR/cache.dat'"
-    mv -f cache.ctest cache.${count}
-    mv -f mkconfig_c.vars cache.${count}.vars
-    cp -f ${_MKCONFIG_RUNTMPDIR}/cache.1.vars mkconfig_c.vars
-    domath count "$count + 1"
-  done
-else
-  echo ${EN} "cache${EC}" >&5
-  eval "${script} $_MKCONFIG_RUNTESTDIR/cache.dat"
-  mv -f cache.ctest cache.${count}
-  mv -f mkconfig_c.vars cache.${count}.vars
-  cp -f ${_MKCONFIG_RUNTMPDIR}/cache.1.vars mkconfig_c.vars
-fi
+${_MKCONFIG_SHELL} ${script} $_MKCONFIG_RUNTESTDIR/cache.dat
+mv -f cache.ctest cache.${ccount}
+mv -f mkconfig_c.vars cache.${ccount}.vars
+cp -f ${_MKCONFIG_RUNTMPDIR}/cache.1.vars mkconfig_c.vars
 
 grc=0
 c=2
-while test $c -lt $count; do
+while test $c -lt $ccount; do
   echo "## diff config.h 1 ${c}"
   diff -b ${_MKCONFIG_RUNTMPDIR}/cache.1 cache.${c}
   rc=$?

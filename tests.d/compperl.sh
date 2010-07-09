@@ -1,7 +1,11 @@
 #!/bin/sh
 
+if [ "$1" = "-d" ]; then
+  echo ${EN} " compile perl scripts${EC}"
+  exit 0
+fi
+
 script=$@
-echo ${EN} "compile perl scripts${EC}" >&5
 
 grc=0
 
