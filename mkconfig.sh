@@ -11,8 +11,8 @@
 #    9 - >>$LOG                     (mkconfig.sh)
 #    8 - >>$VARSFILE, >>$CONFH      (mkconfig.sh)
 #    7 - saved stdin                (mkconfig.sh)
-#    6 - temporary for c-main.sh    (c-main.sh)
-#    4 - temporary for c-main.sh    (c-main.sh)
+#    6 - temporary                  (c-main.sh, mkconfig.sh)
+#    4 - temporary                  (c-main.sh)
 #
 
 RUNTOPDIR=`pwd`
@@ -182,6 +182,28 @@ checkcache () {
   return $rc
 }
 
+loadoptions () {
+  if [ $optionsloaded = "F" -a -f "${OPTIONFILE}" ]; then
+    exec 6<&0 < ${OPTIONFILE}
+    while read o; do
+      case $o in
+        "")
+          continue
+          ;;
+        \#*)
+          continue
+          ;;
+      esac
+
+      topt=`echo $o | sed 's/=.*//'`
+      tval=`echo $o | sed 's/.*=//'`
+      eval "_mkc_opt_${topt}=\"${tval}\""
+    done
+    exec <&6 6<&-
+    optionsloaded=T
+  fi
+}
+
 check_command () {
     name=$1
     ccmd=$2
@@ -204,26 +226,7 @@ check_ifoption () {
 
     printlabel $name "$type ($ifdispcount): ${oopt}"
 
-    if [ $optionsloaded = "F" -a -f "${OPTIONFILE}" ]; then
-      exec 6<&0 < ${OPTIONFILE}
-      while read o; do
-        case $o in
-          "")
-            continue
-            ;;
-          \#*)
-            continue
-            ;;
-        esac
-
-        topt=`echo $o | sed 's/=.*//'`
-        tval=`echo $o | sed 's/.*=//'`
-        eval "_mkc_opt_${topt}=${tval}"
-      done
-      exec <&6 6<&-
-      optionsloaded=T
-    fi
-
+    loadoptions
     trc=F  # if option is not set, it's false
 
     found=F
@@ -332,6 +335,30 @@ check_set () {
     printyesno_actual $nm "${sval}"
     setdata ${_MKCONFIG_PREFIX} ${nm} "${sval}"
   fi
+}
+
+check_option () {
+  nm=$1
+  onm=$2
+  def=$3
+
+  name=$nm
+
+  loadoptions
+
+  oval=$def
+  printlabel $name "option: ${onm}"
+
+  if [ "$optionsloaded" = "T" ]; then
+    eval tval=\$_mkc_opt_${onm}
+    if [ "$tval" != "" ]; then
+      found=T
+      echo "  found: $onm $tval" >&9
+      oval="$tval"
+    fi
+  fi
+  printyesno_actual $nm "$oval"
+  setdata ${_MKCONFIG_PREFIX} ${nm} "${oval}"
 }
 
 require_unit () {
@@ -541,6 +568,15 @@ create_config () {
             shift; shift
             tval=$@
             check_set ${nm} $type "${tval}"
+            ;;
+          option*)
+            chkconfigfname
+            set $tdatline
+            optnm=$2
+            shift; shift
+            tval=$@
+            nm="_opt_${optnm}"
+            check_option ${nm} $optnm "${tval}"
             ;;
           ifoption*|ifnotoption*)
             chkconfigfname

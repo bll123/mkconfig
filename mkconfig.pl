@@ -138,6 +138,24 @@ checkcache
 }
 
 sub
+loadoptions
+{
+  if ($optionsloaded == 0 && open (OPTS, "<$OPTIONFILE")) {
+    while (my $o = <OPTS>) {
+      chomp $o;
+      if ($o =~ /^$/o || $o =~ /^#/o) {
+        next;
+      }
+      my ($onm, $val) = split (/=/, $o);
+      printf LOGFH "## load: $onm = $val\n";
+      $optionshash{$onm} = $val;
+    }
+    $optionsloaded = 1;
+    close (OPTS);
+  }
+}
+
+sub
 setlist
 {
     my ($r_clist, $name) = @_;
@@ -545,19 +563,7 @@ check_ifoption
 
     printlabel $name, "$type ($ifcount): $opt";
 
-    if ($optionsloaded == 0 && open (OPTS, "<$OPTIONFILE")) {
-      while (my $o = <OPTS>) {
-        chomp $o;
-        if ($o =~ /^$/o || $o =~ /^#/o) {
-          next;
-        }
-        my ($onm, $val) = split (/=/, $o);
-        printf LOGFH "## load: $onm = $val\n";
-        $optionshash{$onm} = $val;
-      }
-      $optionsloaded = 1;
-      close (OPTS);
-    }
+    loadoptions ();
 
     my $trc = 'F';
 
@@ -659,6 +665,27 @@ check_set
       $r_config->{$name} = $val;
       printyesno_actual $name, $r_config->{$name};
     }
+}
+
+sub
+check_option
+{
+    my ($name, $onm, $def, $r_clist, $r_config) = @_;
+
+    printlabel $name, "option: $onm";
+
+    loadoptions ();
+    my $oval = $def;
+
+    if ($optionsloaded && defined ($optionshash{$onm})) {
+      $found = 'T';
+      $oval = $optionshash{$onm};
+      print LOGFH "##  found: $onm => $oval\n";
+    }
+
+    setlist $r_clist, $name;
+    $r_config->{$name} = $oval;
+    printyesno_actual $name, $r_config->{$name};
 }
 
 sub
@@ -1446,6 +1473,13 @@ create_config
             my $val = $4;
             check_set ($nm, $type, $val, \%clist, \%config);
         }
+        elsif ($line =~ m#^\s*option\s+([^\s]+)\s*(.*)#o)
+        {
+            my $nm = "_opt_$1";
+            my $onm = $1;
+            my $def = $2;
+            check_option ($nm, $onm, $def, \%clist, \%config);
+        }
         elsif ($line =~ m#^\s*npt\s+([^\s]*)\s*(.*)#o)
         {
             my $func = $1;
@@ -1579,9 +1613,10 @@ _HERE_
         $tnm = $val;
         $tnm =~ s/^_setint_//;
         print CCOFH "#define $tnm $config{$val}\n";
-      } elsif ($val =~ m#^_setstr_#o) {
+      } elsif ($val =~ m#^_setstr_#o || $val =~ m#^_opt_#o) {
         $tnm = $val;
         $tnm =~ s/^_setstr_//;
+        $tnm =~ s/^_opt_//;
         print CCOFH "#define $tnm \"$config{$val}\"\n";
       } elsif ($val =~ m#^(_hdr|_sys|_command)#o) {
         print CCOFH "#define $val $tval\n";
