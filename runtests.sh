@@ -131,6 +131,7 @@ echo ${EN} "   ${EC}"
 getlistofshells 5>&1 >&8 2>&1
 echo ""
 export shelllist
+grc=0
 count=0
 fcount=0
 lastpass=""
@@ -183,7 +184,6 @@ while read tline; do
   fi
 
   scount=""
-  grc=0
   echo ${EN} "$tbase ...${EC}"
   echo ${EN} "$tbase ...${EC}" >&8
   _MKCONFIG_TSTRUNTMPDIR=$_MKCONFIG_RUNTMPDIR/${tbase}${suffix}
@@ -198,6 +198,7 @@ while read tline; do
   if [ -f ${tbase}.mksh -o -f ${tbase}.mkshpl ]; then
     echo ${EN} " ...${EC}"
     echo ${EN} " ...${EC}" >&8
+    src=0
     scount=1
     for s in $shelllist; do
       unset _shell
@@ -221,13 +222,14 @@ while read tline; do
     done
   else
     runshelltest
-    rc=$?
+    src=$?
   fi
 
-  if [ $rc -ne 0 ]; then
+  if [ $src -ne 0 ]; then
     echo " ... failed"
     echo " failed" >&8
     domath fcount "$fcount + 1"
+    src=1
     grc=1
   else
     echo " ... success"
@@ -275,6 +277,7 @@ while read tline; do
       echo " ... failed"
       echo " failed" >&8
       domath fcount "$fcount + 1"
+      grc=1
     else
       echo " ... success"
       echo " success" >&8
