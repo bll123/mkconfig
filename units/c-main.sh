@@ -799,9 +799,9 @@ output_item () {
       echo "#define ${tname} ${val}"
       set +f
       ;;
-    _setstr_*)
+    _setstr_*|_opt_*)
       tname=$name
-      dosubst tname '_setstr_' ''
+      dosubst tname '_setstr_' '' '_opt_' ''
       set -f
       echo "#define ${tname} \"${val}\""
       set +f
