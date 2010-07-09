@@ -10,6 +10,7 @@
 # speed at the cost of maintainability...
 # File Descriptors:
 #    9 - $TSTRUNLOG
+#    8 - $MAINLOG
 #    5 - stdout (as 1 is directed to the log)
 #
 
@@ -58,6 +59,48 @@ if [ $? != 0 ]; then
   exit 1
 fi
 
+runshelltest () {
+  stag=""
+  if [ "$_MKCONFIG_SHELL" != "" ]; then
+    stag=".${scount}_${shell}"
+  fi
+  TSTRUNLOG=${_MKCONFIG_TSTRUNTMPDIR}/${tbase}.log${stag}
+  > $TSTRUNLOG
+  exec 9>>$TSTRUNLOG
+
+  echo "####" >&9
+  echo "# Test: $tbase $arg" >&9
+  if [ "$_MKCONFIG_SHELL" != "" ]; then
+    echo "## testing with ${_MKCONFIG_SHELL} " >&9
+  fi
+  echo "# $dt" >&9
+  echo "####" >&9
+
+  cd $_MKCONFIG_TSTRUNTMPDIR
+  if [ "$_MKCONFIG_SHELL" != "" ]; then
+    echo ${EN} " ${ss}${EC}"
+  fi
+  targ=$arg
+  if [ "$arg" != "" ]; then
+    targ="$_MKCONFIG_DIR/$arg"
+  fi
+  # dup stdout to 5; redirect stdout to 9; redirect stderr to new 1.
+  $_MKCONFIG_RUNTESTDIR/$tf $targ 5>&1 >&9 2>&1
+  rc=$?
+  cd $_MKCONFIG_RUNTESTDIR
+
+  dt=`date`
+  echo "####" >&9
+  echo "# $dt" >&9
+  echo "# exit $rc" >&9
+  echo "####" >&9
+  exec 9>&-
+  if [ $rc -ne 0 -a "$_MKCONFIG_SHELL" != "" ]; then
+    echo ${EN} "*${EC}"
+  fi
+  return $rc
+}
+
 _MKCONFIG_RUNTESTDIR=`pwd`
 export _MKCONFIG_RUNTESTDIR
 _MKCONFIG_RUNTMPDIR=$_MKCONFIG_RUNTOPDIR/_mkconfig_runtests
@@ -76,9 +119,10 @@ mkdir $_MKCONFIG_RUNTMPDIR
 
 MAINLOG=${_MKCONFIG_RUNTMPDIR}/main.log
 > $MAINLOG
+exec 8>>$MAINLOG
 echo "## locating valid shells"
 echo ${EN} "   ${EC}"
-getlistofshells 5>&1 >> $MAINLOG 2>&1
+getlistofshells 5>&1 >&8 2>&1
 echo ""
 export shelllist
 count=0
@@ -95,12 +139,12 @@ for tbase in $teststorun; do
 
   ok=T
   if [ ! -f ./$tf ]; then
-    echo "$tf ... missing ... failed"
-    echo "$tf ... missing ... failed" >> $MAINLOG
+    echo "$tbase ... missing ... failed"
+    echo "$tbase ... missing ... failed" >&8
     ok=F
   elif [ ! -x ./$tf ]; then
-    echo "$tf ... permission denied ... failed"
-    echo "$tf ... permission denied ... failed" >> $MAINLOG
+    echo "$tbase ... permission denied ... failed"
+    echo "$tbase ... permission denied ... failed" >&8
     ok=F
   fi
   if [ $ok = F ]; then
@@ -117,48 +161,56 @@ for tbase in $teststorun; do
     suffix="_sh"
   fi
 
+  scount=""
+  grc=0
+  echo ${EN} "$tbase ...${EC}"
+  echo ${EN} "$tbase ...${EC}" >&8
   _MKCONFIG_TSTRUNTMPDIR=$_MKCONFIG_RUNTMPDIR/${tbase}${suffix}
   export _MKCONFIG_TSTRUNTMPDIR
   mkdir ${_MKCONFIG_TSTRUNTMPDIR}
-
-  TSTRUNLOG=${_MKCONFIG_TSTRUNTMPDIR}/${tbase}.log
-  > $TSTRUNLOG
-  exec 9>>$TSTRUNLOG
-
-  echo "####" >&9
-  echo "# Test: $tf $arg" >&9
-  echo "# $dt" >&9
-  echo "####" >&9
-  grc=0
-  echo ${EN} "$tf ... ${arg} ${EC}"
-  echo ${EN} "$tf ... ${arg} ${EC}" >> $MAINLOG
   if [ -f $tconfig ]; then
     cp $tconfig $_MKCONFIG_TSTRUNTMPDIR/$tconfh
   fi
-  if [ "$arg" != "" ]; then
-    arg="$_MKCONFIG_DIR/$arg"
+  $_MKCONFIG_RUNTESTDIR/$tf -d
+  $_MKCONFIG_RUNTESTDIR/$tf -d >&8
+
+  if [ -f ${tbase}.mksh -o -f ${tbase}.mkshpl ]; then
+    echo ${EN} " ...${EC}"
+    echo ${EN} " ...${EC}" >&8
+    scount=1
+    for s in $shelllist; do
+      unset _shell
+      unset shell
+      cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;getshelltype;echo \\\$shell\""
+      ss=`eval $cmd`
+      if [ "$ss" = "sh" ]; then
+        ss=`echo $s | sed 's,.*/,,'`
+      fi
+      _MKCONFIG_SHELL=$s
+      export _MKCONFIG_SHELL
+      shell=$ss
+
+      runshelltest
+      rc=$?
+      domath scount "$scount + 1"
+
+      unset _shell
+      unset shell
+      unset _MKCONFIG_SHELL
+    done
+  else
+    runshelltest
+    rc=$?
   fi
 
-  cd $_MKCONFIG_TSTRUNTMPDIR
-  # dup stdout to 5; redirect stdout to 9; redirect stderr to new 1.
-  $_MKCONFIG_RUNTESTDIR/$tf $arg 5>&1 >&9 2>&1
-  rc=$?
-  cd $_MKCONFIG_RUNTESTDIR
-
-  dt=`date`
-  echo "####" >&9
-  echo "# $dt" >&9
-  echo "# exit $rc" >&9
-  echo "####" >&9
-  exec 9>&-
   if [ $rc -ne 0 ]; then
     echo " ... failed"
-    echo " failed" >> $MAINLOG
+    echo " failed" >&8
     domath fcount "$fcount + 1"
     grc=1
   else
     echo " ... success"
-    echo " success" >> $MAINLOG
+    echo " success" >&8
   fi
   domath count "$count + 1"
 
@@ -169,13 +221,18 @@ for tbase in $teststorun; do
     TSTRUNLOG=$_MKCONFIG_TSTRUNTMPDIR/${tbase}.log
     > $TSTRUNLOG
     exec 9>>$TSTRUNLOG
+
     dt=`date`
     echo "####" >&9
     echo "# Test: $tf mkconfig.pl" >&9
     echo "# $dt" >&9
     echo "####" >&9
-    echo ${EN} "$tf ... mkconfig.pl ${EC}"
-    echo ${EN} "$tf ... mkconfig.pl ${EC}" >> $MAINLOG
+    echo ${EN} "$tbase ... ${EC}"
+    echo ${EN} "$tbase ... ${EC}" >&8
+    $_MKCONFIG_RUNTESTDIR/$tf -d
+    $_MKCONFIG_RUNTESTDIR/$tf -d >&8
+    echo ${EN} " perl"
+    echo ${EN} " perl" >&8
     echo "## Using mkconfig.pl " >&9
     if [ -f $tconfig ]; then
       cp $tconfig $_MKCONFIG_TSTRUNTMPDIR/$tconfh
@@ -195,11 +252,11 @@ for tbase in $teststorun; do
     exec 9>&-
     if [ $rc -ne 0 ]; then
       echo " ... failed"
-      echo " failed" >> $MAINLOG
+      echo " failed" >&8
       domath fcount "$fcount + 1"
     else
       echo " ... success"
-      echo " success" >> $MAINLOG
+      echo " success" >&8
     fi
     domath count "$count + 1"
   fi
@@ -210,10 +267,13 @@ if [ $count -eq 0 ]; then  # this can't be right...
   $fcount = -1
 fi
 
+exec 8>&-
+
 echo "$count tests $fcount failures"
 if [ $fcount -eq 0 ]; then
   if [ "$MKC_KEEP_RUN_TMP" = "" ]; then
     test -d "$_MKCONFIG_RUNTMPDIR" && rm -rf "$_MKCONFIG_RUNTMPDIR"
   fi
 fi
+
 exit $fcount
