@@ -678,7 +678,6 @@ check_option
     my $oval = $def;
 
     if ($optionsloaded && defined ($optionshash{$onm})) {
-      $found = 'T';
       $oval = $optionshash{$onm};
       print LOGFH "##  found: $onm => $oval\n";
     }
