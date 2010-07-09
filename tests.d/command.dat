@@ -1,0 +1,5 @@
+output command.ctest
+loadunit c-main
+
+command sed
+command grep

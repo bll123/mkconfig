@@ -1,0 +1,5 @@
+output header.ctest
+loadunit c-main
+standard
+
+hdr ctype.h
