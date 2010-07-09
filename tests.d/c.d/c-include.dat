@@ -2,7 +2,6 @@
 
 output include.ctest
 loadunit c-main
-standard
 include
 
 /* test comment */
