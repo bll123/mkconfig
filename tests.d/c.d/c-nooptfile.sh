@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ "$1" = "-d" ]; then
-  echo ${EN} " no options file${EC}"
+  echo ${EN} " ifoption - no options file${EC}"
   exit 0
 fi
 
