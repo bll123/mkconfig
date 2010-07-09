@@ -1,0 +1,8 @@
+output option_c.ctest
+option-file option_c.opts
+loadunit c-main
+standard
+
+option TEST_OPT_DEF default
+option TEST_OPT_SET default
+option TEST_OPT_SET_SPACE default
