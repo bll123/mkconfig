@@ -286,6 +286,7 @@ while read tline; do
 done
 # set std to saved fd 7; close 7
 exec <&7 7<&-
+test -f $TMPORDER && rm -f $TMPORDER
 
 if [ $count -eq 0 ]; then  # this can't be right...
   $fcount = -1
