@@ -53,6 +53,12 @@ tests.d/nooptfile_c.sh
 tests.d/nooption_c.dat
 tests.d/nooption_c.mkshpl
 tests.d/nooption_c.sh
+tests.d/option_c.dat
+tests.d/option_c.mkshpl
+tests.d/option_c.sh
+tests.d/option_env.dat
+tests.d/option_env.mksh
+tests.d/option_env.sh
 tests.d/set_c.dat
 tests.d/set_c.mkshpl
 tests.d/set_c.sh
