@@ -11,6 +11,7 @@
 # File Descriptors:
 #    9 - $TSTRUNLOG
 #    8 - $MAINLOG
+#    7 - $TMPORDER
 #    5 - stdout (as 1 is directed to the log)
 #
 
@@ -106,12 +107,17 @@ export _MKCONFIG_RUNTESTDIR
 _MKCONFIG_RUNTMPDIR=$_MKCONFIG_RUNTOPDIR/_mkconfig_runtests
 export _MKCONFIG_RUNTMPDIR
 
+TMPORDER=test_order.tmp
 if [ "$teststorun" = "" ]; then
   if [ ! -f "$TESTORDER" ]; then
-    teststorun=`ls -1d *.d *.sh 2>/dev/null | sed 's/\.sh$//'`
+    ls -1d *.d *.sh 2>/dev/null | sed -e 's/\.sh$//' -e 's/^/1 ' > $TMPORDER
   else
-    teststorun=`sort $TESTORDER | sed 's/.* //'`
+    sort $TESTORDER > $TMPORDER
   fi
+else
+  for t in $teststorun; do
+    echo "1 $t" 
+  done > $TMPORDER
 fi
 
 test -d "$_MKCONFIG_RUNTMPDIR" && rm -rf "$_MKCONFIG_RUNTMPDIR"
@@ -127,7 +133,22 @@ echo ""
 export shelllist
 count=0
 fcount=0
-for tbase in $teststorun; do
+lastpass=""
+# save stdin in fd 7
+exec 7<&0 < ${TMPORDER}
+while read tline; do
+  set $tline
+  pass=$1
+  tbase=$2
+  if [ "$lastpass" = "" ]; then
+    lastpass=$pass
+  fi
+  if [ $grc -ne 0 -a "$lastpass" != "$pass" ]; then
+    echo "## stopping tests due to failures in pass $lastpass"
+    echo "## stopping tests due to failures in pass $lastpass" >&8
+    break
+  fi
+
   if [ -d "$tbase" ]; then
     $0 $tbase
     continue
@@ -260,8 +281,11 @@ for tbase in $teststorun; do
     fi
     domath count "$count + 1"
   fi
-done
 
+  lastpass=$pass
+done
+# set std to saved fd 7; close 7
+exec <&7 7<&-
 
 if [ $count -eq 0 ]; then  # this can't be right...
   $fcount = -1
