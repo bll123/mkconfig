@@ -1,0 +1,8 @@
+output incconflict.ctest
+loadunit c-main
+loadunit c-include-conflict
+hdr incconf1.h
+hdr incconf2.h
+hdr incconf3.h
+include_conflict incconf1.h incconf2.h
+include_conflict incconf1.h incconf3.h
