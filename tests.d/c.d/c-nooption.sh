@@ -7,18 +7,7 @@ fi
 
 script=$@
 
-. $_MKCONFIG_DIR/shellfuncs.sh
-testshcapability
-
 grc=0
-count=1
-
-dosh=T
-case $script in
-  *.pl)
-    dosh=F
-    ;;
-esac
 
 TMP=nooption_c.opts
 cat > $TMP << _HERE_
