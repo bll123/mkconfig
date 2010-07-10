@@ -1,0 +1,6 @@
+output npt.ctest
+loadunit c-main
+standard
+hdr nptlib.h
+npt npt1lib
+npt npt2lib
