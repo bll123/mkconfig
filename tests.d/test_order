@@ -3,10 +3,15 @@
 2 multword
 2 command
 2 header
-3 syshdr
+2 syshdr
+3 const
+3 define
 3 include
+3 keyword
+3 member
+3 size
+3 type
 4 cache
-4 define
 4 set_c
 4 set_env
 5 if_c
@@ -17,5 +22,7 @@
 5 nooption_c
 5 option_c
 5 option_env
+6 npt
+6 incconflict
 6 singlelib
 7 multlib
