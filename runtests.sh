@@ -86,7 +86,7 @@ runshelltest () {
     targ="$_MKCONFIG_DIR/$arg"
   fi
   # dup stdout to 5; redirect stdout to 9; redirect stderr to new 1.
-  $_MKCONFIG_RUNTESTDIR/$tf $targ 5>&1 >&9 2>&1
+  ${_MKCONFIG_SHELL} $_MKCONFIG_RUNTESTDIR/$tf $targ 5>&1 >&9 2>&1
   rc=$?
   cd $_MKCONFIG_RUNTESTDIR
 
@@ -116,7 +116,7 @@ if [ "$teststorun" = "" ]; then
   fi
 else
   for t in $teststorun; do
-    echo "1 $t" 
+    echo "1 $t"
   done > $TMPORDER
 fi
 
@@ -213,7 +213,7 @@ while read tline; do
       shell=$ss
 
       runshelltest
-      rc=$?
+      src=$?
       domath scount "$scount + 1"
 
       unset _shell
@@ -250,8 +250,8 @@ while read tline; do
     echo "# Test: $tf mkconfig.pl" >&9
     echo "# $dt" >&9
     echo "####" >&9
-    echo ${EN} "$tbase ... ${EC}"
-    echo ${EN} "$tbase ... ${EC}" >&8
+    echo ${EN} "$tbase ...${EC}"
+    echo ${EN} "$tbase ...${EC}" >&8
     $_MKCONFIG_RUNTESTDIR/$tf -d
     $_MKCONFIG_RUNTESTDIR/$tf -d >&8
     echo ${EN} " ... perl"
