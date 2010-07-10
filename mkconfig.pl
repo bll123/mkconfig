@@ -1142,7 +1142,7 @@ check_member
     setlist $r_clist, $name;
     $r_config->{$name} = 0;
     my $code = <<"_HERE_";
-main () { struct $struct s; int i; i = sizeof (s.$member); }
+main () { $struct s; int i; i = sizeof (s.$member); }
 _HERE_
     my $rc = _chk_compile ($name, $code, $r_clist, $r_config,
             { 'incheaders' => 'all', });
@@ -1560,11 +1560,11 @@ create_config
                 }
             }
         }
-        elsif ($line =~ m#^\s*member\s+(.*?)\s+([^\s]*)\s*$#o)
+        elsif ($line =~ m#^\s*member\s+(.*)\s+([^\s]+)#o)
         {
             my $struct = $1;
             my $member = $2;
-            my $nm = "_mem_" . $member . '_' . $struct;
+            my $nm = "_mem_" . $struct . '_' . $member;
             $nm =~ s/ /_/go;
             if (! defined ($config{$nm}) ||
                 $config{$nm} eq '0')

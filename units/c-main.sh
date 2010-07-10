@@ -562,9 +562,13 @@ tparamvs (ptr)
 check_member () {
   shift
   struct=$1
+  if [ "$struct" = "struct" ]; then
+    shift
+    struct="struct $1"
+  fi
   shift
   member=$1
-  nm="_mem_${member}_${struct}"
+  nm="_mem_${struct}_${member}"
   dosubst nm ' ' '_'
 
   name=$nm
@@ -573,7 +577,7 @@ check_member () {
   checkcache ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
 
-  code="main () { struct ${struct} s; int i; i = sizeof (s.${member}); }"
+  code="main () { ${struct} s; int i; i = sizeof (s.${member}); }"
 
   do_check_compile ${name} "${code}" all
 }
