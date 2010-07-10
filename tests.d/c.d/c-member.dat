@@ -1,0 +1,18 @@
+output member.ctest
+loadunit c-main
+standard
+hdr memtst.h
+member my_struct_t a
+member my_struct_t b
+member my_struct_t c
+member my_struct_t d
+member my_struct_t e
+member my_struct_t f
+member my_struct_t g
+member struct my_struct a
+member struct my_struct b
+member struct my_struct c
+member struct my_struct d
+member struct my_struct e
+member struct my_struct f
+member struct my_struct g

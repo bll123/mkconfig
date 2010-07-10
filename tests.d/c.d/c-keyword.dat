@@ -1,0 +1,5 @@
+output keyword.ctest
+loadunit c-main
+standard
+key long
+key xyzzy

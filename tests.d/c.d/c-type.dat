@@ -1,0 +1,5 @@
+output type.ctest
+loadunit c-main
+standard
+hdr typtst.h
+typ my_type_t

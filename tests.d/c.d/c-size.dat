@@ -1,0 +1,4 @@
+output size.ctest
+loadunit c-main
+standard
+size long
