@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ "$1" = "-d" ]; then
-  echo ${EN} " cache${EC}"
+  echo ${EN} " build from cache${EC}"
   exit 0
 fi
 
@@ -19,9 +19,11 @@ while test -f cache.${ccount}; do
 done
 
 if [ $ccount -eq 1 ]; then
-  eval "${script} -C $_MKCONFIG_RUNTESTDIR/cache.dat"
+  ${script} -C $_MKCONFIG_RUNTESTDIR/cache.dat
   mv -f cache.ctest ${_MKCONFIG_RUNTMPDIR}/cache.${ccount}
   cp -f mkconfig_c.vars ${_MKCONFIG_RUNTMPDIR}/cache.${ccount}.vars
+  mv -f mkconfig.log mkconfig.log.${ccount}
+  # keep mkconfig.cache and mkconfig_c.vars around...
   $0 $@
   exit $?
 fi
@@ -33,10 +35,15 @@ case $script in
     ;;
 esac
 
-${_MKCONFIG_SHELL} ${script} $_MKCONFIG_RUNTESTDIR/cache.dat
+for f in cache.ctest mkconfig_c.vars mkconfig.log mkconfig.cache; do
+  test -f $f && rm -f $f
+done
+${script} $_MKCONFIG_RUNTESTDIR/cache.dat
 mv -f cache.ctest cache.${ccount}
 mv -f mkconfig_c.vars cache.${ccount}.vars
 cp -f ${_MKCONFIG_RUNTMPDIR}/cache.1.vars mkconfig_c.vars
+mv -f mkconfig.log mkconfig.log.${ccount}
+# keep mkconfig.cache and mkconfig_c.vars around...
 
 grc=0
 c=2
@@ -51,4 +58,5 @@ while test $c -lt $ccount; do
   if [ $? -ne 0 ]; then grc=$rc; fi
   domath c "$c + 1"
 done
+
 exit $grc

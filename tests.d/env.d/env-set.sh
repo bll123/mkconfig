@@ -7,21 +7,9 @@ fi
 
 script=$@
 
-. $_MKCONFIG_DIR/shellfuncs.sh
-testshcapability
-
 grc=0
-count=1
 
-dosh=T
-case $script in
-  *.pl)
-    echo ${EN} " skipped${EC}" >&5
-    exit 0
-    ;;
-esac
-
-${_MKCONFIG_SHELL} ${script} -C ${_MKCONFIG_RUNTESTDIR}/set_env.dat
+${script} -C ${_MKCONFIG_RUNTESTDIR}/set_env.dat
 l=`grep "^_test1=\"1\"$" set_env.ctest | wc -l`
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi

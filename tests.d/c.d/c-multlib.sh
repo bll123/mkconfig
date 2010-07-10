@@ -70,4 +70,11 @@ diff -b ${_MKCONFIG_RUNTESTDIR}/multlib.reqlibs reqlibs.txt
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
 
+if [ "$stag" != "" ]; then
+  mv multlib.ctest multlib.ctest${stag}
+  mv mkconfig.log mkconfig.log${stag}
+  mv mkconfig.cache mkconfig.cache${stag}
+  mv mkconfig_c.vars mkconfig_c.vars${stag}
+fi
+
 exit $grc

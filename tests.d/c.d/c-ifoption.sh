@@ -7,19 +7,7 @@ fi
 
 script=$@
 
-. $_MKCONFIG_DIR/shellfuncs.sh
-testshcapability
-
 grc=0
-count=1
-
-dosh=T
-case $script in
-  *.pl)
-    echo ${EN} " skipped${EC}" >&5
-    exit 0
-    ;;
-esac
 
 TMP=ifoption_env.opts
 cat > $TMP << _HERE_

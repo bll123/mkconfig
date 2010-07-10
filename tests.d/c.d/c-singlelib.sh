@@ -31,7 +31,7 @@ if [ $? -ne 0 ]; then
 fi
 ar cq libtst1lib.a tst1lib.o
 
-${_MKCONFIG_SHELL} ${script} -C ${_MKCONFIG_RUNTESTDIR}/singlelib.dat
+${script} -C ${_MKCONFIG_RUNTESTDIR}/singlelib.dat
 case $script in
   *mkconfig.sh)
     ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh singlelib.ctest
@@ -51,5 +51,12 @@ echo "## diff 2"
 diff -b ${_MKCONFIG_RUNTESTDIR}/singlelib.reqlibs reqlibs.txt
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
+
+if [ "$stag" != "" ]; then
+  mv singlelib.ctest singlelib.ctest${stag}
+  mv mkconfig.log mkconfig.log${stag}
+  mv mkconfig.cache mkconfig.cache${stag}
+  mv mkconfig_c.vars mkconfig_c.vars${stag}
+fi
 
 exit $grc

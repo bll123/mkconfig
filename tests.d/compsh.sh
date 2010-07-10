@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ "$1" = "-d" ]; then
-  echo ${EN} " compile shell scripts${EC}" 
+  echo ${EN} " compile shell scripts${EC}"
   exit 0
 fi
 

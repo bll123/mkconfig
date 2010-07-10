@@ -7,20 +7,9 @@ fi
 
 script=$@
 
-. $_MKCONFIG_DIR/shellfuncs.sh
-testshcapability
-
 grc=0
-count=1
 
-dosh=T
-case $script in
-  *.pl)
-    dosh=F
-    ;;
-esac
-
-${_MKCONFIG_SHELL} ${script} -C ${_MKCONFIG_RUNTESTDIR}/include.dat
+${script} -C ${_MKCONFIG_RUNTESTDIR}/include.dat
 echo "## $count: $s: diff include.ctmp include.ctest"
 sed -e '/^#define _key_/d' -e '/^#define _proto_/d' \
     -e '/^#define _param_/d' include.ctest > t

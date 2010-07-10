@@ -7,18 +7,7 @@ fi
 
 script=$@
 
-. $_MKCONFIG_DIR/shellfuncs.sh
-testshcapability
-
 grc=0
-count=1
-
-dosh=T
-case $script in
-  *.pl)
-    dosh=F
-    ;;
-esac
 
 TMP=option_c.opts
 cat > $TMP << _HERE_
@@ -26,7 +15,7 @@ TEST_OPT_SET=abc123
 TEST_OPT_SET_SPACE=abc 123
 _HERE_
 
-${_MKCONFIG_SHELL} ${script} -C ${_MKCONFIG_RUNTESTDIR}/option_c.dat
+${script} -C ${_MKCONFIG_RUNTESTDIR}/option_c.dat
 grep "^#define TEST_OPT_DEF \"default\"$" option_c.ctest
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi

@@ -1,26 +1,15 @@
 #!/bin/sh
 
 if [ "$1" = "-d" ]; then
-  echo ${EN} " define${EC}" 
+  echo ${EN} " define${EC}"
   exit 0
 fi
 
 script=$@
 
-. $_MKCONFIG_DIR/shellfuncs.sh
-testshcapability
-
 grc=0
-count=1
 
-dosh=T
-case $script in
-  *.pl)
-    dosh=F
-    ;;
-esac
-
-${_MKCONFIG_SHELL} ${script} -C ${_MKCONFIG_RUNTESTDIR}/define.dat
+${script} -C ${_MKCONFIG_RUNTESTDIR}/define.dat
 grep "^#define _define_EOF 1$" define.ctest
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi

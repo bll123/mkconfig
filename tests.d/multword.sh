@@ -21,5 +21,11 @@ if [ "$test_multword" != "word1 word2" ]; then
   echo "   failed: env: $test_multword"
   grc=1
 fi
+if [ "$stag" != "" ]; then
+  mv multword.ctest multword.ctest${stag}
+  mv mkconfig.log mkconfig.log${stag}
+  mv mkconfig.cache mkconfig.cache${stag}
+  mv mkconfig_env.vars mkconfig_env.vars${stag}
+fi
 
 exit $grc

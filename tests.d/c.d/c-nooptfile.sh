@@ -7,17 +7,7 @@ fi
 
 script=$@
 
-. $_MKCONFIG_DIR/shellfuncs.sh
-testshcapability
-
 grc=0
-
-dosh=T
-case $script in
-  *.pl)
-    dosh=F
-    ;;
-esac
 
 ${script} -C ${_MKCONFIG_RUNTESTDIR}/nooptfile_c.dat
 for t in \

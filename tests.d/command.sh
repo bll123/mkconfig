@@ -1,26 +1,15 @@
 #!/bin/sh
 
 if [ "$1" = "-d" ]; then
-  echo ${EN} " command${EC}" 
+  echo ${EN} " command${EC}"
   exit 0
 fi
 
 script=$@
 
-. $_MKCONFIG_DIR/shellfuncs.sh
-testshcapability
-
 grc=0
-count=1
 
-dosh=T
-case $script in
-  *.pl)
-    dosh=F
-    ;;
-esac
-
-${_MKCONFIG_SHELL} ${script} -C ${_MKCONFIG_RUNTESTDIR}/command.dat
+${script} -C ${_MKCONFIG_RUNTESTDIR}/command.dat
 grep "^#define _command_sed 1$" command.ctest
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi

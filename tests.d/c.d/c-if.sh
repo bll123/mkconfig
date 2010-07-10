@@ -7,20 +7,9 @@ fi
 
 script=$@
 
-. $_MKCONFIG_DIR/shellfuncs.sh
-testshcapability
-
 grc=0
 
-dosh=T
-case $script in
-  *.pl)
-    echo ${EN} " skipped${EC}" >&5
-    exit 0
-    ;;
-esac
-
-${_MKCONFIG_SHELL} ${script} -C ${_MKCONFIG_RUNTESTDIR}/if_env.dat
+${script} -C ${_MKCONFIG_RUNTESTDIR}/if_env.dat
 for t in \
     _var_a _var_b \
     _test_b1_ok _test_b2_ok _test_b3_ok _test_b4_ok \
