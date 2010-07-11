@@ -364,7 +364,7 @@ boolclean () {
   nm=$1
 
   dosubst $nm '(' ' ( ' ')' ' ) '
-  dosubst $nm ' not ' ' ! ' ' and ' ' -a ' ' or ' ' -a '
+  dosubst $nm ' not ' ' ! ' ' and ' ' -a ' ' or ' ' -o '
   dosubst $nm '!' ' ! ' '&&' ' -a ' '||' ' -o '
   dosubst $nm ' \+' ' ' '^ *' '' ' *$' ''
 }
