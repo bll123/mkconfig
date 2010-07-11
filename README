@@ -1,4 +1,4 @@
-mkconfig - configuration tool (version 1.7).
+mkconfig - configuration tool (version 1.8).
 
 Please e-mail any configuration units and the corresponding
 manual page entry to brad.lanam.di_at_gmail.com.
@@ -8,6 +8,15 @@ If you have a test that can verify the unit works, please include
 that also.
 
 CHANGES
+
+    1.8                                     [10 Jul 2010]
+        Internal code cleanup.
+        Modify tests to take -d parameter for description output.
+        Stop tests on change of pass number on failure.
+        Add check_option.
+        Fixed member test so either structs or typedefs can be used.
+        Changed member test names to be _mem_struct_s_member or
+            _mem_sometype_member.  Breaks backwards compatibility.
 
     1.7                                     [5 Jul 2010]
         Add labels to if statement.
