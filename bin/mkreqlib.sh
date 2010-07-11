@@ -27,7 +27,7 @@ doshelltest $0 $@
 setechovars
 mkconfigversion
 
-OFILE="reqlibs.txt"
+OLFILE="reqlibs.txt"
 while test $# -gt 1; do
   case $1 in
     -c)
@@ -35,9 +35,9 @@ while test $# -gt 1; do
       CACHEFILE=$1
       shift
       ;;
-    -o)
+    -l)
       shift
-      OFILE=$1
+      OLFILE=$1
       shift
       ;;
   esac
@@ -83,4 +83,4 @@ while read cline; do
   fi
 done
 exec <&7 7<&-
-echo $reqlibs > $RUNTOPDIR/$OFILE
+echo $reqlibs > $RUNTOPDIR/$OLFILE
