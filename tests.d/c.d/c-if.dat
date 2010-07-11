@@ -80,12 +80,20 @@ endif
 
 setint _test_m1_ok 0
 setint _test_m2_ok 0
+setint _test_m3_ok 0
+setint _test_m4_ok 0
 
 if andaorbc (_setint__var_a && (_setint__var_b||_setint__var_d))
   setint _test_m1_ok 1
 endif
 if notandcorbd !(_setint__var_c && (_setint__var_b||_setint__var_d))
   setint _test_m2_ok 1
+endif
+if andaorbcalpha (_setint__var_a and (_setint__var_b or _setint__var_d))
+  setint _test_m3_ok 1
+endif
+if notandcorbdalpha ! (_setint__var_c and (_setint__var_b or _setint__var_d))
+  setint _test_m4_ok 1
 endif
 
 # nested
