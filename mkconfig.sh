@@ -156,6 +156,19 @@ printyesno () {
     printyesno_val "$ynname" $ynval "$yntag"
 }
 
+checkcache_actual () {
+  prefix=$1
+  tname=$2
+
+  getdata tval ${prefix} ${tname}
+  rc=1
+  if [ "$tval" != "" ]; then
+    printyesno_actual $tname "$tval" " (cached)"
+    rc=0
+  fi
+  return $rc
+}
+
 checkcache_val () {
   prefix=$1
   tname=$2
@@ -163,7 +176,7 @@ checkcache_val () {
   getdata tval ${prefix} ${tname}
   rc=1
   if [ "$tval" != "" ]; then
-    printyesno_val $tname $tval " (cached)"
+    printyesno_val $tname "$tval" " (cached)"
     rc=0
   fi
   return $rc
@@ -676,7 +689,7 @@ create_config () {
 }
 
 usage () {
-  echo "Usage: $0 [-C] [-c <cache-file>] [-l <log-file>] <config-file>
+  echo "Usage: $0 [-C] [-c <cache-file>] [-L <log-file>] <config-file>
   -C : clear cache-file
 defaults:
   <cache-file> : mkconfig.cache
@@ -712,7 +725,7 @@ while test $# -gt 1; do
       CACHEFILE=$1
       shift
       ;;
-    -l)
+    -L)
       shift
       LOG=$1
       shift
