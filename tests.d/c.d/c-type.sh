@@ -10,8 +10,7 @@ script=$@
 grc=0
 
 CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
-LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
-export CFLAGS LDFLAGS
+export CFLAGS
 
 > typtst.h echo '
 typedef int my_type_t;
