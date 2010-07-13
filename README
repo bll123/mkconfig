@@ -1,4 +1,4 @@
-mkconfig - configuration tool (version 1.8).
+mkconfig - configuration tool (version 1.9).
 
 Please e-mail any configuration units and the corresponding
 manual page entry to brad.lanam.di_at_gmail.com.
@@ -8,6 +8,10 @@ If you have a test that can verify the unit works, please include
 that also.
 
 CHANGES
+
+    1.9                                     [12 Jul 2010]
+        Fixed regression tests to work w/g++.
+        Code cleanup.
 
     1.8                                     [10 Jul 2010]
         Internal code cleanup.
