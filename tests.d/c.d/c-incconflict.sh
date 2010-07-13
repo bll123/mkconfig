@@ -14,13 +14,19 @@ LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
 export CFLAGS LDFLAGS
 
 > incconf1.h echo '
+CPP_EXTERNS_BEG
 extern int incconf1 ();
+CPP_EXTERNS_END
 '
 > incconf2.h echo '
+CPP_EXTERNS_BEG
 extern char *incconf1 ();
+CPP_EXTERNS_END
 '
 > incconf3.h echo '
+CPP_EXTERNS_BEG
 extern int incconf1 ();
+CPP_EXTERNS_END
 '
 
 ${script} -C ${_MKCONFIG_RUNTESTDIR}/incconflict.dat

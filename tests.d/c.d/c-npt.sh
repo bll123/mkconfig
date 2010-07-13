@@ -14,8 +14,28 @@ LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
 export CFLAGS LDFLAGS
 
 > nptlib.h echo '
-/* int npt1lib (); */
-int npt2lib ();
+
+#if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
+# define _(x) x
+#else
+# define _(x) ()
+# define void char
+#endif
+#if defined(__cplusplus) || defined (c_plusplus)
+# define CPP_EXTERNS_BEG extern "C" {
+# define CPP_EXTERNS_END }
+CPP_EXTERNS_BEG
+extern int printf (const char *, ...);
+CPP_EXTERNS_END
+#else
+# define CPP_EXTERNS_BEG
+# define CPP_EXTERNS_END
+#endif
+
+CPP_EXTERNS_BEG
+/* extern int npt1lib (); */
+extern int npt2lib _((void));
+CPP_EXTERNS_END
 '
 
 cat > nptlib.c <<_HERE_
