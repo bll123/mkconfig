@@ -10,7 +10,7 @@ script=$@
 grc=0
 
 ${script} -C ${_MKCONFIG_RUNTESTDIR}/header.dat
-grep "^#define _hdr_stdio 1$" header.ctest
+grep "^#define _sys_types 1$" header.ctest
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 grep "^#define _hdr_ctype 1$" header.ctest
