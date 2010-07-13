@@ -2,5 +2,5 @@
 
 output define.ctest
 loadunit c-main
-standard
-define EOF
+hdr deftst.h
+define MYDEFINE

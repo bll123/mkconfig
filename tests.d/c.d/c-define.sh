@@ -6,11 +6,17 @@ if [ "$1" = "-d" ]; then
 fi
 
 script=$@
-
 grc=0
 
+CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
+export CFLAGS
+
+> deftst.h echo '
+#define MYDEFINE 20
+'
+
 ${script} -C ${_MKCONFIG_RUNTESTDIR}/define.dat
-grep "^#define _define_EOF 1$" define.ctest
+grep "^#define _define_MYDEFINE 1$" define.ctest
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 if [ "$stag" != "" ]; then
