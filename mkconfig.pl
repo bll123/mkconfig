@@ -16,7 +16,7 @@ my $TMP = "_tmp_mkconfig";
 my $OPTIONFILE = "options.dat";
 my $CACHEFILE = "mkconfig.cache";
 my $VARSFILE = "mkconfig_c.vars";
-my $REQLIB = "reqlibs.txt";
+my $REQLIB = "mkconfig.reqlibs";
 
 my $precc = <<'_HERE_';
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
@@ -1681,7 +1681,7 @@ usage
   print STDOUT "  <vars-file>  : mkconfig.vars\n";
   print STDOUT "  <log-file>   : mkconfig.log\n";
   print STDOUT "  <tmp-dir>    : _tmp_mkconfig\n";
-  print STDOUT "  <reqlib-file>: reqlibs.txt\n";
+  print STDOUT "  <reqlib-file>: mkconfig.reqlibs\n";
   print STDOUT "  <option-file>: options.dat\n";
 }
 

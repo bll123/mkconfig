@@ -106,7 +106,7 @@ rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
 
 echo "## diff 2"
-diff -b ${_MKCONFIG_RUNTESTDIR}/multlib.reqlibs reqlibs.txt
+diff -b ${_MKCONFIG_RUNTESTDIR}/multlib.reqlibs mkconfig.reqlibs
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
 
