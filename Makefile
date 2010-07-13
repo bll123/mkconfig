@@ -5,15 +5,17 @@
 CP = cp
 RM = rm
 
+# leaves _tmp_mkconfig, _mkconfig_runtests
 clean:
 	-rm -rf tests.done > /dev/null 2>&1
 
-distclean:
-	$(MAKE) clean
-
 realclean:
-	$(MAKE) distclean
+	@$(MAKE) clean
 	-rm -rf _tmp_mkconfig _mkconfig_runtests > /dev/null 2>&1
+
+distclean:
+	@$(MAKE) realclean
+
 
 tests.done: runtests.sh tests.d/cache.sh tests.d/include.sh \
 		tests.d/multlib.sh tests.d/singlelib.sh
