@@ -254,8 +254,8 @@ while read tline; do
     echo ${EN} "$tbase ...${EC}" >&8
     $_MKCONFIG_RUNTESTDIR/$tf -d
     $_MKCONFIG_RUNTESTDIR/$tf -d >&8
-    echo ${EN} " ... perl"
-    echo ${EN} " ... perl" >&8
+    echo ${EN} " ... perl${EC}"
+    echo ${EN} " ... perl${EC}" >&8
     echo "## Using mkconfig.pl " >&9
     if [ -f $tconfig ]; then
       cp $tconfig $_MKCONFIG_TSTRUNTMPDIR/$tconfh
