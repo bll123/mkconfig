@@ -64,7 +64,7 @@ check_include_conflict () {
 
       code="#include <${h1}>
 #include <${h2}>
-main () { return; }
+main () { return 0; }
 "
       do_check_compile "${name}" "${code}" std
     else
