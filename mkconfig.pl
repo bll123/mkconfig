@@ -20,18 +20,20 @@ my $REQLIB = "reqlibs.txt";
 
 my $precc = <<'_HERE_';
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
-# define _ARG_(x) x
-# define _VOID_ void
+# define _(x) x
 #else
-# define _ARG_(x) ()
-# define _VOID_ char
+# define _(x) ()
+# define void char
 #endif
-#if defined(__cplusplus)
-# define _BEGIN_EXTERNS_ extern "C" {
-# define _END_EXTERNS_ }
+#if defined(__cplusplus) || defined (c_plusplus)
+# define CPP_EXTERNS_BEG extern "C" {
+# define CPP_EXTERNS_END }
+CPP_EXTERNS_BEG
+extern int printf (const char *, ...);
+CPP_EXTERNS_END
 #else
-# define _BEGIN_EXTERNS_
-# define _END_EXTERNS_
+# define CPP_EXTERNS_BEG
+# define CPP_EXTERNS_END
 #endif
 _HERE_
 
@@ -438,7 +440,7 @@ _HERE_
     }
     $code .= <<"_HERE_";
 #include <${file}>
-main () { exit (0); }
+main () { return (0); }
 _HERE_
     my $rc = 1;
     $rc = _chk_compile ($name, $code, $r_clist, $r_config,
@@ -473,7 +475,7 @@ check_constant
 _HERE_
     }
     $code .= <<"_HERE_";
-main () { if (${constant} == 0) { 1; } exit (0); }
+main () { if (${constant} == 0) { 1; } return (0); }
 _HERE_
     do_chk_compile ($name, $code, 'all', $r_clist, $r_config);
 }
@@ -492,7 +494,7 @@ check_keyword
 
     $r_config->{$name} = 0;
     my $code = <<"_HERE_";
-main () { int ${keyword}; ${keyword} = 1; exit (0); }
+main () { int ${keyword}; ${keyword} = 1; return (0); }
 _HERE_
     my $rc = _chk_compile ($name, $code, $r_clist, $r_config,
         { 'incheaders' => 'std', });
@@ -516,9 +518,9 @@ check_proto
     }
 
     my $code = <<"_HERE_";
-_BEGIN_EXTERNS_
+CPP_EXTERNS_BEG
 extern int foo (int, int);
-_END_EXTERNS_
+CPP_EXTERNS_END
 int bar () { int rc; rc = foo (1,1); return 0; }
 _HERE_
     my $rc = _chk_compile ($name, $code, $r_clist, $r_config,
@@ -787,7 +789,7 @@ check_include_conflict
         my $code = <<"_HERE_";
 #include <$h1>
 #include <$h2>
-main () { return; }
+main () { return 0; }
 _HERE_
         do_chk_compile ($name, $code, 'std', $r_clist, $r_config);
     } else {
@@ -817,10 +819,10 @@ check_npt
     }
 
     my $code = <<"_HERE_";
-_BEGIN_EXTERNS_
+CPP_EXTERNS_BEG
 struct _TEST_struct { int _TEST_member; };
-extern struct _TEST_struct* $proto _ARG_((struct _TEST_struct*));
-_END_EXTERNS_
+extern struct _TEST_struct* $proto _((struct _TEST_struct*));
+CPP_EXTERNS_END
 _HERE_
     do_chk_compile ($name, $code, 'all', $r_clist, $r_config);
 }
@@ -841,7 +843,7 @@ check_type
 struct xxx { $type mem; };
 static struct xxx v;
 struct xxx* f() { return &v; }
-main () { struct xxx *tmp; tmp = f(); exit (0); }
+main () { struct xxx *tmp; tmp = f(); return (0); }
 _HERE_
     do_chk_compile ($name, $code, 'all', $r_clist, $r_config);
 }
@@ -861,9 +863,9 @@ check_defined
     my $code = <<"_HERE_";
 main () {
 #ifdef ${def}
-exit (0);
+return (0);
 #else
-exit (1);
+return (1);
 #endif
 }
 _HERE_
@@ -1116,7 +1118,7 @@ check_size
     my $code = <<"_HERE_";
 main () {
 	printf("%u\\n", sizeof($type));
-    exit (0);
+    return (0);
     }
 _HERE_
     my $val = 0;
@@ -1192,7 +1194,7 @@ check_ptr_declare
     setlist $r_clist, $name;
     $r_config->{$name} = 0;
     my $code = <<"_HERE_";
-main () { _VOID_ *x; x = $function; }
+main () { void *x; x = $function; }
 _HERE_
     my $rc = _chk_compile ($name, $code, $r_clist, $r_config,
             { 'incheaders' => 'all', });

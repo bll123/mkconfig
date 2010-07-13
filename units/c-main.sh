@@ -53,18 +53,20 @@ PH_ALL=F
 
 precc='
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
-# define _ARG_(x) x
-# define _VOID_ void
+# define _(x) x
 #else
-# define _ARG_(x) ()
-# define _VOID_ char
+# define _(x) ()
+# define void char
 #endif
-#if defined(__cplusplus)
-# define _BEGIN_EXTERNS_ extern "C" {
-# define _END_EXTERNS_ }
+#if defined(__cplusplus) || defined (c_plusplus)
+# define CPP_EXTERNS_BEG extern "C" {
+# define CPP_EXTERNS_END }
+CPP_EXTERNS_BEG
+extern int printf (const char *, ...);
+CPP_EXTERNS_END
 #else
-# define _BEGIN_EXTERNS_
-# define _END_EXTERNS_
+# define CPP_EXTERNS_BEG
+# define CPP_EXTERNS_END
 #endif
 '
 
@@ -410,7 +412,7 @@ check_hdr () {
   fi
   doappend code "
 #include <$file>
-main () { exit (0); }
+main () { return (0); }
 "
   rc=1
   _chk_compile ${name} "${code}" std
@@ -450,7 +452,7 @@ check_const () {
       done
   fi
   doappend code "
-main () { if (${constant} == 0) { 1; } exit (0); }
+main () { if (${constant} == 0) { 1; } return (0); }
 "
   do_check_compile ${name} "${code}" all
 }
@@ -463,7 +465,7 @@ check_key () {
   checkcache ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
 
-  code="main () { int ${keyword}; ${keyword} = 1; exit (0); }"
+  code="main () { int ${keyword}; ${keyword} = 1; return (0); }"
 
   _chk_compile ${name} "${code}" std
   rc=$?
@@ -483,9 +485,9 @@ check_proto () {
   if [ $rc -eq 0 ]; then return; fi
 
   code='
-_BEGIN_EXTERNS_
+CPP_EXTERNS_BEG
 extern int foo (int, int);
-_END_EXTERNS_
+CPP_EXTERNS_END
 int bar () { int rc; rc = foo (1,1); return 0; }
 '
 
@@ -508,7 +510,7 @@ check_typ () {
 struct xxx { ${type} mem; };
 static struct xxx v;
 struct xxx* f() { return &v; }
-main () { struct xxx *tmp; tmp = f(); exit (0); }
+main () { struct xxx *tmp; tmp = f(); return (0); }
 "
 
   do_check_compile ${name} "${code}" all
@@ -526,9 +528,9 @@ check_define () {
 
   code="main () {
 #ifdef ${def}
-exit (0);
+return (0);
 #else
-exit (1);
+return (1);
 #endif
 }"
 
@@ -595,7 +597,7 @@ check_size () {
   checkcache_val ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
 
-  code="main () { printf(\"%u\", sizeof(${type})); exit (0); }"
+  code="main () { printf(\"%u\", sizeof(${type})); return (0); }"
   _chk_run ${name} "${code}" all
   rc=$?
   val=$_retval
@@ -638,7 +640,7 @@ check_ptr_declare () {
   checkcache ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
 
-  code="main () { _VOID_ *x; x = ${function}; }"
+  code="main () { void *x; x = ${function}; }"
   do_check_compile ${name} "${code}" all
 }
 
@@ -666,10 +668,10 @@ check_npt () {
   fi
 
   code="
-_BEGIN_EXTERNS_
+CPP_EXTERNS_BEG
 struct _TEST_struct { int _TEST_member; };
-extern struct _TEST_struct* ${proto} _ARG_((struct _TEST_struct*));
-_END_EXTERNS_
+extern struct _TEST_struct* ${proto} _((struct _TEST_struct*));
+CPP_EXTERNS_END
 "
   do_check_compile ${name} "${code}" all
 }
@@ -698,10 +700,10 @@ check_lib () {
   # unfortunately, this does not work if the function
   # is not declared.
   code="
-_BEGIN_EXTERNS_
+CPP_EXTERNS_BEG
 typedef int (*_TEST_fun_)();
 static _TEST_fun_ i=(_TEST_fun_) ${func};
-_END_EXTERNS_
+CPP_EXTERNS_END
 main () {  i(); return (i==0); }
 "
 
@@ -724,11 +726,11 @@ main () {  i(); return (i==0); }
     # where the lib does not exist and the link works!
     # On modern systems, this simply isn't necessary.
     code="
-_BEGIN_EXTERNS_
+CPP_EXTERNS_BEG
   extern int ${func}();
   typedef int (*_TEST_fun_)();
   static _TEST_fun_ i=(_TEST_fun_) ${func};
-_END_EXTERNS_
+CPP_EXTERNS_END
   main () {  i(); return (i==0); }
   "
     _chk_link_libs ${name} "${code}" all
