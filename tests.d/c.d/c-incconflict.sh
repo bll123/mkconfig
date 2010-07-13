@@ -14,16 +14,70 @@ LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
 export CFLAGS LDFLAGS
 
 > incconf1.h echo '
+
+#if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
+# define _(x) x
+#else
+# define _(x) ()
+# define void char
+#endif
+#if defined(__cplusplus) || defined (c_plusplus)
+# define CPP_EXTERNS_BEG extern "C" {
+# define CPP_EXTERNS_END }
+CPP_EXTERNS_BEG
+extern int printf (const char *, ...);
+CPP_EXTERNS_END
+#else
+# define CPP_EXTERNS_BEG
+# define CPP_EXTERNS_END
+#endif
+
 CPP_EXTERNS_BEG
 extern int incconf1 ();
 CPP_EXTERNS_END
 '
 > incconf2.h echo '
+
+#if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
+# define _(x) x
+#else
+# define _(x) ()
+# define void char
+#endif
+#if defined(__cplusplus) || defined (c_plusplus)
+# define CPP_EXTERNS_BEG extern "C" {
+# define CPP_EXTERNS_END }
+CPP_EXTERNS_BEG
+extern int printf (const char *, ...);
+CPP_EXTERNS_END
+#else
+# define CPP_EXTERNS_BEG
+# define CPP_EXTERNS_END
+#endif
+
 CPP_EXTERNS_BEG
 extern char *incconf1 ();
 CPP_EXTERNS_END
 '
 > incconf3.h echo '
+
+#if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
+# define _(x) x
+#else
+# define _(x) ()
+# define void char
+#endif
+#if defined(__cplusplus) || defined (c_plusplus)
+# define CPP_EXTERNS_BEG extern "C" {
+# define CPP_EXTERNS_END }
+CPP_EXTERNS_BEG
+extern int printf (const char *, ...);
+CPP_EXTERNS_END
+#else
+# define CPP_EXTERNS_BEG
+# define CPP_EXTERNS_END
+#endif
+
 CPP_EXTERNS_BEG
 extern int incconf1 ();
 CPP_EXTERNS_END
