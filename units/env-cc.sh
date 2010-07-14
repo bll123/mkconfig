@@ -217,9 +217,11 @@ check_cflags () {
   esac
 
   case ${CC} in
-    g++)
-      echo "set g++ flags" >&9
-      gccflags="-Wall -Waggregate-return -Wconversion -Wformat -Wpointer-arith -Wshadow -Wunused"
+    g++|c++)
+      if [ "${_MKCONFIG_USING_GCC}" = "Y" ]; then
+        echo "set g++ flags" >&9
+        gccflags="-Wall -Waggregate-return -Wconversion -Wformat -Wpointer-arith -Wshadow -Wunused"
+      fi
       ;;
   esac
 
