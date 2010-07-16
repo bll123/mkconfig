@@ -10,7 +10,7 @@ script=$@
 grc=0
 
 ${script} -C ${_MKCONFIG_RUNTESTDIR}/size.dat
-v=`grep "^#define _siz_long 4$" size.ctest | sed 's/.* //'`
+v=`grep "^#define _siz_long [0-9]*$" size.ctest | sed 's/.* //'`
 grc=1
 if [ "$v" != "" ]; then
   if [ $v -ge 4 ]; then
