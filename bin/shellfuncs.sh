@@ -276,69 +276,6 @@ $d"
   _pthlist=`echo $_pthlist | sort -u`
 }
 
-# this is used for regression testing.
-getlistofshells () {
-
-  getpaths
-  echo "## PATH: $PATH"
-  echo "## paths: $_pthlist"
-
-  tshelllist=""
-  for d in $_pthlist; do
-    for s in $tryshell ; do
-      rs=$d/$s
-      if [ -h $rs ]; then
-        while [ -h $rs ]; do
-          rs="`ls -l $rs | sed 's/.* //'`"
-          case $rs in
-            /*)
-              ;;
-            *)
-              rs="$d/$rs"
-              ;;
-          esac
-          rs=`echo $rs | sed 's,/[^/]*/\.\./,/,'`
-          rs=`echo $rs | sed 's,/[^/]*/\.\./,/,'`
-          rs=`echo $rs | sed 's,/[^/]*/\.\./,/,'`
-        done
-      fi
-      if [ -x $rs ]; then
-        cmd="$rs -c \". $_MKCONFIG_DIR/shellfuncs.sh;getshelltype;echo \\\$shell\""
-        shell=`eval $cmd`
-        echo "  found: $rs ($shell)"
-        case $shell in
-          pdksh)
-            echo "    skip"
-            ;;
-          *)
-            tshelllist="${tshelllist}
-$rs"
-            ;;
-        esac
-      fi
-    done
-  done
-  tshelllist=`echo "$tshelllist" | sort -u`
-
-  systype=`uname -s`
-  shelllist=""
-  for s in $tshelllist; do
-    echo ${EN} "  check $s${EC}"
-    echo ${EN} "$s${EC}" >&5
-    cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;TSHELL=$s;chkshell\""
-    eval $cmd
-    if [ $? -eq 0 ]; then
-      echo " ok"
-      echo ${EN} "(ok) ${EC}" >&5
-      shelllist="${shelllist} $s"
-    else
-      echo " ng"
-      echo ${EN} "(ng) ${EC}" >&5
-      echo $chkmsg
-    fi
-  done
-}
-
 initifs () {
   hasifs=0
   if [ "$IFS" != "" ]; then

@@ -60,6 +60,69 @@ if [ $? != 0 ]; then
   exit 1
 fi
 
+# this is used for regression testing.
+getlistofshells () {
+
+  getpaths
+  echo "## PATH: $PATH" >&8
+  echo "## paths: $_pthlist" >&8
+
+  tshelllist=""
+  for d in $_pthlist; do
+    for s in $tryshell ; do
+      rs=$d/$s
+      if [ -h $rs ]; then
+        while [ -h $rs ]; do
+          rs="`ls -l $rs | sed 's/.* //'`"
+          case $rs in
+            /*)
+              ;;
+            *)
+              rs="$d/$rs"
+              ;;
+          esac
+          rs=`echo $rs | sed 's,/[^/]*/\.\./,/,'`
+          rs=`echo $rs | sed 's,/[^/]*/\.\./,/,'`
+          rs=`echo $rs | sed 's,/[^/]*/\.\./,/,'`
+        done
+      fi
+      if [ -x $rs ]; then
+        cmd="$rs -c \". $_MKCONFIG_DIR/shellfuncs.sh;getshelltype;echo \\\$shell\""
+        shell=`eval $cmd`
+        echo "  found: $rs ($shell)" >&8
+        case $shell in
+          pdksh)
+            echo "    skip" >&8
+            ;;
+          *)
+            tshelllist="${tshelllist}
+$rs"
+            ;;
+        esac
+      fi
+    done
+  done
+  tshelllist=`echo "$tshelllist" | sort -u`
+
+  systype=`uname -s`
+  shelllist=""
+  for s in $tshelllist; do
+    echo ${EN} "  check $s${EC}" >&8
+    echo ${EN} "$s${EC}"
+    cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;TSHELL=$s;chkshell\""
+    eval $cmd
+    if [ $? -eq 0 ]; then
+      echo " ok" >&8
+      echo ${EN} "(ok) ${EC}"
+      shelllist="${shelllist} $s"
+    else
+      echo " ng" >&8
+      echo ${EN} "(ng) ${EC}"
+      echo $chkmsg >&8
+    fi
+  done
+}
+
 runshelltest () {
   stag=""
   if [ "$_MKCONFIG_SHELL" != "" ]; then
@@ -128,7 +191,7 @@ MAINLOG=${_MKCONFIG_RUNTMPDIR}/main.log
 exec 8>>$MAINLOG
 echo "## locating valid shells"
 echo ${EN} "   ${EC}"
-getlistofshells 5>&1 >&8 2>&1
+getlistofshells
 echo ""
 export shelllist
 grc=0
