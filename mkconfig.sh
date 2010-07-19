@@ -678,7 +678,8 @@ main_process () {
 }
 
 usage () {
-  echo "Usage: $0 [-C] [-c <cache-file>] [-L <log-file>] <config-file>
+  echo "Usage: $0 [-C] [-c <cache-file>] [-o <options-file>]
+           [-L <log-file>] <config-file>
   -C : clear cache-file
 defaults:
   <cache-file> : mkconfig.cache
