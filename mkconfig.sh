@@ -31,19 +31,19 @@ optionsloaded=F
 
 INC="include.txt"                   # temporary
 
-chkconfigfname () {
+_chkconfigfname () {
   if [ "$CONFH" = "" ]; then
     echo "Config file name not set.  Exiting."
-    exitmkconfig 1
+    _exitmkconfig 1
   fi
 }
 
-exitmkconfig () {
+_exitmkconfig () {
     rc=$1
     exit 1
 }
 
-savecache () {
+_savecache () {
     # And save the data for re-use.
     # Some shells don't quote the values in the set
     # command like bash does.  So we do it.
@@ -90,7 +90,7 @@ getdata () {
     eval $cmd
 }
 
-setifleveldisp () {
+_setifleveldisp () {
   ifleveldisp=""
   for il in $iflevels; do
     ifleveldisp="${il}${ifleveldisp}"
@@ -108,9 +108,7 @@ printlabel () {
   echo ${EN} "${ifleveldisp}${tlabel} ... ${EC}" >&1
 }
 
-
-
-doexport () {
+_doexport () {
   var=$1
   val=$2
 
@@ -129,7 +127,7 @@ printyesno_actual () {
   echo "$ynval ${yntag}" >&1
 
   if [ "$_MKCONFIG_EXPORT" = "T" ]; then
-    doexport $ynname "$ynval"
+    _doexport $ynname "$ynval"
   fi
 }
 
@@ -195,7 +193,7 @@ checkcache () {
   return $rc
 }
 
-loadoptions () {
+_loadoptions () {
   if [ $optionsloaded = "F" -a -f "${OPTIONFILE}" ]; then
     exec 6<&0 < ${OPTIONFILE}
     while read o; do
@@ -239,7 +237,7 @@ check_ifoption () {
 
     printlabel $name "$type ($ifdispcount): ${oopt}"
 
-    loadoptions
+    _loadoptions
     trc=F  # if option is not set, it's false
 
     found=F
@@ -357,7 +355,7 @@ check_option () {
 
   name=$nm
 
-  loadoptions
+  _loadoptions
 
   oval=$def
   printlabel $name "option: ${onm}"
@@ -374,23 +372,7 @@ check_option () {
   setdata ${_MKCONFIG_PREFIX} ${nm} "${oval}"
 }
 
-require_unit () {
-  units=$@
-  for rqu in $units; do
-    trqu=$rqu
-    dosubst trqu '-' '_'
-    cmd="val=\$_MKCONFIG_UNIT_${trqu}"
-    eval $cmd
-    if [ "$val" = "Y" ]; then
-      echo "   required unit ${rqu} already loaded" >&9
-      continue
-    fi
-    echo "   required unit ${rqu} needed" >&9
-    doloadunit $rqu Y
-  done
-}
-
-doloadunit () {
+_doloadunit () {
   lu=$1
   dep=$2
   if [ "$dep" = "Y" ]; then
@@ -411,7 +393,46 @@ doloadunit () {
   fi
 }
 
-create_config () {
+require_unit () {
+  units=$@
+  for rqu in $units; do
+    trqu=$rqu
+    dosubst trqu '-' '_'
+    cmd="val=\$_MKCONFIG_UNIT_${trqu}"
+    eval $cmd
+    if [ "$val" = "Y" ]; then
+      echo "   required unit ${rqu} already loaded" >&9
+      continue
+    fi
+    echo "   required unit ${rqu} needed" >&9
+    _doloadunit $rqu Y
+  done
+}
+
+_create_output () {
+
+  if [ ${CONFH} != "none" ]; then
+    > ${CONFH}
+    exec 8>>${CONFH}
+    preconfigfile ${CONFH} >&8
+
+    exec 6<&0 < $VARSFILE
+    while read cfgvar; do
+      getdata val ${_MKCONFIG_PREFIX} $cfgvar
+      output_item ${CONFH} ${cfgvar} "${val}" >&8
+    done
+    exec <&6 6<&-
+
+    stdconfigfile ${CONFH} >&8
+    cat $INC >&8
+    postconfigfile ${CONFH} >&8
+    exec 8>&-
+
+    output_other ${CONFH}
+  fi
+}
+
+main_process () {
   configfile=$1
 
   reqlibs=""
@@ -422,6 +443,7 @@ create_config () {
 
   reqhdr=""
 
+  inproc=0
   ininclude=0
   doproclist=""
   doproc=1
@@ -481,7 +503,7 @@ create_config () {
           shift
           iflevels=$@
           iflevels="-$ifstmtcount $iflevels"
-          setifleveldisp
+          _setifleveldisp
           echo "## else iflevels: $iflevels" >&9
           ;;
         "endif")
@@ -496,7 +518,7 @@ create_config () {
             set -- $iflevels
             shift
             iflevels=$@
-            setifleveldisp
+            _setifleveldisp
             echo "## endif iflevels: $iflevels" >&9
           else
             doproc=1
@@ -511,6 +533,10 @@ create_config () {
           endinclude)
             ;;
           output*)
+            if [ $inproc -eq 1 ]; then
+              _create_output
+              CONFH=none
+            fi
             set $tdatline
             type=$1
             file=$2
@@ -527,6 +553,7 @@ create_config () {
             esac
             echo "output-file: ${file}" >&1
             echo "   config file name: ${CONFH}" >&9
+            inproc=1
             ;;
           option-file*)
             set $tdatline
@@ -547,18 +574,18 @@ create_config () {
             set $tdatline
             type=$1
             file=$2
-            doloadunit ${file} N
+            _doloadunit ${file} N
             if [ "$VARSFILE" = "" -a "${_MKCONFIG_PREFIX}" != "" ]; then
               VARSFILE="../mkconfig_${_MKCONFIG_PREFIX}.vars"
             fi
             exec 8>>$VARSFILE
             ;;
           standard)
-            chkconfigfname
+            _chkconfigfname
             standard_checks
             ;;
           "set "*|setint*|setstr*)
-            chkconfigfname
+            _chkconfigfname
             set $tdatline
             type=$1
             nm=$2
@@ -570,7 +597,7 @@ create_config () {
             check_set ${nm} $type "${tval}"
             ;;
           option*)
-            chkconfigfname
+            _chkconfigfname
             set $tdatline
             optnm=$2
             shift; shift
@@ -579,7 +606,7 @@ create_config () {
             check_option ${nm} $optnm "${tval}"
             ;;
           ifoption*|ifnotoption*)
-            chkconfigfname
+            _chkconfigfname
             set $tdatline
             type=$1
             opt=$2
@@ -588,14 +615,14 @@ create_config () {
             check_ifoption $ifstmtcount $type ${nm} ${opt}
             rc=$?
             iflevels="+$ifstmtcount $iflevels"
-            setifleveldisp
+            _setifleveldisp
             echo "## ifopt iflevels: $iflevels" >&9
             doproclist="$doproc $doproclist"
             doproc=$rc
             echo "## doproc: $doproc doproclist: $doproclist" >&9
             ;;
           "if "*)
-            chkconfigfname
+            _chkconfigfname
             set $tdatline
             shift
             label=$1
@@ -605,7 +632,7 @@ create_config () {
             check_if $label $ifstmtcount "$ifline"
             rc=$?
             iflevels="+$ifstmtcount $iflevels"
-            setifleveldisp
+            _setifleveldisp
             echo "## if iflevels: $iflevels" >&9
             doproclist="$doproc $doproclist"
             doproc=$rc
@@ -616,18 +643,18 @@ create_config () {
           "endif")
             ;;
           command*)
-            chkconfigfname
+            _chkconfigfname
             set $tdatline
             cmd=$2
             nm="_command_${cmd}"
             check_command ${nm} ${cmd}
             ;;
           include)
-            chkconfigfname
+            _chkconfigfname
             ininclude=1
             ;;
           *)
-            chkconfigfname
+            _chkconfigfname
             set $tdatline
             type=$1
             chk="check_${type}"
@@ -646,27 +673,8 @@ create_config () {
   exec <&7 7<&-
   exec 8>&-
 
-  savecache  # save the cache file.
-
-  if [ ${CONFH} != "none" ]; then
-    > ${CONFH}
-    exec 8>>${CONFH}
-    preconfigfile ${CONFH} >&8
-
-    exec 7<&0 < $VARSFILE
-    while read cfgvar; do
-      getdata val ${_MKCONFIG_PREFIX} $cfgvar
-      output_item ${CONFH} ${cfgvar} "${val}" >&8
-    done
-    exec <&7 7<&-
-
-    stdconfigfile ${CONFH} >&8
-    cat $INC >&8
-    postconfigfile ${CONFH} >&8
-    exec 8>&-
-
-    output_other ${CONFH}
-  fi
+  _savecache     # save the cache file.
+  _create_output
 }
 
 usage () {
@@ -759,7 +767,7 @@ echo "has upper: ${shhasupper}" >&9
 
 echo "$0 ($shell) using $configfile"
 
-create_config $configfile
+main_process $configfile
 
 dt=`date`
 echo "#### " >&9

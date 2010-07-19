@@ -1231,7 +1231,80 @@ check_standard
 
 
 sub
-create_config
+create_output
+{
+  my ($r_clist, $r_config, $include) = @_;
+
+  if ($CONFH eq 'none') { return; }
+
+  open (CCOFH, ">$CONFH");
+  print CCOFH <<'_HERE_';
+#ifndef __INC_CONFIG_H
+#define __INC_CONFIG_H 1
+
+_HERE_
+
+  foreach my $val (@{$r_clist->{'list'}})
+  {
+    if ($val =~ m#^lib__lib_#o) {
+      next;
+    }
+    my $tval = 0;
+    if ($r_config->{$val} ne "0") {
+        $tval = 1;
+    }
+    if ($val =~ m#^_setint_#o) {
+      $tnm = $val;
+      $tnm =~ s/^_setint_//;
+      print CCOFH "#define $tnm " . $r_config->{$val} . "\n";
+    } elsif ($val =~ m#^_setstr_#o || $val =~ m#^_opt_#o) {
+      $tnm = $val;
+      $tnm =~ s/^_setstr_//;
+      $tnm =~ s/^_opt_//;
+      print CCOFH "#define $tnm \"" . $r_config->{$val} . "\"\n";
+    } elsif ($val =~ m#^(_hdr|_sys|_command)#o) {
+      print CCOFH "#define $val $tval\n";
+    } else {
+      print CCOFH "#define $val " . $r_config->{$val} . "\n";
+    }
+  }
+
+  # standard tail -- always needed; non specific
+  print CCOFH <<'_HERE_';
+
+#if ! _key_void
+# define void int
+#endif
+#if ! _key_void || ! _param_void_star
+  typedef char *_pvoid;
+#else
+  typedef void *_pvoid;
+#endif
+#if ! _key_const
+# define const
+#endif
+
+#ifndef _
+# if _proto_stdc
+#  define _(args) args
+# else
+#  define _(args) ()
+# endif
+#endif
+
+_HERE_
+
+  print CCOFH $include;
+
+  print CCOFH <<'_HERE_';
+
+#endif /* __INC_CONFIG_H */
+_HERE_
+  close CCOFH;
+}
+
+sub
+main_process
 {
     my ($configfile) = @_;
     my (%clist, %config);
@@ -1280,6 +1353,7 @@ create_config
     my $inheaders = 1;
     my $ininclude = 0;
     my @doproclist;
+    my $inproc = 0;
     my $doproc = 1;
     my $include = '';
     my $tline = '';
@@ -1347,6 +1421,12 @@ create_config
       if ($doproc == 1) {
         if ($line =~ m#^\s*output\s+([^\s]+)#o)
         {
+            if ($inproc == 1) {
+              create_output (\%clist, \%config, $include);
+              $CONFH = 'none';
+              $include = '';
+            }
+
             print "output-file: $1\n";
             my $tconfh = $1;
             if ($tconfh =~ m#^/#o) {
@@ -1355,6 +1435,7 @@ create_config
               $CONFH = "../$tconfh";
             }
             print LOGFH "config file: $CONFH\n";
+            $inproc = 1;
         }
         elsif ($line =~ m#^\s*option\-file\s+([^\s]+)#o)
         {
@@ -1594,78 +1675,13 @@ create_config
       }
     }
 
-    open (CCOFH, ">$CONFH");
-    print CCOFH <<'_HERE_';
-#ifndef __INC_CONFIG_H
-#define __INC_CONFIG_H 1
-
-_HERE_
-
-    foreach my $val (@{$clist{'list'}})
-    {
-      if ($val =~ m#^lib__lib_#o) {
-        next;
-      }
-      my $tval = 0;
-      if ($config{$val} ne "0") {
-          $tval = 1;
-      }
-      if ($val =~ m#^_setint_#o) {
-        $tnm = $val;
-        $tnm =~ s/^_setint_//;
-        print CCOFH "#define $tnm $config{$val}\n";
-      } elsif ($val =~ m#^_setstr_#o || $val =~ m#^_opt_#o) {
-        $tnm = $val;
-        $tnm =~ s/^_setstr_//;
-        $tnm =~ s/^_opt_//;
-        print CCOFH "#define $tnm \"$config{$val}\"\n";
-      } elsif ($val =~ m#^(_hdr|_sys|_command)#o) {
-        print CCOFH "#define $val $tval\n";
-      } else {
-        print CCOFH "#define $val $config{$val}\n";
-      }
-    }
-
-    # standard tail -- always needed; non specific
-    print CCOFH <<'_HERE_';
-
-#if ! _key_void
-# define void int
-#endif
-#if ! _key_void || ! _param_void_star
-  typedef char *_pvoid;
-#else
-  typedef void *_pvoid;
-#endif
-#if ! _key_const
-# define const
-#endif
-
-#ifndef _
-# if _proto_stdc
-#  define _(args) args
-# else
-#  define _(args) ()
-# endif
-#endif
-
-_HERE_
-
-    print CCOFH $include;
-
-    print CCOFH <<'_HERE_';
-
-#endif /* __INC_CONFIG_H */
-_HERE_
-    close CCOFH;
+    savecache (\%clist, \%config);
+    create_output (\%clist, \%config, $include);
 
     open (RLIBFH, ">$REQLIB");
-
     my $r_list = $config{'reqlibs_list'};
     print RLIBFH join (' ', @{$r_list}) . "\n";
     close RLIBFH;
-
-    savecache (\%clist, \%config);
 }
 
 sub
@@ -1759,7 +1775,7 @@ print LOGFH "CPPFLAGS: $ENV{'CPPFLAGS'}\n";
 print LOGFH "LDFLAGS: $ENV{'LDFLAGS'}\n";
 print LOGFH "LIBS: $ENV{'LIBS'}\n";
 
-create_config $configfile;
+main_process $configfile;
 
 close LOGFH;
 
