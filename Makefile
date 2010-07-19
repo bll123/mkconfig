@@ -2,16 +2,15 @@
 #
 #
 
-CP = cp
 RM = rm
 
 # leaves _tmp_mkconfig, _mkconfig_runtests
 clean:
-	@-rm -rf tests.done > /dev/null 2>&1
+	@-$(RM) -rf tests.done tests.d/chksh* > /dev/null 2>&1
 
 realclean:
 	@$(MAKE) clean
-	@-rm -rf _tmp_mkconfig _mkconfig_runtests > /dev/null 2>&1
+	@-$(RM) -rf _tmp_mkconfig _mkconfig_runtests > /dev/null 2>&1
 
 distclean:
 	@$(MAKE) realclean
