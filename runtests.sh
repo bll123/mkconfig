@@ -86,7 +86,7 @@ runshelltest () {
     targ="$_MKCONFIG_DIR/$arg"
   fi
   # dup stdout to 5; redirect stdout to 9; redirect stderr to new 1.
-  ${_MKCONFIG_SHELL} $_MKCONFIG_RUNTESTDIR/$tf $targ 5>&1 >&9 2>&1
+  ${_MKCONFIG_SHELL} $_MKCONFIG_RUNTESTDIR/$tf "$stag" $targ 5>&1 >&9 2>&1
   rc=$?
   cd $_MKCONFIG_RUNTESTDIR
 
