@@ -5,6 +5,8 @@ if [ "$1" = "-d" ]; then
   exit 0
 fi
 
+stag=$1
+shift
 script=$@
 
 . $_MKCONFIG_DIR/shellfuncs.sh
@@ -27,13 +29,6 @@ if [ $ccount -eq 1 ]; then
   $0 $@
   exit $?
 fi
-
-dosh=T
-case $script in
-  *.pl)
-    dosh=F
-    ;;
-esac
 
 for f in cache.ctest mkconfig_c.vars mkconfig.log mkconfig.cache; do
   test -f $f && rm -f $f

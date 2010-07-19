@@ -5,6 +5,8 @@ if [ "$1" = "-d" ]; then
   exit 0
 fi
 
+stag=$1
+shift
 script=$@
 grc=0
 
