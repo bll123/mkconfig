@@ -22,6 +22,7 @@
 5 nooption_c
 5 option_c
 5 option_env
+5 outfile
 6 npt
 6 incconflict
 6 singlelib
