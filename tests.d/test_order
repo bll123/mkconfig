@@ -27,3 +27,4 @@
 6 incconflict
 6 singlelib
 7 multlib
+8 mkstaticlib
