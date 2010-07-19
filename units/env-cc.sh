@@ -72,8 +72,6 @@ check_cc () {
   CC=${CC:-cc}
 
   printlabel CC "C compiler"
-  checkcache_val ${_MKCONFIG_PREFIX} CC
-  if [ $? -eq 0 ]; then return; fi
 
   case ${_MKCONFIG_SYSTYPE} in
       BeOS|Haiku)
@@ -101,9 +99,7 @@ check_cc () {
 check_using_gcc () {
   usinggcc="N"
 
-  printlabel _MKCONFIG_USING_GCC "Using GCC"
-  checkcache_val ${_MKCONFIG_PREFIX} _MKCONFIG_USING_GCC
-  if [ $? -eq 0 ]; then return; fi
+  printlabel _MKCONFIG_USING_GCC "Using gcc/g++"
 
   # check for gcc...
   ${CC} -v 2>&1 | grep 'gcc version' > /dev/null 2>&1
@@ -115,7 +111,7 @@ check_using_gcc () {
   fi
 
   case ${CC} in
-      *gcc*)
+      *gcc*|*g++*)
           usinggcc="Y"
           ;;
   esac
@@ -129,8 +125,6 @@ check_cflags () {
   ccincludes="${CINCLUDES:-}"
 
   printlabel CFLAGS "C flags"
-  checkcache_val ${_MKCONFIG_PREFIX} CFLAGS
-  if [ $? -eq 0 ]; then return; fi
 
   _dogetconf
 
@@ -240,8 +234,6 @@ check_ldflags () {
   ldflags="${LDFLAGS:-}"
 
   printlabel LDFLAGS "C Load flags"
-  checkcache_val ${_MKCONFIG_PREFIX} LDFLAGS
-  if [ $? -eq 0 ]; then return; fi
 
   _dogetconf
 
@@ -298,8 +290,6 @@ check_libs () {
   libs="${LIBS:-}"
 
   printlabel LIBS "C Libraries"
-  checkcache_val ${_MKCONFIG_PREFIX} LIBS
-  if [ $? -eq 0 ]; then return; fi
 
   _dogetconf
 
@@ -327,3 +317,80 @@ check_libs () {
   setdata ${_MKCONFIG_PREFIX} LIBS "$libs"
 }
 
+check_pic () {
+  printlabel _MKCONFIG_CC_PIC "pic option"
+
+  _MKCONFIG_CC_PIC="-fPIC"
+  if [ "$_MKCONFIG_USING_GCC" != "Y" ]; then
+    case ${_MKCONFIG_SYSTYPE} in
+      SunOS|Irix)
+        _MKCONFIG_CC_PIC="-KPIC"
+        ;;
+      HP-UX)
+        _MKCONFIG_CC_PIC="+Z"
+        ;;
+      OSF1)
+        _MKCONFIG_CC_PIC=""
+        ;;
+    esac
+  fi
+
+  printyesno_val _MKCONFIG_CC_PIC "$_MKCONFIG_CC_PIC"
+  setdata ${_MKCONFIG_PREFIX} _MKCONFIG_CC_PIC "$_MKCONFIG_CC_PIC"
+}
+
+check_shlib_ext () {
+  printlabel _MKCONFIG_SHLIB_EXT "shared lib extension"
+
+  _MKCONFIG_SHLIB_EXT=".so"
+  case ${_MKCONFIG_SYSTYPE} in
+    HP-UX)
+      _MKCONFIG_SHLIB_EXT=".sl"
+      ;;
+  esac
+
+  printyesno_val _MKCONFIG_SHLIB_EXT "$_MKCONFIG_SHLIB_EXT"
+  setdata ${_MKCONFIG_PREFIX} _MKCONFIG_SHLIB_EXT "$_MKCONFIG_SHLIB_EXT"
+}
+
+check_shlib_create () {
+  printlabel _MKCONFIG_SHLIB_CREATE "shared lib creation flag"
+
+  _MKCONFIG_SHLIB_CREATE="-shared"
+  if [ "$_MKCONFIG_USING_GCC" != "Y" ]; then
+    case ${_MKCONFIG_SYSTYPE} in
+      SunOS)
+        _MKCONFIG_SHLIB_CREATE="-G"
+        ;;
+      HP-UX)
+        _MKCONFIG_SHLIB_CREATE="-b"
+        ;;
+      OSF1|Irix)
+        ;;
+    esac
+  fi
+
+  printyesno_val _MKCONFIG_SHLIB_CREATE "$_MKCONFIG_SHLIB_CREATE"
+  setdata ${_MKCONFIG_PREFIX} _MKCONFIG_SHLIB_CREATE "$_MKCONFIG_SHLIB_CREATE"
+}
+
+check_shlib_name () {
+  printlabel _MKCONFIG_SHLIB_NAME "shared lib name flag"
+
+  _MKCONFIG_SHLIB_NAME="-soname"
+  if [ "$_MKCONFIG_USING_GCC" != "Y" ]; then
+    case ${_MKCONFIG_SYSTYPE} in
+      SunOS)
+        _MKCONFIG_SHLIB_NAME="-h"
+        ;;
+      HP-UX)
+        _MKCONFIG_SHLIB_NAME="+h"
+        ;;
+      OSF1|Irix)
+        ;;
+    esac
+  fi
+
+  printyesno_val _MKCONFIG_SHLIB_NAME "$_MKCONFIG_SHLIB_NAME"
+  setdata ${_MKCONFIG_PREFIX} _MKCONFIG_SHLIB_NAME "$_MKCONFIG_SHLIB_NAME"
+}
