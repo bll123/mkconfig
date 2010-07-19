@@ -1678,6 +1678,9 @@ main_process
     savecache (\%clist, \%config);
     create_output (\%clist, \%config, $include);
 
+    # This is here for os/2 and other systems w/no usable bourne shell.
+    # it is not up to date, as it will output libraries that are not
+    # needed by the final configuration.
     open (RLIBFH, ">$REQLIB");
     my $r_list = $config{'reqlibs_list'};
     print RLIBFH join (' ', @{$r_list}) . "\n";
@@ -1687,17 +1690,12 @@ main_process
 sub
 usage
 {
-  print STDOUT "Usage: $0 [-c <cache-file>] [-v <vars-file>] \n";
-  print STDOUT "       [-l <log-file>] [-t <tmp-dir>] [-r <reqlib-file>]\n";
+  print STDOUT "Usage: $0 [-c <cache-file>] [-L <log-file>]\n";
   print STDOUT "       [-o <option-file>] [-C] <config-file>\n";
   print STDOUT "  -C : clear cache-file\n";
-  print STDOUT "<tmp-dir> must not exist.\n";
   print STDOUT "defaults:\n";
   print STDOUT "  <cache-file> : mkconfig.cache\n";
-  print STDOUT "  <vars-file>  : mkconfig.vars\n";
   print STDOUT "  <log-file>   : mkconfig.log\n";
-  print STDOUT "  <tmp-dir>    : _tmp_mkconfig\n";
-  print STDOUT "  <reqlib-file>: mkconfig.reqlibs\n";
   print STDOUT "  <option-file>: options.dat\n";
 }
 
@@ -1717,16 +1715,10 @@ while ($#ARGV > 0)
       $CACHEFILE = $ARGV[0];
       shift @ARGV;
   }
-  if ($ARGV[0] eq "-l")
+  if ($ARGV[0] eq "-L")
   {
       shift @ARGV;
       $LOG = $ARGV[0];
-      shift @ARGV;
-  }
-  if ($ARGV[0] eq "-t")
-  {
-      shift @ARGV;
-      $TMP = $ARGV[0];
       shift @ARGV;
   }
   if ($ARGV[0] eq "-o")
