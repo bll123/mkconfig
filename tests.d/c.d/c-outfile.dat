@@ -1,0 +1,36 @@
+loadunit c-main
+
+output outfile1.ctest
+
+standard
+hdr     ctype.h
+hdr     errno.h
+hdr     fcntl.h
+hdr     fshelp.h
+hdr     getopt.h
+hdr     kernel/fs_info.h
+hdr     limits.h
+hdr     libintl.h
+hdr     locale.h
+hdr     malloc.h
+hdr     memory.h
+hdr     mntent.h
+hdr     mnttab.h
+
+output outfile2.ctest
+
+standard
+hdr     ctype.h
+hdr     errno.h
+hdr     fcntl.h
+hdr     fshelp.h
+hdr     getopt.h
+hdr     kernel/fs_info.h
+hdr     limits.h
+hdr     libintl.h
+hdr     locale.h
+hdr     malloc.h
+hdr     memory.h
+hdr     mntent.h
+hdr     mnttab.h
+
