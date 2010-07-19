@@ -4,6 +4,10 @@
 #
 # Copyright 2010 Brad Lanam Walnut Creek, CA USA
 #
+# This script is used to change an option in an options file.
+# Usage:
+#   mkcsetopt.sh [-o options-file] option-name value
+#
 
 RUNTOPDIR=`pwd`
 mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
