@@ -142,7 +142,10 @@ doshelltest () {
     if [ "$SHELL" != "$_MKCONFIG_SHELL" ]; then
       SHELL="$_MKCONFIG_SHELL"
       export SHELL
-      exec $SHELL $dstscript $@
+      loc=`pwd`
+      s=$1
+      shift
+      exec $SHELL $dstscript $s -d $loc $@
     fi
   fi
 
