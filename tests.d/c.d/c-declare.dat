@@ -1,0 +1,8 @@
+output declare.ctest
+loadunit c-main
+standard
+hdr dcltst.h
+dcl int a
+dcl ptr b
+dcl int c
+dcl ptr d
