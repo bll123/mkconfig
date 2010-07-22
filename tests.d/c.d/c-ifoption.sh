@@ -19,7 +19,14 @@ TEST_ASSIGN_T=t
 TEST_ASSIGN_F=f
 _HERE_
 
-${_MKCONFIG_SHELL} ${script}  -C ${_MKCONFIG_RUNTESTDIR}/ifoption_env.dat
+case ${script} in
+  *mkconfig.sh)
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/ifoption_env.dat
+    ;;
+  *)
+    ${script} -C ${_MKCONFIG_RUNTESTDIR}/ifoption_env.dat
+    ;;
+esac
 for t in \
     _test_enable _test_disable \
     _test_assign_t _test_assign_f \

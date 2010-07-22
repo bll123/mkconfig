@@ -11,7 +11,14 @@ script=$@
 
 grc=0
 
-${script} -C ${_MKCONFIG_RUNTESTDIR}/set_c.dat
+case ${script} in
+  *mkconfig.sh)
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/set_c.dat
+    ;;
+  *)
+    ${script} -C ${_MKCONFIG_RUNTESTDIR}/set_c.dat
+    ;;
+esac
 grep "^#define _define_EOF 0$" set_c.ctest
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi

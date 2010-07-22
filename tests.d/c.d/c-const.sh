@@ -11,7 +11,14 @@ script=$@
 
 grc=0
 
-${script} -C ${_MKCONFIG_RUNTESTDIR}/const.dat
+case ${script} in
+  *mkconfig.sh)
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/const.dat
+    ;;
+  *)
+    ${script} -C ${_MKCONFIG_RUNTESTDIR}/const.dat
+    ;;
+esac
 grep "^#define _const_O_RDONLY 1$" const.ctest
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi

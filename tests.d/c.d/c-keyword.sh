@@ -11,7 +11,14 @@ script=$@
 
 grc=0
 
-${script} -C ${_MKCONFIG_RUNTESTDIR}/keyword.dat
+case ${script} in
+  *mkconfig.sh)
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/keyword.dat
+    ;;
+  *)
+    ${script} -C ${_MKCONFIG_RUNTESTDIR}/keyword.dat
+    ;;
+esac
 grep "^#define _key_long 1$" keyword.ctest
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi

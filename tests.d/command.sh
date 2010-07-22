@@ -11,7 +11,14 @@ script=$@
 
 grc=0
 
-${script} -C ${_MKCONFIG_RUNTESTDIR}/command.dat
+case ${script} in
+  *mkconfig.sh)
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/command.dat
+    ;;
+  *)
+    ${script} -C ${_MKCONFIG_RUNTESTDIR}/command.dat
+    ;;
+esac
 grep "^#define _command_sed 1$" command.ctest
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi

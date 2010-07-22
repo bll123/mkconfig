@@ -1,5 +1,4 @@
 #!/bin/sh
-
 if [ "$1" = "-d" ]; then
   echo ${EN} " create shared library${EC}"
   exit 0
@@ -9,7 +8,7 @@ stag=$1
 shift
 script=$@
 
-${_MKCONFIG_DIR}/mkconfig.sh -C $_MKCONFIG_RUNTESTDIR/mksharedlib.dat
+${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` -C $_MKCONFIG_RUNTESTDIR/mksharedlib.dat
 . ./mksharedlib.env
 
 for i in 1 2 3 4; do

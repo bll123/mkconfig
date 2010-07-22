@@ -17,7 +17,14 @@ TEST_OPT_SET=abc123
 TEST_OPT_SET_SPACE=abc 123
 _HERE_
 
-${script} -C ${_MKCONFIG_RUNTESTDIR}/option_c.dat
+case ${script} in
+  *mkconfig.sh)
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/option_c.dat
+    ;;
+  *)
+    ${script} -C ${_MKCONFIG_RUNTESTDIR}/option_c.dat
+    ;;
+esac
 grep "^#define TEST_OPT_DEF \"default\"$" option_c.ctest
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi

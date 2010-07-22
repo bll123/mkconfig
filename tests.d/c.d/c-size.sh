@@ -11,7 +11,14 @@ script=$@
 
 grc=0
 
-${script} -C ${_MKCONFIG_RUNTESTDIR}/size.dat
+case ${script} in
+  *mkconfig.sh)
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/size.dat
+    ;;
+  *)
+    ${script} -C ${_MKCONFIG_RUNTESTDIR}/size.dat
+    ;;
+esac
 v=`grep "^#define _siz_long [0-9]*$" size.ctest | sed 's/.* //'`
 grc=1
 if [ "$v" != "" ]; then

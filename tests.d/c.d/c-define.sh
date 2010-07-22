@@ -17,7 +17,14 @@ export CFLAGS
 #define MYDEFINE 20
 '
 
-${script} -C ${_MKCONFIG_RUNTESTDIR}/define.dat
+case ${script} in
+  *mkconfig.sh)
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/define.dat
+    ;;
+  *)
+    ${script} -C ${_MKCONFIG_RUNTESTDIR}/define.dat
+    ;;
+esac
 grep "^#define _define_MYDEFINE 1$" define.ctest
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi

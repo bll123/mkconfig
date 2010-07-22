@@ -55,7 +55,14 @@ if [ $? -ne 0 ]; then
 fi
 ar cq libnptlib.a nptlib.o
 
-${script} -C ${_MKCONFIG_RUNTESTDIR}/npt.dat
+case ${script} in
+  *mkconfig.sh)
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/npt.dat
+    ;;
+  *)
+    ${script} -C ${_MKCONFIG_RUNTESTDIR}/npt.dat
+    ;;
+esac
 grep "^#define _npt_npt1lib 1$" npt.ctest
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi

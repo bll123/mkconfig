@@ -19,7 +19,14 @@ typedef int my_type_t;
 '
 
 grc=0
-${script} -C ${_MKCONFIG_RUNTESTDIR}/type.dat
+case ${script} in
+  *mkconfig.sh)
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/type.dat
+    ;;
+  *)
+    ${script} -C ${_MKCONFIG_RUNTESTDIR}/type.dat
+    ;;
+esac
 grep "^#define _typ_my_type_t 1$" type.ctest
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi

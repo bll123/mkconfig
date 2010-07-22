@@ -21,7 +21,14 @@ while test -f cache.${ccount}; do
 done
 
 if [ $ccount -eq 1 ]; then
-  ${script} -C $_MKCONFIG_RUNTESTDIR/cache.dat
+  case ${script} in
+    *mkconfig.sh)
+      ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/cache.dat
+      ;;
+    *)
+      ${script} -C ${_MKCONFIG_RUNTESTDIR}/cache.dat
+      ;;
+  esac
   mv -f cache.ctest ${_MKCONFIG_RUNTMPDIR}/cache.${ccount}
   cp -f mkconfig_c.vars ${_MKCONFIG_RUNTMPDIR}/cache.${ccount}.vars
   mv -f mkconfig.log mkconfig.log.${ccount}
@@ -33,7 +40,14 @@ fi
 for f in cache.ctest mkconfig_c.vars mkconfig.log mkconfig.cache; do
   test -f $f && rm -f $f
 done
-${script} $_MKCONFIG_RUNTESTDIR/cache.dat
+case ${script} in
+  *mkconfig.sh)
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` ${_MKCONFIG_RUNTESTDIR}/cache.dat
+    ;;
+  *)
+    ${script} ${_MKCONFIG_RUNTESTDIR}/cache.dat
+    ;;
+esac
 mv -f cache.ctest cache.${ccount}
 mv -f mkconfig_c.vars cache.${ccount}.vars
 cp -f ${_MKCONFIG_RUNTMPDIR}/cache.1.vars mkconfig_c.vars

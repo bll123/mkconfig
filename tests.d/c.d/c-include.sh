@@ -11,7 +11,14 @@ script=$@
 
 grc=0
 
-${script} -C ${_MKCONFIG_RUNTESTDIR}/include.dat
+case ${script} in
+  *mkconfig.sh)
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/include.dat
+    ;;
+  *)
+    ${script} -C ${_MKCONFIG_RUNTESTDIR}/include.dat
+    ;;
+esac
 echo "## $count: $s: diff include.ctmp include.ctest"
 sed -e '/^#define _key_/d' -e '/^#define _proto_/d' \
     -e '/^#define _param_/d' include.ctest > t

@@ -23,7 +23,14 @@ int d;
 '
 
 grc=0
-${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/declare.dat
+case ${script} in
+  *mkconfig.sh)
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/declare.dat
+    ;;
+  *)
+    ${script} -C ${_MKCONFIG_RUNTESTDIR}/declare.dat
+    ;;
+esac
 grep "^#define _dcl_a 1$" declare.ctest
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi

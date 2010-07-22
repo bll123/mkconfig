@@ -11,7 +11,14 @@ script=$@
 
 grc=0
 
-${script} -C ${_MKCONFIG_RUNTESTDIR}/syshdr.dat
+case ${script} in
+  *mkconfig.sh)
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/syshdr.dat
+    ;;
+  *)
+    ${script} -C ${_MKCONFIG_RUNTESTDIR}/syshdr.dat
+    ;;
+esac
 grep "^#define _sys_types 1$" syshdr.ctest
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi

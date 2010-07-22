@@ -85,7 +85,14 @@ extern int incconf1 ();
 CPP_EXTERNS_END
 '
 
-${script} -C ${_MKCONFIG_RUNTESTDIR}/incconflict.dat
+case ${script} in
+  *mkconfig.sh)
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/incconflict.dat
+    ;;
+  *)
+    ${script} -C ${_MKCONFIG_RUNTESTDIR}/incconflict.dat
+    ;;
+esac
 grep "^#define _inc_conflict__hdr_incconf1__hdr_incconf2 0$" incconflict.ctest
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi

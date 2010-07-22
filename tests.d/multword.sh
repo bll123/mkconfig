@@ -12,7 +12,14 @@ script=$@
 grc=0
 
 rm -f mkconfig.cache multword.env mkconfig.log > /dev/null 2>&1
-${script} -C ${_MKCONFIG_RUNTESTDIR}/multword.dat
+case ${script} in
+  *mkconfig.sh)
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/multword.dat
+    ;;
+  *)
+    ${script} -C ${_MKCONFIG_RUNTESTDIR}/multword.dat
+    ;;
+esac
 . ./mkconfig.cache
 if [ "$di_env_test_multword" != "word1 word2" ]; then
   echo "   failed: cache: $di_env_test_multword"

@@ -91,7 +91,14 @@ if [ $? -ne 0 ]; then
 fi
 ar cq libtst2libc.a tst2libc.o
 
-${script} -C ${_MKCONFIG_RUNTESTDIR}/multlib.dat
+case ${script} in
+  *mkconfig.sh)
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/multlib.dat
+    ;;
+  *)
+    ${script} -C ${_MKCONFIG_RUNTESTDIR}/multlib.dat
+    ;;
+esac
 case $script in
   *mkconfig.sh)
     ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh multlib.ctest

@@ -9,7 +9,7 @@ stag=$1
 shift
 script=$@
 
-${_MKCONFIG_DIR}/mkconfig.sh -C $_MKCONFIG_RUNTESTDIR/mkstaticlib.dat
+${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` -C $_MKCONFIG_RUNTESTDIR/mkstaticlib.dat
 . ./mkstaticlib.env
 
 for i in 1 2 3 4; do
@@ -48,8 +48,8 @@ extern int t2 _((void));
 extern int t3 _((void));
 extern int t4 _((void));
 CPP_EXTERNS_END
-int t${i} () { int i; i = 0; 
-    i += t1(); i += t2(); i += t3(); i += t4(); 
+int t${i} () { int i; i = 0;
+    i += t1(); i += t2(); i += t3(); i += t4();
     return i; }
 _HERE_
 ${CC} ${CPPFLAGS} ${CFLAGS} -c t${i}.c
