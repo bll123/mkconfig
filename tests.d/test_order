@@ -28,3 +28,4 @@
 6 singlelib
 7 multlib
 8 mkstaticlib
+9 mksharedlib
