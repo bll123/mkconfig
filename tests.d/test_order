@@ -5,6 +5,7 @@
 2 header
 2 syshdr
 3 const
+3 declare
 3 define
 3 include
 3 keyword
