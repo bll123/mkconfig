@@ -83,7 +83,7 @@ _HERE_
 ${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c t${i}.c
 
 grc=0
-bash -x ${_MKCONFIG_DIR}/mksharedlib.sh t t[51234]${OBJ_EXT}
+${_MKCONFIG_DIR}/mksharedlib.sh t t[51234]${OBJ_EXT}
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
@@ -95,7 +95,6 @@ ${CC} ${LDFLAGS} ${SHEXECLINK} -o t6a${EXE_EXT} t6${OBJ_EXT} ${shrunpath} -L. -l
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-#export LD_RUN_PATH=${cwd}
 ./t6a
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
