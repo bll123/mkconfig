@@ -120,6 +120,24 @@ check_using_gcc () {
   setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_GCC "${usinggcc}"
 }
 
+check_using_gnu_ld () {
+  usinggnuld="N"
+
+  printlabel _MKCONFIG_USING_GNU_LD "Using gnu ld"
+
+  # check for gcc...
+  ${CC} -v 2>&1 | grep 'GNU ld' > /dev/null 2>&1
+  rc=$?
+  if [ $rc -eq 0 ]
+  then
+      echo "found gnu ld" >&9
+      usinggnuld="Y"
+  fi
+
+  printyesno_val _MKCONFIG_USING_GNU_LD "${usinggnuld}"
+  setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_GNU_LD "${usinggnuld}"
+}
+
 check_cflags () {
   ccflags="${CFLAGS:-}"
   ccincludes="${CINCLUDES:-}"
@@ -384,7 +402,7 @@ check_sharednameflag () {
   printlabel SHLDNAMEFLAG "shared lib name flag"
 
   SHLDNAMEFLAG="-Wl,-soname="
-  if [ "$_MKCONFIG_USING_GCC" != "Y" ]; then
+  if [ "$_MKCONFIG_USING_GNU_LD" != "Y" ]; then
     case ${_MKCONFIG_SYSTYPE} in
       SunOS)
         SHLDNAMEFLAG="-Wl,-h "
@@ -431,7 +449,7 @@ check_sharerunpathflag () {
   printlabel SHRUNPATH "shared run path flag "
 
   SHRUNPATH="-Wl,-rpath="
-  if [ "$_MKCONFIG_USING_GCC" != "Y" ]; then
+  if [ "$_MKCONFIG_USING_GNU_LD" != "Y" ]; then
     case ${_MKCONFIG_SYSTYPE} in
       SunOS)
         SHRUNPATH="-Wl,-R"
