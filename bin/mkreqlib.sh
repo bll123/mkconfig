@@ -5,8 +5,6 @@
 # Copyright 2009-2010 Brad Lanam Walnut Creek, CA USA
 #
 
-set -x
-
 # this is a workaround for ksh93 on solaris
 if [ "$1" = "-d" ]; then
   cd $2
