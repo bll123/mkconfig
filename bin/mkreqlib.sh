@@ -5,13 +5,22 @@
 # Copyright 2009-2010 Brad Lanam Walnut Creek, CA USA
 #
 
+set -x
+
+# this is a workaround for ksh93 on solaris
+if [ "$1" = "-d" ]; then
+  cd $2
+  shift
+  shift
+fi
 RUNTOPDIR=`pwd`
 mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
-cd $mypath
-_MKCONFIG_DIR=`pwd`
+_MKCONFIG_DIR=`(cd $mypath;pwd)`
 export _MKCONFIG_DIR
-cd $RUNTOPDIR
 . ${_MKCONFIG_DIR}/shellfuncs.sh
+
+doshelltest $0 $@
+setechovars
 
 CACHEFILE="mkconfig.cache"
 
@@ -23,8 +32,6 @@ getlibdata () {
     eval $cmd
 }
 
-doshelltest $0 $@
-setechovars
 mkconfigversion
 
 OUTLIBFILE="mkconfig.reqlibs"
@@ -50,8 +57,8 @@ if [ ! -f "${CONFH}" ]; then
   echo "Unable to locate ${CONFH}"
   ok=0
 fi
-if [ ! -f "${RUNTOPDIR}/$CACHEFILE" ]; then
-  echo "Unable to locate ${RUNTOPDIR}/$CACHEFILE"
+if [ ! -f "$RUNTOPDIR/$CACHEFILE" ]; then
+  echo "Unable to locate $RUNTOPDIR/$CACHEFILE"
   ok=0
 fi
 if [ $ok -eq 0 ]; then
@@ -59,7 +66,7 @@ if [ $ok -eq 0 ]; then
 fi
 
 reqlibs=""
-. ${RUNTOPDIR}/$CACHEFILE
+. $RUNTOPDIR/$CACHEFILE
 
 exec 7<&0 < ${CONFH}
 while read cline; do
@@ -83,4 +90,4 @@ while read cline; do
   fi
 done
 exec <&7 7<&-
-echo $reqlibs > $RUNTOPDIR/$OUTLIBFILE
+echo $reqlibs > $OUTLIBFILE
