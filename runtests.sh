@@ -18,13 +18,17 @@
 DOPERL=T
 TESTORDER=test_order
 
+# this is a workaround for ksh93 on solaris
+if [ "$1" = "-d" ]; then
+  cd $2
+  shift
+  shift
+fi
 _MKCONFIG_RUNTOPDIR=`pwd`
 export _MKCONFIG_RUNTOPDIR
 mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
-cd $mypath
-_MKCONFIG_DIR=`pwd`
+_MKCONFIG_DIR=`(cd $mypath;pwd)`
 export _MKCONFIG_DIR
-cd $_MKCONFIG_RUNTOPDIR
 . ${_MKCONFIG_DIR}/shellfuncs.sh
 
 doshelltest $0 $@
@@ -110,7 +114,7 @@ $rs"
     echo ${EN} "  check $s${EC}" >&8
     echo ${EN} "$s${EC}"
     cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;TSHELL=$s;chkshell\""
-    eval $cmd
+    eval $cmd >&8 2>&1
     if [ $? -eq 0 ]; then
       echo " ok" >&8
       echo ${EN} "(ok) ${EC}"
@@ -276,7 +280,8 @@ while read tline; do
       shell=$ss
 
       runshelltest
-      src=$?
+      rc=$?
+      if [ $rc -ne 0 ]; then src=$rc; fi
       domath scount "$scount + 1"
 
       unset _shell
