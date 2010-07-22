@@ -15,13 +15,19 @@
 #    4 - temporary                  (c-main.sh)
 #
 
-RUNTOPDIR=`pwd`
+# this is a workaround for ksh93 on solaris
+if [ "$1" = "-d" ]; then
+  cd $2
+  shift
+  shift
+fi
 mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
-cd $mypath
-_MKCONFIG_DIR=`pwd`
+_MKCONFIG_DIR=`(cd $mypath;pwd)`
 export _MKCONFIG_DIR
-cd $RUNTOPDIR
 . ${_MKCONFIG_DIR}/shellfuncs.sh
+
+doshelltest $0 $@
+setechovars
 
 LOG="mkconfig.log"
 _MKCONFIG_TMP="_tmp_mkconfig"
@@ -29,7 +35,7 @@ CACHEFILE="mkconfig.cache"
 OPTIONFILE="options.dat"
 optionsloaded=F
 
-INC="include.txt"                   # temporary
+INC="mkcinclude.txt"                   # temporary
 
 _chkconfigfname () {
   if [ "$CONFH" = "" ]; then
@@ -688,8 +694,6 @@ defaults:
 
 # main
 
-doshelltest $0 $@
-setechovars
 mkconfigversion
 
 unset GREP_OPTIONS
