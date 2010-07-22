@@ -28,28 +28,13 @@ else
   members=$@
 fi
 
-MKC_SHLIB_OPT=-shared
-MKC_SHLIB_NM="-soname $libnm"
-if [ "_MKCONFIG_USING_GCC" != "Y" ]; then
-  case ${_MKCONFIG_SYS} in
-    SunOS)
-      MKC_SHLIB_OPT=-G
-      MKC_SHLIB_NM="-h $libnm"
-      ;;
-    HP-UX)
-      MKC_SHLIB_OPT=-b
-      MKC_SHLIB_NM="+h $libnm"
-      ;;
-    OSF1)
-      ;;
-    AIX)
-      MKC_SHLIB_OPT="-bM:SRE"
-      MKC_SHLIB_NM=""
-      ;;
-  esac
-fi
+# not working
+#if [ "${SHLDNAMEFLAG}" != "" ]; then
+#  SHLDFLAGS="${SHLDFLAGS} ${SHLDNAMEFLAG}${libnm}"
+#fi
 
-libfnm=lib${libnm}.${SHLIB_EXT}
-${CC} ${MKC_SHLIB_OPT} ${MKC_SHLIB_NM} -o $libfnm ${members}
+libfnm=lib${libnm}${SHLIB_EXT}
+${CC} ${LDFLAGS} ${SHLDFLAGS} -o $libfnm ${members}
+rc=$?
 
-exit 0
+exit $rc
