@@ -13,6 +13,7 @@ using_gcc
 cflags
 ldflags
 libs
+using_gnu_ld
 shcflags
 shlib_ext
 shldflags
