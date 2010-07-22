@@ -317,80 +317,134 @@ check_libs () {
   setdata ${_MKCONFIG_PREFIX} LIBS "$libs"
 }
 
-check_pic () {
-  printlabel _MKCONFIG_CC_PIC "pic option"
+check_shcflags () {
+  shcflags="${SHCFLAGS:-}"
 
-  _MKCONFIG_CC_PIC="-fPIC"
+  printlabel SHCFLAGS "shared library cflags"
+
+  shcflags="-fPIC $shcflags"
   if [ "$_MKCONFIG_USING_GCC" != "Y" ]; then
     case ${_MKCONFIG_SYSTYPE} in
       SunOS|Irix)
-        _MKCONFIG_CC_PIC="-KPIC"
+        shcflags="-KPIC $shcflags"
         ;;
       HP-UX)
-        _MKCONFIG_CC_PIC="+Z"
+        shcflags="+Z $shcflags"
         ;;
       OSF1)
-        _MKCONFIG_CC_PIC=""
         ;;
     esac
   fi
 
-  printyesno_val _MKCONFIG_CC_PIC "$_MKCONFIG_CC_PIC"
-  setdata ${_MKCONFIG_PREFIX} _MKCONFIG_CC_PIC "$_MKCONFIG_CC_PIC"
+  printyesno_val SHCFLAGS "$shcflags"
+  setdata ${_MKCONFIG_PREFIX} SHCFLAGS "$shcflags"
 }
 
 check_shlib_ext () {
-  printlabel _MKCONFIG_SHLIB_EXT "shared lib extension"
+  printlabel SHLIB_EXT "shared library extension"
 
-  _MKCONFIG_SHLIB_EXT=".so"
+  SHLIB_EXT=".so"
   case ${_MKCONFIG_SYSTYPE} in
     HP-UX)
-      _MKCONFIG_SHLIB_EXT=".sl"
+      SHLIB_EXT=".sl"
       ;;
   esac
 
-  printyesno_val _MKCONFIG_SHLIB_EXT "$_MKCONFIG_SHLIB_EXT"
-  setdata ${_MKCONFIG_PREFIX} _MKCONFIG_SHLIB_EXT "$_MKCONFIG_SHLIB_EXT"
+  printyesno_val SHLIB_EXT "$SHLIB_EXT"
+  setdata ${_MKCONFIG_PREFIX} SHLIB_EXT "$SHLIB_EXT"
 }
 
-check_shlib_create () {
-  printlabel _MKCONFIG_SHLIB_CREATE "shared lib creation flag"
+check_shldflags () {
+  shldflags="${SHLDFLAGS:-}"
+  printlabel SHLDFLAGS "shared library ldflags"
 
-  _MKCONFIG_SHLIB_CREATE="-shared"
+  shldflags="$shldflags -shared"
   if [ "$_MKCONFIG_USING_GCC" != "Y" ]; then
     case ${_MKCONFIG_SYSTYPE} in
       SunOS)
-        _MKCONFIG_SHLIB_CREATE="-G"
+        shldflags="$shldflags -G"
         ;;
       HP-UX)
-        _MKCONFIG_SHLIB_CREATE="-b"
+        shldflags="$shldflags -b"
         ;;
       OSF1|Irix)
+        # -shared
+        ;;
+      AIX)
+        shldflags="$shldflags -G"
         ;;
     esac
   fi
 
-  printyesno_val _MKCONFIG_SHLIB_CREATE "$_MKCONFIG_SHLIB_CREATE"
-  setdata ${_MKCONFIG_PREFIX} _MKCONFIG_SHLIB_CREATE "$_MKCONFIG_SHLIB_CREATE"
+  printyesno_val SHLDFLAGS "$shldflags"
+  setdata ${_MKCONFIG_PREFIX} SHLDFLAGS "$shldflags"
 }
 
-check_shlib_name () {
-  printlabel _MKCONFIG_SHLIB_NAME "shared lib name flag"
+check_sharednameflag () {
+  printlabel SHLDNAMEFLAG "shared lib name flag"
 
-  _MKCONFIG_SHLIB_NAME="-soname"
+  SHLDNAMEFLAG="-Wl,-soname="
   if [ "$_MKCONFIG_USING_GCC" != "Y" ]; then
     case ${_MKCONFIG_SYSTYPE} in
       SunOS)
-        _MKCONFIG_SHLIB_NAME="-h"
+        SHLDNAMEFLAG="-Wl,-h "
         ;;
       HP-UX)
-        _MKCONFIG_SHLIB_NAME="+h"
+        SHLDNAMEFLAG="-Wl,+h "
         ;;
       OSF1|Irix)
+        # -soname
         ;;
     esac
   fi
 
-  printyesno_val _MKCONFIG_SHLIB_NAME "$_MKCONFIG_SHLIB_NAME"
-  setdata ${_MKCONFIG_PREFIX} _MKCONFIG_SHLIB_NAME "$_MKCONFIG_SHLIB_NAME"
+  printyesno_val SHLDNAMEFLAG "$SHLDNAMEFLAG"
+  setdata ${_MKCONFIG_PREFIX} SHLDNAMEFLAG "$SHLDNAMEFLAG"
+}
+
+check_shareexeclinkflag () {
+  printlabel SHEXECLINK "shared executable link flag "
+
+  SHEXECLINK="-Bdynamic"
+  if [ "$_MKCONFIG_USING_GCC" != "Y" ]; then
+    case ${_MKCONFIG_SYSTYPE} in
+      SunOS)
+        # -Bdynamic
+        ;;
+      HP-UX)
+        SHEXECLINK="-a,shared"
+        ;;
+      OSF1)
+        SHEXECLINK="-no_archive"
+        ;;
+      AIX)
+        SHEXECLINK="-brtl -bdynamic"
+        ;;
+    esac
+  fi
+
+  printyesno_val SHEXECLINK "$SHEXECLINK"
+  setdata ${_MKCONFIG_PREFIX} SHEXECLINK "$SHEXECLINK"
+}
+
+check_sharerunpathflag () {
+  printlabel SHRUNPATH "shared run path flag "
+
+  SHRUNPATH="-Wl,-rpath="
+  if [ "$_MKCONFIG_USING_GCC" != "Y" ]; then
+    case ${_MKCONFIG_SYSTYPE} in
+      SunOS)
+        SHRUNPATH="-Wl,-R"
+        ;;
+      HP-UX)
+        SHRUNPATH="-Wl,+b "
+        ;;
+      AIX)
+        SHRUNPATH=""
+        ;;
+    esac
+  fi
+
+  printyesno_val SHRUNPATH "$SHRUNPATH"
+  setdata ${_MKCONFIG_PREFIX} SHRUNPATH "$SHRUNPATH"
 }
