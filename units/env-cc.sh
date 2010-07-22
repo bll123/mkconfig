@@ -340,16 +340,20 @@ check_shcflags () {
 
   printlabel SHCFLAGS "shared library cflags"
 
-  shcflags="-fPIC $shcflags"
+  shcflags="-fPIC $SHCFLAGS"
   if [ "$_MKCONFIG_USING_GCC" != "Y" ]; then
     case ${_MKCONFIG_SYSTYPE} in
       SunOS|Irix)
-        shcflags="-KPIC $shcflags"
+        shcflags="-KPIC $SHCFLAGS"
         ;;
       HP-UX)
-        shcflags="+Z $shcflags"
+        shcflags="+Z $SHCFLAGS"
         ;;
       OSF1)
+        # none
+        ;;
+      Darwin)
+        shcflags="-fno-common $SHCFLAGS"
         ;;
     esac
   fi
@@ -366,6 +370,12 @@ check_shlib_ext () {
     HP-UX)
       SHLIB_EXT=".sl"
       ;;
+    AIX)
+      SHLIB_EXT=".a"
+      ;;
+    Darwin)
+      SHLIB_EXT=".dylib"
+      ;;
   esac
 
   printyesno_val SHLIB_EXT "$SHLIB_EXT"
@@ -376,23 +386,29 @@ check_shldflags () {
   shldflags="${SHLDFLAGS:-}"
   printlabel SHLDFLAGS "shared library ldflags"
 
-  shldflags="$shldflags -shared"
+  shldflags="$SHLDFLAGS -shared"
   if [ "$_MKCONFIG_USING_GCC" != "Y" ]; then
     case ${_MKCONFIG_SYSTYPE} in
       SunOS)
-        shldflags="$shldflags -G"
+        shldflags="$SHLDFLAGS -G"
         ;;
       HP-UX)
-        shldflags="$shldflags -b"
+        shldflags="$SHLDFLAGS -b"
         ;;
       OSF1|Irix)
         # -shared
         ;;
       AIX)
-        shldflags="$shldflags -G"
+        shldflags="$SHLDFLAGS -G"
         ;;
     esac
   fi
+
+  case ${_MKCONFIG_SYSTYPE} in
+    Darwin)
+      shldflags="$SHLDFLAGS -dynamiclib"
+      ;;
+  esac
 
   printyesno_val SHLDFLAGS "$shldflags"
   setdata ${_MKCONFIG_PREFIX} SHLDFLAGS "$shldflags"
@@ -412,6 +428,9 @@ check_sharednameflag () {
         ;;
       OSF1|Irix)
         # -soname
+        ;;
+      Darwin)
+        # -compatibility_version -current_version
         ;;
     esac
   fi
@@ -438,6 +457,9 @@ check_shareexeclinkflag () {
       AIX)
         SHEXECLINK="-brtl -bdynamic"
         ;;
+      Darwin)
+        SHEXECLINK=""
+        ;;
     esac
   fi
 
@@ -459,6 +481,12 @@ check_sharerunpathflag () {
         ;;
       AIX)
         SHRUNPATH=""
+        ;;
+      Darwin)
+        SHRUNPATH=""
+        ;;
+      OSF1)
+        SHRUNPATH="-rpath "
         ;;
     esac
   fi
