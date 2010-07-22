@@ -17,6 +17,8 @@ mkconfig.units/env-msgfmt.sh
 mkconfig.units/env-systype.sh
 mkcsetopt.sh		set options in options file.
 mkreqlib.sh		required link libraries
+mkstaticlib.sh		create a static library
+mksharedlib.sh		create a shared library [preliminary]
 mktar.sh		creates tar file
 README          	README
 runtests.sh		runs regression tests
@@ -68,6 +70,10 @@ tests.d/keyword.sh
 tests.d/member.dat
 tests.d/member.mkshpl
 tests.d/member.sh
+tests.d/mksharedlib.dat
+tests.d/mksharedlib.sh
+tests.d/mkstaticlib.dat
+tests.d/mkstaticlib.sh
 tests.d/multlib.config
 tests.d/multlib.dat
 tests.d/multlib.mkshpl
