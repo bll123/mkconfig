@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ "$1" = "-d" ]; then
-  echo ${EN} " syshdr${EC}"
+  echo ${EN} " sys/ header${EC}"
   exit 0
 fi
 

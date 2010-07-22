@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ "$1" = "-d" ]; then
-  echo ${EN} " type defined${EC}"
+  echo ${EN} " typedef${EC}"
   exit 0
 fi
 
