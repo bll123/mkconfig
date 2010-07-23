@@ -8,6 +8,16 @@ stag=$1
 shift
 script=$@
 
+if [ "${_MKCONFIG_USING_GCC}" = "N" -a \
+    "`uname -s 2>/dev/null`" = "HP-UX" ]; then
+  cc -v 2>&1 | grep 'Bundled' 
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    echo ${EN} " skipped${EC}" >&5
+    exit 0
+  fi
+fi
+
 ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` -C $_MKCONFIG_RUNTESTDIR/mksharedlib.dat
 . ./mksharedlib.env
 
