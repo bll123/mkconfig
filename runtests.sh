@@ -179,7 +179,7 @@ if [ "$teststorun" = "" ]; then
   if [ ! -f "$TESTORDER" ]; then
     ls -1d *.d *.sh 2>/dev/null | sed -e 's/\.sh$//' -e 's/^/1 ' > $TMPORDER
   else
-    sort $TESTORDER > $TMPORDER
+    sort -n $TESTORDER > $TMPORDER
   fi
 else
   for t in $teststorun; do
