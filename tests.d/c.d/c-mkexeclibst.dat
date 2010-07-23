@@ -1,0 +1,18 @@
+loadunit env-main
+loadunit env-systype
+loadunit env-cc
+loadunit env-extension
+
+output mkexeclibst.env
+
+system type
+system rev
+system arch
+cc
+using_gcc
+cflags
+ldflags
+libs
+objext
+exeext
+

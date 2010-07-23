@@ -1,0 +1,25 @@
+loadunit env-main
+loadunit env-systype
+loadunit env-cc
+loadunit env-extension
+
+output mkexeclibsh.env
+
+system type
+system rev
+system arch
+cc
+using_gcc
+cflags
+ldflags
+libs
+using_gnu_ld
+shcflags
+shlib_ext
+shldflags
+sharednameflag
+shareexeclinkflag
+sharerunpathflag
+objext
+exeext
+
