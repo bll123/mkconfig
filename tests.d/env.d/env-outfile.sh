@@ -13,7 +13,14 @@ for f in outfile1.ctest outfile2.ctest \
     mkconfig_c.vars mkconfig.log mkconfig.cache; do
   test -f $f && rm -f $f
 done
-${script} $_MKCONFIG_RUNTESTDIR/outfile.dat
+case ${script} in
+  *mkconfig.sh)
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/outfile.dat
+    ;;
+  *)
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/outfile.dat
+    ;;
+esac
 
 grc=0
 
