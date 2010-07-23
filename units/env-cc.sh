@@ -355,6 +355,9 @@ check_shcflags () {
       Darwin)
         shcflags="-fno-common $SHCFLAGS"
         ;;
+      CYGWIN*)
+        shcflags="$SHCFLAGS"
+        ;;
     esac
   fi
 
@@ -375,6 +378,9 @@ check_shlib_ext () {
       ;;
     Darwin)
       SHLIB_EXT=".dylib"
+      ;;
+    CYGWIN*)
+      SHLIB_EXT=".dll"
       ;;
   esac
 
