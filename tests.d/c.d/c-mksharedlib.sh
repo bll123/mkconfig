@@ -8,18 +8,22 @@ stag=$1
 shift
 script=$@
 
+${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` -C $_MKCONFIG_RUNTESTDIR/mksharedlib.dat
+. ./mksharedlib.env
+
+if [ "${_MKCONFIG_SYSTYPE}" = "BSD" ]; then
+  echo ${EN} " skipped${EC}" >&5
+  exit 0
+fi
 if [ "${_MKCONFIG_USING_GCC}" = "N" -a \
-    "`uname -s 2>/dev/null`" = "HP-UX" ]; then
-  cc -v 2>&1 | grep 'Bundled' 
+    "${_MKCONFIG_SYSTYPE}" = "HP-UX" ]; then
+  ${CC} -v 2>&1 | grep 'Bundled' 
   rc=$?
   if [ $rc -eq 0 ]; then
     echo ${EN} " skipped${EC}" >&5
     exit 0
   fi
 fi
-
-${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` -C $_MKCONFIG_RUNTESTDIR/mksharedlib.dat
-. ./mksharedlib.env
 
 for i in 1 2 3 4; do
   cat > t${i}.c <<_HERE_
@@ -51,12 +55,10 @@ CPP_EXTERNS_END
 # define CPP_EXTERNS_END
 #endif
 
-CPP_EXTERNS_BEG
 extern int t1 _((void));
 extern int t2 _((void));
 extern int t3 _((void));
 extern int t4 _((void));
-CPP_EXTERNS_END
 int t${i} () { int i; i = 0;
     i += t1(); i += t2(); i += t3(); i += t4();
     return i; }
@@ -84,9 +86,7 @@ CPP_EXTERNS_END
 # define CPP_EXTERNS_END
 #endif
 
-CPP_EXTERNS_BEG
 extern int t5 _((void));
-CPP_EXTERNS_END
 main () { int i, j; i = t5(); j = 1; if (i == 10) { j = 0; } return j; }
 _HERE_
 ${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c t${i}.c
