@@ -15,7 +15,8 @@ mkconfig.units/env-extension.sh
 mkconfig.units/env-main.sh
 mkconfig.units/env-msgfmt.sh
 mkconfig.units/env-systype.sh
-mkcsetopt.sh		set options in options file.
+mkcsetopt.sh		set options in options file
+mklink.sh		link an executable [preliminary]
 mkreqlib.sh		required link libraries
 mkstaticlib.sh		create a static library
 mksharedlib.sh		create a shared library [preliminary]
@@ -70,8 +71,14 @@ tests.d/keyword.sh
 tests.d/member.dat
 tests.d/member.mkshpl
 tests.d/member.sh
+tests.d/mkexeclibsh.dat
+tests.d/mkexeclibsh.sh
+tests.d/mkexeclibst.dat
+tests.d/mkexeclibst.sh
 tests.d/mksharedlib.dat
 tests.d/mksharedlib.sh
+tests.d/mkshlibmult.dat
+tests.d/mkshlibmult.sh
 tests.d/mkstaticlib.dat
 tests.d/mkstaticlib.sh
 tests.d/multlib.config
