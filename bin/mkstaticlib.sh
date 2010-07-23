@@ -19,26 +19,31 @@ export _MKCONFIG_DIR
 doshelltest $0 $@
 setechovars
 
-memfile=""
-if [ "$1" = "-f" ]; then
-  shift
-  memfile=$1
-  shift
-fi
-libnm=$1
-shift
-if [ "$memfile" != "" ]; then
-  members=`cat $memfile`
-else
-  members=$@
-fi
-
+libnm=""
+objects=""
 grc=0
-for f in ${members}; do
-  if [ ! -f ${f} ]; then
-    echo "## Unable to locate ${f}"
-    grc=1
-  fi
+doecho=F
+
+for f in $@; do
+  case $f in
+    "-e")
+      doecho=T
+      ;;
+    *${OBJ_EXT})
+      if [ ! -f "$f" ]; then
+        echo "## unable to locate $f"
+        grc=1
+      else
+        doappend objects " $f"
+      fi
+      ;;
+    *)
+      if [ "$libnm" = "" ]; then
+        libnm=$f
+        continue
+      fi
+      ;;
+  esac
 done
 
 locatecmd ranlibcmd ranlib
@@ -52,17 +57,24 @@ if [ "$arcmd" = "" ]; then
 fi
 
 if [ $grc -eq 0 ]; then
+  dosubst libnm '${SHLIB_EXT}$' '' '^lib' ''
   libfnm=lib${libnm}.a
   # for really old systems...
   if [ "$ranlibcmd" = "" -a "$lordercmd" != "" -a "$tsortcmd" != "" ]; then
-    members=`$lordercmd ${members} | $tsortcmd`
+    objects=`$lordercmd ${objects} | $tsortcmd`
   fi
   test -f $libfnm && rm -f $libfnm
-  $arcmd cq $libfnm ${members}
+  cmd="$arcmd cq $libfnm ${objects}"
+  if [ $doecho = "T" ]; then
+    echo $cmd
+  fi
+  eval $cmd
   rc=$?
   if [ $rc -ne 0 ]; then grc=$rc; fi
   if [ "$ranlibcmd" != "" ]; then
-    $ranlibcmd $libfnm
+    cmd="$ranlibcmd $libfnm"
+    echo $cmd
+    eval $cmd
     rc=$?
     if [ $rc -ne 0 ]; then grc=$rc; fi
   fi
