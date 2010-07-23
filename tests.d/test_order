@@ -29,4 +29,7 @@
 6 singlelib
 7 multlib
 8 mkstaticlib
-9 mksharedlib
+9 mkexeclibst
+10 mksharedlib
+11 mkexeclibsh
+12 mkshlibmult
