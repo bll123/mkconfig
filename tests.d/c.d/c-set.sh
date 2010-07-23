@@ -16,7 +16,7 @@ case ${script} in
     ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/set_c.dat
     ;;
   *)
-    ${script} -C ${_MKCONFIG_RUNTESTDIR}/set_c.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/set_c.dat
     ;;
 esac
 grep "^#define _define_EOF 0$" set_c.ctest

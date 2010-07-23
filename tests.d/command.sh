@@ -16,7 +16,7 @@ case ${script} in
     ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/command.dat
     ;;
   *)
-    ${script} -C ${_MKCONFIG_RUNTESTDIR}/command.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/command.dat
     ;;
 esac
 grep "^#define _command_sed 1$" command.ctest

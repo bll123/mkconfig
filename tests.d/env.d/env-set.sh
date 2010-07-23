@@ -16,7 +16,7 @@ case ${script} in
     ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/set_env.dat
     ;;
   *)
-    ${script} -C ${_MKCONFIG_RUNTESTDIR}/set_env.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/set_env.dat
     ;;
 esac
 l=`grep "^_test1=\"1\"$" set_env.ctest | wc -l`

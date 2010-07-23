@@ -22,7 +22,7 @@ case ${script} in
     ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/define.dat
     ;;
   *)
-    ${script} -C ${_MKCONFIG_RUNTESTDIR}/define.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/define.dat
     ;;
 esac
 grep "^#define _define_MYDEFINE 1$" define.ctest

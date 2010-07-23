@@ -96,7 +96,7 @@ case ${script} in
     ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/multlib.dat
     ;;
   *)
-    ${script} -C ${_MKCONFIG_RUNTESTDIR}/multlib.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/multlib.dat
     ;;
 esac
 case $script in

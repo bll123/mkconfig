@@ -28,7 +28,7 @@ case ${script} in
     ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/declare.dat
     ;;
   *)
-    ${script} -C ${_MKCONFIG_RUNTESTDIR}/declare.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/declare.dat
     ;;
 esac
 grep "^#define _dcl_a 1$" declare.ctest

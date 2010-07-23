@@ -26,7 +26,7 @@ if [ $ccount -eq 1 ]; then
       ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/cache.dat
       ;;
     *)
-      ${script} -C ${_MKCONFIG_RUNTESTDIR}/cache.dat
+      perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/cache.dat
       ;;
   esac
   mv -f cache.ctest ${_MKCONFIG_RUNTMPDIR}/cache.${ccount}

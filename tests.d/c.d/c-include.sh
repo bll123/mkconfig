@@ -16,7 +16,7 @@ case ${script} in
     ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/include.dat
     ;;
   *)
-    ${script} -C ${_MKCONFIG_RUNTESTDIR}/include.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/include.dat
     ;;
 esac
 echo "## $count: $s: diff include.ctmp include.ctest"

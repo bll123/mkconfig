@@ -17,7 +17,7 @@ case ${script} in
     ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/multword.dat
     ;;
   *)
-    ${script} -C ${_MKCONFIG_RUNTESTDIR}/multword.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/multword.dat
     ;;
 esac
 . ./mkconfig.cache

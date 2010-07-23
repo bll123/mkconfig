@@ -16,7 +16,7 @@ case ${script} in
     ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/nooptfile_c.dat
     ;;
   *)
-    ${script} -C ${_MKCONFIG_RUNTESTDIR}/nooptfile_c.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/nooptfile_c.dat
     ;;
 esac
 for t in \

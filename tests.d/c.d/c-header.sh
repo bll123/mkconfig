@@ -16,7 +16,7 @@ case ${script} in
     ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/header.dat
     ;;
   *)
-    ${script} -C ${_MKCONFIG_RUNTESTDIR}/header.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/header.dat
     ;;
 esac
 grep "^#define _sys_types 1$" header.ctest

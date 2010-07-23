@@ -37,7 +37,7 @@ case ${script} in
     ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/member.dat
     ;;
   *)
-    ${script} -C ${_MKCONFIG_RUNTESTDIR}/member.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/member.dat
     ;;
 esac
 for n in a b c d e f g; do

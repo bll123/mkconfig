@@ -16,7 +16,7 @@ case ${script} in
     ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/const.dat
     ;;
   *)
-    ${script} -C ${_MKCONFIG_RUNTESTDIR}/const.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/const.dat
     ;;
 esac
 grep "^#define _const_O_RDONLY 1$" const.ctest

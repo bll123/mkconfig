@@ -58,7 +58,7 @@ case ${script} in
     ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/singlelib.dat
     ;;
   *)
-    ${script} -C ${_MKCONFIG_RUNTESTDIR}/singlelib.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/singlelib.dat
     ;;
 esac
 case $script in

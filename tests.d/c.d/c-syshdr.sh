@@ -16,7 +16,7 @@ case ${script} in
     ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/syshdr.dat
     ;;
   *)
-    ${script} -C ${_MKCONFIG_RUNTESTDIR}/syshdr.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/syshdr.dat
     ;;
 esac
 grep "^#define _sys_types 1$" syshdr.ctest

@@ -22,7 +22,7 @@ case ${script} in
     ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/option_c.dat
     ;;
   *)
-    ${script} -C ${_MKCONFIG_RUNTESTDIR}/option_c.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/option_c.dat
     ;;
 esac
 grep "^#define TEST_OPT_DEF \"default\"$" option_c.ctest

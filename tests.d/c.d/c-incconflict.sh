@@ -90,7 +90,7 @@ case ${script} in
     ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/incconflict.dat
     ;;
   *)
-    ${script} -C ${_MKCONFIG_RUNTESTDIR}/incconflict.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/incconflict.dat
     ;;
 esac
 grep "^#define _inc_conflict__hdr_incconf1__hdr_incconf2 0$" incconflict.ctest

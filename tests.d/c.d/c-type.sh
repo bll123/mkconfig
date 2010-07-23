@@ -24,7 +24,7 @@ case ${script} in
     ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/type.dat
     ;;
   *)
-    ${script} -C ${_MKCONFIG_RUNTESTDIR}/type.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/type.dat
     ;;
 esac
 grep "^#define _typ_my_type_t 1$" type.ctest

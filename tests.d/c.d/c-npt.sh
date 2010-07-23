@@ -60,7 +60,7 @@ case ${script} in
     ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/npt.dat
     ;;
   *)
-    ${script} -C ${_MKCONFIG_RUNTESTDIR}/npt.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/npt.dat
     ;;
 esac
 grep "^#define _npt_npt1lib 1$" npt.ctest

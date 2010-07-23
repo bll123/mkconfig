@@ -24,7 +24,7 @@ case ${script} in
     ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/ifoption_env.dat
     ;;
   *)
-    ${script} -C ${_MKCONFIG_RUNTESTDIR}/ifoption_env.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/ifoption_env.dat
     ;;
 esac
 for t in \

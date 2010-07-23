@@ -16,7 +16,7 @@ case ${script} in
     ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/keyword.dat
     ;;
   *)
-    ${script} -C ${_MKCONFIG_RUNTESTDIR}/keyword.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/keyword.dat
     ;;
 esac
 grep "^#define _key_long 1$" keyword.ctest
