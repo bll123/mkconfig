@@ -17,7 +17,7 @@ if [ "${_MKCONFIG_SYSTYPE}" = "BSD" ]; then
 fi
 if [ "${_MKCONFIG_USING_GCC}" = "N" -a \
     "${_MKCONFIG_SYSTYPE}" = "HP-UX" ]; then
-  ${CC} -v 2>&1 | grep 'Bundled' 
+  ${CC} -v 2>&1 | grep 'Bundled'
   rc=$?
   if [ $rc -eq 0 ]; then
     echo ${EN} " skipped${EC}" >&5
@@ -44,16 +44,6 @@ cat > t${i}.c <<_HERE_
 # define _(x) ()
 # define void char
 #endif
-#if defined(__cplusplus) || defined (c_plusplus)
-# define CPP_EXTERNS_BEG extern "C" {
-# define CPP_EXTERNS_END }
-CPP_EXTERNS_BEG
-extern int printf (const char *, ...);
-CPP_EXTERNS_END
-#else
-# define CPP_EXTERNS_BEG
-# define CPP_EXTERNS_END
-#endif
 
 extern int t1 _((void));
 extern int t2 _((void));
@@ -75,16 +65,6 @@ cat > t${i}.c <<_HERE_
 # define _(x) ()
 # define void char
 #endif
-#if defined(__cplusplus) || defined (c_plusplus)
-# define CPP_EXTERNS_BEG extern "C" {
-# define CPP_EXTERNS_END }
-CPP_EXTERNS_BEG
-extern int printf (const char *, ...);
-CPP_EXTERNS_END
-#else
-# define CPP_EXTERNS_BEG
-# define CPP_EXTERNS_END
-#endif
 
 extern int t5 _((void));
 main () { int i, j; i = t5(); j = 1; if (i == 10) { j = 0; } return j; }
@@ -92,7 +72,7 @@ _HERE_
 ${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c t${i}.c
 
 grc=0
-${_MKCONFIG_DIR}/mksharedlib.sh t t[51234]${OBJ_EXT}
+${_MKCONFIG_DIR}/mksharedlib.sh -e t t[51234]${OBJ_EXT}
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
