@@ -393,7 +393,7 @@ check_shldflags () {
   printlabel SHLDFLAGS "shared library ldflags"
 
   shldflags="$SHLDFLAGS -shared"
-  if [ "$_MKCONFIG_USING_GNU_LD" != "Y" ]; then
+  if [ "$_MKCONFIG_USING_GCC" != "Y" ]; then
     case ${_MKCONFIG_SYSTYPE} in
       SunOS)
         shldflags="$SHLDFLAGS -G"
@@ -449,7 +449,7 @@ check_shareexeclinkflag () {
   printlabel SHEXECLINK "shared executable link flag "
 
   SHEXECLINK="-Bdynamic"
-  if [ "$_MKCONFIG_USING_GNU_LD" != "Y" ]; then
+  if [ "$_MKCONFIG_USING_GCC" != "Y" ]; then
     case ${_MKCONFIG_SYSTYPE} in
       SunOS)
         # -Bdynamic
