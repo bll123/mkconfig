@@ -27,7 +27,7 @@ fi
 
 
 i=1
-cat > t${i}.c <<_HERE_
+cat > mkct${i}.c <<_HERE_
 #include <stdio.h>
 #include <stdlib.h>
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
@@ -37,12 +37,12 @@ cat > t${i}.c <<_HERE_
 # define void char
 #endif
 
-int t${i} () { return 1; }
+int mkct${i} () { return 1; }
 _HERE_
-${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c t${i}.c
+${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c
 
 i=2
-cat > t${i}.c <<_HERE_
+cat > mkct${i}.c <<_HERE_
 #include <stdio.h>
 #include <stdlib.h>
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
@@ -52,15 +52,15 @@ cat > t${i}.c <<_HERE_
 # define void char
 #endif
 
-extern int t1 _((void));
-int t${i} () { int i; i = 0;
-    i += t1(); i += 2;
+extern int mkct1 _((void));
+int mkct${i} () { int i; i = 0;
+    i += mkct1(); i += 2;
     return i; }
 _HERE_
-${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c t${i}.c
+${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c
 
 i=3
-cat > t${i}.c <<_HERE_
+cat > mkct${i}.c <<_HERE_
 #include <stdio.h>
 #include <stdlib.h>
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
@@ -70,15 +70,15 @@ cat > t${i}.c <<_HERE_
 # define void char
 #endif
 
-extern int t2 _((void));
-int t${i} () { int i; i = 0;
-    i += t2(); i += 3;
+extern int mkct2 _((void));
+int mkct${i} () { int i; i = 0;
+    i += mkct2(); i += 3;
     return i; }
 _HERE_
-${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c t${i}.c
+${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c
 
 i=4
-cat > t${i}.c <<_HERE_
+cat > mkct${i}.c <<_HERE_
 #include <stdio.h>
 #include <stdlib.h>
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
@@ -88,15 +88,15 @@ cat > t${i}.c <<_HERE_
 # define void char
 #endif
 
-extern int t3 _((void));
-int t${i} () { int i; i = 0;
-    i += t3(); i += 4;
+extern int mkct3 _((void));
+int mkct${i} () { int i; i = 0;
+    i += mkct3(); i += 4;
     return i; }
 _HERE_
-${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c t${i}.c
+${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c
 
 i=5
-cat > t${i}.c <<_HERE_
+cat > mkct${i}.c <<_HERE_
 #include <stdio.h>
 #include <stdlib.h>
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
@@ -106,15 +106,15 @@ cat > t${i}.c <<_HERE_
 # define void char
 #endif
 
-extern int t4 _((void));
-int t${i} () { int i; i = 0;
-    i += t4();
+extern int mkct4 _((void));
+int mkct${i} () { int i; i = 0;
+    i += mkct4();
     return i; }
 _HERE_
-${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c t${i}.c
+${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c
 
 i=6
-cat > t${i}.c <<_HERE_
+cat > mkct${i}.c <<_HERE_
 #include <stdio.h>
 #include <stdlib.h>
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
@@ -124,30 +124,30 @@ cat > t${i}.c <<_HERE_
 # define void char
 #endif
 
-extern int t5 _((void));
-main () { int i, j; i = t5(); j = 1; if (i == 10) { j = 0; } return j; }
+extern int mkct5 _((void));
+main () { int i, j; i = mkct5(); j = 1; if (i == 10) { j = 0; } return j; }
 _HERE_
-${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c t${i}.c
+${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c
 
 grc=0
 
-${_MKCONFIG_DIR}/mksharedlib.sh -e t1 t1${OBJ_EXT}
+${_MKCONFIG_DIR}/mksharedlib.sh -e mkct1 mkct1${OBJ_EXT}
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-${_MKCONFIG_DIR}/mksharedlib.sh -e t2 t2${OBJ_EXT} -L. -lt1
+${_MKCONFIG_DIR}/mksharedlib.sh -e mkct2 mkct2${OBJ_EXT} -L. -lmkct1
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-${_MKCONFIG_DIR}/mksharedlib.sh -e t3 t3${OBJ_EXT} -L. -lt2
+${_MKCONFIG_DIR}/mksharedlib.sh -e mkct3 mkct3${OBJ_EXT} -L. -lmkct2
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-${_MKCONFIG_DIR}/mksharedlib.sh -e t4 t4${OBJ_EXT} -L. -lt3
+${_MKCONFIG_DIR}/mksharedlib.sh -e mkct4 mkct4${OBJ_EXT} -L. -lmkct3
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-${_MKCONFIG_DIR}/mksharedlib.sh -e t5 t5${OBJ_EXT} -L. -lt4
+${_MKCONFIG_DIR}/mksharedlib.sh -e mkct5 mkct5${OBJ_EXT} -L. -lmkct4
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
@@ -155,14 +155,14 @@ shrunpath=""
 if [ "${SHRUNPATH}" != "" ]; then
   shrunpath="${SHRUNPATH}."
 fi
-cmd="${CC} ${LDFLAGS} ${SHEXECLINK} -o t6a${EXE_EXT} t6${OBJ_EXT} \
-    ${shrunpath} -L. -lt5"
+cmd="${CC} ${LDFLAGS} ${SHEXECLINK} -o mkct6a${EXE_EXT} mkct6${OBJ_EXT} \
+    ${shrunpath} -L. -lmkct5"
 echo $cmd
 eval $cmd
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-./t6a
+./mkct6a
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
