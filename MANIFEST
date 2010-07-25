@@ -83,6 +83,7 @@ tests.d/mkstaticlib.dat
 tests.d/mkstaticlib.sh
 tests.d/multlib.config
 tests.d/multlib.dat
+tests.d/multlib-env.dat
 tests.d/multlib.mkshpl
 tests.d/multlib.reqlibs
 tests.d/multlib.sh
@@ -115,6 +116,7 @@ tests.d/set_env.mksh
 tests.d/set_env.sh
 tests.d/singlelib.config
 tests.d/singlelib.dat
+tests.d/singlelib-env.dat
 tests.d/singlelib.mkshpl
 tests.d/singlelib.reqlibs
 tests.d/singlelib.sh
