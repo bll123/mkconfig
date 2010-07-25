@@ -9,6 +9,10 @@ stag=$1
 shift
 script=$@
 
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
+    -C $_MKCONFIG_RUNTESTDIR/multlib-env.dat
+. ./multlib.env
+
 grc=0
 
 CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
@@ -35,7 +39,7 @@ if [ $? -ne 0 ]; then
   echo "compile tst2libb.c failed"
   exit 1
 fi
-ar cq libtst2libb.a tst2libb.o
+ar cq libtst2libb.a tst2libb${OBJ_EXT}
 
 cat > tst2libc.c <<_HERE_
 #include <stdio.h>
@@ -49,7 +53,7 @@ if [ $? -ne 0 ]; then
   echo "compile tst2libb.c failed"
   exit 1
 fi
-ar cq libtst2libc.a tst2libc.o
+ar cq libtst2libc.a tst2libc${OBJ_EXT}
 
 case ${script} in
   *mkconfig.sh)

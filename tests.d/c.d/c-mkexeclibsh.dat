@@ -15,11 +15,11 @@ ldflags
 libs
 using_gnu_ld
 shcflags
-shlib_ext
 shldflags
 sharednameflag
 shareexeclinkflag
 sharerunpathflag
-objext
-exeext
+extension obj
+extension exe
+extension shlib
 
