@@ -9,6 +9,10 @@ stag=$1
 shift
 script=$@
 
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
+    -C $_MKCONFIG_RUNTESTDIR/singlelib-env.dat
+. ./singlelib.env
+
 grc=0
 
 CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
@@ -39,7 +43,7 @@ if [ $? -ne 0 ]; then
   echo "compile tst1lib.c failed"
   exit 1
 fi
-ar cq libtst1lib.a tst1lib.o
+ar cq libtst1lib.a tst1lib${OBJ_EXT}
 
 case ${script} in
   *mkconfig.sh)
