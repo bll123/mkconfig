@@ -365,29 +365,6 @@ check_shcflags () {
   setdata ${_MKCONFIG_PREFIX} SHCFLAGS "$shcflags"
 }
 
-check_shlib_ext () {
-  printlabel SHLIB_EXT "shared library extension"
-
-  SHLIB_EXT=".so"
-  case ${_MKCONFIG_SYSTYPE} in
-    HP-UX)
-      SHLIB_EXT=".sl"
-      ;;
-    AIX)
-      SHLIB_EXT=".a"
-      ;;
-    Darwin)
-      SHLIB_EXT=".dylib"
-      ;;
-    CYGWIN*)
-      SHLIB_EXT=".dll"
-      ;;
-  esac
-
-  printyesno_val SHLIB_EXT "$SHLIB_EXT"
-  setdata ${_MKCONFIG_PREFIX} SHLIB_EXT "$SHLIB_EXT"
-}
-
 check_shldflags () {
   shldflags="${SHLDFLAGS:-}"
   printlabel SHLDFLAGS "shared library ldflags"
