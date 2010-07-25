@@ -1,16 +1,26 @@
-mkconfig - configuration tool (version 1.9).
+mkconfig - configuration tool (version 1.10).
 
 Please e-mail any configuration units and the corresponding
-manual page entry to brad.lanam.di_at_gmail.com.
-They will be included in the next release.
-Please try to give them a name that reflects what the unit does.
-If you have a test that can verify the unit works, please include
-that also.
+manual page entry to brad.lanam.di_at_gmail.com.  They will be
+included in the next release.
 
 CHANGES
 
+    1.10                                    [22 Jul 2010]
+        Renamed reqlibs.txt to mkconfig.reqlibs.
+            Breaks backwards compatibility.
+        Added support for multiple output files.
+        Fixed naming of runtest log files.
+        Added mkstaticlib.sh.
+        Added mksharedlib.sh: preliminary support for shared libs.
+        Added mklink.sh: preliminary
+        Added new env-cc vars to support shared libs.
+        Added new env-extension vars to support shared libs.
+        Bug fix: workaround for ksh93 unable to getcwd() on Solaris.
+        Fixed env-extension to match manual page.
+
     1.9                                     [12 Jul 2010]
-        Fixed regression tests to work w/g++.
+        Fixed regression tests to work w/c++.
         Code cleanup.
 
     1.8                                     [10 Jul 2010]
@@ -47,7 +57,6 @@ CHANGES
         Fix cache test (tests.d/cache.sh).
         Fix edit when /bin is symlink (shellfuncs.sh).
         Added test for -n support for shells.
-        Skip /sbin/sh on OSF1; It hangs.
         Added support to mkconfig.sh to munge set output that has $s in it.
         Export shelllist in runtests.sh; more efficient.
         Redo paths in shellfuncs; make sure symlinked paths are present.
