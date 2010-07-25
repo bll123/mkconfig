@@ -39,6 +39,9 @@ mkconfig \- build configuration utilities
 .\" mkreqlib.sh [-c <cache-file>] [-l <lib-file>] input-file
 .\" mkcsetopt.sh [-o <option-file>] option value
 .\" runtests.sh <tests-dir> [test1, ...]
+.\" mkstaticlib.sh [-e] libname objectfile ...
+.\" mksharedlib.sh [-e] libname objectfile ... [-L <lib-path>] [-l <lib>]
+.\" mklink.sh [-e] execname objectfile ... [-L <lib-path>] [-l <lib>]
 .B mkconfig.sh
 [\fB\-C\fP]
 [\fB\-c\fP <cache\-file>]
@@ -80,6 +83,21 @@ tests\-dir
 tests\-dir is a directory containing test scripts.
 .PP
 The tests to be run may be specified on the command line.
+.PP
+.B mkstaticlib.sh
+[-e] lib\-name object\-file [...]
+.PP
+The -e option echos the command line.
+.PP
+.B mksharedlib.sh
+[-e] lib\-name object\-file [...] [-L lib\-path ...] [-l lib ...]
+.PP
+The -e option echos the command line.
+.PP
+.B mklink.sh
+[-e] exec\-name object\-file [...] [-L lib\-path ...] [-l lib ...]
+.PP
+The -e option echos the command line.
 .SH Description
 \fImkconfig.sh\fP
 is a build configuration utility.
@@ -104,6 +122,17 @@ is a utility used to change the value of the options in the option file.
 \fIruntests.sh\fP
 is a simple test harness for mkconfig.  It is intended as a simple,
 portable test harness.  There are better test harnesses available.
+.PP
+\fImkstaticlib.sh\fP
+creates a static library given a library name and a list of object files.
+.PP
+\fImksharedlib.sh\fP
+creates a shared library given a library name, a list of object files,
+a list of library paths and libraries.
+.PP
+\fImklink.sh\fP
+creates an executable given an executable name, a list of object files,
+a list of library paths and libraries.
 .SH Basic Check Commands (mkconfig.sh)
 .TP
 \fB#\fP comment
@@ -182,7 +211,6 @@ Internally, the check variable is named _opt_option\-name.
 \fBset\fP check\-variable value
 .br
 Set a check\-variable to a value.  The check\-variable must already exist.
-This value is not saved in the cache.
 .IP
 e.g.
 .br
@@ -195,7 +223,6 @@ set _lib_quotactl 0
 Set an integer variable to a value.  The check variable name will be output as
 specified, but when used in if statements, the check variable is named
 _setint_<name>.
-This value is not saved in the cache.
 .IP
 e.g. setint _enable_nls 1
 .TP
@@ -204,7 +231,6 @@ e.g. setint _enable_nls 1
 Set a string variable to a value.  The check variable name will be output as
 specified, but when used in if statements, the check variable is named
 _setstr_<name>.
-This value is not saved in the cache.
 .IP
 e.g. setstr _my_lib_path /lib
 .TP
@@ -265,17 +291,43 @@ and appropriate to the operating system and compiler.
 .br
 Sets the LIBS environment variable according to the 'getconf' program
 and appropriate to the operating system and compiler.
+.TP
+\fBshcflags\fP
+.br
+Sets the SHCFLAGS environment variable for building position
+independent code
+as appropriate to the operating system and compiler.
+.TP
+\fBshldflags\fP
+.br
+Sets the SHLDFLAGS environment variable for building a shared library
+as appropriate to the operating system and compiler.
+.TP
+\fBshareexeclinkflag\fP
+.br
+Sets the SHEXECLINK environment variable for building an executable
+against shared libraries
+as appropriate to the operating system and compiler.
+.TP
+\fBsharerunpathflag\fP
+.br
+Sets the SHRUNPATH environment variable to the
+flag for setting the shared run path
+as appropriate to the operating system and compiler.
 .RE
 .TP
 .B env-extension
 .RS
 .TP
-\fBextension\fP {obj|exe}
+\fBextension\fP {obj|exe|shlib}
 .br
-The obj and exe arguments correspond to the OBJ_EXT and EXE_EXT
-environment variables. These two variables are set to the
-object file extension (.o, .obj) and executable file
-extension (none or .exe) per the operating system and compiler.
+The obj and exe arguments correspond to the OBJ_EXT, EXE_EXT and
+SHLIB_EXT
+environment variables. These variables are set to the
+object file extension (.o, .obj), executable file
+extension (none or .exe) or the shared library extension (.so, .sl,
+.a, .dll)
+per the operating system and compiler.
 .RE
 .TP
 .B env-msgfmt
