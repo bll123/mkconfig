@@ -18,9 +18,14 @@
 
 require_unit env-main
 
-check_objext () {
-  name="$1"
+check_extension () {
+  type=$2
 
+  name="${type}ext"
+  eval check_${name}
+}
+
+check_objext () {
   name=OBJ_EXT
   printlabel $name "extension: object"
   checkcache_val ${_MKCONFIG_PREFIX} $name
@@ -53,8 +58,6 @@ check_objext () {
 }
 
 check_exeext () {
-  name="$1"
-
   name=EXE_EXT
   printlabel $name "extension: executable"
   checkcache_val ${_MKCONFIG_PREFIX} $name
@@ -86,4 +89,29 @@ check_exeext () {
   printyesno_val $name "${EXE_EXT}"
   setdata ${_MKCONFIG_PREFIX} $name "${EXE_EXT}"
 }
+
+check_shlibext () {
+  name=SHLIB_EXT
+  printlabel $name "extension: shared library"
+
+  SHLIB_EXT=".so"
+  case ${_MKCONFIG_SYSTYPE} in
+    HP-UX)
+      SHLIB_EXT=".sl"
+      ;;
+    AIX)
+      SHLIB_EXT=".a"
+      ;;
+    Darwin)
+      SHLIB_EXT=".dylib"
+      ;;
+    CYGWIN*)
+      SHLIB_EXT=".dll"
+      ;;
+  esac
+
+  printyesno_val $name "$SHLIB_EXT"
+  setdata ${_MKCONFIG_PREFIX} $name "$SHLIB_EXT"
+}
+
 
