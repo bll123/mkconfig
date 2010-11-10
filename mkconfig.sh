@@ -143,9 +143,9 @@ printyesno_val () {
   yntag=${3:-}
 
   if [ "$ynval" != "0" ]; then
-    printyesno_actual "$ynname" "$ynval" ${yntag}
+    printyesno_actual "$ynname" "$ynval" "${yntag}"
   else
-    printyesno_actual "$ynname" no ${yntag}
+    printyesno_actual "$ynname" no "${yntag}"
   fi
 }
 
