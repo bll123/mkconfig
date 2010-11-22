@@ -4,6 +4,11 @@
 
 RM = rm
 
+###
+#
+
+all-test:	tests.done
+
 # leaves _tmp_mkconfig, _mkconfig_runtests
 clean:
 	@-$(RM) -rf tests.done tests.d/chksh* > /dev/null 2>&1
@@ -17,8 +22,7 @@ distclean:
 
 ###
 
-tests.done: runtests.sh tests.d/cache.sh tests.d/include.sh \
-		tests.d/multlib.sh tests.d/singlelib.sh
+tests.done: runtests.sh
 	@echo "## running mkconfig tests"
 	CC=$(CC) $(_MKCONFIG_SHELL) ./runtests.sh tests.d
 	touch tests.done
