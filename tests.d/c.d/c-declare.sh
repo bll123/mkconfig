@@ -25,10 +25,10 @@ int d;
 grc=0
 case ${script} in
   *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/declare.dat
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-declare.dat
     ;;
   *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/declare.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-declare.dat
     ;;
 esac
 grep "^#define _dcl_a 1$" declare.ctest

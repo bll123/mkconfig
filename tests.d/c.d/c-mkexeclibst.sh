@@ -8,7 +8,7 @@ stag=$1
 shift
 script=$@
 
-${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` -C $_MKCONFIG_RUNTESTDIR/mkexeclibst.dat
+${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` -C $_MKCONFIG_RUNTESTDIR/c-mkexeclibst.dat
 . ./mkexeclibst.env
 
 for i in 1 2 3 4; do

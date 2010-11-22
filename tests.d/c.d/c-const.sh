@@ -13,10 +13,10 @@ grc=0
 
 case ${script} in
   *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/const.dat
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-const.dat
     ;;
   *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/const.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-const.dat
     ;;
 esac
 grep "^#define _const_O_RDONLY 1$" const.ctest

@@ -57,10 +57,10 @@ ar cq libnptlib.a nptlib.o
 
 case ${script} in
   *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/npt.dat
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-npt.dat
     ;;
   *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/npt.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-npt.dat
     ;;
 esac
 grep "^#define _npt_npt1lib 1$" npt.ctest

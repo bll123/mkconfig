@@ -13,10 +13,10 @@ grc=0
 
 case ${script} in
   *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/size.dat
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-size.dat
     ;;
   *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/size.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-size.dat
     ;;
 esac
 v=`grep "^#define _siz_long [0-9]*$" size.ctest | sed 's/.* //'`

@@ -10,7 +10,7 @@ shift
 script=$@
 
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
-    -C $_MKCONFIG_RUNTESTDIR/multlib.env.dat
+    -C $_MKCONFIG_RUNTESTDIR/c-multlib.env.dat
 . ./multlib.env
 
 grc=0
@@ -57,10 +57,10 @@ ar cq libtst2libc.a tst2libc${OBJ_EXT}
 
 case ${script} in
   *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/multlib.dat
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-multlib.dat
     ;;
   *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/multlib.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-multlib.dat
     ;;
 esac
 case $script in
@@ -74,12 +74,12 @@ sed -e '/^#define _key_/d' -e '/^#define _proto_/d' \
 mv t multlib.ctest
 
 echo "## diff 1"
-diff -b multlib.ctmp multlib.ctest
+diff -b c-multlib.ctmp multlib.ctest
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
 
 echo "## diff 2"
-diff -b ${_MKCONFIG_RUNTESTDIR}/multlib.reqlibs mkconfig.reqlibs
+diff -b ${_MKCONFIG_RUNTESTDIR}/c-multlib.reqlibs mkconfig.reqlibs
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
 

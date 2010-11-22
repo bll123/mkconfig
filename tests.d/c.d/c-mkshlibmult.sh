@@ -8,7 +8,7 @@ stag=$1
 shift
 script=$@
 
-${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` -C $_MKCONFIG_RUNTESTDIR/mkshlibmult.dat
+${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` -C $_MKCONFIG_RUNTESTDIR/c-mkshlibmult.dat
 . ./mkshlibmult.env
 
 if [ "${_MKCONFIG_SYSTYPE}" = "BSD" ]; then

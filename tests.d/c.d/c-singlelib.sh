@@ -10,7 +10,7 @@ shift
 script=$@
 
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
-    -C $_MKCONFIG_RUNTESTDIR/singlelib.env.dat
+    -C $_MKCONFIG_RUNTESTDIR/c-singlelib.env.dat
 . ./singlelib.env
 
 grc=0
@@ -47,10 +47,10 @@ ar cq libtst1lib.a tst1lib${OBJ_EXT}
 
 case ${script} in
   *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/singlelib.dat
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-singlelib.dat
     ;;
   *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/singlelib.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-singlelib.dat
     ;;
 esac
 case $script in
@@ -64,12 +64,12 @@ sed -e '/^#define _key_/d' -e '/^#define _proto_/d' \
 mv t singlelib.ctest
 
 echo "## diff 1"
-diff -b singlelib.ctmp singlelib.ctest
+diff -b c-singlelib.ctmp singlelib.ctest
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
 
 echo "## diff 2"
-diff -b ${_MKCONFIG_RUNTESTDIR}/singlelib.reqlibs mkconfig.reqlibs
+diff -b ${_MKCONFIG_RUNTESTDIR}/c-singlelib.reqlibs mkconfig.reqlibs
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
 

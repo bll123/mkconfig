@@ -21,10 +21,10 @@ typedef int my_type_t;
 grc=0
 case ${script} in
   *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/type.dat
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-type.dat
     ;;
   *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/type.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-type.dat
     ;;
 esac
 grep "^#define _typ_my_type_t 1$" type.ctest

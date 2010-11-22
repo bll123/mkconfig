@@ -13,10 +13,10 @@ grc=0
 
 case ${script} in
   *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/syshdr.dat
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-syshdr.dat
     ;;
   *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/syshdr.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-syshdr.dat
     ;;
 esac
 grep "^#define _sys_types 1$" syshdr.ctest

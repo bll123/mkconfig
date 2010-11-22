@@ -34,10 +34,10 @@ typedef struct my_struct {
 grc=0
 case ${script} in
   *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/member.dat
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-member.dat
     ;;
   *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/member.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-member.dat
     ;;
 esac
 for n in a b c d e f g; do

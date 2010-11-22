@@ -19,10 +19,10 @@ export CFLAGS
 
 case ${script} in
   *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/define.dat
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-define.dat
     ;;
   *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/define.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-define.dat
     ;;
 esac
 grep "^#define _define_MYDEFINE 1$" define.ctest
