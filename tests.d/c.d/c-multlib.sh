@@ -10,7 +10,7 @@ shift
 script=$@
 
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
-    -C $_MKCONFIG_RUNTESTDIR/multlib-env.dat
+    -C $_MKCONFIG_RUNTESTDIR/multlib.env.dat
 . ./multlib.env
 
 grc=0

@@ -10,7 +10,7 @@ shift
 script=$@
 
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
-    -C $_MKCONFIG_RUNTESTDIR/singlelib-env.dat
+    -C $_MKCONFIG_RUNTESTDIR/singlelib.env.dat
 . ./singlelib.env
 
 grc=0
