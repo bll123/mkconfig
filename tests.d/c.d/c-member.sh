@@ -5,6 +5,11 @@ if [ "$1" = "-d" ]; then
   exit 0
 fi
 
+if [ "${CC}" = "" ]; then
+  echo ${EN} " no cc; skipped${EC}" >&5
+  exit 0
+fi
+
 stag=$1
 shift
 script=$@

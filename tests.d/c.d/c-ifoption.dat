@@ -1,7 +1,7 @@
 # test ifoption, ifnotoption
 
-output ifoption_env.ctest
-option-file ifoption_env.opts
+output env-ifoption.ctest
+option-file env-ifoption.opts
 loadunit env-main
 standard
 setint _test_enable 0

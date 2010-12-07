@@ -5,7 +5,11 @@ if [ "$1" = "-d" ]; then
   exit 0
 fi
 
-stag=$1
+if [ "${CC}" = "" ]; then
+  echo ${EN} " no cc; skipped${EC}" >&5
+  exit 0
+fi
+
 shift
 script=$@
 
@@ -15,10 +19,10 @@ for f in outfile1.ctest outfile2.ctest \
 done
 case ${script} in
   *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/outfile.dat
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-outfile.dat
     ;;
   *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/outfile.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-outfile.dat
     ;;
 esac
 

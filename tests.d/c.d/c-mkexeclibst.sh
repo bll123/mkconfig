@@ -1,6 +1,12 @@
 #!/bin/sh
+
 if [ "$1" = "-d" ]; then
   echo ${EN} " create exec with static lib${EC}"
+  exit 0
+fi
+
+if [ "${CC}" = "" ]; then
+  echo ${EN} " no cc; skipped${EC}" >&5
   exit 0
 fi
 

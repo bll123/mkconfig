@@ -4,6 +4,11 @@ if [ "$1" = "-d" ]; then
   exit 0
 fi
 
+if [ "${CC}" = "" ]; then
+  echo ${EN} " no cc; skipped${EC}" >&5
+  exit 0
+fi
+
 stag=$1
 shift
 script=$@
@@ -12,7 +17,7 @@ ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` -C $_MKCONFIG_RUNTESTDIR/c-mksharedlib.dat
 . ./mksharedlib.env
 
 if [ "${_MKCONFIG_SYSTYPE}" = "BSD" ]; then
-  echo ${EN} " skipped${EC}" >&5
+  echo ${EN} " bsd; skipped${EC}" >&5
   exit 0
 fi
 if [ "${_MKCONFIG_USING_GCC}" = "N" -a \
@@ -20,7 +25,7 @@ if [ "${_MKCONFIG_USING_GCC}" = "N" -a \
   ${CC} -v 2>&1 | grep 'Bundled'
   rc=$?
   if [ $rc -eq 0 ]; then
-    echo ${EN} " skipped${EC}" >&5
+    echo ${EN} " bundled cc; skipped${EC}" >&5
     exit 0
   fi
 fi

@@ -5,6 +5,11 @@ if [ "$1" = "-d" ]; then
   exit 0
 fi
 
+if [ "${CC}" = "" ]; then
+  echo ${EN} " no cc; skipped${EC}" >&5
+  exit 0
+fi
+
 stag=$1
 shift
 script=$@
@@ -21,22 +26,22 @@ _HERE_
 
 case ${script} in
   *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/nooption_c.dat
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-nooption.dat
     ;;
   *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/nooption_c.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-nooption.dat
     ;;
 esac
 for t in \
     _test_a _test_b; do
   echo "chk: $t (1)"
-  grep "^#define ${t} 1$" nooption_c.ctest
+  grep "^#define ${t} 1$" c-nooption.ctest
 rc=$?
   if [ $rc -eq 0 ]; then grc=1; fi
 done
 
 if [ "$stag" != "" ]; then
-  mv nooption_c.ctest nooption_c.ctest${stag}
+  mv c-nooption.ctest c-nooption.ctest${stag}
   mv mkconfig.log mkconfig.log${stag}
   mv mkconfig.cache mkconfig.cache${stag}
   mv mkconfig_c.vars mkconfig_c.vars${stag}

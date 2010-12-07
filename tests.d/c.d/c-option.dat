@@ -1,5 +1,5 @@
-output option_c.ctest
-option-file option_c.opts
+output c-option.ctest
+option-file c-option.opts
 loadunit c-main
 standard
 

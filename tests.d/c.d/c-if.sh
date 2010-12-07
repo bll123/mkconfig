@@ -13,10 +13,10 @@ grc=0
 
 case ${script} in
   *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/if_env.dat
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/env-if.dat
     ;;
   *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/if_env.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/env-if.dat
     ;;
 esac
 for t in \
@@ -30,13 +30,13 @@ for t in \
         _test_n5_ok _test_n6_ok \
     ; do
   echo "chk: $t (1)"
-  grep "^${t}=\"1\"$" if_env.ctest
+  grep "^${t}=\"1\"$" env-if.ctest
   rc=$?
   if [ $rc -ne 0 ]; then grc=$rc; fi
 done
 
 if [ "$stag" != "" ]; then
-  mv if_env.ctest if_env.ctest${stag}
+  mv env-if.ctest env-if.ctest${stag}
   mv mkconfig.log mkconfig.log${stag}
   mv mkconfig.cache mkconfig.cache${stag}
   mv mkconfig_env.vars mkconfig_env.vars${stag}

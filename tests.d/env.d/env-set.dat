@@ -1,6 +1,6 @@
 # test set
 
-output set_env.ctest
+output env-set.ctest
 loadunit env-main
 standard
 setint _test1 0

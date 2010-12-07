@@ -1,6 +1,6 @@
 # test if
 
-output if_env.ctest
+output env-if.ctest
 loadunit env-main
 standard
 
