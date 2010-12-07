@@ -17,6 +17,7 @@
 
 DOPERL=T
 TESTORDER=test_order
+PRESET=F
 
 # this is a workaround for ksh93 on solaris
 if [ "$1" = "-d" ]; then
@@ -24,16 +25,21 @@ if [ "$1" = "-d" ]; then
   shift
   shift
 fi
-_MKCONFIG_RUNTOPDIR=`pwd`
-export _MKCONFIG_RUNTOPDIR
-mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
-_MKCONFIG_DIR=`(cd $mypath;pwd)`
-export _MKCONFIG_DIR
-. ${_MKCONFIG_DIR}/shellfuncs.sh
 
-doshelltest $0 $@
-setechovars
-mkconfigversion
+if [ "$1" = "-s" ]; then
+  PRESET=T
+  shift
+  CC="$1"
+  DC="$2"
+  shelllist="$3"
+  _pthlist="$4"
+  shift; shift; shift; shift
+fi
+
+if [ $# -lt 1 ]; then
+  echo "Usage: $0 <test-dir> [<test-to-run> ...]"
+  exit 1
+fi
 
 unset GREP_OPTIONS
 unset DI_ARGS
@@ -45,24 +51,6 @@ unalias ls > /dev/null 2>&1
 unalias rm > /dev/null 2>&1
 LC_ALL=C
 export LC_ALL
-
-testdir=$1
-if [ ! -d $testdir ]; then
-  echo "## Unable to locate $testdir"
-  exit 1
-fi
-
-shift
-teststorun=$*
-
-CC=${CC:-cc}
-export CC
-
-cd $testdir
-if [ $? != 0 ]; then
-  echo "## Unable to cd to $testdir"
-  exit 1
-fi
 
 # this is used for regression testing.
 getlistofshells () {
@@ -169,34 +157,87 @@ runshelltest () {
   return $rc
 }
 
+#
+# main
+#
+
+_MKCONFIG_RUNTOPDIR=`pwd`
+export _MKCONFIG_RUNTOPDIR
+mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
+_MKCONFIG_DIR=`(cd $mypath;pwd)`
+export _MKCONFIG_DIR
+. ${_MKCONFIG_DIR}/shellfuncs.sh
+
+doshelltest $0 $@
+if [ "$PRESET" = "F" ]; then
+  setechovars
+  mkconfigversion
+fi
+
+testdir=$1
+if [ ! -d $testdir ]; then
+  echo "## Unable to locate $testdir"
+  exit 1
+fi
+
+shift
+teststorun=$*
+
+cd $testdir
+if [ $? != 0 ]; then
+  echo "## Unable to cd to $testdir"
+  exit 1
+fi
+
 _MKCONFIG_RUNTESTDIR=`pwd`
 export _MKCONFIG_RUNTESTDIR
-_MKCONFIG_RUNTMPDIR=$_MKCONFIG_RUNTOPDIR/_mkconfig_runtests
-export _MKCONFIG_RUNTMPDIR
+
+if [ "$PRESET" = "F" ]; then
+  _MKCONFIG_RUNTMPDIR=$_MKCONFIG_RUNTOPDIR/_mkconfig_runtests
+  export _MKCONFIG_RUNTMPDIR
+
+  CC=${CC:-cc}
+  export CC
+  DC=${DC:-gdc}
+  export DC
+else
+  btestdir=`basename $testdir`
+  _MKCONFIG_RUNTMPDIR=$_MKCONFIG_RUNTOPDIR/_mkconfig_runtests/$btestdir
+  export _MKCONFIG_RUNTMPDIR
+fi
 
 TMPORDER=test_order.tmp
+> $TMPORDER
 if [ "$teststorun" = "" ]; then
   if [ ! -f "$TESTORDER" ]; then
-    ls -1d *.d *.sh 2>/dev/null | sed -e 's/\.sh$//' -e 's/^/1 ' > $TMPORDER
+    ls -1d *.d *.sh 2>/dev/null | sed -e 's/\.sh$//' -e 's/^/1 ' >> $TMPORDER
   else
-    sort -n $TESTORDER > $TMPORDER
+    sort -n $TESTORDER >> $TMPORDER
   fi
 else
   for t in $teststorun; do
     echo "1 $t"
-  done > $TMPORDER
+  done >> $TMPORDER
 fi
 
-test -d "$_MKCONFIG_RUNTMPDIR" && rm -rf "$_MKCONFIG_RUNTMPDIR"
-mkdir $_MKCONFIG_RUNTMPDIR
+if [ "$PRESET" = "F" ]; then
+  test -d $_MKCONFIG_RUNTMPDIR && rm -rf "$_MKCONFIG_RUNTMPDIR"
+fi
+test -d $_MKCONFIG_RUNTMPDIR || mkdir $_MKCONFIG_RUNTMPDIR
 
 MAINLOG=${_MKCONFIG_RUNTMPDIR}/main.log
-> $MAINLOG
+if [ "$PRESET" = "F" ]; then
+  > $MAINLOG
+fi
 exec 8>>$MAINLOG
-echo "## locating valid shells"
-echo ${EN} "   ${EC}"
-getlistofshells
-echo ""
+
+if [ "$PRESET" = "F" ]; then
+  echo "## locating valid shells"
+  echo ${EN} "   ${EC}"
+  getlistofshells
+  echo ""
+fi
+
 export shelllist
 grc=0
 count=0
@@ -218,10 +259,22 @@ while read tline; do
   fi
 
   if [ -d "$tbase" ]; then
-    $0 $tbase
+    (
+    cd $_MKCONFIG_DIR
+    ${_MKCONFIG_SHELL} ./runtests.sh -s "$CC" "$DC" "$shelllist" "$_pthlist" $testdir/$tbase
+    )
+    rc=$?
+    if [ $rc -ne 0 ]; then grc=$rc; fi
     continue
   fi
 
+  tprefix=`echo $tbase | sed 's/-.*//'`
+  if [ "${CC}" = "" -a "$tprefix" = "c" ]; then
+    continue
+  fi
+  if [ "${DC}" = "" -a "$tprefix" = "d" ]; then
+    continue
+  fi
   tf="${tbase}.sh"
   tconfig="${tbase}.config"
   tconfh="${tbase}.ctmp"
@@ -294,11 +347,24 @@ while read tline; do
   fi
 
   if [ $src -ne 0 ]; then
-    echo " ... failed"
-    echo " failed" >&8
-    domath fcount "$fcount + 1"
     src=1
     grc=1
+    if [ $tbase = "c-compiler" -a $grc -ne 0 ]; then
+      CC=""
+      grc=0
+    fi
+    if [ $tbase = "d-compiler" -a $grc -ne 0 ]; then
+      DC=""
+      grc=0
+    fi
+    if [ $grc -eq 0 ]; then
+      echo " ... skipping $tprefix compiler tests"
+      echo " skipping $tprefix compiler tests" >&8
+    else
+      echo " ... failed"
+      echo " failed" >&8
+      domath fcount "$fcount + 1"
+    fi
   else
     echo " ... success"
     echo " success" >&8
@@ -365,10 +431,12 @@ fi
 
 exec 8>&-
 
-echo "$count tests $fcount failures"
-if [ $fcount -eq 0 ]; then
-  if [ "$MKC_KEEP_RUN_TMP" = "" ]; then
-    test -d "$_MKCONFIG_RUNTMPDIR" && rm -rf "$_MKCONFIG_RUNTMPDIR"
+if [ $PRESET = "F" ]; then
+  echo "$count tests $fcount failures"
+  if [ $fcount -eq 0 ]; then
+    if [ "$MKC_KEEP_RUN_TMP" = "" ]; then
+      test -d "$_MKCONFIG_RUNTMPDIR" && rm -rf "$_MKCONFIG_RUNTMPDIR"
+    fi
   fi
 fi
 
