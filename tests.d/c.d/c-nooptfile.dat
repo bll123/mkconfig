@@ -1,7 +1,7 @@
 # test when no options file
 
-output c_nooptfile.ctest
-loadunit c-main
+output env-nooptfile.ctest
+loadunit env-main
 standard
 
 setint _test_a 0

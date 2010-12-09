@@ -1,8 +1,8 @@
 # test when no options file
 
-output c_nooption.ctest
-option-file c_nooption.opts
-loadunit c-main
+output env-nooption.ctest
+option-file env-nooption.opts
+loadunit env-main
 standard
 
 setint _test_a 0

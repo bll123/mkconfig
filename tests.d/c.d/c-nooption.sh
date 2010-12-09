@@ -5,18 +5,13 @@ if [ "$1" = "-d" ]; then
   exit 0
 fi
 
-if [ "${CC}" = "" ]; then
-  echo ${EN} " no cc; skipped${EC}" >&5
-  exit 0
-fi
-
 stag=$1
 shift
 script=$@
 
 grc=0
 
-TMP=nooption_c.opts
+TMP=env-nooption.opts
 cat > $TMP << _HERE_
 TEST_ENABLE=enable
 TEST_DISABLE=disable
@@ -26,25 +21,28 @@ _HERE_
 
 case ${script} in
   *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-nooption.dat
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/env-nooption.dat
     ;;
   *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-nooption.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/env-nooption.dat
     ;;
 esac
 for t in \
     _test_a _test_b; do
   echo "chk: $t (1)"
-  grep "^#define ${t} 1$" c-nooption.ctest
-rc=$?
+  grep "^${t}=\"0\"$" env-nooption.ctest
+  rc=$?
+  if [ $rc -ne 0 ]; then grc=1; fi
+  grep "^${t}=\"1\"$" env-nooption.ctest
+  rc=$?
   if [ $rc -eq 0 ]; then grc=1; fi
 done
 
 if [ "$stag" != "" ]; then
-  mv c-nooption.ctest c-nooption.ctest${stag}
+  mv env-nooption.ctest env-nooption.ctest${stag}
   mv mkconfig.log mkconfig.log${stag}
   mv mkconfig.cache mkconfig.cache${stag}
-  mv mkconfig_c.vars mkconfig_c.vars${stag}
+  mv mkconfig_env.vars mkconfig_env.vars${stag}
 fi
 
 exit $grc
