@@ -3,6 +3,7 @@
 #
 
 RM = rm
+DC = dmd
 
 ###
 #
@@ -24,7 +25,7 @@ distclean:
 
 tests.done: runtests.sh
 	@echo "## running mkconfig tests"
-	CC=$(CC) $(_MKCONFIG_SHELL) ./runtests.sh tests.d
+	CC=$(CC) DC=$(DC) $(_MKCONFIG_SHELL) ./runtests.sh tests.d
 	touch tests.done
 
 tar:
