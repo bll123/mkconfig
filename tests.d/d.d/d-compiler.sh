@@ -18,11 +18,10 @@ grc=0
 
 set -x
 cat > d_compiler.d << _HERE_
-import std.stdio;
-void main (char[][] args) { writeln ("hello world"); }
+int main (char[][] args) { return 0; }
 _HERE_
 
-${DC} d_compiler.d > /dev/null 2>&1
+${DC} -c d_compiler.d > /dev/null 2>&1
 rc=$?
 
 if [ $rc -ne 0 ]; then grc=$rc; fi
