@@ -17,7 +17,7 @@
 
 DOPERL=T
 TESTORDER=test_order
-PRESET=F
+SUBDIR=F
 
 # this is a workaround for ksh93 on solaris
 if [ "$1" = "-d" ]; then
@@ -27,13 +27,14 @@ if [ "$1" = "-d" ]; then
 fi
 
 if [ "$1" = "-s" ]; then
-  PRESET=T
+  SUBDIR=T
   shift
   CC="$1"
   DC="$2"
   shelllist="$3"
   _pthlist="$4"
-  shift; shift; shift; shift
+  TMPOUT="$5"
+  shift; shift; shift; shift; shift
 fi
 
 if [ $# -lt 1 ]; then
@@ -169,7 +170,7 @@ export _MKCONFIG_DIR
 . ${_MKCONFIG_DIR}/shellfuncs.sh
 
 doshelltest $0 $@
-if [ "$PRESET" = "F" ]; then
+if [ $SUBDIR = "F" ]; then
   setechovars
   mkconfigversion
 fi
@@ -192,7 +193,7 @@ fi
 _MKCONFIG_RUNTESTDIR=`pwd`
 export _MKCONFIG_RUNTESTDIR
 
-if [ "$PRESET" = "F" ]; then
+if [ $SUBDIR = "F" ]; then
   _MKCONFIG_RUNTMPDIR=$_MKCONFIG_RUNTOPDIR/_mkconfig_runtests
   export _MKCONFIG_RUNTMPDIR
 
@@ -201,7 +202,7 @@ if [ "$PRESET" = "F" ]; then
   DC=${DC:-gdc}
   export DC
 else
-  btestdir=`basename $testdir`
+  btestdir=`echo $testdir | sed 's,.*/,,'`
   _MKCONFIG_RUNTMPDIR=$_MKCONFIG_RUNTOPDIR/_mkconfig_runtests/$btestdir
   export _MKCONFIG_RUNTMPDIR
 fi
@@ -220,18 +221,18 @@ else
   done >> $TMPORDER
 fi
 
-if [ "$PRESET" = "F" ]; then
+if [ $SUBDIR = "F" ]; then
   test -d $_MKCONFIG_RUNTMPDIR && rm -rf "$_MKCONFIG_RUNTMPDIR"
 fi
 test -d $_MKCONFIG_RUNTMPDIR || mkdir $_MKCONFIG_RUNTMPDIR
 
 MAINLOG=${_MKCONFIG_RUNTMPDIR}/main.log
-if [ "$PRESET" = "F" ]; then
+if [ $SUBDIR = "F" ]; then
   > $MAINLOG
 fi
 exec 8>>$MAINLOG
 
-if [ "$PRESET" = "F" ]; then
+if [ $SUBDIR = "F" ]; then
   echo "## locating valid shells"
   echo ${EN} "   ${EC}"
   getlistofshells
@@ -242,6 +243,7 @@ export shelllist
 grc=0
 count=0
 fcount=0
+fpass=0
 lastpass=""
 # save stdin in fd 7
 exec 7<&0 < ${TMPORDER}
@@ -253,18 +255,36 @@ while read tline; do
     lastpass=$pass
   fi
   if [ $grc -ne 0 -a "$lastpass" != "$pass" ]; then
-    echo "## stopping tests due to failures in pass $lastpass"
-    echo "## stopping tests due to failures in pass $lastpass" >&8
+    if [ $SUBDIR = "F" ]; then
+      echo "## stopping tests due to failures in $testdir/ pass $lastpass"
+    else
+      fpass=$lastpass
+    fi
+    echo "## stopping tests due to failures in $testdir/ pass $lastpass" >&8
     break
   fi
 
   if [ -d "$tbase" ]; then
-    (
+    ocwd=`pwd`
     cd $_MKCONFIG_DIR
-    ${_MKCONFIG_SHELL} ./runtests.sh -s "$CC" "$DC" "$shelllist" "$_pthlist" $testdir/$tbase
-    )
-    rc=$?
-    if [ $rc -ne 0 ]; then grc=$rc; fi
+    TMPOUT=${_MKCONFIG_TSTRUNTMPDIR}/${tbase}.out
+    ${_MKCONFIG_SHELL} ./runtests.sh -s "$CC" "$DC" "$shelllist" "$_pthlist" $TMPOUT $testdir/$tbase
+    retvals=`tail -1 $TMPOUT`
+    rm -f $TMPOUT > /dev/null 2>&1
+    set $retvals
+    retcount=$1
+    retfcount=$2
+    retfpass=$3
+    domath count "$count + $retcount"
+    domath fcount "$fcount + $retfcount"
+    rc=$retfcount
+    if [ $rc -ne 0 ]; then
+      grc=$rc
+      echo "## stopping tests due to failures in $testdir/$tbase/ pass $retfpass (pass $lastpass) "
+      echo "## stopping tests due to failures in $testdir/$tbase/ pass $retfpass (pass $lastpass)" >&8
+      break
+    fi
+    cd $ocwd
     continue
   fi
 
@@ -296,11 +316,12 @@ while read tline; do
   fi
 
   dt=`date`
-  arg=""
+  arg="mkconfig.sh"
   suffix=""
-  if [ -f ${tbase}.mksh -o -f ${tbase}.mkshpl ]; then
-    arg="mkconfig.sh"
+  if [ -f ${tbase}.mkshpl ]; then
     suffix="_sh"
+  else
+    suffix=""
   fi
 
   scount=""
@@ -431,13 +452,15 @@ fi
 
 exec 8>&-
 
-if [ $PRESET = "F" ]; then
+if [ $SUBDIR = "F" ]; then
   echo "$count tests $fcount failures"
   if [ $fcount -eq 0 ]; then
     if [ "$MKC_KEEP_RUN_TMP" = "" ]; then
       test -d "$_MKCONFIG_RUNTMPDIR" && rm -rf "$_MKCONFIG_RUNTMPDIR"
     fi
   fi
+else
+  echo "$count $fcount $fpass" > $TMPOUT
 fi
 
 exit $fcount
