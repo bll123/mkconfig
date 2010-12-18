@@ -30,9 +30,9 @@ _dogetconf () {
   if [ "${xgetconf}" != "" ]
   then
       echo "using flags from getconf" >&9
-      lfccflags="`${xgetconf} LFS_CFLAGS 2>/dev/null`"
-      if [ "$lfccflags" = "undefined" ]; then
-        lfccflags=""
+      lfdflags="`${xgetconf} LFS_CFLAGS 2>/dev/null`"
+      if [ "$lfdflags" = "undefined" ]; then
+        lfdflags=""
       fi
       lfldflags="`${xgetconf} LFS_LDFLAGS 2>/dev/null`"
       if [ "$lfldflags" = "undefined" ]; then
@@ -55,6 +55,10 @@ check_dc () {
 
   printyesno_val DC "${DC}"
   setdata ${_MKCONFIG_PREFIX} DC "${DC}"
+  setdata ${_MKCONFIG_PREFIX} DC_OF "-of"
+  setdata ${_MKCONFIG_PREFIX} DC_UNITTEST "-unittest"
+  setdata ${_MKCONFIG_PREFIX} DC_DEBUG "-debug"
+  setdata ${_MKCONFIG_PREFIX} DC_COV "-cov"
 }
 
 check_using_gdc () {
@@ -76,6 +80,13 @@ check_using_gdc () {
           usinggdc="Y"
           ;;
   esac
+
+  if [ $usinggdc = "Y" ]; then
+    setdata ${_MKCONFIG_PREFIX} DC_OF "-o"
+    setdata ${_MKCONFIG_PREFIX} DC_UNITTEST "--unittest"
+    setdata ${_MKCONFIG_PREFIX} DC_DEBUG "--debug"
+    setdata ${_MKCONFIG_PREFIX} DC_COV ""
+  fi
 
   printyesno_val _MKCONFIG_USING_GDC "${usinggdc}"
   setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_GDC "${usinggdc}"
@@ -107,116 +118,45 @@ check_dflags () {
 
   _dogetconf
 
-  gccflags=""
+  gdcflags=""
 
   if [ "${_MKCONFIG_USING_GDC}" = "Y" ]
   then
       echo "set gdc flags" >&9
-      gdcflags="-Wall -Waggregate-return -Wconversion -Wformat -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wpointer-arith -Wshadow -Wstrict-prototypes -Wunused"
+      gdcflags=""
   fi
 
-  TDC=${CC}
-  if [ "${_MKCONFIG_USING_GCC}" = "Y" ]
+  TDC=${DC}
+  if [ "${_MKCONFIG_USING_GDC}" = "Y" ]
   then
-    TDC=gcc
+    TDC=gdc
   fi
 
-  case ${_MKCONFIG_SYSTYPE} in
-      AIX)
-        if [ "${_MKCONFIG_USING_GCC}" = "N" ]; then
-          ccflags="-qhalt=e $ccflags"
-          ccflags="$ccflags -qmaxmem=-1"
-          case ${_MKCONFIG_SYSREV} in
-            4.*)
-              ccflags="-DUSE_ETC_FILESYSTEMS=1 $ccflags"
-              ;;
-          esac
-        fi
-        ;;
-      FreeBSD)
-        # FreeBSD has many packages that get installed in /usr/local
-        ccincludes="-I/usr/local/include $ccincludes"
-        ;;
-      HP-UX)
-        if [ "${lfccflags}" = "" ]
-        then
-            ccflags="-D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 $ccflags"
-        fi
-        case ${TDC} in
-          cc)
-            case ${_MKCONFIG_SYSREV} in
-              *.10.*)
-                ccflags="+DAportable $ccflags"
-                ;;
-            esac
-            cc -v 2>&1 | grep -l Bundled > /dev/null 2>&1
-            rc=$?
-            if [ $rc -ne 0 ]; then
-              ccflags="-Ae $ccflags"
-            fi
-            _MKCONFIG_USING_GCC="N"
-            ;;
-        esac
-
-        _dohpflags
-        ccincludes="$hpccincludes $ccincludes"
-        ;;
-      OSF1)
-        ccflags="-std1 $ccflags"
-        ;;
-      SunOS)
-        case ${_MKCONFIG_SYSREV} in
-          5.*)
-            case ${TDC} in
-              cc)
-                # If solaris is compile w/strict ansi, we get
-                # a work-around for the long long type with
-                # large files.  So we compile w/extensions.
-                ccflags="-Xa -v $ccflags"
-                # optimization; -xO3 is good. -xO4 must be set by user.
-                ccflags="`echo $ccflags | sed 's,-xO. *,-xO3 ,'`"
-                ccflags="`echo $ccflags | sed 's,-O *,-xO3 ,'`"
-                echo $ccflags | grep -- '-xO3' >/dev/null 2>&1
-                case $rc in
-                    0)
-                        ldflags="-fast $ldflags"
-                        ;;
-                esac
-                ;;
-            esac
-            ;;
-        esac
-        ;;
-  esac
-
-  case ${CC} in
+  case ${DC} in
     g++|c++)
-      if [ "${_MKCONFIG_USING_GCC}" = "Y" ]; then
+      if [ "${_MKCONFIG_USING_GDC}" = "Y" ]; then
         echo "set g++ flags" >&9
-        gccflags="-Wall -Waggregate-return -Wconversion -Wformat -Wpointer-arith -Wshadow -Wunused"
+        gdcflags=""
       fi
       ;;
   esac
 
-  ccflags="$gccflags $ccflags"
+  dflags="$gdcflags $dflags"
 
-  # largefile flags
-  ccflags="$ccflags $lfccflags"
+  echo "dflags:${dflags}" >&9
 
-  echo "ccflags:${ccflags}" >&9
-
-  printyesno_val CFLAGS "$ccflags $ccincludes"
-  setdata ${_MKCONFIG_PREFIX} CFLAGS "$ccflags $ccincludes"
+  printyesno_val DFLAGS "$dflags"
+  setdata ${_MKCONFIG_PREFIX} DFLAGS "$dflags"
 }
 
 check_ldflags () {
   ldflags="${LDFLAGS:-}"
 
-  printlabel LDFLAGS "C Load flags"
+  printlabel LDFLAGS "D Load flags"
 
   _dogetconf
 
-  TDC=${CC}
+  TDC=${DC}
   if [ "${_MKCONFIG_USING_GCC}" = "Y" ]
   then
     TDC=gcc
@@ -268,11 +208,11 @@ check_ldflags () {
 check_libs () {
   libs="${LIBS:-}"
 
-  printlabel LIBS "C Libraries"
+  printlabel LIBS "D Libraries"
 
   _dogetconf
 
-  gccflags=""
+  gdcflags=""
 
   TDC=${DC}
   if [ "${_MKCONFIG_USING_GDC}" = "Y" ]
