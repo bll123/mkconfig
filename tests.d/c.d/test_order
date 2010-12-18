@@ -1,4 +1,6 @@
 1 c-compiler
+2 c-set
+2 c-option
 3 c-header
 3 c-syshdr
 3 c-const
