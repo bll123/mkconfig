@@ -13,7 +13,7 @@ stag=$1
 shift
 script=$@
 
-${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` -C $_MKCONFIG_RUNTESTDIR/c-mksharedlib.dat
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` -C $_MKCONFIG_RUNTESTDIR/c-mksharedlib.dat
 . ./mksharedlib.env
 
 if [ "${_MKCONFIG_SYSTYPE}" = "BSD" ]; then
@@ -77,7 +77,7 @@ _HERE_
 ${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c
 
 grc=0
-${_MKCONFIG_DIR}/mksharedlib.sh -e mkct mkct[51234]${OBJ_EXT}
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mksharedlib.sh -e mkct mkct[51234]${OBJ_EXT}
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 

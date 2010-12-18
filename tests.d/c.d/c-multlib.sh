@@ -70,7 +70,7 @@ case ${script} in
 esac
 case $script in
   *mkconfig.sh)
-    ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh multlib.ctest
+    ${_MKCONFIG_SHELL} ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh multlib.ctest
     ;;
 esac
 

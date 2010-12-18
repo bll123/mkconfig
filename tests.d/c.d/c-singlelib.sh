@@ -60,7 +60,7 @@ case ${script} in
 esac
 case $script in
   *mkconfig.sh)
-    ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh singlelib.ctest
+    ${_MKCONFIG_SHELL} ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh singlelib.ctest
     ;;
 esac
 

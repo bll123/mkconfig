@@ -14,7 +14,7 @@ stag=$1
 shift
 script=$@
 
-${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` -C $_MKCONFIG_RUNTESTDIR/c-mkexeclibst.dat
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` -C $_MKCONFIG_RUNTESTDIR/c-mkexeclibst.dat
 . ./mkexeclibst.env
 
 for i in 1 2 3 4; do
@@ -63,11 +63,11 @@ _HERE_
 ${CC} ${CPPFLAGS} ${CFLAGS} -c mkct${i}.c
 
 grc=0
-${_MKCONFIG_DIR}/mkstaticlib.sh -e mkct mkct[51234]${OBJ_EXT}
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkstaticlib.sh -e mkct mkct[51234]${OBJ_EXT}
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-${_MKCONFIG_DIR}/mklink.sh -e mkct6a mkct6${OBJ_EXT} -L. -lmkct
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mklink.sh -e mkct6a mkct6${OBJ_EXT} -L. -lmkct
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
