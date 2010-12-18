@@ -1,0 +1,6 @@
+output multlib.dtest
+loadunit d-main
+standard
+import tst2libb
+import tst2libc
+lib tst2libb_f -ltst2libb, -ltst2libc, -ltst2libb -ltst2libc

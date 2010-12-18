@@ -1,0 +1,5 @@
+output singlelib.dtest
+loadunit d-main
+standard
+import tst1lib
+lib tst1lib -ltst1lib
