@@ -1,0 +1,4 @@
+output size.dtest
+loadunit d-main
+standard
+size long

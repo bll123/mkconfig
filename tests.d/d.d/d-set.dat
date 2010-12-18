@@ -1,0 +1,10 @@
+# test set
+
+output d-set.dtest
+loadunit d-main
+standard
+
+set _lib_something 1
+setint _test1 0
+setint _test1 1
+setstr _test2 a b c
