@@ -190,7 +190,7 @@ _chk_link () {
   clname=$1
 
   DC_OF="-o"
-  case ${DC} in 
+  case ${DC} in
     *dmd)
       DC_OF="-of"
       ;;
@@ -368,14 +368,8 @@ check_lib () {
   fi
 
   trc=0
-  # unfortunately, this does not work if the function
-  # is not declared.
   code="
-CPP_EXTERNS_BEG
-typedef int (*_TEST_fun_)();
-static _TEST_fun_ i=(_TEST_fun_) ${func};
-CPP_EXTERNS_END
-int main (char[][] args) {  i(); return (i==0); }
+int main (char[][] args) { return (is(typeof(${rfunc}) == function)); }
 "
 
   _chk_link_libs ${name} "${code}" all
@@ -389,33 +383,6 @@ int main (char[][] args) {  i(); return (i==0); }
     tag=" with ${dlibs}"
     cmd="di_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
     eval $cmd
-  fi
-
-  if [ ${trc} -eq 0 -a "$_MKCONFIG_TEST_EXTERN" != "" ]; then
-    # Normally, we don't want to do this, as
-    # on some systems we can get spurious errors
-    # where the lib does not exist and the link works!
-    # On modern systems, this simply isn't necessary.
-    code="
-CPP_EXTERNS_BEG
-  extern int ${func}();
-  typedef int (*_TEST_fun_)();
-  static _TEST_fun_ i=(_TEST_fun_) ${func};
-CPP_EXTERNS_END
-  int main (char[][] args) {  i(); return (i==0); }
-  "
-    _chk_link_libs ${name} "${code}" all
-    rc=$?
-    dlibs=$_retdlibs
-    if [ $rc -eq 0 ]; then
-        trc=1
-    fi
-    tag=""
-    if [ $rc -eq 0 -a "$dlibs" != "" ]; then
-      tag=" with ${dlibs}"
-      cmd="di_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
-      eval $cmd
-    fi
   fi
 
   printyesno $name $trc "$tag"
