@@ -1,0 +1,22 @@
+output ctype.d
+loadunit d-main
+standard
+
+chdr    tst4hdr.h
+
+ctype a tst4hdr.h
+ctype b tst4hdr.h
+ctype c tst4hdr.h
+ctype d tst4hdr.h
+ctype e tst4hdr.h
+ctype f tst4hdr.h
+ctype g tst4hdr.h
+ctype h tst4hdr.h
+ctype i tst4hdr.h
+ctype j tst4hdr.h
+ctype k tst4hdr.h
+#ctype l tst4hdr.h  # struct
+ctype m tst4hdr.h
+#ctype n_t tst4hdr.h # struct
+ctype o tst4hdr.h
+#ctype p tst4hdr.h # pfunc

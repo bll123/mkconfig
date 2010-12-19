@@ -1,0 +1,15 @@
+output cdcl.d
+loadunit d-main
+standard
+
+chdr    tst5hdr.h
+
+cdcl a tst5hdr.h
+cdcl b tst5hdr.h
+cdcl c tst5hdr.h
+cdcl d tst5hdr.h
+cdcl e tst5hdr.h
+cdcl f tst5hdr.h
+cdcl g tst5hdr.h
+cdcl h tst5hdr.h
+cdcl i tst5hdr.h
