@@ -54,11 +54,26 @@ check_dc () {
   echo "dc:${DC}" >&9
 
   printyesno_val DC "${DC}"
-  setdata ${_MKCONFIG_PREFIX} DC "${DC}"
-  setdata ${_MKCONFIG_PREFIX} DC_OF "-of"
-  setdata ${_MKCONFIG_PREFIX} DC_UNITTEST "-unittest"
-  setdata ${_MKCONFIG_PREFIX} DC_DEBUG "-debug"
-  setdata ${_MKCONFIG_PREFIX} DC_COV "-cov"
+
+  case ${DC} in
+    *dmd)
+      setdata ${_MKCONFIG_PREFIX} DC "${DC}"
+      setdata ${_MKCONFIG_PREFIX} DC_OF "-of"
+      setdata ${_MKCONFIG_PREFIX} DC_UNITTEST "-unittest"
+      setdata ${_MKCONFIG_PREFIX} DC_DEBUG "-debug"
+      setdata ${_MKCONFIG_PREFIX} DC_COV "-cov"
+      setdata ${_MKCONFIG_PREFIX} DC_LINK "-L"
+      setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_GDC "N"
+      ;;
+    *gdc)
+      setdata ${_MKCONFIG_PREFIX} DC_OF "-o"
+      setdata ${_MKCONFIG_PREFIX} DC_UNITTEST "--unittest"
+      setdata ${_MKCONFIG_PREFIX} DC_DEBUG "--debug"
+      setdata ${_MKCONFIG_PREFIX} DC_COV ""
+      setdata ${_MKCONFIG_PREFIX} DC_LINK ""
+      setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_GDC "Y"
+      ;;
+  esac
 }
 
 check_using_gdc () {
@@ -81,33 +96,8 @@ check_using_gdc () {
           ;;
   esac
 
-  if [ $usinggdc = "Y" ]; then
-    setdata ${_MKCONFIG_PREFIX} DC_OF "-o"
-    setdata ${_MKCONFIG_PREFIX} DC_UNITTEST "--unittest"
-    setdata ${_MKCONFIG_PREFIX} DC_DEBUG "--debug"
-    setdata ${_MKCONFIG_PREFIX} DC_COV ""
-  fi
-
   printyesno_val _MKCONFIG_USING_GDC "${usinggdc}"
   setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_GDC "${usinggdc}"
-}
-
-check_using_gnu_ld () {
-  usinggnuld="N"
-
-  printlabel _MKCONFIG_USING_GNU_LD "Using gnu ld"
-
-  # check for gdc...
-  ${DC} -v 2>&1 | grep 'GNU ld' > /dev/null 2>&1
-  rc=$?
-  if [ $rc -eq 0 ]
-  then
-      echo "found gnu ld" >&9
-      usinggnuld="Y"
-  fi
-
-  printyesno_val _MKCONFIG_USING_GNU_LD "${usinggnuld}"
-  setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_GNU_LD "${usinggnuld}"
 }
 
 check_dflags () {
@@ -131,15 +121,6 @@ check_dflags () {
   then
     TDC=gdc
   fi
-
-  case ${DC} in
-    g++|c++)
-      if [ "${_MKCONFIG_USING_GDC}" = "Y" ]; then
-        echo "set g++ flags" >&9
-        gdcflags=""
-      fi
-      ;;
-  esac
 
   dflags="$gdcflags $dflags"
 
