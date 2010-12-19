@@ -189,15 +189,16 @@ _chk_link_libs () {
 _chk_link () {
   clname=$1
 
-  DC_OF="-o"
-  case ${DC} in
-    *dmd)
-      DC_OF="-of"
-      ;;
-  esac
+  cmd="${DC} ${DFLAGS} -c ${tdfile}"
+  eval ${cmd} >&9 2>&9
+  rc=$?
+  if [ $rc -lt 0 ]; then
+      exitmkconfig $rc
+  fi
+  echo "##      _link compile: $rc" >&9
 
-  cmd="${DC} ${DFLAGS} ${DC_OF}${clname}.exe ${clname}.d "
-  cmd="${cmd} ${LDFLAGS} ${LIBS} "
+  cmd="${_MKCONFIG_DIR}/mklink.sh -e -c ${DC} ${clname}.exe "
+  cmd="${cmd} ${clname}${OBJ_EXT} ${LDFLAGS} ${LIBS} "
 
   _clotherlibs=$otherlibs
   if [ "${_clotherlibs}" != "" ]; then
@@ -369,11 +370,16 @@ check_lib () {
 
   trc=0
   code="
-int main (char[][] args) { return (is(typeof(${rfunc}) == function)); }
+int main (char[][] args) { return (is(typeof(${rfunc}) == return)); }
 "
 
-  _chk_link_libs ${name} "${code}" all
+  _chk_run ${name} "${code}" all
   rc=$?
+  if [ $rc -eq 1 ]; then
+    rc=0
+  else
+    rc=1
+  fi
   dlibs=$_retdlibs
   if [ $rc -eq 0 ]; then
       trc=1
@@ -424,6 +430,54 @@ check_class () {
   fi
   printyesno $name $trc "$tag"
   setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
+}
+
+check_clib () {
+  func=$2
+  shift;shift
+  libs=$*
+  nm="_clib_${func}"
+  otherlibs=${libs}
+
+  name=$nm
+
+  rfunc=$func
+  dosubst rfunc '_dollar_' '$'
+  if [ "${otherlibs}" != "" ]; then
+    printlabel $name "function: ${rfunc} [${otherlibs}]"
+    # code to check the cache for which libraries is not written
+  else
+    printlabel $name "function: ${rfunc}"
+    checkcache ${_MKCONFIG_PREFIX} $name
+    if [ $rc -eq 0 ]; then return; fi
+  fi
+
+  trc=0
+  code="
+extern (C) {
+void ${rfunc}();
+}
+alias int function () _TEST_fun_;
+_TEST_fun_ i= cast(_TEST_fun_) &${rfunc};
+void main (char[][] args) { i(); }
+"
+
+  _chk_link_libs ${name} "${code}" all
+  rc=$?
+  dlibs=$_retdlibs
+  if [ $rc -eq 0 ]; then
+      trc=1
+  fi
+  tag=""
+  if [ $rc -eq 0 -a "$dlibs" != "" ]; then
+    tag=" with ${dlibs}"
+    cmd="di_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
+    eval $cmd
+  fi
+
+  printyesno $name $trc "$tag"
+  setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
+  return $trc
 }
 
 output_item () {
