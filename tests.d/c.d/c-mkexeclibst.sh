@@ -67,12 +67,12 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkstaticlib.sh -e mkct mkct[51234]${OBJ_EXT}
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mklink.sh -echo -comp ${CC} -out mkct6a \
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mklink.sh -e -c ${CC} -o mkct6a.exe -- \
     mkct6${OBJ_EXT} -L. -lmkct
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-./mkct6a
+./mkct6a.exe
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
