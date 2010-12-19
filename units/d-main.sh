@@ -26,25 +26,27 @@ ccodes=""
 
 dump_ccode () {
   if [ "${ccode}" != "" ]; then
+    echo ""
     echo "${ccode}" |
-      sed -e 's/	/ /g' \
-        -e 's/^  */ /' \
+      sed -e 's/^  */ /' \
         -e 's/  / /g' \
         -e 's,/\*[^\*]*\*/,,' \
         -e 's,//.*$,,' \
-        -e 's/__extension__//g' \
+        -e 's/__extension__//g;# gnuism' \
         -e 's/ *typedef /alias /g' \
         -e 's/ *\([\{\}]\)/\1/' \
-        -e 's/long *long /longlong /g' \
-        -e 's/long *double /real /g' \
-        -e 's/unsigned *long *int/uint /g' \
-        -e 's/unsigned *int /uint /g' \
-        -e 's/unsigned *short /ushort /g' \
-        -e 's/unsigned *char /ubyte /g' \
-        -e 's/unsigned *long /uint /g' \
-        -e 's/long *int/int /g' |
-      sed -e 's/unsigned *longlong /ulong /g' \
-        -e 's/longlong /long /g'
+        -e 's/ long *int / long /g;# still C' \
+        -e 's/ short *int / short /g;# still C' \
+        -e 's/ long *long / longlong /g;# save it' \
+        -e 's/ long *double / real /g' \
+        -e 's/ unsigned *long / uint /g' \
+        -e 's/ unsigned *int / uint /g' \
+        -e 's/ unsigned *short / ushort /g' \
+        -e 's/ unsigned *char / ubyte /g' \
+        -e 's/ unsigned *long / uint /g' \
+        -e 's/ long / int /g' |
+      sed -e 's/ unsigned *longlong / ulong /g' \
+        -e 's/ longlong / long /g'
   fi
 }
 
@@ -592,7 +594,6 @@ check_ctype () {
   trc=0
 
   if [ $rc -eq 0 ]; then
-set -x
     tdata=`egrep ".*typedef.*${typname} *;" $name.out 2>/dev/null`
     rc=$?
     if [ $rc -eq 0 ]; then
@@ -602,9 +603,7 @@ set -x
     ccode="${ccode}
 
 ${tdata}
-
 "
-set +x
   fi
 
   printyesno $name $trc ""
@@ -645,7 +644,7 @@ check_cstruct () {
         trc=1
       fi
       end=`egrep "^ *} +${s}_t *;" $name.out 2>/dev/null | head -1`
-      send=`echo ${end} | sed -e 's/}/\\}/'`
+      send=`echo ${end} | sed -e 's/}/\\\\}/'`
       rc=$?
       if [ $rc -eq 0 ]; then
         trc=1
@@ -656,7 +655,6 @@ check_cstruct () {
       fi
     done
 
-set -x
     if [ "$end" != "" ]; then
       snm="${s}_t"
     else
@@ -674,29 +672,33 @@ main () { printf (\"%d\", sizeof (${snm})); }
     cmd="${CC} ${CFLAGS} ${CPPFLAGS} -o ${name}.exe ${name}.c"
     eval ${cmd}
     rc=$?
-    if [ $rc -lt 0 ]; then
+    if [ $rc -ne 0 ]; then
       exitmkconfig $rc
     fi
     rval=`./${name}.exe`
-set +x
 
+    nstart="$start"
     if [ "$end" = "" ]; then
       end="};"
       send="\} *;"
     fi
+    if [ "$start" = "" ]; then
+      nstart="typedef *struct"
+    fi
+    st=`cat ${name}.out |
+      grep -v '^#' |
+      sed -n -e "/${nstart}/,/${send}/{p;/${send}/q}" |
+      sed -n -e "{H;/${nstart}/{x;d}};\\${x;p}" `
     st=`(echo "struct C_ST_${s} ";
-      echo "${start}" | sed "s/struct *${s} *//" | grep -v '^ *$';
-      cat ${name}.out |
-        grep -v '^#' |
-        grep -v '^ *$' |
-        sed -e "1,/${start}/d" \
-          -e "/${send}/,\$ d"; echo ${end}) \
-          -e "s/${s}_t//"`
+      echo "${st}" |
+        sed -e 's/	/ /' -e "s/${s}_t//" -e "s/struct *${s} *//" \
+          -e 's/typedef *//' -e 's/struct *//' |
+        grep -v '^ *$'
+      )`
     ccode="${ccode}
 
 ${st}
 static assert ((C_ST_${s}).sizeof == ${rval});
-
 "
   fi
 
