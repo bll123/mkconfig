@@ -20,12 +20,27 @@ doshelltest $0 $@
 setechovars
 
 doecho=F
+comp=""
 if [ "$1" = "-e" ]; then
   doecho=T
   shift
 fi
+if [ "$1" = "-c" ]; then
+  shift
+  comp=$1
+  shift
+fi
 outfile=$1
 shift
+
+OUT=-o
+DC_LINK=
+case ${comp} in
+  *dmd)
+    OUT=-of
+    DC_LINK=-L
+    ;;
+esac
 
 objects=""
 libs=""
@@ -55,7 +70,7 @@ for f in $@; do
     "-l"*)
       tf=$f
       dosubst tf '-l' ''
-      doappend libs " -l$tf"
+      doappend libs " ${DC_LINK}-l$tf"
       ;;
     *${OBJ_EXT})
       if [ ! -f "$f" ]; then
@@ -67,9 +82,8 @@ for f in $@; do
       ;;
     *)
       if [ $islib -eq 1 ]; then
-        doappend libs " -l$f"
-      fi
-      if [ $ispath -eq 1 ]; then
+        doappend libs " ${DC_LINK}-l$f"
+      elif [ $ispath -eq 1 ]; then
         if [ ! -d "$f" ]; then
           echo "## unable to locate dir $f"
           grc=1
@@ -90,14 +104,23 @@ if [ "${libs}" != "" -a "${SHRUNPATH}" != "" ]; then
 fi
 shlibpath=""
 if [ "${libs}" != "" -a "${libpath}" != "" ]; then
-  shlibpath="-L${libpath}"
+  shlibpath="${DC_LINK}-L${libpath}"
   dosubst shlibpath '^:' ''
 fi
 shexeclink=""
 if [ "${SHEXECLINK}" != "" ]; then
   shexeclink="${SHEXECLINK}"
 fi
-cmd="${CC} ${LDFLAGS} ${shexeclink} -o $outfile $objects \
+
+if [ "${DC_LINK}" != "" ]; then
+  ldflags=""
+  for flag in ${LDFLAGS}; do
+    ldflags="${ldflags} ${DC_LINK}${flag}"
+  done
+else
+  ldflags="${LDFLAGS}"
+fi
+cmd="${comp} ${ldflags} ${shexeclink} ${OUT}$outfile $objects \
     ${shrunpath} ${shlibpath} $libs"
 if [ $doecho = "T" ]; then
   echo $cmd
