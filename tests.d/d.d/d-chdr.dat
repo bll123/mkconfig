@@ -1,0 +1,5 @@
+output chdr.dtest
+loadunit d-main
+standard
+
+chdr ctype.h
