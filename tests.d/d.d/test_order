@@ -4,3 +4,11 @@
 3 d-import
 3 d-member
 3 d-size
+4 d-chdr
+4 d-csyshdr
+4 d-clib
+4 d-cstruct
+4 d-ctype
+4 d-cdcl
+5 d-singlelib
+6 d-multlib
