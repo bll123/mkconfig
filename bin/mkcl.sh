@@ -21,23 +21,37 @@ setechovars
 
 doecho=F
 comp=""
-if [ "$1" = "-e" ]; then
-  doecho=T
-  shift
-fi
-if [ "$1" = "-c" ]; then
-  shift
-  comp=$1
-  shift
-fi
-outfile=$1
-shift
+while test $# -gt 0; do
+  case $1 in
+    -e)
+      doecho=T
+      shift
+      ;;
+    -c)
+      shift
+      comp=$1
+      shift
+      ;;
+    -o)
+      shift
+      outfile=$1
+      shift
+      ;;
+    --)
+      shift
+      break
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
 
-OUT=-o
+OUTFLAG=-o
 DC_LINK=
 case ${comp} in
   *dmd)
-    OUT=-of
+    OUTFLAG=-of
     DC_LINK=-L
     ;;
 esac
@@ -120,7 +134,7 @@ if [ "${DC_LINK}" != "" ]; then
 else
   ldflags="${LDFLAGS}"
 fi
-cmd="${comp} ${ldflags} ${shexeclink} ${OUT}$outfile $objects \
+cmd="${comp} ${ldflags} ${shexeclink} ${OUTFLAG}$outfile $objects \
     ${shrunpath} ${shlibpath} $libs"
 if [ $doecho = "T" ]; then
   echo $cmd
