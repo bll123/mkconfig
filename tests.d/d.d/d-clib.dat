@@ -1,0 +1,5 @@
+output clib.dtest
+loadunit d-main
+standard
+clib printf
+clib prinft
