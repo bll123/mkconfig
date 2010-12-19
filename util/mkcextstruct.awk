@@ -1,24 +1,37 @@
 #!/usr/bin/awk
 
 BEGIN {
-  ststruct = "struct"
-  ststart = "struct " ARGV[2];
+  ststruct1 = "struct[	 ]*{"
+  ststruct2 = "struct[	]*$"
+  ststart = "struct[	 ]*" ARGV[2];
+  stforward = "struct[	 ]*" ARGV[2] "[	 ]*;";
+  stother = "struct[	 ]*" ARGV[2] "[	 ]*[*a-zA-Z_]";
   stend = ARGV[2] "_t";
   delete ARGV[2];
   bcount = 0;
   acount = 0;
   ins = 0;
   havestart = 0;
+  doend = 0;
   sarr[0] = "";
+#print "ststruct1:" ststruct1;
+#print "ststruct2:" ststruct2;
 #print "ststart:" ststart;
+#print "stforward:" stforward;
+#print "stother:" stother;
 #print "stend:" stend;
 }
 
 {
 #print "havestart:" havestart " ins:" ins " bcount:" bcount " acount:" acount;
+#if ($0 ~ ststruct1) { print "matches ststruct1"; }
+#if ($0 ~ ststruct2) { print "matches ststruct2"; }
+#if ($0 ~ ststart) { print "matches ststart"; }
+#if ($0 ~ stforward) { print "matches stforward"; }
+#if ($0 ~ stother) { print "matches stother: " $0; }
   if ($0 ~ /^#/) {
     next;
-  } else if (ins == 0 && $0 ~ ststart) {
+  } else if (ins == 0 && $0 ~ ststart && $0 !~ stforward && $0 !~ stother) {
 #print "start: " $0;
     ins = 1;
     acount = 0;
@@ -32,7 +45,9 @@ BEGIN {
       bcount = bcount - 1;
       doend = 1;
     }
-  } else if (havestart == 0 && bcount == 0 && $0 ~ ststruct) {
+  } else if (havestart == 0 && bcount == 0 && 
+      ($0 ~ ststruct1 || $0 ~ ststruct2) && 
+      $0 !~ stforward && $0 !~ stother) {
 #print "struct: " $0;
     ins = 1;
     if ($0 ~ /{/) {
