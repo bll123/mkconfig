@@ -22,6 +22,32 @@ PH_PREFIX="mkc_ph."
 PH_STD=F
 PH_ALL=F
 
+ccodes=""
+
+dump_ccode () {
+  if [ "${ccode}" != "" ]; then
+    echo "${ccode}" |
+      sed -e 's/	/ /g' \
+        -e 's/^  */ /' \
+        -e 's/  / /g' \
+        -e 's,/\*[^\*]*\*/,,' \
+        -e 's,//.*$,,' \
+        -e 's/__extension__//g' \
+        -e 's/ *typedef /alias /g' \
+        -e 's/ *\([\{\}]\)/\1/' \
+        -e 's/long *long /longlong /g' \
+        -e 's/long *double /real /g' \
+        -e 's/unsigned *long *int/uint /g' \
+        -e 's/unsigned *int /uint /g' \
+        -e 's/unsigned *short /ushort /g' \
+        -e 's/unsigned *char /ubyte /g' \
+        -e 's/unsigned *long /uint /g' \
+        -e 's/long *int/int /g' |
+      sed -e 's/unsigned *longlong /ulong /g' \
+        -e 's/longlong /long /g'
+  fi
+}
+
 preconfigfile () {
   pc_configfile=$1
 
@@ -34,6 +60,8 @@ preconfigfile () {
   set +f
 
   echo "import std.string;"
+
+  dump_ccode
 
   if [ "${DC}" = "" ]; then
     echo "No compiler specified" >&2
@@ -220,7 +248,6 @@ _chk_link () {
   return $rc
 }
 
-
 _chk_compile () {
   dfname=$1
   code=$2
@@ -239,6 +266,28 @@ _chk_compile () {
   eval ${cmd} >&9 2>&9
   rc=$?
   echo "##  compile test: $rc" >&9
+  return $rc
+}
+
+_chk_cpp () {
+  cppname=$1
+  code="$2"
+
+  tcppfile=${cppname}.c
+  # $cppname should be unique
+  exec 4>>${tcppfile}
+  echo "${code}" | sed 's/_dollar_/$/g' >&4
+  exec 4>&-
+
+  cmd="${CC} ${CFLAGS} ${CPPFLAGS} -E ${cppname}.c > ${cppname}.out "
+  echo "##  _cpp test: $cmd" >&9
+  cat ${cppname}.c >&9
+  eval $cmd >&9 2>&9
+  rc=$?
+  if [ $rc -lt 0 ]; then
+      exitmkconfig $rc
+  fi
+  echo "##      _cpp test: $rc" >&9
   return $rc
 }
 
@@ -444,10 +493,10 @@ check_clib () {
   rfunc=$func
   dosubst rfunc '_dollar_' '$'
   if [ "${otherlibs}" != "" ]; then
-    printlabel $name "function: ${rfunc} [${otherlibs}]"
+    printlabel $name "c-function: ${rfunc} [${otherlibs}]"
     # code to check the cache for which libraries is not written
   else
-    printlabel $name "function: ${rfunc}"
+    printlabel $name "c-function: ${rfunc}"
     checkcache ${_MKCONFIG_PREFIX} $name
     if [ $rc -eq 0 ]; then return; fi
   fi
@@ -480,6 +529,182 @@ void main (char[][] args) { i(); }
   return $trc
 }
 
+check_chdr () {
+  type=$1
+  hdr=$2
+  shift;shift
+  nm1=`echo ${hdr} | sed -e 's,/.*,,'`
+  nm2="_`echo $hdr | sed -e \"s,^${nm1},,\" -e 's,^/*,,'`"
+  nm="_${type}_${nm1}"
+  if [ "$nm2" != "_" ]; then
+    doappend nm $nm2
+  fi
+  dosubst nm '/' '_' ':' '_' '\.h' ''
+  case ${type} in
+    csys)
+      hdr="sys/${hdr}"
+      ;;
+  esac
+
+  name=$nm
+
+  printlabel $name "c-header: ${hdr}"
+  checkcache ${_MKCONFIG_PREFIX} $name
+  if [ $rc -eq 0 ]; then return; fi
+
+  code="#include <${hdr}>"
+  _chk_cpp ${name} "${code}"
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    trc=1
+  fi
+
+  printyesno $name $trc "$tag"
+  setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
+  return $trc
+}
+
+check_csys () {
+  check_chdr $@
+}
+
+check_ctype () {
+  type=$1
+  typname=$2
+  shift;shift
+  hdrs=$*
+
+  nm="_ctype_${typname}"
+
+  name=$nm
+
+  printlabel $name "c-type: ${name}"
+  checkcache ${_MKCONFIG_PREFIX} $name
+  if [ $rc -eq 0 ]; then return; fi
+
+  code=""
+  for h in $hdrs; do
+    code="${code}
+#include <${h}>"
+  done
+  _chk_cpp ${name} "${code}"
+  rc=$?
+  trc=0
+
+  if [ $rc -eq 0 ]; then
+set -x
+    tdata=`egrep ".*typedef.*${typname} *;" $name.out 2>/dev/null`
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      trc=1
+    fi
+
+    ccode="${ccode}
+
+${tdata}
+
+"
+set +x
+  fi
+
+  printyesno $name $trc ""
+  setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
+  return $trc
+}
+
+check_cstruct () {
+  type=$1
+  sname=$2
+  shift;shift
+  hdrs=$*
+
+  nm1=`echo $sname | sed -e 's/,.*//'`
+  nm="_cstruct_${nm1}"
+
+  name=$nm
+
+  printlabel $name "c-struct: ${nm1}"
+  checkcache ${_MKCONFIG_PREFIX} $name
+  if [ $rc -eq 0 ]; then return; fi
+
+  code=""
+  for h in $hdrs; do
+    code="${code}
+#include <${h}>"
+  done
+  _chk_cpp ${name} "${code}"
+  rc=$?
+  trc=0
+
+  if [ $rc -eq 0 ]; then
+    slist="`echo $sname | sed -e 's/,/ /g'`"
+    for s in $slist; do
+      start=`egrep "^ *struct +${s}" $name.out 2>/dev/null | head -1`
+      rc=$?
+      if [ $rc -eq 0 ]; then
+        trc=1
+      fi
+      end=`egrep "^ *} +${s}_t *;" $name.out 2>/dev/null | head -1`
+      send=`echo ${end} | sed -e 's/}/\\}/'`
+      rc=$?
+      if [ $rc -eq 0 ]; then
+        trc=1
+      fi
+
+      if [ $trc -eq 1 ]; then
+        break
+      fi
+    done
+
+set -x
+    if [ "$end" != "" ]; then
+      snm="${s}_t"
+    else
+      snm="struct ${s}"
+    fi
+    code="
+#include <stdio.h>
+#include <stdlib.h>
+#include <${h}>
+main () { printf (\"%d\", sizeof (${snm})); }
+"
+    exec 4>>${name}.c
+    echo "${code}" | sed 's/_dollar_/$/g' >&4
+    exec 4>&-
+    cmd="${CC} ${CFLAGS} ${CPPFLAGS} -o ${name}.exe ${name}.c"
+    eval ${cmd}
+    rc=$?
+    if [ $rc -lt 0 ]; then
+      exitmkconfig $rc
+    fi
+    rval=`./${name}.exe`
+set +x
+
+    if [ "$end" = "" ]; then
+      end="};"
+      send="\} *;"
+    fi
+    st=`(echo "struct C_ST_${s} ";
+      echo "${start}" | sed "s/struct *${s} *//" | grep -v '^ *$';
+      cat ${name}.out |
+        grep -v '^#' |
+        grep -v '^ *$' |
+        sed -e "1,/${start}/d" \
+          -e "/${send}/,\$ d"; echo ${end}) \
+          -e "s/${s}_t//"`
+    ccode="${ccode}
+
+${st}
+static assert ((C_ST_${s}).sizeof == ${rval});
+
+"
+  fi
+
+  printyesno $name $trc ""
+  setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
+  return $trc
+}
+
 output_item () {
   out=$1
   name=$2
@@ -504,7 +729,7 @@ output_item () {
       echo "enum string ${tname} = \"${val}\";"
       set +f
       ;;
-    _imp*|_command*)
+    _import_*|_command_*|_chdr_*|_csys_*)
       echo "enum bool ${name} = ${tval};"
       ;;
     *)
