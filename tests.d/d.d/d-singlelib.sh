@@ -26,7 +26,7 @@ export DFLAGS LDFLAGS
 
 cat > tst1lib.d <<_HERE_
 import std.stdio;
-int tst1lib () { writeln ("hello world"); return 0; }
+int tst1lib_f () { writeln ("hello world"); return 0; }
 _HERE_
 
 ${DC} -c ${DFLAGS} tst1lib.d
