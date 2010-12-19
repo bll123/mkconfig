@@ -13,3 +13,11 @@ cstruct f tst3hdr.h
 cstruct g tst3hdr.h
 cstruct h tst3hdr.h
 cstruct i tst3hdr.h
+cstruct j tst3hdr.h
+cstruct k tst3hdr.h
+cstruct l tst3hdr.h
+cstruct m tst3hdr.h
+cstruct n tst3hdr.h
+cstruct o tst3hdr.h
+cstruct p tst3hdr.h
+cstruct q tst3hdr.h
