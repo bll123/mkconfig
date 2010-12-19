@@ -22,31 +22,39 @@ PH_PREFIX="mkc_ph."
 PH_STD=F
 PH_ALL=F
 
-ccodes=""
+ccode=""
+cchglist=""
 
 dump_ccode () {
   if [ "${ccode}" != "" ]; then
     echo ""
+    set -f
     echo "${ccode}" |
-      sed -e 's/^  */ /' \
-        -e 's/  / /g' \
+      sed -e 's/  / /g' \
+        -e 's/^  */ /' \
         -e 's,/\*[^\*]*\*/,,' \
         -e 's,//.*$,,' \
-        -e 's/__extension__//g;# gnuism' \
+        -e 's/sizeof *\(([^)]*)\)/\1.sizeof/g;# gcc-ism' \
+        -e 's/__extension__//g;# gcc-ism' \
+        -e 's/ __/ _t_/g;# double underscore not allowed' \
         -e 's/ *typedef /alias /g' \
+        -e 's/\* const/*/g; # not handled' \
         -e 's/ *\([\{\}]\)/\1/' \
-        -e 's/ long *int / long /g;# still C' \
-        -e 's/ short *int / short /g;# still C' \
-        -e 's/ long *long / longlong /g;# save it' \
-        -e 's/ long *double / real /g' \
-        -e 's/ unsigned *long / uint /g' \
-        -e 's/ unsigned *int / uint /g' \
-        -e 's/ unsigned *short / ushort /g' \
-        -e 's/ unsigned *char / ubyte /g' \
-        -e 's/ unsigned *long / uint /g' \
-        -e 's/ long / int /g' |
-      sed -e 's/ unsigned *longlong / ulong /g' \
-        -e 's/ longlong / long /g'
+        -e 's/long *int /long /g;# still C' \
+        -e 's/short *int /short /g;# still C' \
+        -e 's/long *long /xlongx /g;# save it' \
+        -e 's/long *double / real /g' \
+        -e 's/unsigned *long / uint /g' \
+        -e 's/unsigned *int / uint /g' \
+        -e 's/unsigned *short / ushort /g' \
+        -e 's/unsigned *char / ubyte /g' \
+        -e 's/unsigned *long / uint /g' \
+        -e 's/ signed */ /g;# still C' \
+        -e 's/long / int /g' |
+      sed -e 's/unsigned *xlongx/ulong /g' \
+        -e 's/xlongx /long /g' |
+      eval "sed ${cchglist} -e 's/a/a/'"
+    set +f
   fi
 }
 
@@ -227,7 +235,7 @@ _chk_link () {
   fi
   echo "##      _link compile: $rc" >&9
 
-  cmd="${_MKCONFIG_DIR}/mklink.sh -e -c ${DC} ${clname}.exe "
+  cmd="${_MKCONFIG_DIR}/mklink.sh -e -c ${DC} -o ${clname}.exe -- "
   cmd="${cmd} ${clname}${OBJ_EXT} ${LDFLAGS} ${LIBS} "
 
   _clotherlibs=$otherlibs
@@ -594,7 +602,7 @@ check_ctype () {
   trc=0
 
   if [ $rc -eq 0 ]; then
-    tdata=`egrep ".*typedef.*${typname} *;" $name.out 2>/dev/null`
+    tdata=`egrep ".*typedef.*[	 ]+${typname}[	 ]*;" $name.out 2>/dev/null`
     rc=$?
     if [ $rc -eq 0 ]; then
       trc=1
@@ -617,12 +625,10 @@ check_cstruct () {
   shift;shift
   hdrs=$*
 
-  nm1=`echo $sname | sed -e 's/,.*//'`
-  nm="_cstruct_${nm1}"
-
+  nm="_cstruct_${sname}"
   name=$nm
 
-  printlabel $name "c-struct: ${nm1}"
+  printlabel $name "c-struct: ${sname}"
   checkcache ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
 
@@ -638,68 +644,123 @@ check_cstruct () {
   if [ $rc -eq 0 ]; then
     slist="`echo $sname | sed -e 's/,/ /g'`"
     for s in $slist; do
-      start=`egrep "^ *struct +${s}" $name.out 2>/dev/null | head -1`
+      egrep "struct[	 ]*${s}" $name.out 2>/dev/null |
+        egrep -v "struct[	 ]*${s} *;" >/dev/null 2>&1
       rc=$?
       if [ $rc -eq 0 ]; then
+        snm="struct $s"
         trc=1
       fi
-      end=`egrep "^ *} +${s}_t *;" $name.out 2>/dev/null | head -1`
-      send=`echo ${end} | sed -e 's/}/\\\\}/'`
+      egrep -l "${s}_t" $name.out >/dev/null 2>&1
       rc=$?
       if [ $rc -eq 0 ]; then
+        snm="${s}_t"
         trc=1
       fi
-
       if [ $trc -eq 1 ]; then
         break
       fi
     done
 
-    if [ "$end" != "" ]; then
-      snm="${s}_t"
-    else
-      snm="struct ${s}"
-    fi
-    code="
+    if [ $trc -eq 1 ]; then
+      code="
 #include <stdio.h>
 #include <stdlib.h>
 #include <${h}>
 main () { printf (\"%d\", sizeof (${snm})); }
 "
-    exec 4>>${name}.c
-    echo "${code}" | sed 's/_dollar_/$/g' >&4
-    exec 4>&-
-    cmd="${CC} ${CFLAGS} ${CPPFLAGS} -o ${name}.exe ${name}.c"
-    eval ${cmd}
-    rc=$?
-    if [ $rc -ne 0 ]; then
-      exitmkconfig $rc
-    fi
-    rval=`./${name}.exe`
+      >${name}.c
+      exec 4>>${name}.c
+      echo "${code}" | sed 's/_dollar_/$/g' >&4
+      exec 4>&-
+      cmd="${CC} ${CFLAGS} ${CPPFLAGS} -o ${name}.exe ${name}.c"
+      eval ${cmd}
+      rc=$?
+      if [ $rc -ne 0 ]; then
+        exitmkconfig $rc
+      fi
+      rval=`./${name}.exe`
 
-    nstart="$start"
-    if [ "$end" = "" ]; then
-      end="};"
-      send="\} *;"
-    fi
-    if [ "$start" = "" ]; then
-      nstart="typedef *struct"
-    fi
-    st=`cat ${name}.out |
-      grep -v '^#' |
-      sed -n -e "/${nstart}/,/${send}/{p;/${send}/q}" |
-      sed -n -e "{H;/${nstart}/{x;d}};\\${x;p}" `
-    st=`(echo "struct C_ST_${s} ";
-      echo "${st}" |
-        sed -e 's/	/ /' -e "s/${s}_t//" -e "s/struct *${s} *//" \
-          -e 's/typedef *//' -e 's/struct *//' |
-        grep -v '^ *$'
-      )`
-    ccode="${ccode}
+      st=`awk -f ${_MKCONFIG_DIR}/mkcextstruct.awk ${name}.out ${s}`
+#    st=`cat ${name}.out |
+#      grep -v '^#' |
+#      sed -n -e "/${nstart}/,/${send}/{p;/${send}/q}" |
+#      sed -n -e "{H;/${nstart}/{x;d}};\\${x;p}" `
+      st=`(
+        echo "struct C_ST_${s} ";
+        # remove only first "struct $s", first "struct", $s_t name,
+        # any typedef.
+        echo "${st}" |
+          sed -e 's/	/ /' -e "s/${s}_t//" -e "s/struct *${s} *{/{/" \
+            -e "s/struct *${s} *$//" \
+            -e 's/typedef *//' -e 's/struct *{/{/' -e 's/^ *struct$//' |
+          grep -v '^ *$'
+        )`
+      cchglist="${cchglist} -e 's/${snm}/C_ST_${s}/g'"
+      ccode="${ccode}
 
 ${st}
 static assert ((C_ST_${s}).sizeof == ${rval});
 "
+    fi
+  fi
+
+  printyesno $name $trc ""
+  setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
+  return $trc
+}
+
+check_cdcl () {
+  type=$1
+  dname=$2
+  shift;shift
+  hdrs=$*
+
+  nm="_cdcl_${dname}"
+  name=$nm
+
+  printlabel $name "c-dcl: ${dname}"
+  checkcache ${_MKCONFIG_PREFIX} $name
+  if [ $rc -eq 0 ]; then return; fi
+
+  code=""
+  for h in $hdrs; do
+    code="${code}
+/* get rid of gcc-isms */
+#define __asm__(a)
+#define __attribute__(a)
+#define __nonnull__(a,b)
+#define __restrict
+#define __THROW
+#define __const const
+#include <${h}>"
+  done
+  _chk_cpp ${name} "${code}"
+  rc=$?
+  trc=0
+
+  if [ $rc -eq 0 ]; then
+    egrep "${dname}[	 ]*\(" $name.out >/dev/null 2>&1
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      trc=1
+    fi
+
+    if [ $trc -eq 1 ]; then
+      dcl=`awk -f ${_MKCONFIG_DIR}/mkcextdcl.awk ${name}.out ${dname}`
+      set -f
+      # extern will be replaced
+      # ; may or may not be present, so remove it.
+      cmd="dcl=\`echo \"\$dcl\" | sed -e 's/extern *//' -e 's/;//' \`"
+      eval $cmd
+      set +f
+      ccode="${ccode}
+
+extern (C) {
+${dcl};
+}
+"
+    fi
   fi
 
   printyesno $name $trc ""
