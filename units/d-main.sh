@@ -613,16 +613,18 @@ check_ctype () {
   trc=0
 
   if [ $rc -eq 0 ]; then
-    tdata=`egrep ".*typedef.*[	 ]+${typname}[	 ]*;" $name.out 2>/dev/null`
+    tdata=`egrep ".*typedef.*[	 *]+${typname}[	 ]*;" $name.out 2>/dev/null`
     rc=$?
     if [ $rc -eq 0 ]; then
       trc=1
     fi
 
-    ccode="${ccode}
+    if [ $trc -eq 1 ]; then
+      ccode="${ccode}
 
 ${tdata}
 "
+    fi
   fi
 
   printyesno $name $trc ""
