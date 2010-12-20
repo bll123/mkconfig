@@ -1,5 +1,6 @@
 output singlelib.dtest
 loadunit d-main
 standard
+import std.stdio
 import tst1lib
 lib tst1lib_f -ltst1lib
