@@ -23,29 +23,40 @@ BEGIN {
     sarr[acount] = $0;
     acount = acount + 1;
     havestart = 1;
-    if ($0 ~ /\(/) {
-      bcount = bcount + 1;
-    }
-    if ($0 ~ /\)/) {
-      bcount = bcount - 1;
+    tstr = $0;
+    gsub (/[^\(]/, "", tstr);
+    bcount = bcount + length (tstr);
+#print "start: " length(tstr) " (";
+    tstr = $0;
+    gsub (/[^\)]/, "", tstr);
+    bcount = bcount - length (tstr);
+#print "start: " length(tstr) " )";
+    if (bcount <= 0 && length (tstr) > 0) {
       doend = 1;
     }
   } else if (ins == 1 && $0 ~ /\(/) {
 #print "(: " $0;
     sarr[acount] = $0;
     acount = acount + 1;
-    bcount = bcount + 1;
-    if ($0 ~ /\)/) {
-      bcount = bcount - 1;
-      if (bcount <= 0) {
-        ins = 0;
-      }
+    tstr = $0;
+    gsub (/[^\(]/, "", tstr);
+    bcount = bcount + length (tstr);
+#print "(: " length(tstr) " (";
+    tstr = $0;
+    gsub (/[^\(]/, "", tstr);
+    bcount = bcount - length (tstr);
+#print "(: " length(tstr) " )";
+    if (bcount <= 0) {
+      ins = 0;
     }
   } else if (ins == 1 && $0 ~ /\)/) {
 #print "): " $0;
     sarr[acount] = $0;
     acount = acount + 1;
-    bcount = bcount - 1;
+    tstr = $0;
+    gsub (/[^\)]/, "", tstr);
+    bcount = bcount - length (tstr);
+#print "): " length(tstr) " )";
     if (bcount <= 0) {
       if (havestart == 1) {
         doend = 1;
