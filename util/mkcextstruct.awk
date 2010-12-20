@@ -38,23 +38,27 @@ BEGIN {
     sarr[acount] = $0;
     acount = acount + 1;
     havestart = 1;
-    if ($0 ~ /{/) {
-      bcount = bcount + 1;
-    }
-    if ($0 ~ /}/) {
-      bcount = bcount - 1;
+    tstr = $0;
+    gsub (/[^{]/, "", tstr);
+    bcount = bcount + length (tstr);
+    tstr = $0;
+    gsub (/[^}]/, "", tstr);
+    bcount = bcount - length (tstr);
+    if (bcount <= 0 && length (tstr) > 0) {
       doend = 1;
     }
-  } else if (havestart == 0 && bcount == 0 && 
-      ($0 ~ ststruct1 || $0 ~ ststruct2) && 
+  } else if (havestart == 0 && bcount == 0 &&
+      ($0 ~ ststruct1 || $0 ~ ststruct2) &&
       $0 !~ stforward && $0 !~ stother) {
 #print "struct: " $0;
     ins = 1;
-    if ($0 ~ /{/) {
-      bcount = bcount + 1;
-    }
-    if ($0 ~ /}/) {
-      bcount = bcount - 1;
+    tstr = $0;
+    gsub (/[^{]/, "", tstr);
+    bcount = bcount + length (tstr);
+    tstr = $0;
+    gsub (/[^}]/, "", tstr);
+    bcount = bcount - length (tstr);
+    if (bcount <= 0 && length(tstr) > 0) {
       ins = 0;
     }
     if ($0 ~ stend) {
@@ -72,18 +76,22 @@ BEGIN {
 #print "{: " $0;
     sarr[acount] = $0;
     acount = acount + 1;
-    bcount = bcount + 1;
-    if ($0 ~ /}/) {
-      bcount = bcount - 1;
-      if (bcount <= 0) {
-        ins = 0;
-      }
+    tstr = $0;
+    gsub (/[^{]/, "", tstr);
+    bcount = bcount + length (tstr);
+    tstr = $0;
+    gsub (/[^}]/, "", tstr);
+    bcount = bcount - length (tstr);
+    if (bcount <= 0 && length(tstr) > 0) {
+      ins = 0;
     }
   } else if (ins == 1 && $0 ~ /}/) {
 #print "}: " $0;
     sarr[acount] = $0;
     acount = acount + 1;
-    bcount = bcount - 1;
+    tstr = $0;
+    gsub (/[^}]/, "", tstr);
+    bcount = bcount - length (tstr);
     if (bcount <= 0) {
       if (havestart == 1) {
         doend = 1;
