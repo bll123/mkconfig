@@ -6,9 +6,9 @@
 3 d-size
 4 d-chdr
 4 d-csyshdr
-4 d-clib
-4 d-cstruct
-4 d-ctype
-4 d-cdcl
-5 d-singlelib
-6 d-multlib
+5 d-clib
+5 d-cstruct
+5 d-ctype
+5 d-cdcl
+6 d-singlelib
+7 d-multlib
