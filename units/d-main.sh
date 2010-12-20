@@ -69,6 +69,23 @@ ${cdcls}
   fi
 }
 
+create_chdr_nm () {
+  chvar=$1
+  thdr=$2
+
+  tnm=$thdr
+  dosubst tnm '/' '_' ':' '_' '\.h' ''
+  case $tnm in
+  sys_*)
+      tnm="_c${tnm}"
+      ;;
+    *)
+      tnm="_chdr_${tnm}"
+      ;;
+  esac
+  eval "$chvar=${tnm}"
+}
+
 preconfigfile () {
   pc_configfile=$1
 
@@ -103,9 +120,6 @@ standard_checks () {
     echo "No compiler specified" >&2
     return
   fi
-
-  check_import import "std.stdio"
-  check_import import "std.string"
 }
 
 _print_imports () {
@@ -292,7 +306,7 @@ _chk_compile () {
 
 _chk_cpp () {
   cppname=$1
-  code="$2"
+  code=$2
 
   tcppfile=${cppname}.c
   # $cppname should be unique
@@ -605,8 +619,13 @@ check_ctype () {
 
   code=""
   for h in $hdrs; do
-    code="${code}
+    create_chdr_nm hnm $h
+    # make sure the header exists (must be checked for w/'chdr'
+    getdata tval ${_MKCONFIG_PREFIX} ${hnm}
+    if [ "${tval}" != "0" -a "${tval}" != "" ]; then
+      code="${code}
 #include <${h}>"
+    fi
   done
   _chk_cpp ${name} "${code}"
   rc=$?
@@ -647,9 +666,15 @@ check_cstruct () {
 
   code=""
   for h in $hdrs; do
-    code="${code}
+    create_chdr_nm hnm $h
+    # make sure the header exists (must be checked for w/'chdr'
+    getdata tval ${_MKCONFIG_PREFIX} ${hnm}
+    if [ "${tval}" != "0" -a "${tval}" != "" ]; then
+      code="${code}
 #include <${h}>"
+    fi
   done
+  tcode="$code"
   _chk_cpp ${name} "${code}"
   rc=$?
   trc=0
@@ -679,7 +704,7 @@ check_cstruct () {
       code="
 #include <stdio.h>
 #include <stdlib.h>
-#include <${h}>
+${tcode}
 main () { printf (\"%d\", sizeof (${snm})); }
 "
       >${name}.c
@@ -695,10 +720,6 @@ main () { printf (\"%d\", sizeof (${snm})); }
       rval=`./${name}.exe`
 
       st=`awk -f ${_MKCONFIG_DIR}/mkcextstruct.awk ${name}.out ${s}`
-#    st=`cat ${name}.out |
-#      grep -v '^#' |
-#      sed -n -e "/${nstart}/,/${send}/{p;/${send}/q}" |
-#      sed -n -e "{H;/${nstart}/{x;d}};\\${x;p}" `
       st=`(
         echo "struct C_ST_${s} ";
         # remove only first "struct $s", first "struct", $s_t name,
@@ -736,21 +757,29 @@ check_cdcl () {
   checkcache ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
 
-  code=""
-  for h in $hdrs; do
-    code="${code}
-/* get rid of gcc-isms */
+  trc=0
+
+  code="/* get rid of gcc-isms */
 #define __asm__(a)
 #define __attribute__(a)
 #define __nonnull__(a,b)
 #define __restrict
 #define __THROW
 #define __const const
-#include <${h}>"
+"
+
+  for h in $hdrs; do
+    create_chdr_nm hnm $h
+    # make sure the header exists (must be checked for w/'chdr'
+    getdata tval ${_MKCONFIG_PREFIX} ${hnm}
+    if [ "${tval}" != "0" -a "${tval}" != "" ]; then
+      code="${code}
+#include <${h}>
+"
+    fi
   done
   _chk_cpp ${name} "${code}"
   rc=$?
-  trc=0
 
   if [ $rc -eq 0 ]; then
     egrep "${dname}[	 ]*\(" $name.out >/dev/null 2>&1
