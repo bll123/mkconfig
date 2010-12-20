@@ -2,7 +2,7 @@ output cdcl.d
 loadunit d-main
 standard
 
-chdr    tst5hdr.h
+chdr tst5hdr.h
 
 cdcl a tst5hdr.h
 cdcl b tst5hdr.h
