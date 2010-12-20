@@ -23,10 +23,21 @@ PH_STD=F
 PH_ALL=F
 
 ccode=""
+cdcls=""
 cchglist=""
 
 dump_ccode () {
-  if [ "${ccode}" != "" ]; then
+  if [ "${ccode}" != "" -o "${cdcls}" != "" ]; then
+    if [ "${cdcls}" != "" ]; then
+      ccode="${ccode}
+
+extern (C) {
+
+${cdcls}
+
+}
+"
+    fi
     echo ""
     set -f
     echo "${ccode}" |
@@ -754,11 +765,8 @@ check_cdcl () {
       cmd="dcl=\`echo \"\$dcl\" | sed -e 's/extern *//' -e 's/;//' \`"
       eval $cmd
       set +f
-      ccode="${ccode}
-
-extern (C) {
+      cdcls="${cdcls}
 ${dcl};
-}
 "
     fi
   fi
