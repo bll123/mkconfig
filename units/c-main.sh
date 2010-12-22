@@ -228,7 +228,7 @@ _chk_run () {
       rc=$?
       echo "##  run test: run: $rc" >&9
       if [ $rc -lt 0 ]; then
-          exitmkconfig $rc
+          _exitmkconfig $rc
       fi
   fi
   _retval=$rval
@@ -303,7 +303,7 @@ _chk_cpp () {
   eval $cmd >&9 2>&9
   rc=$?
   if [ $rc -lt 0 ]; then
-      exitmkconfig $rc
+      _exitmkconfig $rc
   fi
   echo "##      _cpp test: $rc" >&9
   return $rc
@@ -323,7 +323,7 @@ _chk_link () {
   eval $cmd >&9 2>&9
   rc=$?
   if [ $rc -lt 0 ]; then
-      exitmkconfig $rc
+      _exitmkconfig $rc
   fi
   echo "##      _link test: $rc" >&9
   if [ $rc -eq 0 ]; then
