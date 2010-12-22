@@ -52,9 +52,11 @@ ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-multlib.dat
 ${_MKCONFIG_SHELL} ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh multlib.dtest
 
 echo "## diff 1"
-diff -b d-multlib.ctmp multlib.dtest
+grep -v SYSTYPE multlib.dtest | grep -v '^$' > t
+diff -b d-multlib.ctmp t
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
+rm -f t
 
 echo "## diff 2"
 diff -b ${_MKCONFIG_RUNTESTDIR}/d-multlib.reqlibs mkconfig.reqlibs

@@ -40,9 +40,11 @@ ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-singlelib.dat
 ${_MKCONFIG_SHELL} ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh singlelib.dtest
 
 echo "## diff 1"
-diff -b d-singlelib.ctmp singlelib.dtest
+grep -v 'SYSTYPE' singlelib.dtest | grep -v '^$' > t
+diff -b d-singlelib.ctmp t
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
+rm -f t
 
 echo "## diff 2"
 diff -b ${_MKCONFIG_RUNTESTDIR}/d-singlelib.reqlibs mkconfig.reqlibs

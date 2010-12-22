@@ -23,9 +23,11 @@ grc=0
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-clib.dat
 
 echo "## diff 1"
-diff -b d-clib.ctmp clib.dtest
+grep -v SYSTYPE clib.dtest | grep -v '^$' > t
+diff -b d-clib.ctmp t
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
+rm -f t
 
 if [ "$stag" != "" ]; then
   mv clib.dtest clib.dtest${stag}
