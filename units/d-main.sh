@@ -23,13 +23,30 @@ PH_STD=F
 PH_ALL=F
 
 ccode=""
+cdefs=""
+ctypes=""
 cdcls=""
+cstructs=""
 cchglist=""
 
 dump_ccode () {
-  if [ "${ccode}" != "" -o "${cdcls}" != "" ]; then
-    if [ "${cdcls}" != "" ]; then
-      ccode="${ccode}
+  if [ "${cdefs}" != "" ]; then
+    doappend ccode "
+${cdefs}
+"
+  fi
+  if [ "${ctypes}" != "" ]; then
+    doappend ccode "
+${ctypes}
+"
+  fi
+  if [ "${cstructs}" != "" ]; then
+    doappend ccode "
+${cstructs}
+"
+  fi
+  if [ "${cdcls}" != "" ]; then
+    doappend ccode "
 
 extern (C) {
 
@@ -37,7 +54,9 @@ ${cdcls}
 
 }
 "
-    fi
+  fi
+
+  if [ "${ccode}" != "" ]; then
     echo ""
     set -f
     echo "${ccode}" |
@@ -98,6 +117,10 @@ preconfigfile () {
   set +f
 
   echo "import std.string;"
+  if [ "${_MKCONFIG_SYSTYPE}" != "" ]; then
+    doappend ccode "enum string SYSTYPE = \"${_MKCONFIG_SYSTYPE}\";
+"
+  fi
 
   dump_ccode
 
@@ -124,6 +147,10 @@ standard_checks () {
 
 _print_imports () {
   imports=$1
+
+  if [ "$imports" = "none" ]; then
+    return
+  fi
 
   out="${PH_PREFIX}${imports}"
 
@@ -194,7 +221,7 @@ _chk_run () {
       rc=$?
       echo "##  run test: run: $rc" >&9
       if [ $rc -lt 0 ]; then
-          exitmkconfig $rc
+          _exitmkconfig $rc
       fi
   fi
   _retval=$rval
@@ -256,7 +283,7 @@ _chk_link () {
   eval ${cmd} >&9 2>&9
   rc=$?
   if [ $rc -lt 0 ]; then
-      exitmkconfig $rc
+      _exitmkconfig $rc
   fi
   echo "##      _link compile: $rc" >&9
 
@@ -272,7 +299,7 @@ _chk_link () {
   eval $cmd >&9 2>&9
   rc=$?
   if [ $rc -lt 0 ]; then
-      exitmkconfig $rc
+      _exitmkconfig $rc
   fi
   echo "##      _link test: $rc" >&9
   if [ $rc -eq 0 ]; then
@@ -320,7 +347,7 @@ _chk_cpp () {
   eval $cmd >&9 2>&9
   rc=$?
   if [ $rc -lt 0 ]; then
-      exitmkconfig $rc
+      _exitmkconfig $rc
   fi
   echo "##      _cpp test: $rc" >&9
   return $rc
@@ -367,14 +394,12 @@ check_import () {
   if [ "${reqimp}" != "" ]; then
       set ${reqimp}
       while test $# -gt 0; do
-          doappend code "
-import $1;
+          doappend code "import $1;
 "
           shift
       done
   fi
-  doappend code "
-import $file;
+  doappend code "import $file;
 int main (char[][] args) { return 0; }
 "
   rc=1
@@ -491,7 +516,7 @@ check_class () {
   name=$nm
 
   trc=0
-  code="void main (char[][] args) { ${class} testclass; } "
+  code="void main (char[][] args) { ${class} testclass; }"
 
   if [ "$otherlibs" != "" ]; then
       printlabel $name "class: ${class} [${otherlibs}]"
@@ -603,6 +628,60 @@ check_csys () {
   check_chdr $@
 }
 
+check_cdefstr () {
+  type=$1
+  defname=$2
+  shift;shift
+  hdrs=$*
+
+  nm="_cdefstr_${defname}"
+  name=$nm
+
+  printlabel $name "c-define-string: ${defname}"
+  # no caching
+
+  code="
+#include <stdio.h>
+#include <stdlib.h>
+"
+  for h in $hdrs; do
+    create_chdr_nm hnm $h
+    # make sure the header exists (must be checked for w/'chdr'
+    getdata tval ${_MKCONFIG_PREFIX} ${hnm}
+    if [ "${tval}" != "0" -a "${tval}" != "" ]; then
+      doappend code "#include <${h}>
+"
+    fi
+  done
+  doappend code "int main () { printf (\"%s\", ${defname}); return (0); }
+"
+
+  tcfile=${name}.c
+  exec 4>>${tcfile}
+  echo "${code}" | sed 's/_dollar_/$/g' >&4
+  exec 4>&-
+  cat ${tcfile} >&9
+  cmd="${CC} ${CFLAGS} ${CPPFLAGS} -o ${name}.exe ${tcfile}"
+  eval $cmd >&9 2>&9
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    _exitmkconfig $rc
+  fi
+  val=`./${name}.exe`
+  trc=0
+
+  if [ $rc -eq 0 -a "$val" != "" ]; then
+    tdata="enum string ${defname} = \"$val\";"
+    trc=1
+    doappend cdefs "${tdata}
+"
+  fi
+
+  printyesno $name $trc ""
+  setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
+  return $trc
+}
+
 check_ctype () {
   type=$1
   typname=$2
@@ -613,9 +692,8 @@ check_ctype () {
 
   name=$nm
 
-  printlabel $name "c-type: ${name}"
-  checkcache ${_MKCONFIG_PREFIX} $name
-  if [ $rc -eq 0 ]; then return; fi
+  printlabel $name "c-type: ${typname}"
+  # no caching
 
   code=""
   for h in $hdrs; do
@@ -623,8 +701,8 @@ check_ctype () {
     # make sure the header exists (must be checked for w/'chdr'
     getdata tval ${_MKCONFIG_PREFIX} ${hnm}
     if [ "${tval}" != "0" -a "${tval}" != "" ]; then
-      code="${code}
-#include <${h}>"
+      doappend code "#include <${h}>
+"
     fi
   done
   _chk_cpp ${name} "${code}"
@@ -639,9 +717,7 @@ check_ctype () {
     fi
 
     if [ $trc -eq 1 ]; then
-      ccode="${ccode}
-
-${tdata}
+      doappend ctypes "${tdata}
 "
     fi
   fi
@@ -661,8 +737,7 @@ check_cstruct () {
   name=$nm
 
   printlabel $name "c-struct: ${sname}"
-  checkcache ${_MKCONFIG_PREFIX} $name
-  if [ $rc -eq 0 ]; then return; fi
+  # no caching
 
   code=""
   for h in $hdrs; do
@@ -670,8 +745,8 @@ check_cstruct () {
     # make sure the header exists (must be checked for w/'chdr'
     getdata tval ${_MKCONFIG_PREFIX} ${hnm}
     if [ "${tval}" != "0" -a "${tval}" != "" ]; then
-      code="${code}
-#include <${h}>"
+      doappend code "#include <${h}>
+"
     fi
   done
   tcode="$code"
@@ -715,7 +790,7 @@ main () { printf (\"%d\", sizeof (${snm})); }
       eval ${cmd}
       rc=$?
       if [ $rc -ne 0 ]; then
-        exitmkconfig $rc
+        _exitmkconfig $rc
       fi
       rval=`./${name}.exe`
 
@@ -731,8 +806,7 @@ main () { printf (\"%d\", sizeof (${snm})); }
           grep -v '^ *$'
         )`
       cchglist="${cchglist} -e 's/${snm}/C_ST_${s}/g'"
-      ccode="${ccode}
-
+      doappend cstructs "
 ${st}
 static assert ((C_ST_${s}).sizeof == ${rval});
 "
@@ -754,8 +828,7 @@ check_cdcl () {
   name=$nm
 
   printlabel $name "c-dcl: ${dname}"
-  checkcache ${_MKCONFIG_PREFIX} $name
-  if [ $rc -eq 0 ]; then return; fi
+  # no caching
 
   trc=0
 
@@ -773,8 +846,7 @@ check_cdcl () {
     # make sure the header exists (must be checked for w/'chdr'
     getdata tval ${_MKCONFIG_PREFIX} ${hnm}
     if [ "${tval}" != "0" -a "${tval}" != "" ]; then
-      code="${code}
-#include <${h}>
+      doappend code "#include <${h}>
 "
     fi
   done
@@ -796,8 +868,7 @@ check_cdcl () {
       cmd="dcl=\`echo \"\$dcl\" | sed -e 's/extern *//' -e 's/;//' \`"
       eval $cmd
       set +f
-      cdcls="${cdcls}
-${dcl};
+      doappend cdcls "${dcl};
 "
     fi
   fi
