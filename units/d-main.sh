@@ -93,7 +93,8 @@ create_chdr_nm () {
   thdr=$2
 
   tnm=$thdr
-  dosubst tnm '/' '_' ':' '_' '\.h' ''
+  # dots are for relative pathnames...
+  dosubst tnm '/' '_' ':' '_' '\.h' '' '\.' ''
   case $tnm in
   sys_*)
       tnm="_c${tnm}"
@@ -593,28 +594,23 @@ check_chdr () {
   type=$1
   hdr=$2
   shift;shift
-  nm1=`echo ${hdr} | sed -e 's,/.*,,'`
-  nm2="_`echo $hdr | sed -e \"s,^${nm1},,\" -e 's,^/*,,'`"
-  nm="_${type}_${nm1}"
-  if [ "$nm2" != "_" ]; then
-    doappend nm $nm2
-  fi
-  dosubst nm '/' '_' ':' '_' '\.h' ''
   case ${type} in
     csys)
       hdr="sys/${hdr}"
       ;;
   esac
+  create_chdr_nm nm $hdr
 
   name=$nm
 
   printlabel $name "c-header: ${hdr}"
   checkcache ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
-
-  code="#include <${hdr}>"
+  code="#include <${hdr}>
+"
   _chk_cpp ${name} "${code}"
   rc=$?
+  trc=0
   if [ $rc -eq 0 ]; then
     trc=1
   fi
