@@ -15,21 +15,29 @@
 #    4 - temporary for d-main.sh    (d-main.sh)
 #
 
+require_unit d-support
+require_unit c-support
+
 _MKCONFIG_PREFIX=d
 _MKCONFIG_HASEMPTY=F
 _MKCONFIG_EXPORT=F
 PH_PREFIX="mkc_ph."
 PH_STD=F
 PH_ALL=F
+PI_PREFIX="mkc_pi."
+PI_ALL=F
+chdr_standard_done=F
 
-ccode=""
 cdefs=""
 ctypes=""
 cdcls=""
 cstructs=""
 cchglist=""
 
+. ${_MKCONFIG_RUNTOPDIR}/mkconfig.units/c-support.sh
+
 dump_ccode () {
+  ccode=""
   if [ "${cdefs}" != "" ]; then
     doappend ccode "
 ${cdefs}
@@ -66,7 +74,7 @@ ${cdcls}
         -e 's,//.*$,,' \
         -e 's/sizeof *\(([^)]*)\)/\1.sizeof/g;# gcc-ism' \
         -e 's/__extension__//g;# gcc-ism' \
-        -e 's/ __/ _t_/g;# double underscore not allowed' \
+        -e 's/__/_t_/g;# double underscore not allowed' \
         -e 's/ *typedef /alias /g' \
         -e 's/\* const/*/g; # not handled' \
         -e 's/ *\([\{\}]\)/\1/' \
@@ -97,10 +105,10 @@ create_chdr_nm () {
   dosubst tnm '/' '_' ':' '_' '\.h' '' '\.' ''
   case $tnm in
   sys_*)
-      tnm="_c${tnm}"
+      tnm="_${tnm}"
       ;;
     *)
-      tnm="_chdr_${tnm}"
+      tnm="_hdr_${tnm}"
       ;;
   esac
   eval "$chvar=${tnm}"
@@ -119,7 +127,7 @@ preconfigfile () {
 
   echo "import std.string;"
   if [ "${_MKCONFIG_SYSTYPE}" != "" ]; then
-    doappend ccode "enum string SYSTYPE = \"${_MKCONFIG_SYSTYPE}\";
+    echo "enum string SYSTYPE = \"${_MKCONFIG_SYSTYPE}\";
 "
   fi
 
@@ -144,230 +152,6 @@ standard_checks () {
     echo "No compiler specified" >&2
     return
   fi
-}
-
-_print_imports () {
-  imports=$1
-
-  if [ "$imports" = "none" ]; then
-    return
-  fi
-
-  out="${PH_PREFIX}${imports}"
-
-  if [ -f $out ]; then
-    cat $out
-    return
-  fi
-
-  if [ "$PH_STD" = "T" -a "$imports" = "std" ]; then
-    _print_imps std > $out
-    cat $out
-    return
-  fi
-
-  if [ "$PH_ALL" = "T" -a "$imports" = "all" ]; then
-    _print_imps all > $out
-    cat $out
-    return
-  fi
-
-  # until PH_STD/PH_ALL becomes true, just do normal processing.
-  _print_imps $imports
-}
-
-_print_imps () {
-  imports=$1
-
-  if [ "${imports}" = "all" -o "${imports}" = "std" ]; then
-      for tnm in '_import_std_stdio' '_import_std_string'; do
-          getdata tval ${_MKCONFIG_PREFIX} ${tnm}
-          if [ "${tval}" != "0" -a "${tval}" != "" ]; then
-              echo "import ${tval};"
-          fi
-      done
-  fi
-
-  if [ "${imports}" = "all" -a -f "$VARSFILE" ]; then
-    # save stdin in fd 6; open stdin
-    exec 6<&0 < ${VARSFILE}
-    while read cfgvar; do
-      getdata hdval ${_MKCONFIG_PREFIX} ${cfgvar}
-      case ${cfgvar} in
-        _import_std_stdio|_import_std_string)
-            ;;
-        _import_*)
-            if [ "${hdval}" != "0" -a "${hdval}" != "" ]; then
-              echo "import ${hdval};"
-            fi
-            ;;
-      esac
-    done
-    # set std to saved fd 6; close 6
-    exec <&6 6<&-
-  fi
-}
-
-_chk_run () {
-  crname=$1
-  code=$2
-  inc=$3
-
-  _chk_link_libs ${crname} "${code}" $inc
-  rc=$?
-  echo "##  run test: link: $rc" >&9
-  rval=0
-  if [ $rc -eq 0 ]; then
-      rval=`./${crname}.exe`
-      rc=$?
-      echo "##  run test: run: $rc" >&9
-      if [ $rc -lt 0 ]; then
-          _exitmkconfig $rc
-      fi
-  fi
-  _retval=$rval
-  return $rc
-}
-
-_chk_link_libs () {
-  cllname=$1
-  code=$2
-  inc=$3
-  shift;shift;shift
-
-  ocounter=0
-  clotherlibs="'$otherlibs'"
-  dosubst clotherlibs ',' "' '"
-  if [ "${clotherlibs}" != "" ]; then
-      eval "set -- $clotherlibs"
-      ocount=$#
-  else
-      ocount=0
-  fi
-
-  tdfile=${cllname}.d
-  # $cllname should be unique
-  exec 4>>${tdfile}
-  _print_imports $inc >&4
-  echo "${code}" | sed 's/_dollar_/$/g' >&4
-  exec 4>&-
-
-  dlibs=""
-  otherlibs=""
-  _chk_link $cllname
-  rc=$?
-  echo "##      link test (none): $rc" >&9
-  if [ $rc -ne 0 ]; then
-      while test $ocounter -lt $ocount; do
-          domath ocounter "$ocounter + 1"
-          eval "set -- $clotherlibs"
-          cmd="olibs=\$${ocounter}"
-          eval $cmd
-          dlibs=${olibs}
-          otherlibs=${olibs}
-          _chk_link $cllname
-          rc=$?
-          echo "##      link test (${olibs}): $rc" >&9
-          if [ $rc -eq 0 ]; then
-              break
-          fi
-      done
-  fi
-  _retdlibs=$dlibs
-  return $rc
-}
-
-_chk_link () {
-  clname=$1
-
-  cmd="${DC} ${DFLAGS} -c ${tdfile}"
-  eval ${cmd} >&9 2>&9
-  rc=$?
-  if [ $rc -lt 0 ]; then
-      _exitmkconfig $rc
-  fi
-  echo "##      _link compile: $rc" >&9
-
-  cmd="${_MKCONFIG_DIR}/mklink.sh -e -c ${DC} -o ${clname}.exe -- "
-  cmd="${cmd} ${clname}${OBJ_EXT} ${LDFLAGS} ${LIBS} "
-
-  _clotherlibs=$otherlibs
-  if [ "${_clotherlibs}" != "" ]; then
-      cmd="${cmd} ${_clotherlibs} "
-  fi
-  echo "##  _link test: $cmd" >&9
-  cat ${clname}.d >&9
-  eval $cmd >&9 2>&9
-  rc=$?
-  if [ $rc -lt 0 ]; then
-      _exitmkconfig $rc
-  fi
-  echo "##      _link test: $rc" >&9
-  if [ $rc -eq 0 ]; then
-    if [ ! -x "${clname}.exe" ]; then  # not executable
-      rc=1
-    fi
-  fi
-  return $rc
-}
-
-_chk_compile () {
-  dfname=$1
-  code=$2
-  inc=$3
-
-  tdfile=${dfname}.d
-  # $dfname should be unique
-  exec 4>>${tdfile}
-  _print_imports $inc >&4
-  echo "${code}" | sed 's/_dollar_/$/g' >&4
-  exec 4>&-
-
-  cmd="${DC} ${DFLAGS} -c ${tdfile}"
-  echo "##  compile test: $cmd" >&9
-  cat ${dfname}.d >&9
-  eval ${cmd} >&9 2>&9
-  rc=$?
-  echo "##  compile test: $rc" >&9
-  return $rc
-}
-
-_chk_cpp () {
-  cppname=$1
-  code=$2
-
-  tcppfile=${cppname}.c
-  # $cppname should be unique
-  exec 4>>${tcppfile}
-  echo "${code}" | sed 's/_dollar_/$/g' >&4
-  exec 4>&-
-
-  cmd="${CC} ${CFLAGS} ${CPPFLAGS} -E ${cppname}.c > ${cppname}.out "
-  echo "##  _cpp test: $cmd" >&9
-  cat ${cppname}.c >&9
-  eval $cmd >&9 2>&9
-  rc=$?
-  if [ $rc -lt 0 ]; then
-      _exitmkconfig $rc
-  fi
-  echo "##      _cpp test: $rc" >&9
-  return $rc
-}
-
-
-do_check_compile () {
-  ddfname=$1
-  code=$2
-  inc=$3
-
-  _chk_compile ${ddfname} "${code}" $inc
-  rc=$?
-  try=0
-  if [ $rc -eq 0 ]; then
-      try=1
-  fi
-  printyesno $ddfname $try
-  setdata ${_MKCONFIG_PREFIX} ${ddfname} ${try}
 }
 
 check_import () {
@@ -404,7 +188,7 @@ check_import () {
 int main (char[][] args) { return 0; }
 "
   rc=1
-  _chk_compile ${name} "${code}" std
+  _d_chk_compile ${name} "${code}" std
   rc=$?
   val=0
   if [ $rc -eq 0 ]; then
@@ -428,9 +212,9 @@ check_member () {
   checkcache ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
 
-  code="void main (char[][] args) { ${struct} s; int i; i = s.${member}.sizeof; }"
+  code="void main (char[][] args) { ${struct} stmp; int i; i = stmp.${member}.sizeof; }"
 
-  do_check_compile ${name} "${code}" all
+  do_d_check_compile ${name} "${code}" all
 }
 
 
@@ -446,8 +230,8 @@ check_size () {
   checkcache_val ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
 
-  code="import std.stdio; void main (char[][] args){ writef(\"%d\", ${type}.sizeof); }"
-  _chk_run ${name} "${code}" all
+  code="import std.stdio; void main (char[][] args){ writef(\"%d\", (${type}).sizeof); }"
+  _d_chk_run ${name} "${code}" all
   rc=$?
   val=$_retval
   if [ $rc -ne 0 ]; then
@@ -479,11 +263,9 @@ check_lib () {
   fi
 
   trc=0
-  code="
-int main (char[][] args) { return (is(typeof(${rfunc}) == return)); }
-"
+  code="int main (char[][] args) { return (is(typeof(${rfunc}) == return)); }"
 
-  _chk_run ${name} "${code}" all
+  _d_chk_run ${name} "${code}" all
   rc=$?
   if [ $rc -eq 1 ]; then
     rc=0
@@ -503,7 +285,6 @@ int main (char[][] args) { return (is(typeof(${rfunc}) == return)); }
 
   printyesno $name $trc "$tag"
   setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
-  return $trc
 }
 
 check_class () {
@@ -517,7 +298,6 @@ check_class () {
   name=$nm
 
   trc=0
-  code="void main (char[][] args) { ${class} testclass; }"
 
   if [ "$otherlibs" != "" ]; then
       printlabel $name "class: ${class} [${otherlibs}]"
@@ -527,10 +307,11 @@ check_class () {
       if [ $rc -eq 0 ]; then return; fi
   fi
 
-  _chk_link_libs ${name} "${code}" all
+  code="void main (char[][] args) { ${class} testclass; testclass = new ${class}; }"
+  _d_chk_link_libs ${name} "${code}" all
   rc=$?
   if [ $rc -eq 0 ]; then
-      trc=1
+    trc=1
   fi
   tag=""
   if [ $rc -eq 0 -a "${dlibs}" != "" ]; then
@@ -572,7 +353,7 @@ _TEST_fun_ i= cast(_TEST_fun_) &${rfunc};
 void main (char[][] args) { i(); }
 "
 
-  _chk_link_libs ${name} "${code}" all
+  _d_chk_link_libs ${name} "${code}" all
   rc=$?
   dlibs=$_retdlibs
   if [ $rc -eq 0 ]; then
@@ -587,13 +368,28 @@ void main (char[][] args) { i(); }
 
   printyesno $name $trc "$tag"
   setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
-  return $trc
 }
 
+
 check_chdr () {
+  chdrargs=$@
+  if [ $chdr_standard_done = F ]; then
+    _check_chdr chdr "stdio.h"
+    _check_chdr chdr "stdlib.h"
+    _check_chdr csys "types.h"
+    _check_chdr csys "param.h"
+    PH_STD=T
+    PH_ALL=T
+    chdr_standard_done=T
+  fi
+  _check_chdr $chdrargs
+}
+
+_check_chdr () {
   type=$1
   hdr=$2
   shift;shift
+  reqhdr=$*
   case ${type} in
     csys)
       hdr="sys/${hdr}"
@@ -606,18 +402,29 @@ check_chdr () {
   printlabel $name "c-header: ${hdr}"
   checkcache ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
-  code="#include <${hdr}>
+
+  code=""
+  if [ "${reqhdr}" != "" ]; then
+      set ${reqhdr}
+      while test $# -gt 0; do
+          doappend code "
+#include <$1>
 "
-  _chk_cpp ${name} "${code}"
+          shift
+      done
+  fi
+  doappend code "#include <${hdr}>
+main () { return (0); }
+"
+  _c_chk_compile ${name} "${code}" std
   rc=$?
-  trc=0
+  val=0
   if [ $rc -eq 0 ]; then
-    trc=1
+    val=${hdr}
   fi
 
-  printyesno $name $trc "$tag"
-  setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
-  return $trc
+  printyesno $name $val
+  setdata ${_MKCONFIG_PREFIX} ${name} ${val}
 }
 
 check_csys () {
@@ -636,34 +443,14 @@ check_cdefstr () {
   printlabel $name "c-define-string: ${defname}"
   # no caching
 
-  code="
-#include <stdio.h>
-#include <stdlib.h>
-"
-  for h in $hdrs; do
-    create_chdr_nm hnm $h
-    # make sure the header exists (must be checked for w/'chdr'
-    getdata tval ${_MKCONFIG_PREFIX} ${hnm}
-    if [ "${tval}" != "0" -a "${tval}" != "" ]; then
-      doappend code "#include <${h}>
-"
-    fi
-  done
-  doappend code "int main () { printf (\"%s\", ${defname}); return (0); }
-"
+  code="int main () { printf (\"%s\", ${defname}); return (0); }"
 
-  tcfile=${name}.c
-  exec 4>>${tcfile}
-  echo "${code}" | sed 's/_dollar_/$/g' >&4
-  exec 4>&-
-  cat ${tcfile} >&9
-  cmd="${CC} ${CFLAGS} ${CPPFLAGS} -o ${name}.exe ${tcfile}"
-  eval $cmd >&9 2>&9
+  _c_chk_run ${name} "${code}" all
   rc=$?
-  if [ $rc -ne 0 ]; then
+  if [ $rc -lt 0 ]; then
     _exitmkconfig $rc
   fi
-  val=`./${name}.exe`
+  val=$_retval
   trc=0
 
   if [ $rc -eq 0 -a "$val" != "" ]; then
@@ -675,7 +462,39 @@ check_cdefstr () {
 
   printyesno $name $trc ""
   setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
-  return $trc
+}
+
+check_cdefint () {
+  type=$1
+  defname=$2
+  shift;shift
+  hdrs=$*
+
+  nm="_cdefint_${defname}"
+  name=$nm
+
+  printlabel $name "c-define-int: ${defname}"
+  # no caching
+
+  code="int main () { printf (\"%d\", ${defname}); return (0); }"
+
+  _c_chk_run ${name} "${code}" all
+  rc=$?
+  if [ $rc -lt 0 ]; then
+    _exitmkconfig $rc
+  fi
+  val=$_retval
+  trc=0
+
+  if [ $rc -eq 0 -a "$val" != "" ]; then
+    tdata="enum int ${defname} = $val;"
+    trc=1
+    doappend cdefs "${tdata}
+"
+  fi
+
+  printyesno $name $trc ""
+  setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
 }
 
 check_ctype () {
@@ -685,23 +504,12 @@ check_ctype () {
   hdrs=$*
 
   nm="_ctype_${typname}"
-
   name=$nm
 
   printlabel $name "c-type: ${typname}"
   # no caching
 
-  code=""
-  for h in $hdrs; do
-    create_chdr_nm hnm $h
-    # make sure the header exists (must be checked for w/'chdr'
-    getdata tval ${_MKCONFIG_PREFIX} ${hnm}
-    if [ "${tval}" != "0" -a "${tval}" != "" ]; then
-      doappend code "#include <${h}>
-"
-    fi
-  done
-  _chk_cpp ${name} "${code}"
+  _c_chk_cpp ${name} "${code}" all
   rc=$?
   trc=0
 
@@ -720,7 +528,6 @@ check_ctype () {
 
   printyesno $name $trc ""
   setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
-  return $trc
 }
 
 check_cstruct () {
@@ -735,18 +542,7 @@ check_cstruct () {
   printlabel $name "c-struct: ${sname}"
   # no caching
 
-  code=""
-  for h in $hdrs; do
-    create_chdr_nm hnm $h
-    # make sure the header exists (must be checked for w/'chdr'
-    getdata tval ${_MKCONFIG_PREFIX} ${hnm}
-    if [ "${tval}" != "0" -a "${tval}" != "" ]; then
-      doappend code "#include <${h}>
-"
-    fi
-  done
-  tcode="$code"
-  _chk_cpp ${name} "${code}"
+  _c_chk_cpp $name "" all
   rc=$?
   trc=0
 
@@ -760,7 +556,7 @@ check_cstruct () {
         snm="struct $s"
         trc=1
       fi
-      egrep -l "${s}_t" $name.out >/dev/null 2>&1
+      egrep -l "[	 ]${s}_t[	 ;]" $name.out >/dev/null 2>&1
       rc=$?
       if [ $rc -eq 0 ]; then
         snm="${s}_t"
@@ -772,52 +568,81 @@ check_cstruct () {
     done
 
     if [ $trc -eq 1 ]; then
-      code="
-#include <stdio.h>
-#include <stdlib.h>
-${tcode}
-main () { printf (\"%d\", sizeof (${snm})); }
-"
-      >${name}.c
-      exec 4>>${name}.c
-      echo "${code}" | sed 's/_dollar_/$/g' >&4
-      exec 4>&-
-      cmd="${CC} ${CFLAGS} ${CPPFLAGS} -o ${name}.exe ${name}.c"
-      eval ${cmd}
+      > ${name}.c
+      code="main () { printf (\"%d\", sizeof (${snm})); return (0); }"
+      _c_chk_run ${name} "${code}" all
       rc=$?
-      if [ $rc -ne 0 ]; then
+      if [ $rc -lt 0 ]; then
         _exitmkconfig $rc
       fi
-      rval=`./${name}.exe`
+      rval=$_retval
 
-      st=`awk -f ${_MKCONFIG_DIR}/mkcextstruct.awk ${name}.out ${s}`
-      st=`(
-        echo "struct C_ST_${s} ";
-        # remove only first "struct $s", first "struct", $s_t name,
-        # any typedef.
-        echo "${st}" |
-          sed -e 's/	/ /' -e "s/${s}_t//" -e "s/struct *${s} *{/{/" \
-            -e "s/struct *${s} *$//" \
-            -e 's/typedef *//' -e 's/struct *{/{/' -e 's/^ *struct$//' |
-          grep -v '^ *$'
-        )`
-      cchglist="${cchglist} -e 's/${snm}/C_ST_${s}/g'"
-      doappend cstructs "
+      if [ $rc -eq 0 ]; then
+        st=`awk -f ${_MKCONFIG_DIR}/mkcextstruct.awk ${name}.out ${s}`
+        st=`(
+          echo "struct C_ST_${s} ";
+          # remove only first "struct $s", first "struct", $s_t name,
+          # any typedef.
+          echo "${st}" |
+            sed -e 's/	/ /' -e "s/${s}_t//" -e "s/struct *${s} *{/{/" \
+              -e "s/struct *${s} *$//" \
+              -e 's/typedef *//' -e 's/struct *{/{/' -e 's/^ *struct$//' |
+            grep -v '^ *$'
+          )`
+        cchglist="${cchglist} -e 's/${snm}/C_ST_${s}/g'"
+        doappend cstructs "
 ${st}
 static assert ((C_ST_${s}).sizeof == ${rval});
 "
+      else
+        trc=0
+      fi
     fi
   fi
 
   printyesno $name $trc ""
   setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
-  return $trc
 }
+
+check_cmember () {
+  shift
+  struct=$1
+  shift
+  member=$1
+  nm="_cmem_${struct}_${member}"
+  dosubst nm ' ' '_'
+
+  name=$nm
+
+  printlabel $name "exists (C): ${struct}.${member}"
+
+  trc=0
+set -x
+  tdfile="${name}.d"
+  > ${tdfile}
+  exec 4>>${tdfile}
+  set -f
+  dump_ccode >&4
+  set +f
+  exec 4>&-
+  code="import core.stdc.stdio;
+    void main (char[][] args) { C_ST_${struct} stmp; int i; i = stmp.${member}.sizeof; }"
+set +x
+
+  do_d_check_compile ${name} "${code}" all
+}
+
 
 check_cdcl () {
   type=$1
   dname=$2
+  argflag=0
   shift;shift
+  if [ "$dname" = "args" ]; then
+    argflag=1
+    dname=$1
+    shift
+  fi
   hdrs=$*
 
   nm="_cdcl_${dname}"
@@ -828,7 +653,9 @@ check_cdcl () {
 
   trc=0
 
-  code="/* get rid of gcc-isms */
+  set -f
+  oldprecc="${precc}"
+  doappend precc "/* get rid of gcc-isms */
 #define __asm__(a)
 #define __attribute__(a)
 #define __nonnull__(a,b)
@@ -836,21 +663,13 @@ check_cdcl () {
 #define __THROW
 #define __const const
 "
+  set +f
 
-  for h in $hdrs; do
-    create_chdr_nm hnm $h
-    # make sure the header exists (must be checked for w/'chdr'
-    getdata tval ${_MKCONFIG_PREFIX} ${hnm}
-    if [ "${tval}" != "0" -a "${tval}" != "" ]; then
-      doappend code "#include <${h}>
-"
-    fi
-  done
-  _chk_cpp ${name} "${code}"
+  _c_chk_cpp ${name} "${code}" all
   rc=$?
 
   if [ $rc -eq 0 ]; then
-    egrep "${dname}[	 ]*\(" $name.out >/dev/null 2>&1
+    egrep "[	 *]${dname}[	 ]*\(" $name.out >/dev/null 2>&1
     rc=$?
     if [ $rc -eq 0 ]; then
       trc=1
@@ -864,14 +683,28 @@ check_cdcl () {
       cmd="dcl=\`echo \"\$dcl\" | sed -e 's/extern *//' -e 's/;//' \`"
       eval $cmd
       set +f
+      if [ $argflag = 1 ]; then
+        set -f
+        c=`echo ${dcl} | sed 's/[^,]*//g'`
+        set +f
+        ccount=`echo ${EN} "$c${EC}" | wc -c`
+        domath ccount "$ccount + 1"  # 0==1 also
+      fi
       doappend cdcls "${dcl};
 "
     fi
   fi
 
+  set -f
+  precc="${oldprecc}"
+  set +f
+
   printyesno $name $trc ""
   setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
-  return $trc
+  if [ $argflag = 1 ]; then
+    nm="_c_args_${dname}"
+    setdata ${_MKCONFIG_PREFIX} ${nm} ${ccount}
+  fi
 }
 
 output_item () {
@@ -884,7 +717,7 @@ output_item () {
     tval=true
   fi
   case ${name} in
-    _setint_*|_siz_*)
+    _setint_*|_siz_*|_c_args_*)
       tname=$name
       dosubst tname '_setint_' ''
       set -f
