@@ -44,6 +44,8 @@
 #    4 - temporary for c-main.sh    (c-main.sh)
 #
 
+require_unit c-support
+
 _MKCONFIG_PREFIX=c
 _MKCONFIG_HASEMPTY=F
 _MKCONFIG_EXPORT=F
@@ -140,239 +142,6 @@ standard_checks () {
   PH_ALL=T
 }
 
-_print_headers () {
-  incheaders=$1
-
-  out="${PH_PREFIX}${incheaders}"
-
-  if [ -f $out ]; then
-    cat $out
-    return
-  fi
-
-  if [ "$PH_STD" = "T" -a "$incheaders" = "std" ]; then
-    _print_hdrs std > $out
-    cat $out
-    return
-  fi
-
-  if [ "$PH_ALL" = "T" -a "$incheaders" = "all" ]; then
-    _print_hdrs all > $out
-    cat $out
-    return
-  fi
-
-  # until PH_STD/PH_ALL becomes true, just do normal processing.
-  _print_hdrs $incheaders
-}
-
-_print_hdrs () {
-  incheaders=$1
-
-  if [ "${incheaders}" = "all" -o "${incheaders}" = "std" ]; then
-      for tnm in '_hdr_stdio' '_hdr_stdlib' '_sys_types' '_sys_param'; do
-          getdata tval ${_MKCONFIG_PREFIX} ${tnm}
-          if [ "${tval}" != "0" -a "${tval}" != "" ]; then
-              echo "#include <${tval}>"
-          fi
-      done
-  fi
-
-  if [ "${incheaders}" = "all" -a -f "$VARSFILE" ]; then
-    # save stdin in fd 6; open stdin
-    exec 6<&0 < ${VARSFILE}
-    while read cfgvar; do
-      getdata hdval ${_MKCONFIG_PREFIX} ${cfgvar}
-      case ${cfgvar} in
-        _hdr_stdio|_hdr_stdlib|_sys_types|_sys_param)
-            ;;
-        _hdr_linux_quota)
-            if [ "${hdval}" != "0" ]; then
-              getdata iqval ${_MKCONFIG_PREFIX} '_inc_conflict__sys_quota__hdr_linux_quota'
-              if [ "${iqval}" = "1" ]; then
-                echo "#include <${hdval}>"
-              fi
-            fi
-            ;;
-        _sys_time)
-            if [ "${hdval}" != "0" ]; then
-              getdata itval ${_MKCONFIG_PREFIX} '_inc_conflict__hdr_time__sys_time'
-              if [ "${itval}" = "1" ]; then
-                echo "#include <${hdval}>"
-              fi
-            fi
-            ;;
-        _hdr_*|_sys_*)
-            if [ "${hdval}" != "0" -a "${hdval}" != "" ]; then
-              echo "#include <${hdval}>"
-            fi
-            ;;
-      esac
-    done
-    # set std to saved fd 6; close 6
-    exec <&6 6<&-
-  fi
-}
-
-_chk_run () {
-  crname=$1
-  code=$2
-  inc=$3
-
-  _chk_link_libs ${crname} "${code}" $inc
-  rc=$?
-  echo "##  run test: link: $rc" >&9
-  rval=0
-  if [ $rc -eq 0 ]; then
-      rval=`./${crname}.exe`
-      rc=$?
-      echo "##  run test: run: $rc" >&9
-      if [ $rc -lt 0 ]; then
-          _exitmkconfig $rc
-      fi
-  fi
-  _retval=$rval
-  return $rc
-}
-
-_chk_link_libs () {
-  cllname=$1
-  code=$2
-  inc=$3
-  shift;shift;shift
-
-  ocounter=0
-  clotherlibs="'$otherlibs'"
-  dosubst clotherlibs ',' "' '"
-  if [ "${clotherlibs}" != "" ]; then
-      eval "set -- $clotherlibs"
-      ocount=$#
-  else
-      ocount=0
-  fi
-
-  tcfile=${cllname}.c
-  # $cllname should be unique
-  exec 4>>${tcfile}
-  echo "${precc}" >&4
-  _print_headers $inc >&4
-  echo "${code}" | sed 's/_dollar_/$/g' >&4
-  exec 4>&-
-
-  dlibs=""
-  otherlibs=""
-  _chk_link $cllname
-  rc=$?
-  echo "##      link test (none): $rc" >&9
-  if [ $rc -ne 0 ]; then
-      while test $ocounter -lt $ocount; do
-          domath ocounter "$ocounter + 1"
-          eval "set -- $clotherlibs"
-          cmd="olibs=\$${ocounter}"
-          eval $cmd
-          dlibs=${olibs}
-          otherlibs=${olibs}
-          _chk_link $cllname
-          rc=$?
-          echo "##      link test (${olibs}): $rc" >&9
-          if [ $rc -eq 0 ]; then
-              break
-          fi
-      done
-  fi
-  _retdlibs=$dlibs
-  return $rc
-}
-
-_chk_cpp () {
-  cppname=$1
-  code="$2"
-  inc=$3
-
-  tcppfile=${cppname}.c
-  # $cppname should be unique
-  exec 4>>${tcppfile}
-  echo "${precc}" >&4
-  _print_headers $inc >&4
-  echo "${code}" | sed 's/_dollar_/$/g' >&4
-  exec 4>&-
-
-  cmd="${CC} ${CFLAGS} ${CPPFLAGS} -E ${cppname}.c > ${cppname}.out "
-  echo "##  _cpp test: $cmd" >&9
-  cat ${cppname}.c >&9
-  eval $cmd >&9 2>&9
-  rc=$?
-  if [ $rc -lt 0 ]; then
-      _exitmkconfig $rc
-  fi
-  echo "##      _cpp test: $rc" >&9
-  return $rc
-}
-
-_chk_link () {
-  clname=$1
-
-  cmd="${CC} ${CFLAGS} ${CPPFLAGS} -o ${clname}.exe ${clname}.c "
-  cmd="${cmd} ${LDFLAGS} ${LIBS} "
-  _clotherlibs=$otherlibs
-  if [ "${_clotherlibs}" != "" ]; then
-      cmd="${cmd} ${_clotherlibs} "
-  fi
-  echo "##  _link test: $cmd" >&9
-  cat ${clname}.c >&9
-  eval $cmd >&9 2>&9
-  rc=$?
-  if [ $rc -lt 0 ]; then
-      _exitmkconfig $rc
-  fi
-  echo "##      _link test: $rc" >&9
-  if [ $rc -eq 0 ]; then
-    if [ ! -x "${clname}.exe" ]; then  # not executable
-      rc=1
-    fi
-  fi
-  return $rc
-}
-
-
-_chk_compile () {
-  ccname=$1
-  code=$2
-  inc=$3
-
-  tcfile=${ccname}.c
-  # $ccname should be unique
-  exec 4>>${tcfile}
-  echo "${precc}" >&4
-  _print_headers $inc >&4
-  echo "${code}" | sed 's/_dollar_/$/g' >&4
-  exec 4>&-
-
-  cmd="${CC} ${CFLAGS} ${CPPFLAGS} -c ${tcfile}"
-  echo "##  compile test: $cmd" >&9
-  cat ${ccname}.c >&9
-  eval ${cmd} >&9 2>&9
-  rc=$?
-  echo "##  compile test: $rc" >&9
-  return $rc
-}
-
-
-do_check_compile () {
-  dccname=$1
-  code=$2
-  inc=$3
-
-  _chk_compile ${dccname} "${code}" $inc
-  rc=$?
-  try=0
-  if [ $rc -eq 0 ]; then
-      try=1
-  fi
-  printyesno $dccname $try
-  setdata ${_MKCONFIG_PREFIX} ${dccname} ${try}
-}
-
 check_hdr () {
   type=$1
   hdr=$2
@@ -415,7 +184,7 @@ check_hdr () {
 main () { return (0); }
 "
   rc=1
-  _chk_compile ${name} "${code}" std
+  _c_chk_compile ${name} "${code}" std
   rc=$?
   val=0
   if [ $rc -eq 0 ]; then
@@ -454,7 +223,7 @@ check_const () {
   doappend code "
 main () { if (${constant} == 0) { 1; } return (0); }
 "
-  do_check_compile ${name} "${code}" all
+  do_c_check_compile ${name} "${code}" all
 }
 
 check_key () {
@@ -467,7 +236,7 @@ check_key () {
 
   code="main () { int ${keyword}; ${keyword} = 1; return (0); }"
 
-  _chk_compile ${name} "${code}" std
+  _c_chk_compile ${name} "${code}" std
   rc=$?
   trc=0
   if [ $rc -ne 0 ]; then  # failure means it is reserved...
@@ -491,7 +260,7 @@ CPP_EXTERNS_END
 int bar () { int rc; rc = foo (1,1); return 0; }
 '
 
-  do_check_compile ${name} "${code}" std
+  do_c_check_compile ${name} "${code}" std
 }
 
 check_typ () {
@@ -513,7 +282,7 @@ struct xxx* f() { return &v; }
 main () { struct xxx *tmp; tmp = f(); return (0); }
 "
 
-  do_check_compile ${name} "${code}" all
+  do_c_check_compile ${name} "${code}" all
 }
 
 check_define () {
@@ -534,7 +303,7 @@ return (1);
 #endif
 }"
 
-  _chk_run "$name" "$code" all
+  _c_chk_run "$name" "$code" all
   rc=$?
   if [ $rc -eq 0 ]; then rc=1; else rc=0; fi
   setdata ${_MKCONFIG_PREFIX} ${name} ${rc}
@@ -558,7 +327,7 @@ tparamvs (ptr)
 }
 "
 
-  do_check_compile ${name} "${code}" all
+  do_c_check_compile ${name} "${code}" all
 }
 
 check_member () {
@@ -581,7 +350,7 @@ check_member () {
 
   code="main () { ${struct} s; int i; i = sizeof (s.${member}); }"
 
-  do_check_compile ${name} "${code}" all
+  do_c_check_compile ${name} "${code}" all
 }
 
 
@@ -598,7 +367,7 @@ check_size () {
   if [ $rc -eq 0 ]; then return; fi
 
   code="main () { printf(\"%u\", sizeof(${type})); return (0); }"
-  _chk_run ${name} "${code}" all
+  _c_chk_run ${name} "${code}" all
   rc=$?
   val=$_retval
   if [ $rc -ne 0 ]; then
@@ -629,7 +398,7 @@ check_int_declare () {
   if [ $rc -eq 0 ]; then return; fi
 
   code="main () { int x; x = ${function}; }"
-  do_check_compile ${name} "${code}" all
+  do_c_check_compile ${name} "${code}" all
 }
 
 check_ptr_declare () {
@@ -641,7 +410,7 @@ check_ptr_declare () {
   if [ $rc -eq 0 ]; then return; fi
 
   code="main () { void *x; x = ${function}; }"
-  do_check_compile ${name} "${code}" all
+  do_c_check_compile ${name} "${code}" all
 }
 
 check_npt () {
@@ -673,7 +442,7 @@ struct _TEST_struct { int _TEST_member; };
 extern struct _TEST_struct* ${proto} _((struct _TEST_struct*));
 CPP_EXTERNS_END
 "
-  do_check_compile ${name} "${code}" all
+  do_c_check_compile ${name} "${code}" all
 }
 
 check_lib () {
@@ -707,7 +476,7 @@ CPP_EXTERNS_END
 main () {  i(); return (i==0); }
 "
 
-  _chk_link_libs ${name} "${code}" all
+  _c_chk_link_libs ${name} "${code}" all
   rc=$?
   dlibs=$_retdlibs
   if [ $rc -eq 0 ]; then
@@ -733,7 +502,7 @@ CPP_EXTERNS_BEG
 CPP_EXTERNS_END
   main () {  i(); return (i==0); }
   "
-    _chk_link_libs ${name} "${code}" all
+    _c_chk_link_libs ${name} "${code}" all
     rc=$?
     dlibs=$_retdlibs
     if [ $rc -eq 0 ]; then
@@ -773,7 +542,7 @@ check_class () {
       if [ $rc -eq 0 ]; then return; fi
   fi
 
-  _chk_link_libs ${name} "${code}" all
+  _c_chk_link_libs ${name} "${code}" all
   rc=$?
   if [ $rc -eq 0 ]; then
       trc=1
