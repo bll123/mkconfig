@@ -25,9 +25,9 @@ DFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"
 LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
 export CFLAGS DFLAGS LDFLAGS
 
-cat > tst5hdr.h << _HERE_
-#ifndef _INC_TST5HDR_H_
-#define _INC_TST5HDR_H_
+cat > cdclhdr.h << _HERE_
+#ifndef _INC_cdclhdr_H_
+#define _INC_cdclhdr_H_
 
 /* modified from linux sys/statvfs.h */
 extern int a (__const char *__restrict __file,
@@ -43,6 +43,12 @@ extern int h (__const char *__restrict __file,
   long *__restrict __buf) __asm__ ((__nothrow__)) __attribute__ ((__nonnull__ (1, 2)));
 extern char *i (__const char *__domainname,
   __const char *__dirname) __THROW;
+extern char *j (__const char *__domainname,
+  __const char *__dirname) __THROW;
+extern int k (int, int, char *);
+extern int l (int, int);
+extern int m (int);
+extern int n (int, int, char *, int);
 
 #endif
 _HERE_
@@ -50,8 +56,19 @@ _HERE_
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-cdcl.dat
 grc=0
 
-for x in a b c d e f g h i; do
+for x in a b c d e f g h i j k l m n; do
   grep -l "^enum bool _cdcl_${x} = true;$" cdcl.d > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    grc=1
+  fi
+done
+
+set 2 3 2 1 4
+for x in j k l m n; do
+  val=$1
+  shift
+  grep -l "^enum int _c_args_${x} = ${val};$" cdcl.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     grc=1
