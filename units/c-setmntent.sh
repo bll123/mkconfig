@@ -33,7 +33,7 @@ check_setmntent_args () {
     fi
 
     code="main () { setmntent (\"/etc/mnttab\"); }"
-    _chk_link_libs "${name}2" "${code}" all
+    _c_chk_link_libs "${name}2" "${code}" all
     rc=$?
     if [ $rc -eq 0 ]; then
       setdata ${_MKCONFIG_PREFIX} "${name}" 2
@@ -43,7 +43,7 @@ check_setmntent_args () {
 
     if [ $rc -eq 0 ]; then return; fi
     code="main () { setmntent (\"/etc/mnttab\", \"r\"); }"
-    _chk_link_libs "${name}3" "${code}" all
+    _c_chk_link_libs "${name}3" "${code}" all
     if [ $rc -eq 0 ]; then
       setdata ${_MKCONFIG_PREFIX} "${name}" 3
       printyesno_val "${name}" 3 ""
