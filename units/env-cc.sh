@@ -21,9 +21,17 @@ require_unit env-systype
 
 env_dogetconf=F
 env_dohpflags=F
+_MKCONFIG_32BIT_FLAGS=F
 
 _dogetconf () {
   if [ "$env_dogetconf" = T ]; then
+    return
+  fi
+  if [ ${_MKCONFIG_32BIT_FLAGS} = T ]; then
+    lfccflags=""
+    lfldflags=""
+    lflibs=""
+    env_dogetconf=T
     return
   fi
 
@@ -68,6 +76,14 @@ _dohpflags () {
   env_dohpflags=T
 }
 
+check_32bitflags () {
+  _MKCONFIG_32BIT_FLAGS=T
+
+  printlabel _MKCONFIG_32BIT_FLAGS "32 bit flags"
+  printyesno_val _MKCONFIG_32BIT_FLAGS "${_MKCONFIG_32BIT_FLAGS}"
+  setdata ${_MKCONFIG_PREFIX} _MKCONFIG_32BIT_FLAGS "${_MKCONFIG_32BIT_FLAGS}"
+}
+
 check_cc () {
   CC=${CC:-cc}
 
@@ -94,6 +110,9 @@ check_cc () {
 
   printyesno_val CC "${CC}"
   setdata ${_MKCONFIG_PREFIX} CC "${CC}"
+  if [ ${_MKCONFIG_32BIT_FLAGS} = F ]; then
+    setdata ${_MKCONFIG_PREFIX} _MKCONFIG_32BIT_FLAGS "${_MKCONFIG_32BIT_FLAGS}"
+  fi
 }
 
 check_using_gcc () {
@@ -177,7 +196,7 @@ check_cflags () {
         ccincludes="-I/usr/local/include $ccincludes"
         ;;
       HP-UX)
-        if [ "${lfccflags}" = "" ]
+        if [ "${lfccflags}" = "" -a "${_MKCONFIG_32BIT_FLAGS}" = F ]
         then
             ccflags="-D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 $ccflags"
         fi
