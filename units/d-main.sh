@@ -37,23 +37,16 @@ cchglist=""
 dump_ccode () {
   ccode=""
   if [ "${cdefs}" != "" ]; then
-    doappend ccode "
-${cdefs}
-"
+    doappend ccode "${cdefs}"
   fi
   if [ "${ctypes}" != "" ]; then
-    doappend ccode "
-${ctypes}
-"
+    doappend ccode "${ctypes}"
   fi
   if [ "${cstructs}" != "" ]; then
-    doappend ccode "
-${cstructs}
-"
+    doappend ccode "${cstructs}"
   fi
   if [ "${cdcls}" != "" ]; then
     doappend ccode "
-
 extern (C) {
 
 ${cdcls}
@@ -125,8 +118,7 @@ preconfigfile () {
 
   echo "import std.string;"
   if [ "${_MKCONFIG_SYSTYPE}" != "" ]; then
-    echo "enum string SYSTYPE = \"${_MKCONFIG_SYSTYPE}\";
-"
+    echo "enum string SYSTYPE = \"${_MKCONFIG_SYSTYPE}\";"
   fi
 
   dump_ccode
