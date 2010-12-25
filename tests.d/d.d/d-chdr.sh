@@ -18,7 +18,7 @@ grc=0
 
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-chdr.dat
 
-grep "^enum bool _chdr_ctype = true;$" chdr.dtest
+grep "^enum bool _hdr_ctype = true;$" chdr.dtest
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
