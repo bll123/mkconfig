@@ -25,9 +25,9 @@ DFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"
 LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
 export CFLAGS DFLAGS LDFLAGS
 
-cat > tst3hdr.h << _HERE_
-#ifndef _INC_TST3HDR_H_
-#define _INC_TST3HDR_H_
+cat > cstructhdr.h << _HERE_
+#ifndef _INC_cstructhdr_H_
+#define _INC_cstructhdr_H_
 struct a
 {
   long double ld;

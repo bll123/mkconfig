@@ -2,22 +2,22 @@ output cstruct.d
 loadunit d-main
 standard
 
-chdr    tst3hdr.h
+chdr    cstructhdr.h
 
-cstruct a tst3hdr.h
-cstruct b tst3hdr.h
-cstruct c tst3hdr.h
-cstruct d tst3hdr.h
-cstruct e tst3hdr.h
-cstruct f tst3hdr.h
-cstruct g tst3hdr.h
-cstruct h tst3hdr.h
-cstruct i tst3hdr.h
-cstruct j tst3hdr.h
-cstruct k tst3hdr.h
-cstruct l tst3hdr.h
-cstruct m tst3hdr.h
-cstruct n tst3hdr.h
-cstruct o tst3hdr.h
-cstruct p tst3hdr.h
-cstruct q tst3hdr.h
+cstruct a cstructhdr.h
+cstruct b cstructhdr.h
+cstruct c cstructhdr.h
+cstruct d cstructhdr.h
+cstruct e cstructhdr.h
+cstruct f cstructhdr.h
+cstruct g cstructhdr.h
+cstruct h cstructhdr.h
+cstruct i cstructhdr.h
+cstruct j cstructhdr.h
+cstruct k cstructhdr.h
+cstruct l cstructhdr.h
+cstruct m cstructhdr.h
+cstruct n cstructhdr.h
+cstruct o cstructhdr.h
+cstruct p cstructhdr.h
+cstruct q cstructhdr.h
