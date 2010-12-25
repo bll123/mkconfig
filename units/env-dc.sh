@@ -27,11 +27,14 @@ check_dc () {
   echo "dc:${DC}" >&9
 
   printyesno_val DC "${DC}"
+  setdata ${_MKCONFIG_PREFIX} DC "${DC}"
 
   case ${DC} in
     *dmd)
-      setdata ${_MKCONFIG_PREFIX} DC "${DC}"
+      setdata ${_MKCONFIG_PREFIX} DC_OPT "-O"
       setdata ${_MKCONFIG_PREFIX} DC_OF "-of"
+      setdata ${_MKCONFIG_PREFIX} DC_RELEASE "-release"
+      setdata ${_MKCONFIG_PREFIX} DC_INLINE "-inline"
       setdata ${_MKCONFIG_PREFIX} DC_UNITTEST "-unittest"
       setdata ${_MKCONFIG_PREFIX} DC_DEBUG "-debug"
       setdata ${_MKCONFIG_PREFIX} DC_COV "-cov"
@@ -39,10 +42,14 @@ check_dc () {
       setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_GDC "N"
       ;;
     *gdc)
+      setdata ${_MKCONFIG_PREFIX} DC_OPT "-O2"
       setdata ${_MKCONFIG_PREFIX} DC_OF "-o"
+      setdata ${_MKCONFIG_PREFIX} DC_RELEASE "--release"
+      setdata ${_MKCONFIG_PREFIX} DC_INLINE "--inline"
       setdata ${_MKCONFIG_PREFIX} DC_UNITTEST "--unittest"
       setdata ${_MKCONFIG_PREFIX} DC_DEBUG "--debug"
-      setdata ${_MKCONFIG_PREFIX} DC_COV ""
+      setdata ${_MKCONFIG_PREFIX} DC_COV "--cov"
+      setdata ${_MKCONFIG_PREFIX} DC_LIBS="-lgcov"
       setdata ${_MKCONFIG_PREFIX} DC_LINK ""
       setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_GDC "Y"
       ;;
@@ -79,8 +86,6 @@ check_dflags () {
 
   printlabel DFLAGS "D flags"
 
-  _dogetconf
-
   gdcflags=""
 
   if [ "${_MKCONFIG_USING_GDC}" = "Y" ]
@@ -102,3 +107,4 @@ check_dflags () {
   printyesno_val DFLAGS "$dflags"
   setdata ${_MKCONFIG_PREFIX} DFLAGS "$dflags"
 }
+
