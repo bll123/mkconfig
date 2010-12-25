@@ -1,0 +1,203 @@
+#!/bin/sh
+#
+# Copyright 2010 Brad Lanam Walnut Creek CA USA
+#
+#
+
+_d_print_imports () {
+  imports=$1
+
+  if [ "$imports" = "none" ]; then
+    return
+  fi
+
+  out="${PI_PREFIX}${imports}"
+
+  if [ -f $out ]; then
+    cat $out
+    return
+  fi
+
+  if [ "$PI_ALL" = "T" -a "$imports" = "all" ]; then
+    _d_print_imps all > $out
+    cat $out
+    return
+  fi
+
+  # until PI_ALL becomes true, just do normal processing.
+  _d_print_imps $imports
+}
+
+_d_print_imps () {
+  imports=$1
+
+  if [ "${imports}" = "all" -o "${imports}" = "std" ]; then
+      for tnm in '_import_std_stdio' '_import_std_string'; do
+          getdata tval ${_MKCONFIG_PREFIX} ${tnm}
+          if [ "${tval}" != "0" -a "${tval}" != "" ]; then
+              echo "import ${tval};"
+          fi
+      done
+  fi
+
+  if [ "${imports}" = "all" -a -f "$VARSFILE" ]; then
+    # save stdin in fd 6; open stdin
+    exec 6<&0 < ${VARSFILE}
+    while read cfgvar; do
+      getdata hdval ${_MKCONFIG_PREFIX} ${cfgvar}
+      case ${cfgvar} in
+        _import_std_stdio|_import_std_string)
+            ;;
+        _import_*)
+            if [ "${hdval}" != "0" -a "${hdval}" != "" ]; then
+              echo "import ${hdval};"
+            fi
+            ;;
+      esac
+    done
+    # set std to saved fd 6; close 6
+    exec <&6 6<&-
+  fi
+}
+
+_d_chk_run () {
+  crname=$1
+  code=$2
+  inc=$3
+
+  _d_chk_link_libs ${crname} "${code}" $inc
+  rc=$?
+  echo "##  run test: link: $rc" >&9
+  rval=0
+  if [ $rc -eq 0 ]; then
+      rval=`./${crname}.exe`
+      rc=$?
+      echo "##  run test: run: $rc retval: $rval" >&9
+      if [ $rc -lt 0 ]; then
+          _exitmkconfig $rc
+      fi
+  fi
+  _retval=$rval
+  return $rc
+}
+
+_d_chk_link_libs () {
+  cllname=$1
+  code=$2
+  inc=$3
+  shift;shift;shift
+
+  ocounter=0
+  clotherlibs="'$otherlibs'"
+  dosubst clotherlibs ',' "' '"
+  if [ "${clotherlibs}" != "" ]; then
+    eval "set -- $clotherlibs"
+    ocount=$#
+  else
+    ocount=0
+  fi
+
+  tdfile=${cllname}.d
+  # $cllname should be unique
+  exec 4>>${tdfile}
+  _d_print_imports $inc >&4
+  echo "${code}" | sed 's/_dollar_/$/g' >&4
+  exec 4>&-
+
+  dlibs=""
+  otherlibs=""
+  _d_chk_link $cllname
+  rc=$?
+  echo "##      link test (none): $rc" >&9
+  if [ $rc -ne 0 ]; then
+    while test $ocounter -lt $ocount; do
+      domath ocounter "$ocounter + 1"
+      eval "set -- $clotherlibs"
+      cmd="olibs=\$${ocounter}"
+      eval $cmd
+      dlibs=${olibs}
+      otherlibs=${olibs}
+      _d_chk_link $cllname
+      rc=$?
+      echo "##      link test (${olibs}): $rc" >&9
+      if [ $rc -eq 0 ]; then
+          break
+      fi
+    done
+  fi
+  _retdlibs=$dlibs
+  return $rc
+}
+
+_d_chk_link () {
+  clname=$1
+
+  cmd="${DC} ${DFLAGS} -c ${tdfile}"
+  echo "##  _link test (compile): $cmd" >&9
+  cat ${clname}.d >&9
+  eval ${cmd} >&9 2>&9
+  rc=$?
+  if [ $rc -lt 0 ]; then
+    _exitmkconfig $rc
+  fi
+  echo "##      _link compile: $rc" >&9
+
+  cmd="${_MKCONFIG_DIR}/mklink.sh -e -c ${DC} -o ${clname}.exe -- "
+  cmd="${cmd} ${clname}${OBJ_EXT} ${LDFLAGS} ${LIBS} "
+
+  _clotherlibs=$otherlibs
+  if [ "${_clotherlibs}" != "" ]; then
+    cmd="${cmd} ${_clotherlibs} "
+  fi
+  echo "##  _link test (link): $cmd" >&9
+  cat ${clname}.d >&9
+  eval $cmd >&9 2>&9
+  rc=$?
+  if [ $rc -lt 0 ]; then
+    _exitmkconfig $rc
+  fi
+  echo "##      _link link: $rc" >&9
+  if [ $rc -eq 0 ]; then
+    if [ ! -x "${clname}.exe" ]; then  # not executable
+      rc=1
+    fi
+  fi
+  return $rc
+}
+
+_d_chk_compile () {
+  dfname=$1
+  code=$2
+  inc=$3
+
+  tdfile=${dfname}.d
+  # $dfname should be unique
+  exec 4>>${tdfile}
+  _d_print_imports $inc >&4
+  echo "${code}" | sed 's/_dollar_/$/g' >&4
+  exec 4>&-
+
+  cmd="${DC} ${DFLAGS} -c ${tdfile}"
+  echo "##  compile test: $cmd" >&9
+  cat ${dfname}.d >&9
+  eval ${cmd} >&9 2>&9
+  rc=$?
+  echo "##  compile test: $rc" >&9
+  return $rc
+}
+
+do_d_check_compile () {
+  ddfname=$1
+  code=$2
+  inc=$3
+
+  _d_chk_compile ${ddfname} "${code}" $inc
+  rc=$?
+  try=0
+  if [ $rc -eq 0 ]; then
+    try=1
+  fi
+  printyesno $ddfname $try
+  setdata ${_MKCONFIG_PREFIX} ${ddfname} ${try}
+}
+
