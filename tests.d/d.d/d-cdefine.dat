@@ -1,0 +1,9 @@
+output cdefint.d
+loadunit d-main
+standard
+
+chdr    cdefint.h
+
+cdefint a cdefint.h
+cdefint b cdefint.h
+cdefint c cdefint.h

@@ -1,0 +1,6 @@
+output member.dtest
+loadunit d-main
+standard
+
+import classtst
+class a

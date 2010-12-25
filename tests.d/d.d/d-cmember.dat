@@ -1,0 +1,13 @@
+output cmember.d
+loadunit d-main
+standard
+
+chdr    cmemhdr.h
+
+cstruct a cmemhdr.h
+
+cmember a d cmemhdr.h
+cmember a ld cmemhdr.h
+cmember a lli cmemhdr.h
+cmember a carr cmemhdr.h
+cmember a xyzzy cmemhdr.h

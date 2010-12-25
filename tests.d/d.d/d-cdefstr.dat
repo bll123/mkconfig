@@ -1,0 +1,9 @@
+output cdefstr.d
+loadunit d-main
+standard
+
+chdr    cdefstr.h
+
+cdefstr a cdefstr.h
+cdefstr b cdefstr.h
+cdefstr c cdefstr.h
