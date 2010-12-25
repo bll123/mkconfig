@@ -44,7 +44,7 @@ main () {
     statfs (name, &statBuf);
 }
 "
-    _chk_link_libs "${name}2" "${code}" all
+    _c_chk_link_libs "${name}2" "${code}" all
     rc=$?
     if [ $rc -eq 0 ]; then
       setdata ${_MKCONFIG_PREFIX} "${name}" 2
@@ -58,7 +58,7 @@ main () {
     statfs (name, &statBuf, sizeof (statBuf));
 }
 "
-    _chk_link_libs "${name}3" "${code}" all
+    _c_chk_link_libs "${name}3" "${code}" all
     rc=$?
     if [ $rc -eq 0 ]; then
       setdata ${_MKCONFIG_PREFIX} "${name}" 3
@@ -72,7 +72,7 @@ main () {
     statfs (name, &statBuf, sizeof (statBuf), 0);
 }
 "
-    _chk_link_libs "${name}4" "${code}" all
+    _c_chk_link_libs "${name}4" "${code}" all
     rc=$?
     if [ $rc -eq 0 ]; then
       setdata ${_MKCONFIG_PREFIX} "${name}" 4

@@ -66,7 +66,7 @@ check_include_conflict () {
 #include <${h2}>
 main () { return 0; }
 "
-      do_check_compile "${name}" "${code}" std
+      do_c_check_compile "${name}" "${code}" std
     else
       setdata ${_MKCONFIG_PREFIX} "${name}" "${trc}"
       printyesno "${name}" $trc ""

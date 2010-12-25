@@ -49,7 +49,7 @@ check_quotactl_pos () {
         code="$code
 #include <$uhdr>"
       fi
-      _chk_cpp $name "$code"
+      _c_chk_cpp $name "$code"
       rc=$?
 
       if [ $rc -eq 0 ]; then
