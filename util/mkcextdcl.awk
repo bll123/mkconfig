@@ -1,7 +1,7 @@
 #!/usr/bin/awk
 
 BEGIN {
-  ststart = ARGV[2] " *\\(";
+  dclstart = "[	 *]" ARGV[2] "[	 ]*\\(";
   delete ARGV[2];
   bcount = 0;
   acount = 0;
@@ -9,14 +9,14 @@ BEGIN {
   havestart = 0;
   doend = 0;
   sarr[0] = "";
-#print "ststart:" ststart;
+#print "dclstart:" dclstart;
 }
 
 {
 #print "havestart:" havestart " ins:" ins " bcount:" bcount " acount:" acount;
   if ($0 ~ /^#/) {
     next;
-  } else if (ins == 0 && $0 ~ ststart) {
+  } else if (ins == 0 && $0 ~ dclstart) {
 #print "start: " $0;
     ins = 1;
     acount = 0;

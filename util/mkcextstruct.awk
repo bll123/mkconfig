@@ -6,7 +6,7 @@ BEGIN {
   ststart = "struct[	 ]*" ARGV[2];
   stforward = "struct[	 ]*" ARGV[2] "[	 ]*;";
   stother = "struct[	 ]*" ARGV[2] "[	 ]*[*a-zA-Z_]";
-  stend = ARGV[2] "_t";
+  stend = "[	 ]" ARGV[2] "_t";
   delete ARGV[2];
   bcount = 0;
   acount = 0;
