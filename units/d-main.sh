@@ -34,8 +34,6 @@ cdcls=""
 cstructs=""
 cchglist=""
 
-. ${_MKCONFIG_RUNTOPDIR}/mkconfig.units/c-support.sh
-
 dump_ccode () {
   ccode=""
   if [ "${cdefs}" != "" ]; then
