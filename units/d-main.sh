@@ -615,7 +615,6 @@ check_cmember () {
   printlabel $name "exists (C): ${struct}.${member}"
 
   trc=0
-set -x
   tdfile="${name}.d"
   > ${tdfile}
   exec 4>>${tdfile}
@@ -625,7 +624,6 @@ set -x
   exec 4>&-
   code="import core.stdc.stdio;
     void main (char[][] args) { C_ST_${struct} stmp; int i; i = stmp.${member}.sizeof; }"
-set +x
 
   do_d_check_compile ${name} "${code}" all
 }
