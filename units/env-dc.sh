@@ -49,7 +49,7 @@ check_dc () {
       setdata ${_MKCONFIG_PREFIX} DC_UNITTEST "--unittest"
       setdata ${_MKCONFIG_PREFIX} DC_DEBUG "--debug"
       setdata ${_MKCONFIG_PREFIX} DC_COV "--cov"
-      setdata ${_MKCONFIG_PREFIX} DC_LIBS="-lgcov"
+      setdata ${_MKCONFIG_PREFIX} DC_LIBS "-lgcov"
       setdata ${_MKCONFIG_PREFIX} DC_LINK ""
       setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_GDC "Y"
       ;;
