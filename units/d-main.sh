@@ -40,7 +40,8 @@ dump_ccode () {
     doappend ccode "${cdefs}"
   fi
   if [ "${ctypes}" != "" ]; then
-    doappend ccode "${ctypes}"
+    doappend ccode "
+${ctypes}"
   fi
   if [ "${cstructs}" != "" ]; then
     doappend ccode "${cstructs}"
@@ -50,7 +51,6 @@ dump_ccode () {
 extern (C) {
 
 ${cdcls}
-
 }
 "
   fi
@@ -59,27 +59,26 @@ ${cdcls}
     echo ""
     set -f
     echo "${ccode}" |
-      sed -e 's/  / /g' \
-        -e 's/^  */ /' \
+      sed -e 's/[	 ][	 ]*/ /g' \
         -e 's,/\*[^\*]*\*/,,' \
         -e 's,//.*$,,' \
-        -e 's/sizeof *\(([^)]*)\)/\1.sizeof/g;# gcc-ism' \
+        -e 's/sizeof[	 ]*\(([^)]*)\)/\1.sizeof/g;# gcc-ism' \
         -e 's/__extension__//g;# gcc-ism' \
         -e 's/__/_t_/g;# double underscore not allowed' \
-        -e 's/ *typedef /alias /g' \
-        -e 's/\* const/*/g; # not handled' \
-        -e 's/ *\([\{\}]\)/\1/' \
-        -e 's/long *int /long /g;# still C' \
-        -e 's/short *int /short /g;# still C' \
-        -e 's/long *long /xlongx /g;# save it' \
-        -e 's/long *double / real /g' \
-        -e 's/unsigned *long / uint /g' \
-        -e 's/unsigned *int / uint /g' \
-        -e 's/unsigned *short / ushort /g' \
-        -e 's/unsigned *char / ubyte /g' \
-        -e 's/unsigned *long / uint /g' \
-        -e 's/ signed */ /g;# still C' \
-        -e 's/long / int /g' |
+        -e 's/[	 ]*typedef[	 ]/alias /g' \
+        -e 's/\*[	 ]const/*/g; # not handled' \
+        -e 's/[	 ]*\([\{\}]\)/ \1/' \
+        -e 's/long[	 ]*int[	 ]/long /g;# still C' \
+        -e 's/short[	 ]*int[	 ]/short /g;# still C' \
+        -e 's/long[	 ]*long[	 ]/xlongx /g;# save it' \
+        -e 's/long[	 ]*double[	 ]/ real /g' \
+        -e 's/unsigned[	 ]*long[	 ]/ uint /g' \
+        -e 's/unsigned[	 ]*int[	 ]/uint /g' \
+        -e 's/unsigned[	 ]*short[	 ]/ ushort /g' \
+        -e 's/unsigned[	 ]*char[	 ]/ ubyte /g' \
+        -e 's/unsigned[	 ]*long[	 ]/ uint /g' \
+        -e 's/[	 ]signed[	 ]*/ /g;# still C' \
+        -e 's/long[	 ]/ int /g' |
       sed -e 's/unsigned *xlongx/ulong /g' \
         -e 's/xlongx /long /g' |
       eval "sed ${cchglist} -e 's/a/a/'"
@@ -539,6 +538,7 @@ check_cstruct () {
   if [ $rc -eq 0 ]; then
     slist="`echo $sname | sed -e 's/,/ /g'`"
     for s in $slist; do
+      # looking for the structure, but not forward dcls
       egrep "struct[	 ]*${s}" $name.out 2>/dev/null |
         egrep -v "struct[	 ]*${s} *;" >/dev/null 2>&1
       rc=$?
@@ -546,6 +546,8 @@ check_cstruct () {
         snm="struct $s"
         trc=1
       fi
+      # is there a typedef?
+      # need to know this whether the struct has a name or not.
       egrep -l "[	 ]${s}_t[	 ;]" $name.out >/dev/null 2>&1
       rc=$?
       if [ $rc -eq 0 ]; then
