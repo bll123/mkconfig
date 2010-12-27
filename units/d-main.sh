@@ -576,7 +576,7 @@ check_cstruct () {
           # remove only first "struct $s", first "struct", $s_t name,
           # any typedef.
           echo "${st}" |
-            sed -e 's/	/ /' -e "s/${s}_t//" -e "s/struct *${s} *{/{/" \
+            sed -e 's/	/ /g' -e "s/${s}_t//" -e "s/struct *${s} *{/{/" \
               -e "s/struct *${s} *$//" \
               -e 's/typedef *//' -e 's/struct *{/{/' -e 's/^ *struct$//' |
             grep -v '^ *$'
