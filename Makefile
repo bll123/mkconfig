@@ -3,7 +3,7 @@
 #
 
 RM = rm
-DC = dmd
+DC = gdc
 
 ###
 #
