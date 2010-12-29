@@ -11,6 +11,7 @@ mkconfig.units/		units for mkconfig.sh
 mkconfig.units/c-include-conflict.sh
 mkconfig.units/c-main.sh
 mkconfig.units/c-quotactl.sh
+mkconfig.units/c-rquotatype.sh
 mkconfig.units/c-setmntent.sh
 mkconfig.units/c-statfs.sh
 mkconfig.units/c-support.sh
