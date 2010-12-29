@@ -25,6 +25,7 @@ if [ "$1" = "-d" ]; then
   shift
   shift
 fi
+unset CDPATH
 
 if [ "$1" = "-s" ]; then
   SUBDIR=T

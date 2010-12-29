@@ -11,6 +11,7 @@ if [ "$1" = "-d" ]; then
   shift
   shift
 fi
+unset CDPATH
 RUNTOPDIR=`pwd`
 mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
 _MKCONFIG_DIR=`(cd $mypath;pwd)`
