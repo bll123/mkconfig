@@ -18,7 +18,7 @@
 
 require_unit c-main
 
-check_rquota_type () {
+check_rquota_xdr () {
     name="_$1"
 
     printlabel $name "rquota type"
