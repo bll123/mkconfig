@@ -750,11 +750,11 @@ check_quotactl_pos
 }
 
 sub
-check_rquota_type
+check_rquota_xdr
 {
   my ($name, $r_clist, $r_config) = @_;
 
-  printlabel $name, "rquota type";
+  printlabel $name, "rquota xdr";
   if (checkcache ($name, $r_config) == 0) {
     return;
   }
@@ -773,13 +773,63 @@ check_rquota_type
   my $rc = _check_cpp ($name, $code, {}, $r_clist, $r_config);
   if ($rc == 0) {
     $cmd = "egrep -l '[	 ][	 ]*rq_bhardlimit[	 ]*;' $name.out >>$LOG 2>&1";
-    print LOGFH "##  rquota_type: $cmd\n";
+    print LOGFH "##  rquota_xdr: $cmd\n";
     $rc = system ($cmd);
     if ($rc == 0) {
-      my $rval = `egrep '[	 ][	 ]*rq_bhardlimit[	 ]*;' $name.out |
-        sed -e 's/[	 ][	 ]*rq_bhardlimit.*//' -e 's/^[	 ]*//'`;
+      my $rval = `egrep '[	 ][	 ]*rq_bhardlimit[	 ]*;' $name.out`;
       chomp $rval;
+      $rval =~ s/[	 ][	 ]*rq_bhardlimit.*//;
+      $rval =~ s/^[	 ]*//;
       $r_config->{$name} = "xdr_" . ${rval};
+      printyesno_val $name, $r_config->{$name};
+      return;
+    }
+  }
+
+  $r_config->{$name} = 0;
+  printyesno_val $name, $r_config->{$name};
+}
+
+sub
+check_getfsstat_type
+{
+  my ($name, $r_clist, $r_config) = @_;
+
+  printlabel $name, "getfsstat type";
+  if (checkcache ($name, $r_config) == 0) {
+    return;
+  }
+
+  setlist $r_clist, $name;
+
+  if ($r_config->{'_lib_getfsstat'} eq '0') {
+    $r_config->{$name} = '0';
+    printyesno_val $name, $r_config->{$name};
+    return;
+  }
+
+  if ($r_config->{'_sys_mount'} eq '0') {
+    $r_config->{$name} = '0';
+    printyesno_val $name, $r_config->{$name};
+    return;
+  }
+
+  my $code = '';
+  my $hdr = $r_config->{'_sys_mount'};
+  $code .= "#include <$hdr>\n";
+  my $rc = _check_cpp ($name, $code, {}, $r_clist, $r_config);
+  if ($rc == 0) {
+    $cmd = "egrep -l 'getfsstat[	 ]*\\(' $name.out >>$LOG 2>&1";
+    $rc = system ($cmd);
+    print LOGFH "##  getfsstat_type: $cmd $rc\n";
+    if ($rc == 0) {
+      my $rval = `egrep 'getfsstat[	 ]*\\(' $name.out`;
+      print LOGFH "##  getfsstat_type: $rval\n";
+      chomp $rval;
+      $rval =~ s/^[^,]*, *//;
+      $rval =~ s/,.*$//;
+      print LOGFH "##  getfsstat_type: $rval\n";
+      $r_config->{$name} = ${rval};
       printyesno_val $name, $r_config->{$name};
       return;
     }
@@ -1514,9 +1564,13 @@ main_process
         {
             check_quotactl_pos ('_quotactl_pos', \%clist, \%config);
         }
-        elsif ($line =~ m#^\s*rquota_type$#o)
+        elsif ($line =~ m#^\s*rquota_xdr$#o)
         {
-            check_rquota_type ('_rquota_type', \%clist, \%config);
+            check_rquota_xdr ('_rquota_xdr', \%clist, \%config);
+        }
+        elsif ($line =~ m#^\s*getfsstat_type$#o)
+        {
+            check_getfsstat_type ('_getfsstat_type', \%clist, \%config);
         }
         elsif ($line =~ m#^\s*include$#o)
         {
