@@ -30,7 +30,7 @@
 .fi
 ..
 .\"
-.TH mkconfig 7 "25 Jul 2010"
+.TH mkconfig 7 "29 Dec 2010"
 .SH Name
 mkconfig \- build configuration utilities
 .SH Synopsis
@@ -41,7 +41,7 @@ mkconfig \- build configuration utilities
 .\" runtests.sh <tests-dir> [test1, ...]
 .\" mkstaticlib.sh [-e] libname objectfile ...
 .\" mksharedlib.sh [-e] libname objectfile ... [-L <lib-path>] [-l <lib>]
-.\" mklink.sh [-e] execname objectfile ... [-L <lib-path>] [-l <lib>]
+.\" mklink.sh [-e] -o execname objectfile ... [-L <lib-path>] [-l <lib>]
 .B mkconfig.sh
 [\fB\-C\fP]
 [\fB\-c\fP <cache\-file>]
@@ -95,7 +95,8 @@ The -e option echos the command line.
 The -e option echos the command line.
 .PP
 .B mklink.sh
-[-e] exec\-name object\-file [...] [-L lib\-path ...] [-l lib ...]
+[\-e] \-o exec\-name object\-file [obj\-file2 ...]
+[-L lib\-path ...] [-l lib ...]
 .PP
 The -e option echos the command line.
 .SH Description
@@ -205,7 +206,7 @@ Set \fIoption\-name\fP specified to default\-value.  The option\-file is
 checked for \fIoption\-name\fP, and if present, the value in the
 option\-file is used.
 .PP
-Internally, the check variable is named _opt_option\-name.
+For use in if statements, the check variable is named _opt_option\-name.
 .RE
 .TP
 \fBset\fP check\-variable value
@@ -260,12 +261,18 @@ does not correspond to the marketing version.
 .RE
 .PP
 .TP
-.B env-cflags
+.B env-cc
 .br
-The cflags environment unit determines basic flags needed to run the
+The cc environment unit determines basic flags needed to run the
 C compiler.  Since these units are interdependent on each other, they
-should be configured in the order: cc, using_gcc, cflags, ldflags, and libs.
+should be configured in the order: 32bitflags, cc, using_gcc,
+cflags, ldflags, and libs.
 .RS
+.TP
+\fB32bitflags\fP
+.br
+This check command must appear before the cc, cflags, etc. commands.
+It turns off use of the 'getconf' command and other 64-bit flags.
 .TP
 \fBcc\fP
 .br
@@ -314,6 +321,46 @@ as appropriate to the operating system and compiler.
 Sets the SHRUNPATH environment variable to the
 flag for setting the shared run path
 as appropriate to the operating system and compiler.
+.RE
+.PP
+.TP
+.B env-dc
+.br
+The dc environment unit determines basic flags needed to run the
+D compiler.  The D compiler may also be dependent on the C compiler,
+so the env-cc unit should also be loaded and the C compiler environment
+should be set up.
+.RS
+.TP
+\fBdc\fP
+.br
+Determines the D compiler being used.  Sets the DC environment variable.
+Due to major differences in compiler command line options, the
+following environment variables are also set:
+.br
+DC_OPT \- Optimizer option for the compiler.
+.br
+DC_OF \- Option prepended to the output file (e.g. -ofoutname or -ooutname).
+Must be used w/o a space due to the dmd compiler usage.
+.br
+DC_RELEASE \- Option for release code.
+.br
+DC_INLINE \- Option for inline code generation.
+.br
+DC_UNITTEST \- Option for unittest code generation.
+.br
+DC_DEBUG \- Option for debug code generation.
+.br
+DC_COV \- Option for code coverage generation.
+.br
+DC_LINK \- Option to prepend to linker commands.  This should be
+prepended without a space.  Needed for the dmd compiler.  e.g.
+${DC_LINK}-L/somepath ${DC_LINK}-lmylib
+.br
+.TP
+\fBdflags\fP
+.br
+Sets the DFLAGS environment variable.
 .RE
 .TP
 .B env-extension
@@ -437,7 +484,7 @@ Output: _key_volatile
 .TP
 \fBlib\fP function [libs, ...]
 .br
-Check to see if library function \fIfunction\fP exists.
+Check to see if the library function \fIfunction\fP exists.
 If the optional \fIlibs\fP are specified,
 the test will try first without the libraries, then with
 the first set of libraries specified linked in, then the next set, etc.
@@ -468,11 +515,11 @@ The string '_dollar_', if included in the library function name
 will be replaced with the '$' symbol.
 .RE
 .TP
-\fBmember\fP struct struct-name member
+\fBmember\fP struct struct\-name member
 .br
-\fBmember\fP typedef-name member
+\fBmember\fP typedef\-name member
 .br
-Check to see if \fImember\fP is a member of \fIstruct struct-name\fP
+Check to see if \fImember\fP is a member of \fIstruct struct\-name\fP
 or \fItypedef-name\fP.
 .IP
 e.g.: member struct statfs f_bsize
@@ -490,6 +537,14 @@ will be set to false in the output file.
 e.g. npt getopt; npt statfs _lib_statfs
 .br
 Output: _npt_getopt
+.TP
+\fBsiz\fP type\-name
+.br
+Check the size of type\-name.
+.IP
+e.g. siz size_t
+.br
+Output: _siz_size_t
 .TP
 \fBtyp\fP type\-name
 .br
@@ -509,6 +564,7 @@ Output: _typ_size_t, _typ_struct_tm
 Checks to see how many arguments the statfs() system call accepts.
 .br
 Output: _statfs_args
+.RE
 .RE
 .TP
 .B c\-setmntent\-args
@@ -539,8 +595,142 @@ Output: _inc_conflict__hdr_time__sys_time
 .TP
 \fBquotactl_pos\fP
 .br
-Check to see if character argument is argument 1 or 2 for the quotactl()
+Check to see if the character argument is argument 1 or 2 for the quotactl()
 library function.
+.RE
+.B c\-rquotatype
+.RS
+.TP
+\fBrquota_type\fP
+.br
+Gets the type used in the rquota structure (u_int or u_long) and
+outputs the appropriate xdr function to use.
+.RE
+.SH D Language Units
+.TP
+.B d\-main
+.br
+The d\-main unit creates a configuration file for D programs.
+.RS
+.TP
+\fBstandard\fP
+.br
+Executes any \fIStandard\fP checks for the D language.  There
+are currently no standard checks.
+.TP
+\fBimport\fP name\-\of\-module
+.RS
+Checks to see if module can be imported.
+.IP
+e.g. import std.stdio
+.br
+Output: _import_std_stdio
+.RE
+.TP
+\fBmember\fP struct\-name member
+.br
+Check to see if \fImember\fP is a member of \fIstruct\-name\fP.
+.TP
+\fBsize\fP type\-name
+.br
+Check the size of type\-name
+.TP
+\fBlib\fP function [libs, ...]
+.br
+Check to see if the library function \fIfunction\fP exists.
+If the optional \fIlibs\fP are specified,
+the test will try first without the libraries, then with
+the first set of libraries specified linked in, then the next set, etc.
+Sets of libraries to be tested are separated by commas.
+If link libraries are specified, any value in the cache is ignored,
+and the function is retested.
+.TP
+\fBclass\fP class [libs, ...]
+.RS
+Check to see if the class \fIclass\fP exists.
+If the optional \fIlibs\fP are specified,
+the test will try first without the libraries, then with
+the first set of libraries specified, then the next set, etc.
+Sets of libraries to be tested are separated by commas.
+.PP
+This check command has not been tested.
+.RE
+.PP
+.B D Language Units \- C Language Interface
+.PP
+All C language interface checks for the D language are not
+cached.
+.TP
+\fBchdr\fP header
+.RS
+Checks to see if the C Language \fIheader\fP exists.
+The \fIchdr\fP and \fIcsys\fP check commands must appear
+before other C language check commands.
+.IP
+e.g. chdr stdlib.h
+.br
+Output: _hdr_stdlib
+.RE
+.TP
+\fBcsys\fP header
+.RS
+Checks to see if the C language sys/\fIheader\fP exists.
+The \fIchdr\fP and \fIcsys\fP check commands must appear
+before other C language check commands.
+.IP
+e.g. csys types.h
+.br
+Output: _sys_stdlib
+.RE
+.TP
+\fBclib\fP function [libs, ...]
+.RS
+Check to see if the C library function \fIfunction\fP exists.
+If the optional \fIlibs\fP are specified,
+the test will try first without the libraries, then with
+the first set of libraries specified linked in, then the next set, etc.
+Sets of libraries to be tested are separated by commas.
+.IP
+.e.g. clib quotactl
+.br
+Output: _clib_quotactl
+.RE
+.TP
+\fBcdefstr\fP def
+.br
+Checks if a C #define of \fIdef\P exists.
+A D language enum string ... will be output
+to the output file.
+.TP
+\fBcdefint\fP def
+.br
+Checks for a C #define of \fIdef\fP exists.
+A D language enum int ... will be output
+to the output file.
+.TP
+\fBctype\fP type\-name
+.br
+Checks to see if type\-name exists.
+A D language alias will be output
+to the output file.
+.TP
+\fBcstruct\fP struct\-name
+.br
+Checks to see if struct \fIstruct\-name\fP or \fIstruct\-name_t\fP
+exist.  The structure will be modified for the D language and output
+to the output file.  Note that any types used by the structure must
+be checked for first.
+.TP
+\fBcmember\fP struct\-name member
+.br
+Checks to see if \fImember\fP is a member of \fIstruct\-name\fP.
+The \fIcstruct\fP check command for the structure must appear
+before this check command.
+.TP
+\fBcdcl\fP function
+.br
+Checks to see if \fIfunction\fP is declared and outputs the
+declaration to the output file.
 .RE
 .SH Tests (runtests.sh)
 The test directory contains shell scripts that are executed
