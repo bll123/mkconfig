@@ -48,11 +48,11 @@ while test $# -gt 0; do
   esac
 done
 
-OUTFLAG=-o
+OUTFLAG="-o "
 DC_LINK=
 case ${comp} in
   *dmd)
-    OUTFLAG=-of
+    OUTFLAG="-of"
     DC_LINK=-L
     ;;
 esac
