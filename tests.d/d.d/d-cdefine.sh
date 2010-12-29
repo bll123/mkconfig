@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ "$1" = "-d" ]; then
-  echo ${EN} " c-type extraction${EC}"
+  echo ${EN} " c-define int${EC}"
   exit 0
 fi
 
