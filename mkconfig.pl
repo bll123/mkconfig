@@ -750,6 +750,46 @@ check_quotactl_pos
 }
 
 sub
+check_rquota_type
+{
+  my ($name, $r_clist, $r_config) = @_;
+
+  printlabel $name, "rquota type";
+  if (checkcache ($name, $r_config) == 0) {
+    return;
+  }
+
+  setlist $r_clist, $name;
+
+  if ($r_config->{'_hdr_rpcsvc_rquota'} eq '0') {
+    $r_config->{$name} = '0';
+    printyesno_val $name, $r_config->{$name};
+    return;
+  }
+
+  my $code = '';
+  my $hdr = $r_config->{'_hdr_rpcsvc_rquota'};
+  $code .= "#include <$hdr>\n";
+  my $rc = _check_cpp ($name, $code, {}, $r_clist, $r_config);
+  if ($rc == 0) {
+    $cmd = "egrep -l '[	 ][	 ]*rq_bhardlimit[	 ]*;' $name.out >>$LOG 2>&1";
+    print LOGFH "##  rquota_type: $cmd\n";
+    $rc = system ($cmd);
+    if ($rc == 0) {
+      my $rval = `egrep '[	 ][	 ]*rq_bhardlimit[	 ]*;' $name.out |
+        sed -e 's/[	 ][	 ]*rq_bhardlimit.*//' -e 's/^[	 ]*//'`;
+      chomp $rval;
+      $r_config->{$name} = "xdr_" . ${rval};
+      printyesno_val $name, $r_config->{$name};
+      return;
+    }
+  }
+
+  $r_config->{$name} = 0;
+  printyesno_val $name, $r_config->{$name};
+}
+
+sub
 check_include_conflict
 {
     my ($name, $h1, $h2, $r_clist, $r_config) = @_;
@@ -1473,6 +1513,10 @@ main_process
         elsif ($line =~ m#^\s*quotactl_pos$#o)
         {
             check_quotactl_pos ('_quotactl_pos', \%clist, \%config);
+        }
+        elsif ($line =~ m#^\s*rquota_type$#o)
+        {
+            check_rquota_type ('_rquota_type', \%clist, \%config);
         }
         elsif ($line =~ m#^\s*include$#o)
         {
