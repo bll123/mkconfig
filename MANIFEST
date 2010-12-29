@@ -8,10 +8,11 @@ mkconfig.7		manual page
 mkconfig.pl		perl config program
 mkconfig.sh		shell config program
 mkconfig.units/		units for mkconfig.sh
+mkconfig.units/c-getfsstat.sh
 mkconfig.units/c-include-conflict.sh
 mkconfig.units/c-main.sh
 mkconfig.units/c-quotactl.sh
-mkconfig.units/c-rquotatype.sh
+mkconfig.units/c-rquota.sh
 mkconfig.units/c-setmntent.sh
 mkconfig.units/c-statfs.sh
 mkconfig.units/c-support.sh
