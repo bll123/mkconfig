@@ -10,5 +10,8 @@
 5 d-cstruct
 5 d-ctype
 5 d-cdcl
-6 d-singlelib
-7 d-multlib
+5 d-cdefstr
+5 d-cdefint
+6 d-cmember
+7 d-singlelib
+8 d-multlib
