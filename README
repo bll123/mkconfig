@@ -1,4 +1,4 @@
-mkconfig - configuration tool (version 1.10).
+mkconfig - configuration tool (version 1.11)
 
 Please e-mail any configuration units and the corresponding
 manual page entry to brad.lanam.di_at_gmail.com.  They will be
@@ -6,8 +6,15 @@ included in the next release.
 
 CHANGES
 
-    1.11                                    [10 Nov 2010]
+    1.11                                    [29 Dec 2010]
         Fixed output of "yes with" libraries.
+        Rearranged tests and test directories.
+        Fixed test subdirectory handling.
+        Added c-rquotatype.
+        Added unset CDPATH.  The output from the cd command
+          broke the scripts.
+        Added D language (not yet complete).
+        Backwards compatibility broken for mklink.sh.
 
     1.10                                    [22 Jul 2010]
         Renamed reqlibs.txt to mkconfig.reqlibs.
