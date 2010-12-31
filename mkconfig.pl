@@ -772,13 +772,58 @@ check_rquota_xdr
   $code .= "#include <$hdr>\n";
   my $rc = _check_cpp ($name, $code, {}, $r_clist, $r_config);
   if ($rc == 0) {
-    $cmd = "egrep -l '[	 ][	 ]*rq_bhardlimit[	 ]*;' $name.out >>$LOG 2>&1";
+    $cmd = "sed '1,/struct *rquota *{/d' $name.out |
+        egrep '[	 ]*rq_bhardlimit[	 ]*;' >>$LOG 2>&1";
     print LOGFH "##  rquota_xdr: $cmd\n";
     $rc = system ($cmd);
     if ($rc == 0) {
-      my $rval = `egrep '[	 ][	 ]*rq_bhardlimit[	 ]*;' $name.out`;
+      my $rval = `sed '1,/struct *rquota *{/d' $name.out |
+          egrep '[	 ]*rq_bhardlimit[	 ]*;'`;
       chomp $rval;
       $rval =~ s/[	 ][	 ]*rq_bhardlimit.*//;
+      $rval =~ s/^[	 ]*//;
+      $r_config->{$name} = "xdr_" . ${rval};
+      printyesno_val $name, $r_config->{$name};
+      return;
+    }
+  }
+
+  $r_config->{$name} = 0;
+  printyesno_val $name, $r_config->{$name};
+}
+
+sub
+check_gqa_uid_xdr
+{
+  my ($name, $r_clist, $r_config) = @_;
+
+  printlabel $name, "gqa_uid xdr";
+  if (checkcache ($name, $r_config) == 0) {
+    return;
+  }
+
+  setlist $r_clist, $name;
+
+  if ($r_config->{'_hdr_rpcsvc_rquota'} eq '0') {
+    $r_config->{$name} = '0';
+    printyesno_val $name, $r_config->{$name};
+    return;
+  }
+
+  my $code = '';
+  my $hdr = $r_config->{'_hdr_rpcsvc_rquota'};
+  $code .= "#include <$hdr>\n";
+  my $rc = _check_cpp ($name, $code, {}, $r_clist, $r_config);
+  if ($rc == 0) {
+    $cmd = "sed '1,/struct *getquota_args *{/d' $name.out |
+        egrep '[	 ]*gqa_uid[	 ]*;' >>$LOG 2>&1";
+    print LOGFH "##  gqa_uid_xdr: $cmd\n";
+    $rc = system ($cmd);
+    if ($rc == 0) {
+      my $rval = `sed '1,/struct *getquota_args *{/d' $name.out |
+          egrep '[	 ]*gqa_uid[	 ]*;'`;
+      chomp $rval;
+      $rval =~ s/[	 ][	 ]*gqa_uid.*//;
       $rval =~ s/^[	 ]*//;
       $r_config->{$name} = "xdr_" . ${rval};
       printyesno_val $name, $r_config->{$name};
@@ -826,8 +871,9 @@ check_getfsstat_type
       my $rval = `egrep 'getfsstat[	 ]*\\(' $name.out`;
       print LOGFH "##  getfsstat_type: $rval\n";
       chomp $rval;
-      $rval =~ s/^[^,]*, *//;
+      $rval =~ s/^[^,]*,[	 ]*//;
       $rval =~ s/,.*$//;
+      $rval =~ s/  *[_a-z0-9]*$//;  # strip any trailing var name
       print LOGFH "##  getfsstat_type: $rval\n";
       $r_config->{$name} = ${rval};
       printyesno_val $name, $r_config->{$name};
@@ -1567,6 +1613,10 @@ main_process
         elsif ($line =~ m#^\s*rquota_xdr$#o)
         {
             check_rquota_xdr ('_rquota_xdr', \%clist, \%config);
+        }
+        elsif ($line =~ m#^\s*gqa_uid_xdr$#o)
+        {
+            check_gqa_uid_xdr ('_gqa_uid_xdr', \%clist, \%config);
         }
         elsif ($line =~ m#^\s*getfsstat_type$#o)
         {
