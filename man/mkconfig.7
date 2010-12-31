@@ -598,13 +598,25 @@ Output: _inc_conflict__hdr_time__sys_time
 Check to see if the character argument is argument 1 or 2 for the quotactl()
 library function.
 .RE
-.B c\-rquotatype
+.B c\-rquota
 .RS
 .TP
-\fBrquota_type\fP
+\fBrquota_xdr\fP
 .br
-Gets the type used in the rquota structure (u_int or u_long) and
-outputs the appropriate xdr function to use.
+Gets the type used in the rquota structure (u_int, u_long, etc.) and
+output the appropriate xdr function to use.
+.TP
+\fBgqa_uid_xdr\fP
+.br
+Gets the type used in the getquota_args structure for the gqa_uid member
+and output the appropriate xdr function to use.
+.RE
+.B c\-getfsstat
+.RS
+.TP
+\fBgetfsstat_type\fP
+.br
+Gets the type used for the second argument of getfsstat.
 .RE
 .SH D Language Units
 .TP
