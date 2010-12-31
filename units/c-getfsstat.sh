@@ -50,8 +50,11 @@ check_getfsstat_type () {
         egrep -l 'getfsstat[	 ]*\(' $name.out >&9 2>&1
         rc=$?
         if [ $rc -eq 0 -a "$val" != "" ]; then
+          # strip up to first comma, then after comma
+          # and any variable name.
           rval=`egrep 'getfsstat[	 ]*\(' $name.out |
-            sed -e 's/^[^,]*,[	 ]*//' -e 's/,.*$//'`
+            sed -e 's/^[^,]*,[	 ]*//' -e 's/,.*$//' \
+              -e 's/  *[_a-z0-9]*$//'`
           setdata ${_MKCONFIG_PREFIX} "${name}" ${rval}
           printyesno_val "${name}" ${rval} ""
           return
