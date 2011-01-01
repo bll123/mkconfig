@@ -10,7 +10,7 @@ CHANGES
         Fixed output of "yes with" libraries.
         Rearranged tests and test directories.
         Fixed test subdirectory handling.
-        Added c-rquotatype.
+        Added c-rquota, c-getfsstat.
         Added unset CDPATH.  The output from the cd command
           broke the scripts.
         Added D language (not yet complete).
