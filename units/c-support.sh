@@ -116,6 +116,7 @@ _c_chk_link_libs () {
   fi
 
   tcfile=${cllname}.c
+  >${tcfile}
   # $cllname should be unique
   exec 4>>${tcfile}
   echo "${precc}" >&4
@@ -205,6 +206,7 @@ _c_chk_compile () {
   inc=$3
 
   tcfile=${ccname}.c
+  >${tcfile}
   # $ccname should be unique
   exec 4>>${tcfile}
   echo "${precc}" >&4
