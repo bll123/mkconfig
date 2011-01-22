@@ -97,6 +97,10 @@ BEGIN {
         doend = 1;
       }
       ins = 0;
+    } else {
+      # turn any named union/struct into anonymous
+      sub (/}.*;/, "};", tstr);
+      sarr [acount - 1] = tstr;
     }
   } else if (ins == 1) {
 #print "1: " $0;
