@@ -35,13 +35,16 @@ cstructs=""
 cchglist=""
 
 dump_ccode () {
+
+  if [ "${ctypes}" != "" ]; then
+    set -f
+    echo "${ctypes}"
+    set +f
+  fi
+
   ccode=""
   if [ "${cdefs}" != "" ]; then
     doappend ccode "${cdefs}"
-  fi
-  if [ "${ctypes}" != "" ]; then
-    doappend ccode "
-${ctypes}"
   fi
   if [ "${cstructs}" != "" ]; then
     doappend ccode "${cstructs}"
@@ -59,6 +62,7 @@ ${cdcls}
     echo ""
     set -f
     echo "${ccode}" |
+      eval "sed ${cchglist} -e 's/a/a/'" |
       sed -e 's/[	 ][	 ]*/ /g' \
         -e 's,/\*[^\*]*\*/,,' \
         -e 's,//.*$,,' \
@@ -68,20 +72,31 @@ ${cdcls}
         -e 's/[	 ]*typedef[	 ]/alias /g' \
         -e 's/\*[	 ]const/*/g; # not handled' \
         -e 's/[	 ]*\([\{\}]\)/ \1/' \
-        -e 's/long[	 ]*int[	 ]/long /g;# still C' \
-        -e 's/short[	 ]*int[	 ]/short /g;# still C' \
-        -e 's/long[	 ]*long[	 ]/xlongx /g;# save it' \
-        -e 's/long[	 ]*double[	 ]/ real /g' \
-        -e 's/unsigned[	 ]*long[	 ]/ uint /g' \
-        -e 's/unsigned[	 ]*int[	 ]/uint /g' \
-        -e 's/unsigned[	 ]*short[	 ]/ ushort /g' \
-        -e 's/unsigned[	 ]*char[	 ]/ ubyte /g' \
-        -e 's/unsigned[	 ]*long[	 ]/ uint /g' \
+        -e 's/[	 ]long[	 ]*int[	 ]/ long /g;# still C' \
+        -e 's/[	 ]short[	 ]*int[	 ]/ short /g;# still C' \
         -e 's/[	 ]signed[	 ]*/ /g;# still C' \
-        -e 's/long[	 ]/ int /g' |
-      sed -e 's/unsigned *xlongx/ulong /g' \
-        -e 's/xlongx /long /g' |
-      eval "sed ${cchglist} -e 's/a/a/'"
+        -e 's/[	 ]long[	 ]*double[	 ]/ xlongdx /g' \
+        -e 's/double[	 ]/xdoublex /g' \
+        -e 's/float[	 ]/xfloatx /g' \
+        -e 's/unsigned[	 ]long[	 ]*long[	 ]/uxlonglongx /g' \
+        -e 's/long[	 ]*long[	 ]/xlonglongx /g' \
+        -e 's/unsigned[	 ]*short[	 ]/uxshortx /g' \
+        -e 's/unsigned[	 ]*char[	 ]/uxcharx /g' \
+        -e 's/unsigned[	 ]*int[	 ]/uxintx /g' \
+        -e 's/unsigned[	 ]*long[	 ]/uxlongx /g' \
+        -e 's/[	 ]char[	 ]/ xcharx /g' \
+        -e 's/[	 ]short[	 ]/ xshortx /g' \
+        -e 's/[	 ]int[	 ]/ xintx /g' \
+        -e 's/[	 ]long[	 ]/ xlongx /g' \
+        |
+      sed -e "s/xlongdx/${_c_long_double}/g" \
+        -e "s/xdoublex/${_c_double}/g" \
+        -e "s/xfloatx/${_c_float}/g" \
+        -e "s/xlonglongx/${_c_long_long}/g" \
+        -e "s/xlongx/${_c_long}/g" \
+        -e "s/xintx/${_c_int}/g" \
+        -e "s/xshortx/${_c_short}/g" \
+        -e "s/xcharx/${_c_char}/g"
     set +f
   fi
 }
@@ -312,6 +327,75 @@ check_class () {
   setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
 }
 
+_map_int_csize () {
+  nm=$1
+
+  eval "tnm=_csiz_${nm}"
+  getdata tval ${_MKCONFIG_PREFIX} $tnm
+  if [ $tval -eq 1 ]; then mval=char; fi        # leave char as char
+  if [ $tval -eq 2 ]; then mval=short; fi
+  if [ $tval -eq 4 ]; then mval=int; fi
+  if [ $tval -eq 8 ]; then mval=long; fi
+
+  eval "_c_${nm}=${mval}"
+}
+
+_map_float_csize () {
+  nm=$1
+
+  eval "tnm=_csiz_${nm}"
+  getdata tval ${_MKCONFIG_PREFIX} $tnm
+  if [ $tval -eq 4 ]; then mval=float; fi
+  if [ $tval -eq 8 ]; then mval=double; fi
+  if [ $tval -eq 12 ]; then mval=real; fi
+
+  eval "_c_${nm}=${mval}"
+}
+
+check_csizes () {
+  check_csize char char
+  check_csize short short
+  check_csize int int
+  check_csize long long
+  check_csize "long long" "long long"
+  check_csize float float
+  check_csize double double
+  check_csize "long double" "long double"
+
+  _map_int_csize char
+  _map_int_csize short
+  _map_int_csize int
+  _map_int_csize long
+  _map_int_csize long_long
+  _map_float_csize float
+  _map_float_csize double
+  _map_float_csize long_double
+}
+
+check_csize () {
+  shift
+  type=$*
+  nm="_csiz_${type}"
+  dosubst nm ' ' '_'
+
+  name=$nm
+
+  printlabel $name "c-sizeof: ${type}"
+  checkcache_val ${_MKCONFIG_PREFIX} $name
+  if [ $rc -eq 0 ]; then return; fi
+
+  code="main () { printf(\"%u\", sizeof(${type})); return (0); }"
+  _c_chk_run ${name} "${code}" all
+  rc=$?
+  val=$_retval
+  if [ $rc -ne 0 ]; then
+    val=0
+  fi
+  printyesno_val $name $val
+  setdata ${_MKCONFIG_PREFIX} ${name} ${val}
+}
+
+
 check_clib () {
   func=$2
   shift;shift
@@ -498,25 +582,48 @@ check_ctype () {
   printlabel $name "c-type: ${typname}"
   # no caching
 
+  val=0
+  code="int main () { printf (\"%u\", sizeof(${typname})); return (0); }"
   _c_chk_cpp ${name} "${code}" all
   rc=$?
-  trc=0
-
   if [ $rc -eq 0 ]; then
-    tdata=`egrep ".*typedef.*[	 *]+${typname}[	 ]*;" $name.out 2>/dev/null`
+    tdata=`egrep ".*typedef.*[	 *]+${typname}.*;" $name.out 2>/dev/null`
     rc=$?
     if [ $rc -eq 0 ]; then
-      trc=1
-    fi
-
-    if [ $trc -eq 1 ]; then
-      doappend ctypes "${tdata}
-"
+      u=""
+      case $tdata in
+        *unsigned*)
+          u=u
+          ;;
+      esac
+      _c_chk_run ${name} "${code}" all
+      rc=$?
+      val=$_retval
     fi
   fi
+  # assumes integer type...
+  if [ $rc -eq 0 ]; then
+    case $val in
+      1)
+        dtype=byte
+        ;;
+      2)
+        dtype=short
+        ;;
+      4)
+        dtype=int
+        ;;
+      8)
+        dtype=long
+        ;;
+    esac
+  fi
+  if [ $rc -eq 0 ]; then
+    doappend cchglist "-e 's/[	 ]${typname}[	 ]/ ${u}${dtype} /g' "
+  fi
 
-  printyesno $name $trc ""
-  setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
+  printyesno_val $name $val ""
+  setdata ${_MKCONFIG_PREFIX} ${name} ${val}
 }
 
 check_cstruct () {
@@ -581,7 +688,7 @@ check_cstruct () {
               -e 's/typedef *//' -e 's/struct *{/{/' -e 's/^ *struct$//' |
             grep -v '^ *$'
           )`
-        cchglist="${cchglist} -e 's/${snm}/C_ST_${s}/g'"
+        doappend cchglist "-e 's/${snm}/C_ST_${s}/g' "
         doappend cstructs "
 ${st}
 static assert ((C_ST_${s}).sizeof == ${rval});
@@ -707,7 +814,7 @@ output_item () {
     tval=true
   fi
   case ${name} in
-    _setint_*|_siz_*|_c_args_*)
+    _setint_*|_csiz_*|_siz_*|_c_args_*|_ctype_*)
       tname=$name
       dosubst tname '_setint_' ''
       set -f
