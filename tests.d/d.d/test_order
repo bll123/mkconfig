@@ -8,7 +8,7 @@
 4 d-csyshdr
 5 d-clib
 5 d-cstruct
-5 d-ctype
+5 d-ctypeconv
 5 d-cdcl
 5 d-cdefstr
 5 d-cdefint
