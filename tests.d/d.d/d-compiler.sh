@@ -21,9 +21,23 @@ cat > d_compiler.d << _HERE_
 int main (char[][] args) { return 0; }
 _HERE_
 
-${DC} -c d_compiler.d > /dev/null 2>&1
+${DC} d_compiler.d > /dev/null 2>&1
 rc=$?
-
 if [ $rc -ne 0 ]; then grc=$rc; fi
+if [ -x a.out ]; then
+  ./a.out
+  rc=$?
+  if [ $rc -ne 0 ]; then grc=$rc; fi
+elif [ -x d_compiler ]; then
+  ./d_compiler
+  rc=$?
+  if [ $rc -ne 0 ]; then grc=$rc; fi
+elif [ -x d_compiler.exe ]; then
+  ./d_compiler.exe
+  rc=$?
+  if [ $rc -ne 0 ]; then grc=$rc; fi
+else
+  grc=1
+fi
 
 exit $grc
