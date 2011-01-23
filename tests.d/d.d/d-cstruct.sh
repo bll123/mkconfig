@@ -63,6 +63,9 @@ struct a
 struct b
 {
   long double  b;
+  float b1;
+  double  b2;
+  long double  b3;
 };
 
 typedef struct
@@ -132,6 +135,173 @@ struct q {
   struct q *qq;
 };
 
+/* named union */
+struct r {
+ int r;
+ union {
+   int a;
+   long b;
+ } r_named ;
+} r_t;
+
+/* named struct */
+struct s {
+ int s;
+ struct {
+   int a;
+   long b;
+ } s_named ;
+} s_t;
+
+/* doesn't work...(extraction fails)
+typedef struct
+{
+  double  c;
+} t;
+*/
+
+typedef struct u
+{
+  double  c;
+} u;
+
+union ua
+{
+  long double ld;
+  double d;
+  long long  ll;
+  signed long long  sgll;
+  long long int  lli;
+  signed long long int  sglli;
+  unsigned long long  ull;
+  unsigned long long int ulli;
+  float f;
+  long  l;
+  signed long  sgl;
+  unsigned long  ul;
+  long int li;
+  signed long int sgli;
+  unsigned long int uli;
+  int   i;
+  signed int   sgi;
+  unsigned int   ui;
+  short s;
+  signed short sgs;
+  short int si;
+  signed short int sgsi;
+  unsigned short us;
+  unsigned short int usi;
+  char  c;
+  signed char  sgc;
+  unsigned char  uc;
+  char  carr [20];
+};
+
+union ub
+{
+  long double  b;
+  float b1;
+  double  b2;
+  long double  b3;
+};
+
+typedef union
+{
+  double  c;
+} uc_t;
+
+typedef union ud
+{
+  float  d;
+} ud_t;
+
+union ue
+  {
+  long long e;
+  } ;
+
+union uf {
+  long f;
+};
+
+union ug {
+// stuff
+  int g;
+};
+
+union uh {
+/* stuff */
+  short h;
+};
+
+union ui {
+  char i;
+};
+
+union uj { int j; };
+
+typedef union uk { int k; } uk_t;
+
+typedef union { int l; } ul_t;
+
+union um {
+ int m;
+ union {
+   int a;
+   long b;
+ };
+} um_t;
+
+union { int n; union { int a; long b; }; int n2; } un_t;
+
+/* forward dcl */
+union uo;
+
+union uo {
+  int o;
+};
+
+/* forward dcl */
+union up;
+
+/* forward dcl */
+union uq;
+
+union uq {
+  int q;
+  union uq *qq;
+};
+
+/* named union */
+union ur {
+ int r;
+ union {
+   int a;
+   long b;
+ } ur_named ;
+} ur_t;
+
+/* named struct */
+union us {
+ int s;
+ struct {
+   int a;
+   long b;
+ } us_named ;
+} us_t;
+
+/* doesn't work...(extraction fails)
+typedef union
+{
+  double  c;
+} ut;
+*/
+
+typedef union uu
+{
+  double  c;
+} uu;
+
 #endif
 
 _HERE_
@@ -139,7 +309,7 @@ _HERE_
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-cstruct.dat
 grc=0
 
-for x in a b c d e f g h i j k l m n o q; do
+for x in a b c d e f g h i j k l m n o q r s u; do
   grep -l "^enum bool _cstruct_${x} = true;$" cstruct.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
@@ -149,6 +319,22 @@ done
 
 for x in p; do
   grep -l "^enum bool _cstruct_${x} = false;$" cstruct.d > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    grc=1
+  fi
+done
+
+for x in ua ub uc ud ue uf ug uh ui uj uk ul um un uo uq ur us uu; do
+  grep -l "^enum bool _cunion_${x} = true;$" cstruct.d > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    grc=1
+  fi
+done
+
+for x in up; do
+  grep -l "^enum bool _cunion_${x} = false;$" cstruct.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     grc=1
