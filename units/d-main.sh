@@ -38,22 +38,30 @@ dump_ccode () {
 
   ccode=""
   if [ "${cdefs}" != "" ]; then
+    set -f
     doappend ccode "${cdefs}"
+    set +f
   fi
   if [ "${cstructs}" != "" ]; then
+    set -f
     doappend ccode "${cstructs}"
+    set +f
   fi
   if [ "${ctypes}" != "" ]; then
+    set -f
     doappend ccode "
 ${ctypes}"
+    set +f
   fi
   if [ "${cdcls}" != "" ]; then
+    set -f
     doappend ccode "
 extern (C) {
 
 ${cdcls}
 }
 "
+    set +f
   fi
 
   if [ "${ccode}" != "" ]; then
@@ -67,7 +75,6 @@ ${cdcls}
         -e 's/sizeof[	 ]*\(([^)]*)\)/\1.sizeof/g;# gcc-ism' \
         -e 's/__extension__//g;# gcc-ism' \
         -e 's/__/_t_/g;# double underscore not allowed' \
-        -e 's/[	 ]*typedef[	 ]/alias /g' \
         -e 's/\*[	 ]const/*/g; # not handled' \
         -e 's/[	 ]*\([\{\}]\)/ \1/' \
         -e 's/[	 ]long[	 ]*int[	 ]/ long /g;# still C' \
@@ -528,8 +535,10 @@ check_cdefstr () {
   if [ $rc -eq 0 -a "$val" != "" ]; then
     tdata="enum string ${defname} = \"$val\";"
     trc=1
+    set -f
     doappend cdefs "${tdata}
 "
+    set +f
   fi
 
   printyesno $name $trc ""
@@ -561,8 +570,10 @@ check_cdefint () {
   if [ $rc -eq 0 -a "$val" != "" ]; then
     tdata="enum int ${defname} = $val;"
     trc=1
+    set -f
     doappend cdefs "${tdata}
 "
+    set +f
   fi
 
   printyesno $name $trc ""
@@ -586,7 +597,7 @@ check_ctypeconv () {
   _c_chk_cpp ${name} "${code}" all
   rc=$?
   if [ $rc -eq 0 ]; then
-    tdata=`egrep ".*typedef.*[	 *]+${typname}.*;" $name.out 2>/dev/null`
+    tdata=`egrep ".*typedef.*[	 *]+${typname}[	 ]*;" $name.out 2>/dev/null`
     rc=$?
     if [ $rc -eq 0 ]; then
       u=""
@@ -642,15 +653,22 @@ check_ctypedef () {
   _c_chk_cpp ${name} "${code}" all
   rc=$?
   if [ $rc -eq 0 ]; then
-    tdata=`egrep ".*typedef.*[	 ]${typname}[	 ].*;" $name.out |
-        sed 's/typedef/alias/' 2>/dev/null`
+    echo "### ctypedef: grep out begin" >&9
+    egrep ".*typedef.*[	 \*]${typname}[	 ]*;([	 ]//.*)?$" $name.out >&9
+    echo "### ctypedef: grep out end" >&9
+    tdata=`egrep ".*typedef.*[	 \*]${typname}[	 ]*;([	 ]//.*)?$" $name.out 2>/dev/null`
     rc=$?
+    set -f
     echo "### ctypedef: $tdata" >&9
+    set +f
   fi
   if [ $rc -eq 0 ]; then
     trc=1
+    set -f
+    dosubst tdata typedef alias
     doappend ctypes "$tdata
 "
+    set +f
   fi
 
   printyesno $name $trc ""
@@ -786,9 +804,11 @@ check_cstruct () {
   if [ $trc -eq 1 ]; then
     doappend cchglist "-e 's/\([^a-zA-Z0-9_]\)${std}\([^a-zA-Z0-9_]\)/\1${lab}${s}\2/g' "
     doappend cchglist "-e 's/^${std}\([^a-zA-Z0-9_]\)/${lab}${s}\1/g' "
+    set -f
     doappend cstructs "
 ${st}
 "
+    set +f
     if [ "$stnm" != "" ]; then
       doappend cstructs "${lab}${s} ${stnm};
 "
@@ -887,8 +907,10 @@ check_cdcl () {
         ccount=`echo ${EN} "$c${EC}" | wc -c`
         domath ccount "$ccount + 1"  # 0==1 also
       fi
+      set -f
       doappend cdcls "${dcl};
 "
+      set +f
     fi
   fi
 
