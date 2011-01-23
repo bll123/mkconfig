@@ -571,16 +571,16 @@ check_cdefint () {
   setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
 }
 
-check_ctypesiz () {
+check_ctypeconv () {
   type=$1
   typname=$2
   shift;shift
   hdrs=$*
 
-  nm="_ctypesiz_${typname}"
+  nm="_ctypeconv_${typname}"
   name=$nm
 
-  printlabel $name "c-typesiz: ${typname}"
+  printlabel $name "c-typeconv: ${typname}"
   # no caching
 
   val=0
