@@ -1,6 +1,6 @@
-output member.dtest
+output class.dtest
 loadunit d-main
 standard
 
 import classtst
-class a
+class a ../classtst.o

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ "$1" = "-d" ]; then
-  echo ${EN} " member${EC}"
+  echo ${EN} " class${EC}"
   exit 0
 fi
 
@@ -39,12 +39,12 @@ if [ $rc -ne 0 ]; then grc=$rc; fi
 grc=0
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-class.dat
 
-grep "^enum bool _class_a = true;$" member.dtest
+grep "^enum bool _class_a = true;$" class.dtest
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
 if [ "$stag" != "" ]; then
-  mv member.dtest member.dtest${stag}
+  mv class.dtest class.dtest${stag}
   mv mkconfig.log mkconfig.log${stag}
   mv mkconfig.cache mkconfig.cache${stag}
   mv mkconfig_d.vars mkconfig_d.vars${stag}
