@@ -1,22 +1,24 @@
-output ctype.d
+output ctypeconv.d
 loadunit d-main
 standard
 
-chdr    tst4hdr.h
+csizes
 
-ctype a tst4hdr.h
-ctype b tst4hdr.h
-ctype c tst4hdr.h
-ctype d tst4hdr.h
-ctype e tst4hdr.h
-ctype f tst4hdr.h
-ctype g tst4hdr.h
-ctype h tst4hdr.h
-ctype i tst4hdr.h
-ctype j tst4hdr.h
-ctype k tst4hdr.h
-#ctype l tst4hdr.h  # struct
-ctype m tst4hdr.h
-#ctype n_t tst4hdr.h # struct
-ctype o tst4hdr.h
-#ctype p tst4hdr.h # pfunc
+chdr    typeconvhdr.h
+
+ctypeconv a typeconvhdr.h
+ctypeconv b typeconvhdr.h
+ctypeconv c typeconvhdr.h
+ctypeconv d typeconvhdr.h
+ctypeconv e typeconvhdr.h
+ctypeconv f typeconvhdr.h
+ctypeconv g typeconvhdr.h
+ctypeconv h typeconvhdr.h
+ctypeconv i typeconvhdr.h
+ctypeconv j typeconvhdr.h
+ctypeconv k typeconvhdr.h
+#ctypeconv l typeconvhdr.h  # struct
+ctypeconv m typeconvhdr.h
+#ctypeconv n_t typeconvhdr.h # struct
+ctypeconv o typeconvhdr.h
+#ctypeconv p typeconvhdr.h # pfunc
