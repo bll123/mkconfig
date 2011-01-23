@@ -98,7 +98,6 @@ _d_chk_link_libs () {
   fi
 
   tdfile=${cllname}.d
-  > ${tdfile}
   # $cllname should be unique
   exec 4>>${tdfile}
   _d_print_imports $inc >&4
@@ -172,7 +171,6 @@ _d_chk_compile () {
   inc=$3
 
   tdfile=${dfname}.d
-  > ${tdfile}
   # $dfname should be unique
   exec 4>>${tdfile}
   _d_print_imports $inc >&4
