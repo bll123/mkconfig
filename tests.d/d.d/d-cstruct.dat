@@ -2,6 +2,8 @@ output cstruct.d
 loadunit d-main
 standard
 
+csizes
+
 chdr    cstructhdr.h
 
 cstruct a cstructhdr.h
@@ -21,3 +23,29 @@ cstruct n cstructhdr.h
 cstruct o cstructhdr.h
 cstruct p cstructhdr.h
 cstruct q cstructhdr.h
+cstruct r cstructhdr.h
+cstruct s cstructhdr.h
+#cstruct t cstructhdr.h
+cstruct u cstructhdr.h
+
+cunion ua cstructhdr.h
+cunion ub cstructhdr.h
+cunion uc cstructhdr.h
+cunion ud cstructhdr.h
+cunion ue cstructhdr.h
+cunion uf cstructhdr.h
+cunion ug cstructhdr.h
+cunion uh cstructhdr.h
+cunion ui cstructhdr.h
+cunion uj cstructhdr.h
+cunion uk cstructhdr.h
+cunion ul cstructhdr.h
+cunion um cstructhdr.h
+cunion un cstructhdr.h
+cunion uo cstructhdr.h
+cunion up cstructhdr.h
+cunion uq cstructhdr.h
+cunion ur cstructhdr.h
+cunion us cstructhdr.h
+#cunion ut cstructhdr.h
+cunion uu cstructhdr.h
