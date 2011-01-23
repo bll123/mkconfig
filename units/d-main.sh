@@ -36,18 +36,16 @@ cchglist=""
 
 dump_ccode () {
 
-  if [ "${ctypes}" != "" ]; then
-    set -f
-    echo "${ctypes}"
-    set +f
-  fi
-
   ccode=""
   if [ "${cdefs}" != "" ]; then
     doappend ccode "${cdefs}"
   fi
   if [ "${cstructs}" != "" ]; then
     doappend ccode "${cstructs}"
+  fi
+  if [ "${ctypes}" != "" ]; then
+    doappend ccode "
+${ctypes}"
   fi
   if [ "${cdcls}" != "" ]; then
     doappend ccode "
@@ -627,6 +625,38 @@ check_ctypeconv () {
   setdata ${_MKCONFIG_PREFIX} ${name} ${val}
 }
 
+check_ctypedef () {
+  type=$1
+  typname=$2
+  shift;shift
+  hdrs=$*
+
+  nm="_ctypedef_${typname}"
+  name=$nm
+
+  printlabel $name "c-typedef: ${typname}"
+  # no caching
+
+  trc=0
+  code="int main () { return (0); }"
+  _c_chk_cpp ${name} "${code}" all
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    tdata=`egrep ".*typedef.*[	 ]${typname}[	 ].*;" $name.out |
+        sed 's/typedef/alias/' 2>/dev/null`
+    rc=$?
+    echo "### ctypedef: $tdata" >&9
+  fi
+  if [ $rc -eq 0 ]; then
+    trc=1
+    doappend ctypes "$tdata
+"
+  fi
+
+  printyesno $name $trc ""
+  setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
+}
+
 check_cunion () {
   check_cstruct $@
 }
@@ -661,6 +691,7 @@ check_cstruct () {
   _c_chk_cpp $name "" all
   rc=$?
   trc=0
+  rval=0
   std=""
   stnm=""
 
@@ -762,7 +793,7 @@ ${st}
       doappend cstructs "${lab}${s} ${stnm};
 "
     fi
-    if [ $rval -gt 0 ]; then
+    if [ $lab != "enum" -a $rval -gt 0 ]; then
       doappend cstructs "static assert ((${lab}${s}).sizeof == ${rval});
 "
     fi
