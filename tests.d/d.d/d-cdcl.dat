@@ -2,6 +2,8 @@ output cdcl.d
 loadunit d-main
 standard
 
+csizes
+
 chdr cdclhdr.h
 
 cdcl a cdclhdr.h

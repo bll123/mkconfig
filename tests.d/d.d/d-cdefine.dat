@@ -2,6 +2,8 @@ output cdefint.d
 loadunit d-main
 standard
 
+csizes
+
 chdr    cdefint.h
 
 cdefint a cdefint.h

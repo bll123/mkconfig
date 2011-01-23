@@ -1,5 +1,6 @@
 output clib.dtest
 loadunit d-main
 standard
+csizes
 clib printf
 clib prinft

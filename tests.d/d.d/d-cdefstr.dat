@@ -2,6 +2,8 @@ output cdefstr.d
 loadunit d-main
 standard
 
+csizes
+
 chdr    cdefstr.h
 
 cdefstr a cdefstr.h
