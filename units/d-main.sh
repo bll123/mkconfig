@@ -81,7 +81,7 @@ ${cdcls}
         -e 's/unsigned[	 ]long[	 ]*long[	 ]/uxlonglongx /g' \
         -e 's/long[	 ]*long[	 ]/xlonglongx /g' \
         -e 's/unsigned[	 ]*short[	 ]/uxshortx /g' \
-        -e 's/unsigned[	 ]*char[	 ]/uxcharx /g' \
+        -e 's/unsigned[	 ]*char[	 ]/uxbytex /g' \
         -e 's/unsigned[	 ]*int[	 ]/uxintx /g' \
         -e 's/unsigned[	 ]*long[	 ]/uxlongx /g' \
         -e 's/[	 ]char[	 ]/ xcharx /g' \
@@ -96,7 +96,8 @@ ${cdcls}
         -e "s/xlongx/${_c_long}/g" \
         -e "s/xintx/${_c_int}/g" \
         -e "s/xshortx/${_c_short}/g" \
-        -e "s/xcharx/${_c_char}/g"
+        -e "s/xcharx/${_c_char}/g" \
+        -e 's/xbytex/byte/g'
     set +f
   fi
 }
@@ -570,16 +571,16 @@ check_cdefint () {
   setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
 }
 
-check_ctype () {
+check_ctypesiz () {
   type=$1
   typname=$2
   shift;shift
   hdrs=$*
 
-  nm="_ctype_${typname}"
+  nm="_ctypesiz_${typname}"
   name=$nm
 
-  printlabel $name "c-type: ${typname}"
+  printlabel $name "c-typesiz: ${typname}"
   # no caching
 
   val=0
@@ -619,83 +620,151 @@ check_ctype () {
     esac
   fi
   if [ $rc -eq 0 ]; then
-    doappend cchglist "-e 's/[	 ]${typname}[	 ]/ ${u}${dtype} /g' "
+    doappend cchglist "-e 's/\([^a-zA-Z0-9_]\)${typname}\([^a-zA-Z0-9_]\)/\1${u}${dtype}\2/g' "
   fi
 
   printyesno_val $name $val ""
   setdata ${_MKCONFIG_PREFIX} ${name} ${val}
 }
 
+check_cunion () {
+  check_cstruct $@
+}
+
+check_cenum () {
+  check_cstruct $@
+}
+
 check_cstruct () {
   type=$1
-  sname=$2
+  s=$2
   shift;shift
   hdrs=$*
 
-  nm="_cstruct_${sname}"
+  nm="_${type}_${s}"
+  ctype=$type
+  ctype=`echo $ctype | sed -e 's/^c//'`
+  lab=C_ST_
+  case $ctype in
+    enum)
+      lab=C_ENUM_
+      ;;
+    union)
+      lab=C_UN_
+      ;;
+  esac
   name=$nm
 
-  printlabel $name "c-struct: ${sname}"
+  printlabel $name "c-${ctype}: ${s}"
   # no caching
 
   _c_chk_cpp $name "" all
   rc=$?
   trc=0
+  std=""
+  stnm=""
 
   if [ $rc -eq 0 ]; then
-    slist="`echo $sname | sed -e 's/,/ /g'`"
-    for s in $slist; do
-      # looking for the structure, but not forward dcls
-      egrep "struct[	 ]*${s}" $name.out 2>/dev/null |
-        egrep -v "struct[	 ]*${s} *;" >/dev/null 2>&1
+    st=`awk -f ${_MKCONFIG_DIR}/mkcextstruct.awk ${name}.out ${s}`
+    echo "#### initial ${ctype}" >&9
+    echo "${st}" >&9
+    echo "#### end initial ${ctype}" >&9
+
+    # is there a typedef?
+    # need to know whether the struct has a typedef name or not.
+    echo "### check for typedef w/_t" >&9
+    echo $st | egrep "typedef.*}[	 ]*${s}_t[	 ]*;" >&9 2>&1
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      std="${s}_t"
+    else
+      # sometimes typedef'd w/o _t
+      echo "### check for typedef w/o _t" >&9
+      echo $st | egrep "typedef.*}[	 ]*${s}[	 ]*;" >&9 2>&1
       rc=$?
       if [ $rc -eq 0 ]; then
-        snm="struct $s"
-        trc=1
+        std="${s}"
       fi
-      # is there a typedef?
-      # need to know this whether the struct has a name or not.
-      egrep -l "[	 ]${s}_t[	 ;]" $name.out >/dev/null 2>&1
-      rc=$?
-      if [ $rc -eq 0 ]; then
-        snm="${s}_t"
-        trc=1
+    fi
+    echo "#### std=${std}" >&9
+
+    echo "### check for named struct" >&9
+    if [ "$std" = "" ]; then
+      stnm=`echo $st | egrep "}[	 ]*[a-zA-Z0-9_]*[	 ]*;" |
+          sed -e 's/.*}[	 ]*//' -e 's/[	 ]*;$//'`
+    fi
+    echo "#### stnm=${stnm}" >&9
+
+    trc=1
+
+    tstnm=$std
+    if [ "$stnm" != "" ]; then
+      tstnm=$stnm
+    fi
+
+    st=`(
+      echo "${ctype} ${lab}${s} ";
+      # remove only first "struct $s", first "struct", typedef name,
+      # any typedef.
+      echo "${st}" |
+        sed -e 's/  / /g' \
+          -e "s/${tstnm}[	 ]*;/;/;# typedef name or named struct" \
+          -e "s/${ctype}[	 ]*${s}[	 ]*{/{/" \
+          -e "s/${ctype}[	 ]*${s}[	 ]*$//" \
+          -e 's/typedef[	 ]*//' \
+          -e "s/^${ctype}[	 ]*{/{/" \
+          -e "s/^[	 ]*${ctype}$//" |
+        grep -v '^[	 ]*$'
+      )`
+    echo "#### modified ${ctype}" >&9
+    echo "${st}" >&9
+    echo "#### end modified ${ctype}" >&9
+
+    if [ "$std" = "" ]; then
+      std=$s
+      if [ $ctype != "enum" ]; then
+        std="${ctype} ${s}"
       fi
-      if [ $trc -eq 1 ]; then
-        break
-      fi
-    done
+    fi
+    echo "#### std=${std}" >&9
 
     if [ $trc -eq 1 ]; then
-      > ${name}.c
-      code="main () { printf (\"%d\", sizeof (${snm})); return (0); }"
-      _c_chk_run ${name} "${code}" all
-      rc=$?
-      if [ $rc -lt 0 ]; then
-        _exitmkconfig $rc
+      if [ $ctype != "enum" ]; then
+        tstnm=$std
+        if [ "$stnm" != "" ]; then
+          tstnm=$stnm
+        fi
+        echo "#### check size using: ${tstnm}" >&9
+        code="main () { printf (\"%d\", sizeof (${tstnm})); return (0); }"
+        _c_chk_run ${name} "${code}" all
+        rc=$?
+        if [ $rc -lt 0 ]; then
+          _exitmkconfig $rc
+        fi
+        rval=$_retval
+        echo "#### not enum: rval=${rval}" >&9
+        if [ $rc -ne 0 ]; then
+          trc=0
+        fi
       fi
-      rval=$_retval
+    else
+      trc=0
+    fi
+  fi
 
-      if [ $rc -eq 0 ]; then
-        st=`awk -f ${_MKCONFIG_DIR}/mkcextstruct.awk ${name}.out ${s}`
-        st=`(
-          echo "struct C_ST_${s} ";
-          # remove only first "struct $s", first "struct", $s_t name,
-          # any typedef.
-          echo "${st}" |
-            sed -e 's/	/ /g' -e "s/${s}_t//" -e "s/struct *${s} *{/{/" \
-              -e "s/struct *${s} *$//" \
-              -e 's/typedef *//' -e 's/struct *{/{/' -e 's/^ *struct$//' |
-            grep -v '^ *$'
-          )`
-        doappend cchglist "-e 's/${snm}/C_ST_${s}/g' "
-        doappend cstructs "
+  if [ $trc -eq 1 ]; then
+    doappend cchglist "-e 's/\([^a-zA-Z0-9_]\)${std}\([^a-zA-Z0-9_]\)/\1${lab}${s}\2/g' "
+    doappend cchglist "-e 's/^${std}\([^a-zA-Z0-9_]\)/${lab}${s}\1/g' "
+    doappend cstructs "
 ${st}
-static assert ((C_ST_${s}).sizeof == ${rval});
 "
-      else
-        trc=0
-      fi
+    if [ "$stnm" != "" ]; then
+      doappend cstructs "${lab}${s} ${stnm};
+"
+    fi
+    if [ $rval -gt 0 ]; then
+      doappend cstructs "static assert ((${lab}${s}).sizeof == ${rval});
+"
     fi
   fi
 
