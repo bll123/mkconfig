@@ -1,11 +1,11 @@
 #!/usr/bin/awk
 
 BEGIN {
-  ststruct1 = "struct[	 ]*{"
-  ststruct2 = "struct[	]*$"
-  ststart = "struct[	 ]*" ARGV[2];
-  stforward = "struct[	 ]*" ARGV[2] "[	 ]*;";
-  stother = "struct[	 ]*" ARGV[2] "[	 ]*[*a-zA-Z_]";
+  ststruct1 = "(struct|union|enum)[	 ]*{"
+  ststruct2 = "(struct|union|enum)[	]*$"
+  ststart = "(struct|union|enum)[	 ]*" ARGV[2];
+  stforward = "(struct|union|enum)[	 ]*" ARGV[2] "[	 ]*;";
+  stother = "(struct|union|enum)[	 ]*" ARGV[2] "[	 ]*[*a-zA-Z_]";
   stend = "[	 ]" ARGV[2] "_t";
   delete ARGV[2];
   bcount = 0;
@@ -97,8 +97,9 @@ BEGIN {
         doend = 1;
       }
       ins = 0;
-    } else {
+    } else if (length (tstr) > 0) {
       # turn any named union/struct into anonymous
+      tstr = $0;
       sub (/}.*;/, "};", tstr);
       sarr [acount - 1] = tstr;
     }
