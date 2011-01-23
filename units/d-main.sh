@@ -597,7 +597,7 @@ check_ctypeconv () {
   _c_chk_cpp ${name} "${code}" all
   rc=$?
   if [ $rc -eq 0 ]; then
-    tdata=`egrep ".*typedef.*[	 *]+${typname}[	 ]*;" $name.out 2>/dev/null`
+    tdata=`egrep ".*typedef.*[	 \*]+${typname}[^a-zA-Z0-9_]" $name.out 2>/dev/null`
     rc=$?
     if [ $rc -eq 0 ]; then
       u=""
