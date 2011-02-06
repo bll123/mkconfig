@@ -15,11 +15,11 @@ clean:
 	@-$(RM) -rf tests.done tests.d/chksh* > /dev/null 2>&1
 
 realclean:
-	@$(MAKE) clean
+	@$(MAKE) clean > /dev/null 2>&1
 	@-$(RM) -rf _tmp_mkconfig _mkconfig_runtests > /dev/null 2>&1
 
 distclean:
-	@$(MAKE) realclean
+	@$(MAKE) realclean > /dev/null 2>&1
 
 ###
 
