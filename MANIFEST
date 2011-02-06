@@ -5,6 +5,9 @@ VERSION			version
 mkcextdcl.awk		script to extract C language declarations
 mkcextstruct.awk	script to extract C language structures
 mkconfig.7		manual page
+mkconfig_c.7		manual page
+mkconfig_d.7		manual page
+mkconfig_env.7		manual page
 mkconfig.pl		perl config program
 mkconfig.sh		shell config program
 mkconfig.units/		units for mkconfig.sh
