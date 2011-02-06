@@ -1,0 +1,192 @@
+.\"
+.\" $Id$
+.\" $Revision$
+.\"
+.\" mkconfig_env.7
+.\"
+.\" Copyright 2011 Brad Lanam  Walnut Creek CA USA
+.\"
+.\" brad.lanam.di_at_gmail.com
+.\"
+.\"
+.\"  Notes on terminology:
+.\"    check variable - the variable name for the check.
+.\"    check command - a command from the mkconfig config file.
+.\"    mkconfig config file - file where mkconfig check commands are read from
+.\"       not to be confused with "config.h".
+.\"    output file - file to which language units output is written
+.\"    options file -
+.\"    cache file -
+.\"    lib file - output libraries file created by mkreqlib.sh
+.\"
+.\" from perl manual pages...
+.de Vb \" Begin verbatim text
+.ft CW
+.nf
+.ne \\$1
+..
+.de Ve \" End verbatim text
+.ft R
+.fi
+..
+.\"
+.TH mkconfig_env 7 "6 Feb 2011"
+.SH Name
+mkconfig_env \- mkconfig environment units
+.\" .SH Synopsis
+.SH Description
+The environment units create an output file that can be used
+as shell script input to set your environment.
+.SH Environment Units
+.B env-systype
+.br
+The systype environment unit determines what type, revision and
+architecture of the system you are running on.
+.RS
+.TP
+\fBsystem\fP {type|rev|arch}
+.br
+The type, rev and arch check commands will create
+the _MKCONFIG_SYSTYPE, _MKCONFIG_SYSREV, and _MKCONFIG_SYSARCH
+environment variables respectively.  These
+correspond to the output of uname -s, uname -r and uname -m.
+On AIX, the oslevel check command is used to attempt to resolve the revision
+of the operating system.  On MacOSX, the revision is currently unchanged and
+does not correspond to the marketing version.
+.RE
+.PP
+.TP
+.B env-cc
+.br
+The cc environment unit determines basic flags needed to run the
+C compiler.  Since these units are interdependent on each other, they
+should be configured in the order: 32bitflags, cc, using_gcc,
+cflags, ldflags, and libs.
+.RS
+.TP
+\fB32bitflags\fP
+.br
+If used, this check command must appear before the cc, cflags, etc. commands.
+It turns off use of the 'getconf' command and other 64-bit flags.
+.TP
+\fBcc\fP
+.br
+Determines the C compiler being used (default cc).
+Sets the CC environment variable.
+.TP
+\fBusing_gcc\fP
+.br
+Sets the _MKCONFIG_USING_GCC environment variable to 'Y' if the gcc
+compiler is being used.
+.TP
+\fBcflags\fP
+.br
+Sets the CFLAGS environment variable according to the 'getconf' program
+and appropriate to the operating system and compiler.
+.TP
+\fBldflags\fP
+.br
+Sets the LDFLAGS environment variable according to the 'getconf' program
+and appropriate to the operating system and compiler.
+.TP
+\fBlibs\fP
+.br
+Sets the LIBS environment variable according to the 'getconf' program
+and appropriate to the operating system and compiler.
+.TP
+\fBshcflags\fP
+.br
+Sets the SHCFLAGS environment variable for building position
+independent code
+as appropriate to the operating system and compiler.
+.TP
+\fBshldflags\fP
+.br
+Sets the SHLDFLAGS environment variable for building a shared library
+as appropriate to the operating system and compiler.
+.TP
+\fBshareexeclinkflag\fP
+.br
+Sets the SHEXECLINK environment variable for building an executable
+against shared libraries
+as appropriate to the operating system and compiler.
+.TP
+\fBsharerunpathflag\fP
+.br
+Sets the SHRUNPATH environment variable to the
+flag for setting the shared run path
+as appropriate to the operating system and compiler.
+.RE
+.PP
+.TP
+.B env-dc
+.br
+The dc environment unit determines basic flags needed to run the
+D compiler.  The D compiler may also be dependent on the C compiler,
+so the env-cc unit should also be loaded and the C compiler environment
+should be set up.
+.RS
+.TP
+\fBdc\fP
+.br
+Determines the D compiler being used.  Sets the DC environment variable.
+Due to major differences in compiler command line options, the
+following environment variables are also set:
+.br
+DC_OPT \- Optimizer option for the compiler.
+.br
+DC_OF \- Option prepended to the output file (e.g. -ofoutname or -ooutname).
+Must be used w/o a space due to the dmd compiler usage.
+.br
+DC_RELEASE \- Option for release code.
+.br
+DC_INLINE \- Option for inline code generation.
+.br
+DC_UNITTEST \- Option for unittest code generation.
+.br
+DC_DEBUG \- Option for debug code generation.
+.br
+DC_COV \- Option for code coverage generation.
+.br
+DC_LINK \- Option to prepend to linker commands.  This should be
+prepended without a space.  Needed for the dmd compiler.  e.g.
+${DC_LINK}-L/somepath ${DC_LINK}-lmylib
+.br
+.TP
+\fBdflags\fP
+.br
+Sets the DFLAGS environment variable.
+.RE
+.TP
+.B env-extension
+.RS
+.TP
+\fBextension\fP {obj|exe|shlib}
+.br
+The obj and exe arguments correspond to the OBJ_EXT, EXE_EXT and
+SHLIB_EXT
+environment variables. These variables are set to the
+object file extension (.o, .obj), executable file
+extension (none or .exe) or the shared library extension (.so, .sl,
+.a, .dll)
+per the operating system and compiler.
+.RE
+.TP
+.B env-msgfmt
+.RS
+.TP
+\fBcmd_msgfmt\fP
+.br
+Sets the XMSGFMT environment variable to the path of the
+msgfmt or gmsgfmt command, if any.
+.RE
+.SH See Also
+iffe(1) autoconf(1) dist(7) mkconfig(7) mkconfig_d(7) mkconfig_c(7)
+.SH Bugs
+Send bug reports to: brad.lanam.di_at_gmail.com
+.SH Website
+http://www.gentoo.com/di/mkconfig.html
+.SH Author
+This program is Copyright 2011 by Brad Lanam, Walnut Creek CA
+.PP
+Brad Lanam, Walnut Creek, CA (brad.lanam.di_at_gmail.com)

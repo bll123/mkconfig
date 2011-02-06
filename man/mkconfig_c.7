@@ -1,0 +1,281 @@
+.\"
+.\" $Id$
+.\" $Revision$
+.\"
+.\" mkconfig_c.7
+.\"
+.\" Copyright 2011 Brad Lanam  Walnut Creek CA USA
+.\"
+.\" brad.lanam.di_at_gmail.com
+.\"
+.\"
+.\"  Notes on terminology:
+.\"    check variable - the variable name for the check.
+.\"    check command - a command from the mkconfig config file.
+.\"    mkconfig config file - file where mkconfig check commands are read from
+.\"       not to be confused with "config.h".
+.\"    output file - file to which language units output is written
+.\"    options file -
+.\"    cache file -
+.\"    lib file - output libraries file created by mkreqlib.sh
+.\"
+.\" from perl manual pages...
+.de Vb \" Begin verbatim text
+.ft CW
+.nf
+.ne \\$1
+..
+.de Ve \" End verbatim text
+.ft R
+.fi
+..
+.\"
+.TH mkconfig_c 7 "6 Feb 2010"
+.SH Name
+mkconfig \- mkconfig C language units
+.\" .SH Synopsis
+.SH Description
+The C language units create an include file for use by C programs.
+.SH C Language Units
+.TP
+.B c\-main
+.br
+The c\-main unit creates an include file for C programs.
+The \fIhdr\fP and \fIsys\fP directives should be listed first
+in the mkconfig configuration file so that the headers are
+available for use in the other tests.
+.RS
+.TP
+\fBstandard\fP
+.RS
+The \fIstandard\fP checks are for: the headers stdio.h, stdlib.h, sys/types.h
+and sys/param.h, the keywords \fIvoid\fP and \fIconst\fP, the
+\fIvoid *\fP type as a parameter,
+and C function prototypes.
+.PP
+Output: _hdr_stdio, _hdr_stdlib, _sys_types, _sys_param,
+_key_void, _key_const, _param_void_star and _proto_stdc.
+.RE
+.TP
+\fBhdr\fP name\-of\-header [required\-headers]
+.br
+Check for a header.
+The standard include path as set in CFLAGS is used.
+If \fIrequired\-headers\fP is specified, those headers
+are included in the compilation test before attempting
+the compilation test.
+.IP
+e.g. hdr storage/volumes.h gui/window.h
+.br
+Output: _hdr_storage_volumes, _hdr_gui_window
+.TP
+\fBsys\fP name\-of\-sys\-header [required\-headers]
+.br
+Like \fIhdr\fP, but looks in the sys/ directory.
+.IP
+e.g. sys types.h
+.br
+Output: _sys_types
+.TP
+\fBclass\fP class [libs, ...]
+.br
+Check to see if class \fIclass\fP exists.
+If the optional \fIlibs\fP are specified,
+the test will try first without the libraries, then with
+the first set of libraries specified, then the next set, etc.
+Sets of libraries to be tested are separated by commas.
+.IP
+e.g.: class os::Volumes
+.br
+Output: _class_os__Volumes
+.RS
+.PP
+Execute \fImkreqlib.sh\fP after creating the output file
+to output the libraries required for linking.  See the usage for
+\fImkreqlib.sh\fP in the lib check below.
+.RE
+.TP
+\fBconst\fP constant\-name [required\-headers]
+.br
+Check to see that a constant exists.
+If \fIrequired\-headers\fP is specified, those headers
+are included in the compilation test before attempting
+the compilation test.
+.IP
+e.g. const O_RDONLY
+.br
+Output: _const_O_RDONLY
+.TP
+\fBdcl\fP {int|ptr} variable\-name
+.br
+Check to see if \fIvariable\-name\fP is declared.
+If \fIint\fP is specified, the variable is a numeric type.
+If \fIptr\fP is specified, the variable is a pointer type.
+.IP
+e.g. dcl int errno; dcl ptr optarg
+.br
+Output: _dcl_errno, _dcl_optarg
+.TP
+\fBdefine\fP definition\-name
+.br
+Check to see if definition\-name is defined.
+.br
+.IP
+e.g. define MOUNT_LOFS
+.br
+Output: _define_mount_lofs
+.TP
+\fBkey\fP keyword
+.br
+Check to see if a C\-language keyword is reserved.
+.IP
+e.g. key volatile
+.br
+Output: _key_volatile
+.TP
+\fBlib\fP function [libs, ...]
+.br
+Check to see if the library function \fIfunction\fP exists.
+If the optional \fIlibs\fP are specified,
+the test will try first without the libraries, then with
+the first set of libraries specified linked in, then the next set, etc.
+Sets of libraries to be tested are separated by commas.
+If link libraries are specified, any value in the cache is ignored,
+and the function is retested.
+.IP
+e.g. lib gettext -lintl, -lintl -liconv
+will first test gettext, then gettext -lintl, then gettext -lintl -liconv.
+.br
+Output: _lib_gettext
+.RS
+.PP
+Execute \fImkreqlib.sh\fP after creating the output file
+to output the libraries required for linking.
+.PP
+\fImkreqlib.sh\fP creates the list of libraries required for linking
+based on the output file.  This allows the user to modify
+the output file and only the necessary libraries will be
+linked in.
+.PP
+\fImkreqlib.sh\fP is executed with a command line argument of the
+output file name created by \fImkconfig.sh\fP.
+The output library file defaults to 'mkconfig.reqlibs',
+but may be changed with the \-l command line option.
+.PP
+The string '_dollar_', if included in the library function name
+will be replaced with the '$' symbol.
+.RE
+.TP
+\fBmember\fP struct struct\-name member
+.br
+\fBmember\fP typedef\-name member
+.br
+Check to see if \fImember\fP is a member of \fIstruct struct\-name\fP
+or \fItypedef-name\fP.
+.IP
+e.g.: member struct statfs f_bsize
+.br
+Output: _mem_struct_statfs_f_bsize
+.TP
+\fBnpt\fP function [library\-requirement]
+.br
+Check to see if if \fIfunction\fP needs to have a prototype declared.
+The optional \fIlibrary\-requirement\fP should be written
+as: _lib_<funcname>.
+If \fIlibrary\-requirement\fP does not exist, _npt_<function>
+will be set to false in the output file.
+.IP
+e.g. npt getopt; npt statfs _lib_statfs
+.br
+Output: _npt_getopt
+.TP
+\fBsiz\fP type\-name
+.br
+Check the size of type\-name.
+.IP
+e.g. siz size_t
+.br
+Output: _siz_size_t
+.TP
+\fBtyp\fP type\-name
+.br
+Check to see if a type\-name exists.  type\-name may be a type or a
+structure.
+.IP
+e.g. typ size_t; typ struct tm
+.br
+Output: _typ_size_t, _typ_struct_tm
+.RE
+.TP
+.B c\-statfs\-args
+.RS
+.TP
+\fBstatfs_args\fP
+.br
+Checks to see how many arguments the statfs() system call accepts.
+.br
+Output: _statfs_args
+.RE
+.RE
+.TP
+.B c\-setmntent\-args
+.RS
+.TP
+\fBsetmentent_args\fP
+.br
+Check to see how many arguments the setmntent() system call accepts.
+.br
+Output: _setmntent_args
+.RE
+.TP
+.B c\-include\-conflict
+.RS
+.TP
+\fBinclude_conflict <header\-1> <header\-2>\fP
+.br
+Check to see if there is a compile conflict when including two headers.
+If there is a conflict, the check variable is set to 0.
+.IP
+e.g. include_conflict time.h sys/time.h
+.br
+Output: _inc_conflict__hdr_time__sys_time
+.RE
+.TP
+.B c\-quotactl
+.RS
+.TP
+\fBquotactl_pos\fP
+.br
+Check to see if the character argument is argument 1 or 2 for the quotactl()
+library function.
+.RE
+.B c\-rquota
+.RS
+.TP
+\fBrquota_xdr\fP
+.br
+Gets the type used in the rquota structure (u_int, u_long, etc.) and
+output the appropriate xdr function to use.
+.TP
+\fBgqa_uid_xdr\fP
+.br
+Gets the type used in the getquota_args structure for the gqa_uid member
+and output the appropriate xdr function to use.
+.RE
+.B c\-getfsstat
+.RS
+.TP
+\fBgetfsstat_type\fP
+.br
+Gets the type used for the second argument of getfsstat.
+.RE
+.SH See Also
+iffe(1) autoconf(1) dist(7) mkconfig(7) mkconfig_env(7) mkconfig_d(7)
+.SH Bugs
+Send bug reports to: brad.lanam.di_at_gmail.com
+.SH Website
+http://www.gentoo.com/di/mkconfig.html
+.SH Author
+This program is Copyright 2011 by Brad Lanam, Walnut Creek CA
+.PP
+Brad Lanam, Walnut Creek, CA (brad.lanam.di_at_gmail.com)

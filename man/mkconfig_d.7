@@ -1,0 +1,180 @@
+.\"
+.\" $Id$
+.\" $Revision$
+.\"
+.\" mkconfig_d.7
+.\"
+.\" Copyright 2011 Brad Lanam  Walnut Creek CA USA
+.\"
+.\" brad.lanam.di_at_gmail.com
+.\"
+.\"
+.\"  Notes on terminology:
+.\"    check variable - the variable name for the check.
+.\"    check command - a command from the mkconfig config file.
+.\"    mkconfig config file - file where mkconfig check commands are read from
+.\"       not to be confused with "config.h".
+.\"    output file - file to which language units output is written
+.\"    options file -
+.\"    cache file -
+.\"    lib file - output libraries file created by mkreqlib.sh
+.\"
+.\" from perl manual pages...
+.de Vb \" Begin verbatim text
+.ft CW
+.nf
+.ne \\$1
+..
+.de Ve \" End verbatim text
+.ft R
+.fi
+..
+.\"
+.TH mkconfig_d 7 "6 Feb 2010"
+.SH Name
+mkconfig_d \- mkconfig D language units
+.\" .SH Synopsis
+.SH Description
+The D language units create an import file for use by D programs.
+.SH D Language Units
+.TP
+.B d\-main
+.br
+The d\-main unit creates a configuration file for D programs.
+.RS
+.TP
+\fBstandard\fP
+.br
+Executes any \fIStandard\fP checks for the D language.  There
+are currently no standard checks.
+.TP
+\fBimport\fP name\-\of\-module
+.RS
+Checks to see if module can be imported.
+.IP
+e.g. import std.stdio
+.br
+Output: _import_std_stdio
+.RE
+.TP
+\fBmember\fP struct\-name member
+.br
+Check to see if \fImember\fP is a member of \fIstruct\-name\fP.
+.TP
+\fBsize\fP type\-name
+.br
+Check the size of type\-name
+.TP
+\fBlib\fP function [libs, ...]
+.br
+Check to see if the library function \fIfunction\fP exists.
+If the optional \fIlibs\fP are specified,
+the test will try first without the libraries, then with
+the first set of libraries specified linked in, then the next set, etc.
+Sets of libraries to be tested are separated by commas.
+If link libraries are specified, any value in the cache is ignored,
+and the function is retested.
+.TP
+\fBclass\fP class [libs, ...]
+.RS
+Check to see if the class \fIclass\fP exists.
+If the optional \fIlibs\fP are specified,
+the test will try first without the libraries, then with
+the first set of libraries specified, then the next set, etc.
+Sets of libraries to be tested are separated by commas.
+.RE
+.PP
+.B D Language Units \- C Language Interface
+.PP
+All C language interface checks for the D language are not
+cached.
+.TP
+\fBchdr\fP header
+.RS
+Checks to see if the C Language \fIheader\fP exists.
+The \fIchdr\fP and \fIcsys\fP check commands must appear
+before other C language check commands.
+.IP
+e.g. chdr stdlib.h
+.br
+Output: _hdr_stdlib
+.RE
+.TP
+\fBcsys\fP header
+.RS
+Checks to see if the C language sys/\fIheader\fP exists.
+The \fIchdr\fP and \fIcsys\fP check commands must appear
+before other C language check commands.
+.IP
+e.g. csys types.h
+.br
+Output: _sys_stdlib
+.RE
+.TP
+\fBclib\fP function [libs, ...]
+.RS
+Check to see if the C library function \fIfunction\fP exists.
+If the optional \fIlibs\fP are specified,
+the test will try first without the libraries, then with
+the first set of libraries specified linked in, then the next set, etc.
+Sets of libraries to be tested are separated by commas.
+.IP
+.e.g. clib quotactl
+.br
+Output: _clib_quotactl
+.RE
+.TP
+\fBcdefstr\fP def
+.br
+Checks if a C #define of \fIdef\P exists.
+A D language enum string ... will be output
+to the output file.
+.TP
+\fBcdefint\fP def
+.br
+Checks for a C #define of \fIdef\fP exists.
+A D language enum int ... will be output
+to the output file.
+.TP
+\fBctypeconv\fP type\-name
+.br
+\fItype\-name\fP will be converted to a D language type.
+This only works for basic types.  For structures or if
+the actual typedef is wanted, use ctypedef.
+.TP
+\fBctypedef\fP type\-name
+.br
+Checks for the typedef \fItype\-name\fP, and if it exists,
+outputs the D language alias for that typedef.
+.TP
+\fBcstruct\fP struct\-name
+.br
+\fBcunion\fP union\-name
+.br
+Checks to see if struct \fIstruct\-name\fP or a typedef
+definition for \fIstruct\-name\fP
+exists.  The structure will be modified for the D language and output
+to the output file.  Note that any types used by the structure must
+be checked for first using ctypeconv or ctypedef.
+.TP
+\fBcmember\fP struct\-name member
+.br
+Checks to see if \fImember\fP is a member of \fIstruct\-name\fP.
+The \fIcstruct\fP check command for the structure must appear
+before this check command.
+.TP
+\fBcdcl\fP function
+.br
+Checks to see if \fIfunction\fP is declared and outputs the
+declaration to the output file.
+.RE
+.SH See Also
+iffe(1) autoconf(1) dist(7) mkconfig(7) mkconfig_c(7) mkconfig_env(7)
+.SH Bugs
+Send bug reports to: brad.lanam.di_at_gmail.com
+.SH Website
+http://www.gentoo.com/di/mkconfig.html
+.SH Author
+This program is Copyright 2011 by Brad Lanam, Walnut Creek CA
+.PP
+Brad Lanam, Walnut Creek, CA (brad.lanam.di_at_gmail.com)
