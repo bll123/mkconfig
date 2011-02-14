@@ -38,13 +38,34 @@ typedef unsigned char f;
 typedef signed short int g;
 typedef unsigned short int h;
 typedef signed int i;
-__extension__ typedef signed long long int j;
-__extension__ typedef unsigned long long int k;
 /* __extension__ typedef struct { int __val[2]; } l; */
 __extension__ typedef void * m;
 /* typedef struct { int n; } n_t; */
 typedef void *o;
 /* typedef int (*p)(); */
+typedef float q;
+typedef double r;
+
+#endif
+_HERE_
+
+cat > typeconvhdr_ll.h << _HERE_
+#ifndef _INC_TYPECONVHDR_LL_H_
+#define _INC_TYPECONVHDR_LL_H_
+
+/* long long may not be supported */
+__extension__ typedef signed long long int j;
+__extension__ typedef unsigned long long int k;
+
+#endif
+_HERE_
+
+cat > typeconvhdr_ld.h << _HERE_
+#ifndef _INC_TYPECONVHDR_LD_H_
+#define _INC_TYPECONVHDR_LD_H_
+
+/* long double may not be supported */
+typedef long double s;
 
 #endif
 _HERE_
@@ -57,6 +78,9 @@ ssiz=`grep "^enum int _csiz_short = " ctypeconv.d | sed 's/.*= //;s/;//'`
 isiz=`grep "^enum int _csiz_int = " ctypeconv.d | sed 's/.*= //;s/;//'`
 lsiz=`grep "^enum int _csiz_long = " ctypeconv.d | sed 's/.*= //;s/;//'`
 llsiz=`grep "^enum int _csiz_long_long = " ctypeconv.d | sed 's/.*= //;s/;//'`
+fsiz=`grep "^enum int _csiz_float = " ctypeconv.d | sed 's/.*= //;s/;//'`
+dsiz=`grep "^enum int _csiz_double = " ctypeconv.d | sed 's/.*= //;s/;//'`
+ldsiz=`grep "^enum int _csiz_long_double = " ctypeconv.d | sed 's/.*= //;s/;//'`
 
 for x in a e f; do
   grep -l "^enum int _ctypeconv_${x} = ${csiz};$" ctypeconv.d > /dev/null 2>&1
@@ -90,13 +114,43 @@ for x in d; do
   fi
 done
 
-for x in j k; do
-  grep -l "^enum int _ctypeconv_${x} = ${llsiz};$" ctypeconv.d > /dev/null 2>&1
+if [ $llsiz -gt 0 ]; then
+  for x in j k; do
+    grep -l "^enum int _ctypeconv_${x} = ${llsiz};$" ctypeconv.d \
+        > /dev/null 2>&1
+    rc=$?
+    if [ $rc -ne 0 ]; then
+      grc=1
+    fi
+  done
+fi
+
+for x in q; do
+  grep -l "^enum int _ctypeconv_${x} = ${fsiz};$" ctypeconv.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     grc=1
   fi
 done
+
+for x in r; do
+  grep -l "^enum int _ctypeconv_${x} = ${dsiz};$" ctypeconv.d > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    grc=1
+  fi
+done
+
+if [ $ldsiz -gt 0 ]; then
+  for x in s; do
+    grep -l "^enum int _ctypeconv_${x} = ${ldsiz};$" ctypeconv.d \
+        > /dev/null 2>&1
+    rc=$?
+    if [ $rc -ne 0 ]; then
+      grc=1
+    fi
+  done
+fi
 
 if [ $grc -eq 0 ]; then
   ${DC} -c ${DFLAGS} ctypeconv.d
