@@ -18,7 +18,7 @@ grc=0
 
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-csyshdr.dat
 
-grep "^enum bool _sys_types = true;$" csyshdr.dtest
+egrep "^enum (: )?bool ({ )?_sys_types = true( })?;$" csyshdr.dtest
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 

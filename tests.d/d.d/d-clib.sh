@@ -23,7 +23,8 @@ grc=0
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-clib.dat
 
 echo "## diff 1"
-grep -v SYSTYPE clib.dtest | grep -v '_csiz_' | grep -v '^$' > t
+grep -v SYSTYPE clib.dtest | grep -v '_csiz_' | grep -v '^$' |
+    sed -e 's/: //' -e 's/{ //' -e 's/ }//' > t
 diff -b d-clib.ctmp t
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi

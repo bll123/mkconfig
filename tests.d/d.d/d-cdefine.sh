@@ -38,23 +38,23 @@ _HERE_
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-cdefint.dat
 grc=0
 
-grep -l "^enum bool _cdefint_a = true;$" cdefint.d > /dev/null 2>&1
+egrep -l "^enum (: )?bool ({ )?_cdefint_a = true( })?;$" cdefint.d > /dev/null 2>&1
 rc=$?
 if [ $rc -ne 0 ]; then grc=1; fi
 
-grep -l "^enum int a = 1;$" cdefint.d > /dev/null 2>&1
+egrep -l "^enum (: )?int ({ )?a = 1( })?;$" cdefint.d > /dev/null 2>&1
 rc=$?
 if [ $rc -ne 0 ]; then grc=1; fi
 
-grep -l "^enum bool _cdefint_b = true;$" cdefint.d > /dev/null 2>&1
+egrep -l "^enum (: )?bool ({ )?_cdefint_b = true( })?;$" cdefint.d > /dev/null 2>&1
 rc=$?
 if [ $rc -ne 0 ]; then grc=1; fi
 
-grep -l "^enum int b = 2;$" cdefint.d > /dev/null 2>&1
+egrep -l "^enum (: )?int ({ )?b = 2( })?;$" cdefint.d > /dev/null 2>&1
 rc=$?
 if [ $rc -ne 0 ]; then grc=1; fi
 
-grep -l "^enum bool _cdefint_c = false;$" cdefint.d > /dev/null 2>&1
+egrep -l "^enum (: )?bool ({ )?_cdefint_c = false( })?;$" cdefint.d > /dev/null 2>&1
 rc=$?
 if [ $rc -ne 0 ]; then grc=1; fi
 

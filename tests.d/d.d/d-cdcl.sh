@@ -57,7 +57,7 @@ ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-cdcl.dat
 grc=0
 
 for x in a b c d e f g h i j k l m n; do
-  grep -l "^enum bool _cdcl_${x} = true;$" cdcl.d > /dev/null 2>&1
+  egrep -l "^enum (: )?bool ({ )?_cdcl_${x} = true( })?;$" cdcl.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     grc=1
@@ -68,7 +68,7 @@ set 2 3 2 1 4
 for x in j k l m n; do
   val=$1
   shift
-  grep -l "^enum int _c_args_${x} = ${val};$" cdcl.d > /dev/null 2>&1
+  egrep -l "^enum (: )?int ({ )?_c_args_${x} = ${val}( })?;$" cdcl.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     grc=1

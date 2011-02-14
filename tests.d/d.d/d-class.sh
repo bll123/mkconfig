@@ -32,6 +32,7 @@ class a {
   int       a;
 }
 '
+
 ${DC} ${DFLAGS} -c classtst.d
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
@@ -39,7 +40,7 @@ if [ $rc -ne 0 ]; then grc=$rc; fi
 grc=0
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-class.dat
 
-grep "^enum bool _class_a = true;$" class.dtest
+egrep "^enum (: )?bool ({ )?_class_a = true( })?;$" class.dtest
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 

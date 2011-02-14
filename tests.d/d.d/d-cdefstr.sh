@@ -38,23 +38,33 @@ _HERE_
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-cdefstr.dat
 grc=0
 
-grep -l "^enum bool _cdefstr_a = true;$" cdefstr.d > /dev/null 2>&1
+egrep -l "^enum (: )?bool ({ )?_cdefstr_a = true( })?;$" cdefstr.d > /dev/null 2>&1
 rc=$?
 if [ $rc -ne 0 ]; then grc=1; fi
 
-grep -l "^enum string a = \"a\";$" cdefstr.d > /dev/null 2>&1
+if [ "$DVERSION" = 1 ]; then
+  egrep -l "^string a = \"a\"( })?;$" cdefstr.d > /dev/null 2>&1
+  rc=$?
+else
+  egrep -l "^enum string a = \"a\";$" cdefstr.d > /dev/null 2>&1
+  rc=$?
+fi
+if [ $rc -ne 0 ]; then grc=1; fi
+
+egrep -l "^enum (: )?bool ({ )?_cdefstr_b = true( })?;$" cdefstr.d > /dev/null 2>&1
 rc=$?
 if [ $rc -ne 0 ]; then grc=1; fi
 
-grep -l "^enum bool _cdefstr_b = true;$" cdefstr.d > /dev/null 2>&1
-rc=$?
+if [ "$DVERSION" = 1 ]; then
+  egrep -l "^string b = \"abc\"( })?;$" cdefstr.d > /dev/null 2>&1
+  rc=$?
+else
+  egrep -l "^enum string b = \"abc\";$" cdefstr.d > /dev/null 2>&1
+  rc=$?
+fi
 if [ $rc -ne 0 ]; then grc=1; fi
 
-grep -l "^enum string b = \"abc\";$" cdefstr.d > /dev/null 2>&1
-rc=$?
-if [ $rc -ne 0 ]; then grc=1; fi
-
-grep -l "^enum bool _cdefstr_c = false;$" cdefstr.d > /dev/null 2>&1
+egrep -l "^enum (: )?bool ({ )?_cdefstr_c = false( })?;$" cdefstr.d > /dev/null 2>&1
 rc=$?
 if [ $rc -ne 0 ]; then grc=1; fi
 

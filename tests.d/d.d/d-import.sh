@@ -17,7 +17,7 @@ script=$@
 grc=0
 
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-import.dat
-grep "^enum bool _import_std_conv = true;$" header.dtest
+egrep "^enum (: )?bool ({ )?_import_std_conv = true( })?;$" header.dtest
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 

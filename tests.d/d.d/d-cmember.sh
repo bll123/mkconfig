@@ -68,7 +68,7 @@ ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-cmember.dat
 grc=0
 
 for x in d ld lli carr; do
-  grep -l "^enum bool _cmem_a_${x} = true;$" cmember.d > /dev/null 2>&1
+  egrep -l "^enum (: )?bool ({ )?_cmem_a_${x} = true( })?;$" cmember.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     grc=1
@@ -76,7 +76,7 @@ for x in d ld lli carr; do
 done
 
 for x in xyzzy; do
-  grep -l "^enum bool _cmem_a_${x} = false;$" cmember.d > /dev/null 2>&1
+  egrep -l "^enum (: )?bool ({ )?_cmem_a_${x} = false( })?;$" cmember.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     grc=1

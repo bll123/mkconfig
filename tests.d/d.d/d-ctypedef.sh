@@ -55,7 +55,7 @@ ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-ctypedef.dat
 grc=0
 
 for x in a b c d e f g h i j k l m n o p; do
-  grep -l "^enum bool _ctypedef_${x} = true;$" ctypedef.d > /dev/null 2>&1
+  egrep -l "^enum (: )?bool ({ )?_ctypedef_${x} = true( })?;$" ctypedef.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     grc=1

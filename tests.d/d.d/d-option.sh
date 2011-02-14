@@ -23,15 +23,31 @@ TEST_OPT_SET_SPACE=abc 123
 _HERE_
 
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-option.dat
-grep "^enum string TEST_OPT_DEF = \"default\";$" d-option.dtest
-rc=$?
+if [ "$DVERSION" = 1 ]; then
+  egrep "^string TEST_OPT_DEF = \"default\";$" d-option.dtest
+  rc=$?
+else
+  egrep "^enum string TEST_OPT_DEF = \"default\";$" d-option.dtest
+  rc=$?
+fi
 if [ $rc -ne 0 ]; then grc=$rc; fi
-grep "^enum string TEST_OPT_SET = \"abc123\";$" d-option.dtest
-rc=$?
+if [ "$DVERSION" = 1 ]; then
+  egrep "^string TEST_OPT_SET = \"abc123\";$" d-option.dtest
+  rc=$?
+else
+  egrep "^enum string TEST_OPT_SET = \"abc123\";$" d-option.dtest
+  rc=$?
+fi
 if [ $rc -ne 0 ]; then grc=$rc; fi
-grep "^enum string TEST_OPT_SET_SPACE = \"abc 123\";$" d-option.dtest
-rc=$?
+if [ "$DVERSION" = 1 ]; then
+  egrep "^string TEST_OPT_SET_SPACE = \"abc 123\";$" d-option.dtest
+  rc=$?
+else
+  egrep "^enum string TEST_OPT_SET_SPACE = \"abc 123\";$" d-option.dtest
+  rc=$?
+fi
 if [ $rc -ne 0 ]; then grc=$rc; fi
+
 if [ "$stag" != "" ]; then
   mv d-option.dtest d-option.dtest${stag}
   mv mkconfig.log mkconfig.log${stag}

@@ -39,7 +39,7 @@ grc=0
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-member.dat
 
 for n in a b c d e f; do
-  grep "^enum bool _mem_my_struct_${n} = true;$" member.dtest
+  egrep "^enum (: )?bool ({ )?_mem_my_struct_${n} = true( })?;$" member.dtest
   rc=$?
   if [ $rc -ne 0 ]; then grc=$rc; fi
 done

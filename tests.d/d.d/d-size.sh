@@ -21,11 +21,12 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
 grc=0
 
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-size.dat
-v=`grep "^enum int _siz_long = 8;$" size.dtest | sed -e 's/.* //' -e 's/;$//'`
+v=`egrep "^enum (: )?int ({ )?_siz_long = 8( })?;$" size.dtest | sed -e 's/.*= //' -e 's/[ }]*;$//'`
 grc=1
 if [ "$v" = "8" ]; then
   grc=0
 fi
+
 if [ "$stag" != "" ]; then
   mv size.dtest size.dtest${stag}
   mv mkconfig.log mkconfig.log${stag}

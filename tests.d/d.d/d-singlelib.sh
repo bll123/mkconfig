@@ -37,10 +37,11 @@ fi
 ar cq libtst1lib.a tst1lib${OBJ_EXT}
 
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-singlelib.dat
-${_MKCONFIG_SHELL} ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh singlelib.dtest
+${_MKCONFIG_SHELL} -x ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh singlelib.dtest
 
 echo "## diff 1"
-grep -v 'SYSTYPE' singlelib.dtest | grep -v '^$' > t
+grep -v 'SYSTYPE' singlelib.dtest | grep -v '^$' |
+    sed -e 's/: //' -e 's/{ //' -e 's/ }//' > t
 diff -b d-singlelib.ctmp t
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi

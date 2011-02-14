@@ -73,80 +73,88 @@ _HERE_
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-ctypeconv.dat
 grc=0
 
-csiz=`grep "^enum int _csiz_char = " ctypeconv.d | sed 's/.*= //;s/;//'`
-ssiz=`grep "^enum int _csiz_short = " ctypeconv.d | sed 's/.*= //;s/;//'`
-isiz=`grep "^enum int _csiz_int = " ctypeconv.d | sed 's/.*= //;s/;//'`
-lsiz=`grep "^enum int _csiz_long = " ctypeconv.d | sed 's/.*= //;s/;//'`
-llsiz=`grep "^enum int _csiz_long_long = " ctypeconv.d | sed 's/.*= //;s/;//'`
-fsiz=`grep "^enum int _csiz_float = " ctypeconv.d | sed 's/.*= //;s/;//'`
-dsiz=`grep "^enum int _csiz_double = " ctypeconv.d | sed 's/.*= //;s/;//'`
-ldsiz=`grep "^enum int _csiz_long_double = " ctypeconv.d | sed 's/.*= //;s/;//'`
+csiz=`egrep "^enum (: )?int ({ )?_csiz_char = " ctypeconv.d | sed 's/.*= //;s/[ }]*;//'`
+ssiz=`egrep "^enum (: )?int ({ )?_csiz_short = " ctypeconv.d | sed 's/.*= //;s/[ }]*;//'`
+isiz=`egrep "^enum (: )?int ({ )?_csiz_int = " ctypeconv.d | sed 's/.*= //;s/[ }]*;//'`
+lsiz=`egrep "^enum (: )?int ({ )?_csiz_long = " ctypeconv.d | sed 's/.*= //;s/[ }]*;//'`
+llsiz=`egrep "^enum (: )?int ({ )?_csiz_long_long = " ctypeconv.d | sed 's/.*= //;s/[ }]*;//'`
+fsiz=`egrep "^enum (: )?int ({ )?_csiz_float = " ctypeconv.d | sed 's/.*= //;s/[ }]*;//'`
+dsiz=`egrep "^enum (: )?int ({ )?_csiz_double = " ctypeconv.d | sed 's/.*= //;s/[ }]*;//'`
+ldsiz=`egrep "^enum (: )?int ({ )?_csiz_long_double = " ctypeconv.d | sed 's/.*= //;s/[ }]*;//'`
 
 for x in a e f; do
-  grep -l "^enum int _ctypeconv_${x} = ${csiz};$" ctypeconv.d > /dev/null 2>&1
+  egrep -l ?"^enum (: )?int ({ )?_ctypeconv_${x} = ${csiz}( })?;$" ctypeconv.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
+    echo "test $x failed"
     grc=1
   fi
 done
 
 for x in b g h; do
-  grep -l "^enum int _ctypeconv_${x} = ${ssiz};$" ctypeconv.d > /dev/null 2>&1
+  egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${ssiz}( })?;$" ctypeconv.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
+    echo "test $x failed"
     grc=1
   fi
 done
 
 for x in c i m o; do
-  grep -l "^enum int _ctypeconv_${x} = ${isiz};$" ctypeconv.d > /dev/null 2>&1
+  egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${isiz}( })?;$" ctypeconv.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
+    echo "test $x failed"
     grc=1
   fi
 done
 
 for x in d; do
-  grep -l "^enum int _ctypeconv_${x} = ${lsiz};$" ctypeconv.d > /dev/null 2>&1
+  egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${lsiz}( })?;$" ctypeconv.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
+    echo "test $x failed"
     grc=1
   fi
 done
 
 if [ $llsiz -gt 0 ]; then
   for x in j k; do
-    grep -l "^enum int _ctypeconv_${x} = ${llsiz};$" ctypeconv.d \
+    egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${llsiz}( })?;$" ctypeconv.d \
         > /dev/null 2>&1
     rc=$?
     if [ $rc -ne 0 ]; then
+      echo "test $x failed"
       grc=1
     fi
   done
 fi
 
 for x in q; do
-  grep -l "^enum int _ctypeconv_${x} = ${fsiz};$" ctypeconv.d > /dev/null 2>&1
+  egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${fsiz}( })?;$" ctypeconv.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
+    echo "test $x failed"
     grc=1
   fi
 done
 
 for x in r; do
-  grep -l "^enum int _ctypeconv_${x} = ${dsiz};$" ctypeconv.d > /dev/null 2>&1
+  egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${dsiz}( })?;$" ctypeconv.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
+    echo "test $x failed"
     grc=1
   fi
 done
 
 if [ $ldsiz -gt 0 ]; then
   for x in s; do
-    grep -l "^enum int _ctypeconv_${x} = ${ldsiz};$" ctypeconv.d \
+    egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${ldsiz}( })?;$" ctypeconv.d \
         > /dev/null 2>&1
     rc=$?
     if [ $rc -ne 0 ]; then
+      echo "test $x failed"
       grc=1
     fi
   done
