@@ -70,11 +70,15 @@ reqlibs=""
 
 exec 7<&0 < ${CONFH}
 while read cline; do
+  #echo $cline   # debug
   case $cline in
     "#define _lib_"*1)
       lang=c
       ;;
     "enum bool _lib_"*" = true;")
+      lang=d
+      ;;
+    "enum : bool { _lib_"*" = true };")
       lang=d
       ;;
     *)
