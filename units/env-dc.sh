@@ -26,7 +26,19 @@ check_dc () {
 
   echo "dc:${DC}" >&9
 
-  printyesno_val DC "${DC}"
+  case ${DC} in
+    *dmd)
+      dver=`${DC} --help | head -1 | sed 's/.*v//;s/\..*//'`
+      ;;
+    *gdc)
+      # not very good.
+      dver=`${DC} --version | grep '[12]\.[0-9]' |
+            sed 's/.*[: ]\([12]\)\..*/\1/'`
+      ;;
+  esac
+  setdata ${_MKCONFIG_PREFIX} DVERSION $dver
+
+  printyesno_val DC "${DC}" "v${dver}"
   setdata ${_MKCONFIG_PREFIX} DC "${DC}"
 
   case ${DC} in
@@ -108,3 +120,10 @@ check_dflags () {
   setdata ${_MKCONFIG_PREFIX} DFLAGS "$dflags"
 }
 
+check_dversion () {
+  ver=$1
+
+  printlabel DVERSION "D version"
+  printyesno_val DVERSION "$ver"
+  setdata ${_MKCONFIG_PREFIX} DVERSION "$ver"
+}
