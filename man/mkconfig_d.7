@@ -30,7 +30,7 @@
 .fi
 ..
 .\"
-.TH mkconfig_d 7 "6 Feb 2010"
+.TH mkconfig_d 7 "14 Feb 2010"
 .SH Name
 mkconfig_d \- mkconfig D language units
 .\" .SH Synopsis
@@ -136,11 +136,18 @@ Checks if a C #define of \fIdef\P exists.
 A D language enum string ... will be output
 to the output file.
 .TP
-\fBctypeconv\fP type\-name
-.br
+\fBctypeconv\fP {int|float} type\-name
+.RS
 \fItype\-name\fP will be converted to a D language type.
-This only works for basic types.  For structures or if
+This only works for basic types.  The \fIint\fP or \fIfloat\fP keyword
+indicates whether or not \fItype\-name\fP is an integer type
+or a floating point type.  For structures or if
 the actual typedef is wanted, use ctypedef.
+.IP
+.e.g. ctypeconv int u_int
+.br
+Output: _ctypeconv
+.RE
 .TP
 \fBctypedef\fP type\-name
 .br
