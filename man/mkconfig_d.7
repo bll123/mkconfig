@@ -127,18 +127,19 @@ Output: _clib_quotactl
 \fBcdefint\fP def
 .br
 Checks for a C #define of \fIdef\fP exists.
-A D language enum int ... will be output
+A D language 'enum int ...' will be output
 to the output file.
 .TP
 \fBcdefstr\fP def
 .br
 Checks if a C #define of \fIdef\P exists.
-A D language enum string ... will be output
+A D language 'enum string ...' will be output
 to the output file.
 .TP
 \fBctypeconv\fP {int|float} type\-name
 .RS
-\fItype\-name\fP will be converted to a D language type.
+\fItype\-name\fP will be converted to a D language type whenever
+it is pulled from a c\-header using the cstruct or cdcl check commands.
 This only works for basic types.  The \fIint\fP or \fIfloat\fP keyword
 indicates whether or not \fItype\-name\fP is an integer type
 or a floating point type.  For structures or if
