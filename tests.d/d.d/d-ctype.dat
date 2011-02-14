@@ -5,20 +5,26 @@ standard
 csizes
 
 chdr    typeconvhdr.h
+chdr    typeconvhdr_ll.h
+chdr    typeconvhdr_ld.h
 
-ctypeconv a typeconvhdr.h
-ctypeconv b typeconvhdr.h
-ctypeconv c typeconvhdr.h
-ctypeconv d typeconvhdr.h
-ctypeconv e typeconvhdr.h
-ctypeconv f typeconvhdr.h
-ctypeconv g typeconvhdr.h
-ctypeconv h typeconvhdr.h
-ctypeconv i typeconvhdr.h
-ctypeconv j typeconvhdr.h
-ctypeconv k typeconvhdr.h
-#ctypeconv l typeconvhdr.h  # struct
-ctypeconv m typeconvhdr.h
-#ctypeconv n_t typeconvhdr.h # struct
-ctypeconv o typeconvhdr.h
-#ctypeconv p typeconvhdr.h # pfunc
+ctypeconv int a typeconvhdr.h
+ctypeconv int b typeconvhdr.h
+ctypeconv int c typeconvhdr.h
+ctypeconv int d typeconvhdr.h
+ctypeconv int e typeconvhdr.h
+ctypeconv int f typeconvhdr.h
+ctypeconv int g typeconvhdr.h
+ctypeconv int h typeconvhdr.h
+ctypeconv int i typeconvhdr.h
+if longlong _hdr_typeconvhdr_ll
+ ctypeconv int j typeconvhdr_ll.h
+ ctypeconv int k typeconvhdr_ll.h
+endif
+ctypeconv int m typeconvhdr.h
+ctypeconv int o typeconvhdr.h
+ctypeconv float q typeconvhdr.h
+ctypeconv float r typeconvhdr.h
+if longdouble _hdr_typeconvhdr_ld
+ ctypeconv float s typeconvhdr_ld.h
+endif
