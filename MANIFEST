@@ -188,6 +188,7 @@ tests.d/d.d/d-singlelib.mksh
 tests.d/d.d/d-singlelib.reqlibs
 tests.d/d.d/d-singlelib.sh
 tests.d/d.d/d-size.dat
+tests.d/d.d/d-size.env.dat
 tests.d/d.d/d-size.mksh
 tests.d/d.d/d-size.sh
 tests.d/d.d/test_order
