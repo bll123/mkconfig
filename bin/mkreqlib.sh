@@ -77,9 +77,11 @@ while read cline; do
       ;;
     "enum bool _lib_"*" = true;")
       lang=d
+      dver=2
       ;;
     "enum : bool { _lib_"*" = true };")
       lang=d
+      dver=1
       ;;
     *)
       continue
@@ -87,7 +89,12 @@ while read cline; do
   esac
 
   # bash2 can't handle # in subst
-  dosubst cline '#define ' '' ' 1' '' ' = true;' '' 'enum bool' ''
+  set -f
+  if [ $dver = 1 ]; then
+    dosubst cline ': ' '' '{ ' '' ' }' ''
+  fi
+  dosubst cline '#define ' '' ' 1' '' ' = true;' '' 'enum bool ' ''
+  set +f
   getlibdata var $cline $lang
   if [ "$var" != "" ]; then
     echo $reqlibs | grep -- $var > /dev/null 2>&1
