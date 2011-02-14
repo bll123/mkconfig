@@ -34,6 +34,48 @@ cdcls=""
 cstructs=""
 cchglist=""
 
+ENUM1=""
+ENUM2=""
+ENUM3=""
+if [ "$DVERSION" = 1 ]; then
+  ENUM1=": "
+  ENUM2="{ "
+  ENUM3=" }"
+fi
+
+_create_enum () {
+  out=F
+  type=$1
+  if [ $type = "-o" ]; then
+    out=T
+    shift
+    type=$1
+  fi
+  var=$2
+  val=$3
+
+  estr="enum "
+  e1=$ENUM1
+  e2=$ENUM2
+  e3=$ENUM3
+  strq=""
+  if [ $type = "string" ]; then
+    strq="\""
+    if [ "$DVERSION" = "1" ]; then
+      estr=""
+      e1=""
+      e2=""
+      e3=""
+    fi
+  fi
+  tenum="${estr}${e1}${type} ${e2}${var} = ${strq}${val}${strq}${e3};"
+  set -f
+  if [ $out = "T" ]; then
+    echo $tenum
+  fi
+  set +f
+}
+
 dump_ccode () {
 
   ccode=""
@@ -138,7 +180,7 @@ preconfigfile () {
 
   echo "import std.string;"
   if [ "${_MKCONFIG_SYSTYPE}" != "" ]; then
-    echo "enum string SYSTYPE = \"${_MKCONFIG_SYSTYPE}\";"
+    _create_enum -o string SYSTYPE "${_MKCONFIG_SYSTYPE}"
   fi
 
   dump_ccode
@@ -533,10 +575,10 @@ check_cdefstr () {
   trc=0
 
   if [ $rc -eq 0 -a "$val" != "" ]; then
-    tdata="enum string ${defname} = \"$val\";"
+    _create_enum string ${defname} "${val}"
     trc=1
     set -f
-    doappend cdefs "${tdata}
+    doappend cdefs "${tenum}
 "
     set +f
   fi
@@ -568,10 +610,10 @@ check_cdefint () {
   trc=0
 
   if [ $rc -eq 0 -a "$val" != "" ]; then
-    tdata="enum int ${defname} = $val;"
+    _create_enum int ${defname} ${val}
     trc=1
     set -f
-    doappend cdefs "${tdata}
+    doappend cdefs "${tenum}
 "
     set +f
   fi
@@ -911,6 +953,9 @@ check_cdcl () {
       # ; may or may not be present, so remove it.
       cmd="dcl=\`echo \"\$dcl\" | sed -e 's/extern *//' -e 's/;//' \`"
       eval $cmd
+      if [ "$DVERSION" = 1 ]; then
+        dosubst dcl 'const' ''
+      fi
       set +f
       if [ $argflag = 1 ]; then
         set -f
@@ -951,22 +996,15 @@ output_item () {
     _setint_*|_csiz_*|_siz_*|_c_args_*|_ctypeconv_*)
       tname=$name
       dosubst tname '_setint_' ''
-      set -f
-      echo "enum int ${tname} = ${val};"
-      set +f
+      _create_enum -o int ${tname} ${val}
       ;;
     _setstr_*|_opt_*)
       tname=$name
       dosubst tname '_setstr_' '' '_opt_' ''
-      set -f  # disable filename generation
-      echo "enum string ${tname} = \"${val}\";"
-      set +f
-      ;;
-    _import_*|_command_*|_chdr_*|_csys_*)
-      echo "enum bool ${name} = ${tval};"
+      _create_enum -o string ${tname} "${val}"
       ;;
     *)
-      echo "enum bool ${name} = ${tval};"
+      _create_enum -o bool ${name} "${tval}"
       ;;
   esac
 }
