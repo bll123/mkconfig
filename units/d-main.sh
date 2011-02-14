@@ -581,15 +581,15 @@ check_cdefint () {
 }
 
 check_ctypeconv () {
-  type=$1
-  typname=$2
+  type=$2
+  typname=$3
   shift;shift
   hdrs=$*
 
   nm="_ctypeconv_${typname}"
   name=$nm
 
-  printlabel $name "c-typeconv: ${typname}"
+  printlabel $name "c-typeconv: ${typname} ($type)"
   # no caching
 
   val=0
@@ -611,8 +611,7 @@ check_ctypeconv () {
       val=$_retval
     fi
   fi
-  # assumes integer type...
-  if [ $rc -eq 0 ]; then
+  if [ $type = "int" -a $rc -eq 0 ]; then
     case $val in
       1)
         dtype=byte
@@ -625,6 +624,19 @@ check_ctypeconv () {
         ;;
       8)
         dtype=long
+        ;;
+    esac
+  fi
+  if [ $type = "float" -a $rc -eq 0 ]; then
+    case $val in
+      4)
+        dtype=float
+        ;;
+      8)
+        dtype=double
+        ;;
+      *)
+        dtype=real
         ;;
     esac
   fi
@@ -936,7 +948,7 @@ output_item () {
     tval=true
   fi
   case ${name} in
-    _setint_*|_csiz_*|_siz_*|_c_args_*|_ctype_*)
+    _setint_*|_csiz_*|_siz_*|_c_args_*|_ctypeconv_*)
       tname=$name
       dosubst tname '_setint_' ''
       set -f
