@@ -315,7 +315,8 @@ check_lib () {
   fi
 
   trc=0
-  code="int main (char[][] args) { return (is(typeof(${rfunc}) == return)); }"
+  code="int main (char[][] args) { auto f = slib1_f; 
+      return (is(typeof(${rfunc}) == return)); }"
 
   _d_chk_run ${name} "${code}" all
   rc=$?
@@ -897,8 +898,7 @@ check_cmember () {
   dump_ccode >&4
   set +f
   exec 4>&-
-  code="import core.stdc.stdio;
-    void main (char[][] args) { C_ST_${struct} stmp; int i; i = stmp.${member}.sizeof; }"
+  code="void main (char[][] args) { C_ST_${struct} stmp; int i; i = stmp.${member}.sizeof; }"
 
   do_d_check_compile ${name} "${code}" all
 }
