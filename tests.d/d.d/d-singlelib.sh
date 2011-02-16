@@ -24,17 +24,18 @@ DFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"
 LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
 export DFLAGS LDFLAGS
 
-cat > tst1lib.d <<_HERE_
+cat > slib1.d <<_HERE_
 import std.stdio;
-int tst1lib_f () { writeln ("hello world"); return 0; }
+int slib1_f () { writefln ("hello world"); return 0; }
 _HERE_
 
-${DC} -c ${DFLAGS} tst1lib.d
+${DC} -c ${DFLAGS} slib1.d
 if [ $? -ne 0 ]; then
-  echo "compile tst1lib.d failed"
+  echo "compile slib1.d failed"
   exit 1
 fi
-ar cq libtst1lib.a tst1lib${OBJ_EXT}
+test -f libslib1.a && rm -f libslib1.a
+ar cq libslib1.a slib1${OBJ_EXT}
 
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-singlelib.dat
 ${_MKCONFIG_SHELL} -x ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh singlelib.dtest

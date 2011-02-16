@@ -24,29 +24,31 @@ DFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"
 LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
 export DFLAGS LDFLAGS
 
-cat > tst2libc.d <<_HERE_
+cat > mlib2.d <<_HERE_
 import std.stdio;
-int tst2libc_f () { writeln ("hello world"); return 0; }
+int mlib2_f () { writefln ("hello world"); return 0; }
 _HERE_
 
-${DC} -c ${DFLAGS} ${CPPFLAGS} tst2libc.d
+${DC} -c ${DFLAGS} ${CPPFLAGS} mlib2.d
 if [ $? -ne 0 ]; then
-  echo "compile tst2libc.d failed"
+  echo "compile mlib2.d failed"
   exit 1
 fi
-ar cq libtst2libc.a tst2libc${OBJ_EXT}
+test -f libmlib2.a && rm -f libmlib2.a
+ar cq libmlib2.a mlib2${OBJ_EXT}
 
-> tst2libb.d echo '
-import tst2libc;
-int tst2libb_f () { tst2libc_f(); return 0; }
+> mlib1.d echo '
+import mlib2;
+int mlib1_f () { mlib2_f(); return 0; }
 '
 
-${DC} -c ${DFLAGS} tst2libb.d
+${DC} -c ${DFLAGS} mlib1.d
 if [ $? -ne 0 ]; then
-  echo "compile tst2libb.d failed"
+  echo "compile mlib1.d failed"
   exit 1
 fi
-ar cq libtst2libb.a tst2libb${OBJ_EXT}
+test -f libmlib1.a && rm -f libmlib1.a
+ar cq libmlib1.a mlib1${OBJ_EXT}
 
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-multlib.dat
 ${_MKCONFIG_SHELL} ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh multlib.dtest

@@ -2,6 +2,6 @@ output multlib.dtest
 loadunit d-main
 standard
 import std.stdio
-import tst2libb
-import tst2libc
-lib tst2libb_f -ltst2libb, -ltst2libc, -ltst2libb -ltst2libc
+import mlib1
+import mlib2
+lib mlib1_f -lmlib1, -lmlib2, -lmlib1 -lmlib2
