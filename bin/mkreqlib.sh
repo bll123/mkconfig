@@ -69,6 +69,7 @@ reqlibs=""
 . $RUNTOPDIR/$CACHEFILE
 
 exec 7<&0 < ${CONFH}
+dver=0
 while read cline; do
   #echo $cline   # debug
   case $cline in
@@ -90,7 +91,7 @@ while read cline; do
 
   # bash2 can't handle # in subst
   set -f
-  if [ $dver = 1 ]; then
+  if [ $lang = "d" -a $dver -eq 1 ]; then
     dosubst cline ': ' '' '{ ' '' ' }' ''
   fi
   dosubst cline '#define ' '' ' 1' '' ' = true;' '' 'enum bool ' ''
