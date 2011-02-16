@@ -36,5 +36,23 @@ for f in *.sh; do
   rc=$?
   if [ $rc -ne 0 ];then grc=$rc; fi
 done
+cd $_MKCONFIG_DIR/tests.d/c.d
+for f in *.sh; do
+  $_MKCONFIG_SHELL -n $f
+  rc=$?
+  if [ $rc -ne 0 ];then grc=$rc; fi
+done
+cd $_MKCONFIG_DIR/tests.d/d.d
+for f in *.sh; do
+  $_MKCONFIG_SHELL -n $f
+  rc=$?
+  if [ $rc -ne 0 ];then grc=$rc; fi
+done
+cd $_MKCONFIG_DIR/tests.d/env.d
+for f in *.sh; do
+  $_MKCONFIG_SHELL -n $f
+  rc=$?
+  if [ $rc -ne 0 ];then grc=$rc; fi
+done
 
 exit $grc
