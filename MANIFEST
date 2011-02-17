@@ -180,6 +180,7 @@ tests.d/d.d/d-multlib.mksh
 tests.d/d.d/d-multlib.reqlibs
 tests.d/d.d/d-multlib.sh
 tests.d/d.d/d-option.dat
+tests.d/d.d/d-option.env.dat
 tests.d/d.d/d-option.mksh
 tests.d/d.d/d-option.sh
 tests.d/d.d/d-set.dat
