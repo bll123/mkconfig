@@ -132,6 +132,7 @@ tests.d/d.d/d-cdefstr.env.dat
 tests.d/d.d/d-cdefstr.mksh
 tests.d/d.d/d-cdefstr.sh
 tests.d/d.d/d-chdr.dat
+tests.d/d.d/d-chdr.env.dat
 tests.d/d.d/d-chdr.mksh
 tests.d/d.d/d-chdr.sh
 tests.d/d.d/d-class.dat
@@ -153,6 +154,7 @@ tests.d/d.d/d-cstruct.env.dat
 tests.d/d.d/d-cstruct.mksh
 tests.d/d.d/d-cstruct.sh
 tests.d/d.d/d-csyshdr.dat
+tests.d/d.d/d-csyshdr.env.dat
 tests.d/d.d/d-csyshdr.mksh
 tests.d/d.d/d-csyshdr.sh
 tests.d/d.d/d-ctypeconv.dat
@@ -164,9 +166,11 @@ tests.d/d.d/d-ctypedef.env.dat
 tests.d/d.d/d-ctypedef.mksh
 tests.d/d.d/d-ctypedef.sh
 tests.d/d.d/d-import.dat
+tests.d/d.d/d-import.env.dat
 tests.d/d.d/d-import.mksh
 tests.d/d.d/d-import.sh
 tests.d/d.d/d-member.dat
+tests.d/d.d/d-member.env.dat
 tests.d/d.d/d-member.mksh
 tests.d/d.d/d-member.sh
 tests.d/d.d/d-multlib.config
@@ -179,6 +183,7 @@ tests.d/d.d/d-option.dat
 tests.d/d.d/d-option.mksh
 tests.d/d.d/d-option.sh
 tests.d/d.d/d-set.dat
+tests.d/d.d/d-set.env.dat
 tests.d/d.d/d-set.mksh
 tests.d/d.d/d-set.sh
 tests.d/d.d/d-singlelib.config
