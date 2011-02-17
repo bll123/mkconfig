@@ -1,4 +1,4 @@
-output ctypeconv.d
+output dctypeconv.d
 loadunit d-main
 standard
 

@@ -1,6 +1,6 @@
 # test set
 
-output d-set.dtest
+output dset.d
 loadunit d-main
 standard
 

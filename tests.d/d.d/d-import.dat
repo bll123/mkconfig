@@ -1,4 +1,4 @@
-output header.dtest
+output dimport.d
 loadunit d-main
 standard
 

@@ -17,12 +17,20 @@ script=$@
 grc=0
 
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-import.dat
-egrep "^enum (: )?bool ({ )?_import_std_conv = true( })?;$" header.dtest
+egrep "^enum (: )?bool ({ )?_import_std_conv = true( })?;$" dimport.d
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
+if [ $grc -eq 0 ]; then
+  ${DC} -c ${DFLAGS} dimport.d
+  if [ $? -ne 0 ]; then
+    echo "compile dimport.d failed"
+    grc=1
+  fi
+fi
+
 if [ "$stag" != "" ]; then
-  mv header.dtest header.dtest${stag}
+  mv dimport.d dimport.d${stag}
   mv mkconfig.log mkconfig.log${stag}
   mv mkconfig.cache mkconfig.cache${stag}
   mv mkconfig_d.vars mkconfig_d.vars${stag}

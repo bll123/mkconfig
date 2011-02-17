@@ -1,4 +1,4 @@
-output d-option.dtest
+output doption.d
 option-file d-option.opts
 loadunit d-main
 standard

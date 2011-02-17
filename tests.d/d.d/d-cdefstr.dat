@@ -1,4 +1,4 @@
-output cdefstr.d
+output dcdefstr.d
 loadunit d-main
 standard
 

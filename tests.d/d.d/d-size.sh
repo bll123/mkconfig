@@ -21,14 +21,22 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
 grc=0
 
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-size.dat
-v=`egrep "^enum (: )?int ({ )?_siz_long = 8( })?;$" size.dtest | sed -e 's/.*= //' -e 's/[ }]*;$//'`
+v=`egrep "^enum (: )?int ({ )?_siz_long = 8( })?;$" dsize.d | sed -e 's/.*= //' -e 's/[ }]*;$//'`
 grc=1
 if [ "$v" = "8" ]; then
   grc=0
 fi
 
+if [ $grc -eq 0 ]; then
+  ${DC} -c ${DFLAGS} dsize.d
+  if [ $? -ne 0 ]; then
+    echo "compile dsize.d failed"
+    grc=1
+  fi
+fi
+
 if [ "$stag" != "" ]; then
-  mv size.dtest size.dtest${stag}
+  mv dsize.d dsize.d${stag}
   mv mkconfig.log mkconfig.log${stag}
   mv mkconfig.cache mkconfig.cache${stag}
   mv mkconfig_d.vars mkconfig_d.vars${stag}

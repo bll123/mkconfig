@@ -1,4 +1,4 @@
-output member.dtest
+output dmember.d
 loadunit d-main
 standard
 import memtst

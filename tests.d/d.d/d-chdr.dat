@@ -1,4 +1,4 @@
-output chdr.dtest
+output dchdr.d
 loadunit d-main
 standard
 

@@ -38,46 +38,46 @@ _HERE_
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-cdefstr.dat
 grc=0
 
-egrep -l "^enum (: )?bool ({ )?_cdefstr_a = true( })?;$" cdefstr.d > /dev/null 2>&1
+egrep -l "^enum (: )?bool ({ )?_cdefstr_a = true( })?;$" dcdefstr.d > /dev/null 2>&1
 rc=$?
 if [ $rc -ne 0 ]; then grc=1; fi
 
 if [ "$DVERSION" = 1 ]; then
-  egrep -l "^string a = \"a\"( })?;$" cdefstr.d > /dev/null 2>&1
+  egrep -l "^string a = \"a\"( })?;$" dcdefstr.d > /dev/null 2>&1
   rc=$?
 else
-  egrep -l "^enum string a = \"a\";$" cdefstr.d > /dev/null 2>&1
+  egrep -l "^enum string a = \"a\";$" dcdefstr.d > /dev/null 2>&1
   rc=$?
 fi
 if [ $rc -ne 0 ]; then grc=1; fi
 
-egrep -l "^enum (: )?bool ({ )?_cdefstr_b = true( })?;$" cdefstr.d > /dev/null 2>&1
+egrep -l "^enum (: )?bool ({ )?_cdefstr_b = true( })?;$" dcdefstr.d > /dev/null 2>&1
 rc=$?
 if [ $rc -ne 0 ]; then grc=1; fi
 
 if [ "$DVERSION" = 1 ]; then
-  egrep -l "^string b = \"abc\"( })?;$" cdefstr.d > /dev/null 2>&1
+  egrep -l "^string b = \"abc\"( })?;$" dcdefstr.d > /dev/null 2>&1
   rc=$?
 else
-  egrep -l "^enum string b = \"abc\";$" cdefstr.d > /dev/null 2>&1
+  egrep -l "^enum string b = \"abc\";$" dcdefstr.d > /dev/null 2>&1
   rc=$?
 fi
 if [ $rc -ne 0 ]; then grc=1; fi
 
-egrep -l "^enum (: )?bool ({ )?_cdefstr_c = false( })?;$" cdefstr.d > /dev/null 2>&1
+egrep -l "^enum (: )?bool ({ )?_cdefstr_c = false( })?;$" dcdefstr.d > /dev/null 2>&1
 rc=$?
 if [ $rc -ne 0 ]; then grc=1; fi
 
 if [ $grc -eq 0 ]; then
-  ${DC} -c ${DFLAGS} cdefstr.d
+  ${DC} -c ${DFLAGS} dcdefstr.d
   if [ $? -ne 0 ]; then
-    echo "compile cdefstr.d failed"
+    echo "compile dcdefstr.d failed"
     grc=1
   fi
 fi
 
 if [ "$stag" != "" ]; then
-  mv cdefstr.d cdefstr.d${stag}
+  mv dcdefstr.d dcdefstr.d${stag}
   mv mkconfig.log mkconfig.log${stag}
   mv mkconfig.cache mkconfig.cache${stag}
   mv mkconfig_d.vars mkconfig_d.vars${stag}

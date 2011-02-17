@@ -1,4 +1,4 @@
-output cdefint.d
+output dcdefint.d
 loadunit d-main
 standard
 

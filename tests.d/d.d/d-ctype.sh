@@ -73,17 +73,17 @@ _HERE_
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-ctypeconv.dat
 grc=0
 
-csiz=`egrep "^enum (: )?int ({ )?_csiz_char = " ctypeconv.d | sed 's/.*= //;s/[ }]*;//'`
-ssiz=`egrep "^enum (: )?int ({ )?_csiz_short = " ctypeconv.d | sed 's/.*= //;s/[ }]*;//'`
-isiz=`egrep "^enum (: )?int ({ )?_csiz_int = " ctypeconv.d | sed 's/.*= //;s/[ }]*;//'`
-lsiz=`egrep "^enum (: )?int ({ )?_csiz_long = " ctypeconv.d | sed 's/.*= //;s/[ }]*;//'`
-llsiz=`egrep "^enum (: )?int ({ )?_csiz_long_long = " ctypeconv.d | sed 's/.*= //;s/[ }]*;//'`
-fsiz=`egrep "^enum (: )?int ({ )?_csiz_float = " ctypeconv.d | sed 's/.*= //;s/[ }]*;//'`
-dsiz=`egrep "^enum (: )?int ({ )?_csiz_double = " ctypeconv.d | sed 's/.*= //;s/[ }]*;//'`
-ldsiz=`egrep "^enum (: )?int ({ )?_csiz_long_double = " ctypeconv.d | sed 's/.*= //;s/[ }]*;//'`
+csiz=`egrep "^enum (: )?int ({ )?_csiz_char = " dctypeconv.d | sed 's/.*= //;s/[ }]*;//'`
+ssiz=`egrep "^enum (: )?int ({ )?_csiz_short = " dctypeconv.d | sed 's/.*= //;s/[ }]*;//'`
+isiz=`egrep "^enum (: )?int ({ )?_csiz_int = " dctypeconv.d | sed 's/.*= //;s/[ }]*;//'`
+lsiz=`egrep "^enum (: )?int ({ )?_csiz_long = " dctypeconv.d | sed 's/.*= //;s/[ }]*;//'`
+llsiz=`egrep "^enum (: )?int ({ )?_csiz_long_long = " dctypeconv.d | sed 's/.*= //;s/[ }]*;//'`
+fsiz=`egrep "^enum (: )?int ({ )?_csiz_float = " dctypeconv.d | sed 's/.*= //;s/[ }]*;//'`
+dsiz=`egrep "^enum (: )?int ({ )?_csiz_double = " dctypeconv.d | sed 's/.*= //;s/[ }]*;//'`
+ldsiz=`egrep "^enum (: )?int ({ )?_csiz_long_double = " dctypeconv.d | sed 's/.*= //;s/[ }]*;//'`
 
 for x in a e f; do
-  egrep -l ?"^enum (: )?int ({ )?_ctypeconv_${x} = ${csiz}( })?;$" ctypeconv.d > /dev/null 2>&1
+  egrep -l ?"^enum (: )?int ({ )?_ctypeconv_${x} = ${csiz}( })?;$" dctypeconv.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     echo "test $x failed"
@@ -92,7 +92,7 @@ for x in a e f; do
 done
 
 for x in b g h; do
-  egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${ssiz}( })?;$" ctypeconv.d > /dev/null 2>&1
+  egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${ssiz}( })?;$" dctypeconv.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     echo "test $x failed"
@@ -101,7 +101,7 @@ for x in b g h; do
 done
 
 for x in c i m o; do
-  egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${isiz}( })?;$" ctypeconv.d > /dev/null 2>&1
+  egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${isiz}( })?;$" dctypeconv.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     echo "test $x failed"
@@ -110,7 +110,7 @@ for x in c i m o; do
 done
 
 for x in d; do
-  egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${lsiz}( })?;$" ctypeconv.d > /dev/null 2>&1
+  egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${lsiz}( })?;$" dctypeconv.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     echo "test $x failed"
@@ -120,7 +120,7 @@ done
 
 if [ $llsiz -gt 0 ]; then
   for x in j k; do
-    egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${llsiz}( })?;$" ctypeconv.d \
+    egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${llsiz}( })?;$" dctypeconv.d \
         > /dev/null 2>&1
     rc=$?
     if [ $rc -ne 0 ]; then
@@ -131,7 +131,7 @@ if [ $llsiz -gt 0 ]; then
 fi
 
 for x in q; do
-  egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${fsiz}( })?;$" ctypeconv.d > /dev/null 2>&1
+  egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${fsiz}( })?;$" dctypeconv.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     echo "test $x failed"
@@ -140,7 +140,7 @@ for x in q; do
 done
 
 for x in r; do
-  egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${dsiz}( })?;$" ctypeconv.d > /dev/null 2>&1
+  egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${dsiz}( })?;$" dctypeconv.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     echo "test $x failed"
@@ -150,7 +150,7 @@ done
 
 if [ $ldsiz -gt 0 ]; then
   for x in s; do
-    egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${ldsiz}( })?;$" ctypeconv.d \
+    egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${ldsiz}( })?;$" dctypeconv.d \
         > /dev/null 2>&1
     rc=$?
     if [ $rc -ne 0 ]; then
@@ -161,15 +161,15 @@ if [ $ldsiz -gt 0 ]; then
 fi
 
 if [ $grc -eq 0 ]; then
-  ${DC} -c ${DFLAGS} ctypeconv.d
+  ${DC} -c ${DFLAGS} dctypeconv.d
   if [ $? -ne 0 ]; then
-    echo "compile ctypeconv.d failed"
+    echo "compile dctypeconv.d failed"
     grc=1
   fi
 fi
 
 if [ "$stag" != "" ]; then
-  mv ctypeconv.d ctypeconv.d${stag}
+  mv dctypeconv.d dctypeconv.d${stag}
   mv mkconfig.log mkconfig.log${stag}
   mv mkconfig.cache mkconfig.cache${stag}
   mv mkconfig_d.vars mkconfig_d.vars${stag}

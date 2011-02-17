@@ -68,7 +68,7 @@ ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-cmember.dat
 grc=0
 
 for x in d ld lli carr; do
-  egrep -l "^enum (: )?bool ({ )?_cmem_a_${x} = true( })?;$" cmember.d > /dev/null 2>&1
+  egrep -l "^enum (: )?bool ({ )?_cmem_a_${x} = true( })?;$" dcmember.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     grc=1
@@ -76,15 +76,23 @@ for x in d ld lli carr; do
 done
 
 for x in xyzzy; do
-  egrep -l "^enum (: )?bool ({ )?_cmem_a_${x} = false( })?;$" cmember.d > /dev/null 2>&1
+  egrep -l "^enum (: )?bool ({ )?_cmem_a_${x} = false( })?;$" dcmember.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     grc=1
   fi
 done
 
+if [ $grc -eq 0 ]; then
+  ${DC} -c ${DFLAGS} dcmember.d
+  if [ $? -ne 0 ]; then
+    echo "compile dcmember.d failed"
+    grc=1
+  fi
+fi
+
 if [ "$stag" != "" ]; then
-  mv cmember.d cmember.d${stag}
+  mv dcmember.d dcmember.d${stag}
   mv mkconfig.log mkconfig.log${stag}
   mv mkconfig.cache mkconfig.cache${stag}
   mv mkconfig_d.vars mkconfig_d.vars${stag}

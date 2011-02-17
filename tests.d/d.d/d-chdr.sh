@@ -18,12 +18,20 @@ grc=0
 
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-chdr.dat
 
-egrep "^enum (: )?bool ({ )?_hdr_ctype = true( })?;$" chdr.dtest
+egrep "^enum (: )?bool ({ )?_hdr_ctype = true( })?;$" dchdr.d
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
+if [ $grc -eq 0 ]; then
+  ${DC} -c ${DFLAGS} dchdr.d
+  if [ $? -ne 0 ]; then
+    echo "compile dchdr.d failed"
+    grc=1
+  fi
+fi
+
 if [ "$stag" != "" ]; then
-  mv chdr.dtest chdr.dtest${stag}
+  mv dchdr.d dchdr.d${stag}
   mv mkconfig.log mkconfig.log${stag}
   mv mkconfig.cache mkconfig.cache${stag}
   mv mkconfig_d.vars mkconfig_d.vars${stag}

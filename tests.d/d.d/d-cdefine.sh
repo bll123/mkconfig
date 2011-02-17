@@ -38,36 +38,36 @@ _HERE_
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-cdefint.dat
 grc=0
 
-egrep -l "^enum (: )?bool ({ )?_cdefint_a = true( })?;$" cdefint.d > /dev/null 2>&1
+egrep -l "^enum (: )?bool ({ )?_cdefint_a = true( })?;$" dcdefint.d > /dev/null 2>&1
 rc=$?
 if [ $rc -ne 0 ]; then grc=1; fi
 
-egrep -l "^enum (: )?int ({ )?a = 1( })?;$" cdefint.d > /dev/null 2>&1
+egrep -l "^enum (: )?int ({ )?a = 1( })?;$" dcdefint.d > /dev/null 2>&1
 rc=$?
 if [ $rc -ne 0 ]; then grc=1; fi
 
-egrep -l "^enum (: )?bool ({ )?_cdefint_b = true( })?;$" cdefint.d > /dev/null 2>&1
+egrep -l "^enum (: )?bool ({ )?_cdefint_b = true( })?;$" dcdefint.d > /dev/null 2>&1
 rc=$?
 if [ $rc -ne 0 ]; then grc=1; fi
 
-egrep -l "^enum (: )?int ({ )?b = 2( })?;$" cdefint.d > /dev/null 2>&1
+egrep -l "^enum (: )?int ({ )?b = 2( })?;$" dcdefint.d > /dev/null 2>&1
 rc=$?
 if [ $rc -ne 0 ]; then grc=1; fi
 
-egrep -l "^enum (: )?bool ({ )?_cdefint_c = false( })?;$" cdefint.d > /dev/null 2>&1
+egrep -l "^enum (: )?bool ({ )?_cdefint_c = false( })?;$" dcdefint.d > /dev/null 2>&1
 rc=$?
 if [ $rc -ne 0 ]; then grc=1; fi
 
 if [ $grc -eq 0 ]; then
-  ${DC} -c ${DFLAGS} cdefint.d
+  ${DC} -c ${DFLAGS} dcdefint.d
   if [ $? -ne 0 ]; then
-    echo "compile cdefint.d failed"
+    echo "compile dcdefint.d failed"
     grc=1
   fi
 fi
 
 if [ "$stag" != "" ]; then
-  mv cdefint.d cdefint.d${stag}
+  mv dcdefint.d dcdefint.d${stag}
   mv mkconfig.log mkconfig.log${stag}
   mv mkconfig.cache mkconfig.cache${stag}
   mv mkconfig_d.vars mkconfig_d.vars${stag}

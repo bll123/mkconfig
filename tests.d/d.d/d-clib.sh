@@ -23,15 +23,23 @@ grc=0
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-clib.dat
 
 echo "## diff 1"
-grep -v SYSTYPE clib.dtest | grep -v '_csiz_' | grep -v '^$' |
+grep -v SYSTYPE dclib.d | grep -v '_csiz_' | grep -v '^$' |
     sed -e 's/: //' -e 's/{ //' -e 's/ }//' > t
 diff -b d-clib.ctmp t
 rc=$?
 if [ $rc -ne 0 ];then grc=$rc; fi
 rm -f t
 
+if [ $grc -eq 0 ]; then
+  ${DC} -c ${DFLAGS} dclib.d
+  if [ $? -ne 0 ]; then
+    echo "compile dclib.d failed"
+    grc=1
+  fi
+fi
+
 if [ "$stag" != "" ]; then
-  mv clib.dtest clib.dtest${stag}
+  mv dclib.d dclib.d${stag}
   mv mkconfig.log mkconfig.log${stag}
   mv mkconfig.cache mkconfig.cache${stag}
   mv mkconfig_d.vars mkconfig_d.vars${stag}

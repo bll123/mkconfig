@@ -1,4 +1,4 @@
-output clib.dtest
+output dclib.d
 loadunit d-main
 standard
 csizes

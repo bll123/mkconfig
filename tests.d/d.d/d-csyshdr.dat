@@ -1,4 +1,4 @@
-output csyshdr.dtest
+output dcsyshdr.d
 loadunit d-main
 standard
 

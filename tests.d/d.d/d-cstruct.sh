@@ -310,7 +310,7 @@ ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-cstruct.dat
 grc=0
 
 for x in a b c d e f g h i j k l m n o q r s u; do
-  egrep -l "^enum (: )?bool ({ )?_cstruct_${x} = true( })?;$" cstruct.d > /dev/null 2>&1
+  egrep -l "^enum (: )?bool ({ )?_cstruct_${x} = true( })?;$" dcstruct.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     grc=1
@@ -318,7 +318,7 @@ for x in a b c d e f g h i j k l m n o q r s u; do
 done
 
 for x in p; do
-  egrep -l "^enum (: )?bool ({ )?_cstruct_${x} = false( })?;$" cstruct.d > /dev/null 2>&1
+  egrep -l "^enum (: )?bool ({ )?_cstruct_${x} = false( })?;$" dcstruct.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     grc=1
@@ -326,7 +326,7 @@ for x in p; do
 done
 
 for x in ua ub uc ud ue uf ug uh ui uj uk ul um un uo uq ur us uu; do
-  egrep -l "^enum (: )?bool ({ )?_cunion_${x} = true( })?;$" cstruct.d > /dev/null 2>&1
+  egrep -l "^enum (: )?bool ({ )?_cunion_${x} = true( })?;$" dcstruct.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     grc=1
@@ -334,7 +334,7 @@ for x in ua ub uc ud ue uf ug uh ui uj uk ul um un uo uq ur us uu; do
 done
 
 for x in up; do
-  egrep -l "^enum (: )?bool ({ )?_cunion_${x} = false( })?;$" cstruct.d > /dev/null 2>&1
+  egrep -l "^enum (: )?bool ({ )?_cunion_${x} = false( })?;$" dcstruct.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     grc=1
@@ -342,15 +342,15 @@ for x in up; do
 done
 
 if [ $grc -eq 0 ]; then
-  ${DC} -c ${DFLAGS} cstruct.d
+  ${DC} -c ${DFLAGS} dcstruct.d
   if [ $? -ne 0 ]; then
-    echo "compile cstruct.d failed"
+    echo "compile dcstruct.d failed"
     grc=1
   fi
 fi
 
 if [ "$stag" != "" ]; then
-  mv cstruct.d cstruct.d${stag}
+  mv dcstruct.d dcstruct.d${stag}
   mv mkconfig.log mkconfig.log${stag}
   mv mkconfig.cache mkconfig.cache${stag}
   mv mkconfig_d.vars mkconfig_d.vars${stag}

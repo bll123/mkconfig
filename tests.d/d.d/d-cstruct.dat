@@ -1,4 +1,4 @@
-output cstruct.d
+output dcstruct.d
 loadunit d-main
 standard
 

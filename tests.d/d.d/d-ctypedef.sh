@@ -55,12 +55,12 @@ ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-ctypedef.dat
 grc=0
 
 for x in a b c d e f g h i j k l m n o p; do
-  egrep -l "^enum (: )?bool ({ )?_ctypedef_${x} = true( })?;$" ctypedef.d > /dev/null 2>&1
+  egrep -l "^enum (: )?bool ({ )?_ctypedef_${x} = true( })?;$" dctypedef.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     grc=1
   fi
-  grep -l "alias.*[ \*]${x};$" ctypedef.d > /dev/null 2>&1
+  grep -l "alias.*[ \*]${x};$" dctypedef.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     grc=1
@@ -68,15 +68,15 @@ for x in a b c d e f g h i j k l m n o p; do
 done
 
 if [ $grc -eq 0 ]; then
-  ${DC} -c ${DFLAGS} ctypedef.d
+  ${DC} -c ${DFLAGS} dctypedef.d
   if [ $? -ne 0 ]; then
-    echo "compile ctypedef.d failed"
+    echo "compile dctypedef.d failed"
     grc=1
   fi
 fi
 
 if [ "$stag" != "" ]; then
-  mv ctypedef.d ctypedef.d${stag}
+  mv dctypedef.d dctypedef.d${stag}
   mv mkconfig.log mkconfig.log${stag}
   mv mkconfig.cache mkconfig.cache${stag}
   mv mkconfig_d.vars mkconfig_d.vars${stag}
