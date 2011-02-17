@@ -110,13 +110,11 @@ ${cdcls}
     echo ""
     set -f
     echo "${ccode}" |
-      eval "sed ${cchglist} -e 's/a/a/'" |
       sed -e 's/[	 ][	 ]*/ /g' \
         -e 's,/\*[^\*]*\*/,,' \
         -e 's,//.*$,,' \
         -e 's/sizeof[	 ]*\(([^)]*)\)/\1.sizeof/g;# gcc-ism' \
         -e 's/__extension__//g;# gcc-ism' \
-        -e 's/__/_t_/g;# double underscore not allowed' \
         -e 's/\*[	 ]const/*/g; # not handled' \
         -e 's/[	 ]*\([\{\}]\)/ \1/' \
         -e 's/[	 ]long[	 ]*int[	 ]/ long /g;# still C' \
@@ -144,7 +142,9 @@ ${cdcls}
         -e "s/xintx/${_c_int}/g" \
         -e "s/xshortx/${_c_short}/g" \
         -e "s/xcharx/${_c_char}/g" \
-        -e 's/xbytex/byte/g'
+        -e 's/xbytex/byte/g' |
+      eval "sed ${cchglist} -e 's/a/a/'" | 
+      sed -e 's/__/_t_/g;# double underscore not allowed'
     set +f
   fi
 }
@@ -381,10 +381,12 @@ _map_int_csize () {
 
   eval "tnm=_csiz_${nm}"
   getdata tval ${_MKCONFIG_PREFIX} $tnm
+  mval=""
   if [ $tval -eq 1 ]; then mval=char; fi        # leave char as char
   if [ $tval -eq 2 ]; then mval=short; fi
   if [ $tval -eq 4 ]; then mval=int; fi
   if [ $tval -eq 8 ]; then mval=long; fi
+  if [ "$mval" = "" ]; then mval=long; fi
 
   eval "_c_${nm}=${mval}"
 }
@@ -394,22 +396,24 @@ _map_float_csize () {
 
   eval "tnm=_csiz_${nm}"
   getdata tval ${_MKCONFIG_PREFIX} $tnm
+  mval=""
   if [ $tval -eq 4 ]; then mval=float; fi
   if [ $tval -eq 8 ]; then mval=double; fi
   if [ $tval -eq 12 ]; then mval=real; fi
+  if [ "$mval" = "" ]; then mval=real; fi
 
   eval "_c_${nm}=${mval}"
 }
 
 check_csizes () {
-  check_csize char char
-  check_csize short short
+  check_csize int char
+  check_csize int short
   check_csize int int
-  check_csize long long
-  check_csize "long long" "long long"
+  check_csize int long
+  check_csize int "long long"
   check_csize float float
-  check_csize double double
-  check_csize "long double" "long double"
+  check_csize float double
+  check_csize float "long double"
 
   _map_int_csize char
   _map_int_csize short
@@ -422,6 +426,7 @@ check_csizes () {
 }
 
 check_csize () {
+  basetype=$1
   shift
   type=$*
   nm="_csiz_${type}"
@@ -665,7 +670,7 @@ check_ctypeconv () {
       4)
         dtype=int
         ;;
-      8)
+      *)
         dtype=long
         ;;
     esac
@@ -993,15 +998,15 @@ output_item () {
     tval=true
   fi
   case ${name} in
-    _setint_*|_csiz_*|_siz_*|_c_args_*|_ctypeconv_*)
-      tname=$name
-      dosubst tname '_setint_' ''
-      _create_enum -o int ${tname} ${val}
-      ;;
     _setstr_*|_opt_*)
       tname=$name
       dosubst tname '_setstr_' '' '_opt_' ''
       _create_enum -o string ${tname} "${val}"
+      ;;
+    _setint_*|_csiz_*|_siz_*|_c_args_*|_ctypeconv_*)
+      tname=$name
+      dosubst tname '_setint_' ''
+      _create_enum -o int ${tname} ${val}
       ;;
     *)
       _create_enum -o bool ${name} "${tval}"
