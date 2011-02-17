@@ -14,6 +14,10 @@ stag=$1
 shift
 script=$@
 
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
+    -C $_MKCONFIG_RUNTESTDIR/d-option.env.dat
+. ./option.env
+
 grc=0
 
 TMP=d-option.opts
