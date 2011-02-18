@@ -1,10 +1,16 @@
-mkconfig - configuration tool (version 1.11)
+mkconfig - configuration tool (version 1.12)
 
 Please e-mail any configuration units and the corresponding
 manual page entry to brad.lanam.di_at_gmail.com.  They will be
 included in the next release.
 
 CHANGES
+
+    1.12                                    [16 Feb 2011]
+        Added d-ctypeconv check command.
+        Renamed d-ctype to d-ctypedef.
+        Updated to work with D1.
+        More fixes for D, D-C checks.
 
     1.11                                    [29 Dec 2010]
         Fixed output of "yes with" libraries.
