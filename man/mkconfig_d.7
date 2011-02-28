@@ -30,7 +30,7 @@
 .fi
 ..
 .\"
-.TH mkconfig_d 7 "14 Feb 2010"
+.TH mkconfig_d 7 "27 Feb 2010"
 .SH Name
 mkconfig_d \- mkconfig D language units
 .\" .SH Synopsis
@@ -171,10 +171,14 @@ Checks to see if \fImember\fP is a member of \fIstruct\-name\fP.
 The \fIcstruct\fP check command for the structure must appear
 before this check command.
 .TP
-\fBcdcl\fP function
+\fBcdcl\fP [args] function
 .br
 Checks to see if \fIfunction\fP is declared and outputs the
-declaration to the output file.
+declaration to the output file.  If the \fIargs\fP keyword is
+present, the number of arguments to the function is counted,
+and the check variable: _c_args_function is writtent to the output
+file indicating the number of arguments that should be passed to
+the function.
 .RE
 .SH See Also
 iffe(1) autoconf(1) dist(7) mkconfig(7) mkconfig_c(7) mkconfig_env(7)
