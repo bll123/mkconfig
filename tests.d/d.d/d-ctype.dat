@@ -8,23 +8,23 @@ chdr    typeconvhdr.h
 chdr    typeconvhdr_ll.h
 chdr    typeconvhdr_ld.h
 
-ctypeconv int a typeconvhdr.h
-ctypeconv int b typeconvhdr.h
-ctypeconv int c typeconvhdr.h
-ctypeconv int d typeconvhdr.h
-ctypeconv int e typeconvhdr.h
-ctypeconv int f typeconvhdr.h
-ctypeconv int g typeconvhdr.h
-ctypeconv int h typeconvhdr.h
-ctypeconv int i typeconvhdr.h
+ctypeconv int a
+ctypeconv int b
+ctypeconv int c
+ctypeconv int d
+ctypeconv int e
+ctypeconv int f
+ctypeconv int g
+ctypeconv int h
+ctypeconv int i
 if longlong _hdr_typeconvhdr_ll
- ctypeconv int j typeconvhdr_ll.h
- ctypeconv int k typeconvhdr_ll.h
+ ctypeconv int j
+ ctypeconv int k
 endif
-ctypeconv int m typeconvhdr.h
-ctypeconv int o typeconvhdr.h
-ctypeconv float q typeconvhdr.h
-ctypeconv float r typeconvhdr.h
+ctypeconv int m
+ctypeconv int o
+ctypeconv float q
+ctypeconv float r
 if longdouble _hdr_typeconvhdr_ld
- ctypeconv float s typeconvhdr_ld.h
+ ctypeconv float s
 endif

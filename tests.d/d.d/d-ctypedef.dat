@@ -9,19 +9,19 @@ chdr    typedefhdr.h
 cstruct ns
 cstruct o
 
-ctypedef a typedefhdr.h
-ctypedef b typedefhdr.h
-ctypedef c typedefhdr.h
-ctypedef d typedefhdr.h
-ctypedef e typedefhdr.h
-ctypedef f typedefhdr.h
-ctypedef g typedefhdr.h
-ctypedef h typedefhdr.h
-ctypedef i typedefhdr.h
-ctypedef j typedefhdr.h
-ctypedef k typedefhdr.h
-ctypedef l typedefhdr.h
-ctypedef m typedefhdr.h
-ctypedef n typedefhdr.h
-ctypedef o typedefhdr.h
-ctypedef p typedefhdr.h
+ctypedef a
+ctypedef b
+ctypedef c
+ctypedef d
+ctypedef e
+ctypedef f
+ctypedef g
+ctypedef h
+ctypedef i
+ctypedef j
+ctypedef k
+ctypedef l
+ctypedef m
+ctypedef n
+ctypedef o
+ctypedef p

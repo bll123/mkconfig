@@ -6,17 +6,19 @@ csizes
 
 chdr cdclhdr.h
 
-cdcl a cdclhdr.h
-cdcl b cdclhdr.h
-cdcl c cdclhdr.h
-cdcl d cdclhdr.h
-cdcl e cdclhdr.h
-cdcl f cdclhdr.h
-cdcl g cdclhdr.h
-cdcl h cdclhdr.h
-cdcl i cdclhdr.h
-cdcl args j cdclhdr.h
-cdcl args k cdclhdr.h
-cdcl args l cdclhdr.h
-cdcl args m cdclhdr.h
-cdcl args n cdclhdr.h
+cdcl a
+cdcl b
+cdcl c
+cdcl d
+cdcl e
+cdcl f
+cdcl g
+cdcl h
+cdcl i
+cdcl args j
+cdcl args k
+cdcl args l
+cdcl args m
+cdcl args n
+cdcl o
+cdcl args p

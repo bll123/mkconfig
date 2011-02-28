@@ -6,6 +6,6 @@ csizes
 
 chdr    cdefstr.h
 
-cdefstr a cdefstr.h
-cdefstr b cdefstr.h
-cdefstr c cdefstr.h
+cdefstr a
+cdefstr b
+cdefstr c

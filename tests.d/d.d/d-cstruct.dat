@@ -6,46 +6,46 @@ csizes
 
 chdr    cstructhdr.h
 
-cstruct a cstructhdr.h
-cstruct b cstructhdr.h
-cstruct c cstructhdr.h
-cstruct d cstructhdr.h
-cstruct e cstructhdr.h
-cstruct f cstructhdr.h
-cstruct g cstructhdr.h
-cstruct h cstructhdr.h
-cstruct i cstructhdr.h
-cstruct j cstructhdr.h
-cstruct k cstructhdr.h
-cstruct l cstructhdr.h
-cstruct m cstructhdr.h
-cstruct n cstructhdr.h
-cstruct o cstructhdr.h
-cstruct p cstructhdr.h
-cstruct q cstructhdr.h
-cstruct r cstructhdr.h
-cstruct s cstructhdr.h
-#cstruct t cstructhdr.h
-cstruct u cstructhdr.h
+cstruct a
+cstruct b
+cstruct c
+cstruct d
+cstruct e
+cstruct f
+cstruct g
+cstruct h
+cstruct i
+cstruct j
+cstruct k
+cstruct l
+cstruct m
+cstruct n
+cstruct o
+cstruct p
+cstruct q
+cstruct r
+cstruct s
+#cstruct t
+cstruct u
 
-cunion ua cstructhdr.h
-cunion ub cstructhdr.h
-cunion uc cstructhdr.h
-cunion ud cstructhdr.h
-cunion ue cstructhdr.h
-cunion uf cstructhdr.h
-cunion ug cstructhdr.h
-cunion uh cstructhdr.h
-cunion ui cstructhdr.h
-cunion uj cstructhdr.h
-cunion uk cstructhdr.h
-cunion ul cstructhdr.h
-cunion um cstructhdr.h
-cunion un cstructhdr.h
-cunion uo cstructhdr.h
-cunion up cstructhdr.h
-cunion uq cstructhdr.h
-cunion ur cstructhdr.h
-cunion us cstructhdr.h
-#cunion ut cstructhdr.h
-cunion uu cstructhdr.h
+cunion ua
+cunion ub
+cunion uc
+cunion ud
+cunion ue
+cunion uf
+cunion ug
+cunion uh
+cunion ui
+cunion uj
+cunion uk
+cunion ul
+cunion um
+cunion un
+cunion uo
+cunion up
+cunion uq
+cunion ur
+cunion us
+#cunion ut
+cunion uu

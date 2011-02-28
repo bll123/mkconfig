@@ -6,10 +6,10 @@ csizes
 
 chdr    cmemhdr.h
 
-cstruct a cmemhdr.h
+cstruct a
 
-cmember a d cmemhdr.h
-cmember a ld cmemhdr.h
-cmember a lli cmemhdr.h
-cmember a carr cmemhdr.h
-cmember a xyzzy cmemhdr.h
+cmember a d
+cmember a ld
+cmember a lli
+cmember a carr
+cmember a xyzzy
