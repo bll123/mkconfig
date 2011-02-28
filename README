@@ -1,10 +1,13 @@
-mkconfig - configuration tool (version 1.12)
+mkconfig - configuration tool (version 1.13)
 
 Please e-mail any configuration units and the corresponding
 manual page entry to brad.lanam.di_at_gmail.com.  They will be
 included in the next release.
 
 CHANGES
+
+    1.13                                    [27 Feb 2011]
+	Handle gcc __asm__ function renames.
 
     1.12                                    [16 Feb 2011]
         Added d-ctypeconv check command.
