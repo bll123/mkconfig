@@ -85,7 +85,7 @@ for x in a e f; do
   egrep -l ?"^enum (: )?int ({ )?_ctypeconv_${x} = ${csiz}( })?;$" dctypeconv.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
-    echo "test $x failed" >&9
+    echo "## test $x failed"
     grc=1
   fi
 done
@@ -94,7 +94,7 @@ for x in b g h; do
   egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${ssiz}( })?;$" dctypeconv.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
-    echo "test $x failed" >&9
+    echo "## test $x failed"
     grc=1
   fi
 done
@@ -104,7 +104,7 @@ if [ "${_MKCONFIG_USING_GCC}" = "Y" ]; then
     egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${isiz}( })?;$" dctypeconv.d > /dev/null 2>&1
     rc=$?
     if [ $rc -ne 0 ]; then
-      echo "test $x failed" >&9
+      echo "## test $x failed"
       grc=1
     fi
   done
@@ -114,7 +114,7 @@ for x in c i o; do
   egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${isiz}( })?;$" dctypeconv.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
-    echo "test $x failed" >&9
+    echo "## test $x failed"
     grc=1
   fi
 done
@@ -123,7 +123,7 @@ for x in d; do
   egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${lsiz}( })?;$" dctypeconv.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
-    echo "test $x failed" >&9
+    echo "## test $x failed"
     grc=1
   fi
 done
@@ -134,7 +134,7 @@ if [ $llsiz -gt 0 ]; then
         > /dev/null 2>&1
     rc=$?
     if [ $rc -ne 0 ]; then
-      echo "test $x failed" >&9
+      echo "## test $x failed"
       grc=1
     fi
   done
@@ -144,7 +144,7 @@ for x in q; do
   egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${fsiz}( })?;$" dctypeconv.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
-    echo "test $x failed" >&9
+    echo "## test $x failed"
     grc=1
   fi
 done
@@ -153,7 +153,7 @@ for x in r; do
   egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${dsiz}( })?;$" dctypeconv.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
-    echo "test $x failed" >&9
+    echo "## test $x failed"
     grc=1
   fi
 done
@@ -164,7 +164,7 @@ if [ $ldsiz -gt 0 ]; then
         > /dev/null 2>&1
     rc=$?
     if [ $rc -ne 0 ]; then
-      echo "test $x failed" >&9
+      echo "## test $x failed"
       grc=1
     fi
   done
@@ -173,7 +173,7 @@ fi
 if [ $grc -eq 0 ]; then
   ${DC} -c ${DFLAGS} dctypeconv.d
   if [ $? -ne 0 ]; then
-    echo "compile dctypeconv.d failed" >&9
+    echo "## compile dctypeconv.d failed"
     grc=1
   fi
 fi

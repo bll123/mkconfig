@@ -29,7 +29,7 @@ if [ $rc -ne 0 ]; then grc=$rc; fi
 if [ $grc -eq 0 ]; then
   ${DC} -c ${DFLAGS} dchdr.d
   if [ $? -ne 0 ]; then
-    echo "compile dchdr.d failed" >&9
+    echo "## compile dchdr.d failed"
     grc=1
   fi
 fi

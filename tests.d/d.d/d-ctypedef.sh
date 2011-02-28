@@ -61,12 +61,13 @@ if [ "${_MKCONFIG_USING_GCC}" = "Y" ]; then
     egrep -l "^enum (: )?bool ({ )?_ctypedef_${x} = true( })?;$" dctypedef.d > /dev/null 2>&1
     rc=$?
     if [ $rc -ne 0 ]; then
+      echo "## check for enum ${x} failed"
       grc=1
     fi
     grep -l "alias.*[ \*]${x};$" dctypedef.d > /dev/null 2>&1
     rc=$?
     if [ $rc -ne 0 ]; then
-      echo "## check for alias ${x} failed (gcc)" >&9
+      echo "## check for alias ${x} failed (gcc)"
       grc=1
     fi
   done
@@ -76,12 +77,13 @@ for x in a b c d e f g h i m n o p; do
   egrep -l "^enum (: )?bool ({ )?_ctypedef_${x} = true( })?;$" dctypedef.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
+    echo "## check for enum ${x} failed"
     grc=1
   fi
   grep -l "alias.*[ \*]${x};$" dctypedef.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
-    echo "## check for alias ${x} failed" >&9
+    echo "## check for alias ${x} failed"
     grc=1
   fi
 done
@@ -89,7 +91,7 @@ done
 if [ $grc -eq 0 ]; then
   ${DC} -c ${DFLAGS} dctypedef.d
   if [ $? -ne 0 ]; then
-    echo "compile dctypedef.d failed" >&9
+    echo "## compile dctypedef.d failed"
     grc=1
   fi
 fi

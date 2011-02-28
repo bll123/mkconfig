@@ -69,7 +69,7 @@ if [ "${_MKCONFIG_USING_GCC}" = "Y" ]; then
     egrep -l "^enum (: )?bool ({ )?_cdcl_${x} = true( })?;$" dcdcl.d > /dev/null 2>&1
     rc=$?
     if [ $rc -ne 0 ]; then
-      echo "## check for enum _cdcl_${x} failed (gcc)" >&9
+      echo "## check for enum _cdcl_${x} failed (gcc)"
       grc=1
     fi
   done
@@ -79,7 +79,7 @@ if [ "${_MKCONFIG_USING_GCC}" = "Y" ]; then
     egrep -l "^alias ${x} ${xx};$" dcdcl.d > /dev/null 2>&1
     rc=$?
     if [ $rc -ne 0 ]; then
-      echo "## check for alias ${x} ${xx} failed (gcc)" >&9
+      echo "## check for alias ${x} ${xx} failed (gcc)"
       grc=1
     fi
   done
@@ -91,7 +91,7 @@ if [ "${_MKCONFIG_USING_GCC}" = "Y" ]; then
     egrep -l "^enum (: )?int ({ )?_c_args_${x} = ${val}( })?;$" dcdcl.d > /dev/null 2>&1
     rc=$?
     if [ $rc -ne 0 ]; then
-      echo "## check for enum _c_args_${x} failed (gcc)" >&9
+      echo "## check for enum _c_args_${x} failed (gcc)"
       grc=1
     fi
   done
@@ -101,7 +101,7 @@ for x in b c d e f g k l m n; do
   egrep -l "^enum (: )?bool ({ )?_cdcl_${x} = true( })?;$" dcdcl.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
-    echo "## check for enum _cdcl_${x} failed" >&9
+    echo "## check for enum _cdcl_${x} failed"
     grc=1
   fi
 done
@@ -114,7 +114,7 @@ for x in k l m n; do
   egrep -l "^enum (: )?int ({ )?_c_args_${x} = ${val}( })?;$" dcdcl.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
-    echo "## check for enum _c_args_${x} failed" >&9
+    echo "## check for enum _c_args_${x} failed"
     grc=1
   fi
 done
@@ -122,7 +122,7 @@ done
 if [ $grc -eq 0 ]; then
   ${DC} -c ${DFLAGS} dcdcl.d
   if [ $? -ne 0 ]; then
-    echo "compile dcdcl.d failed" >&9
+    echo "## compile dcdcl.d failed"
     grc=1
   fi
 fi

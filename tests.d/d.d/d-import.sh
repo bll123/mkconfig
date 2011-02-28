@@ -28,7 +28,7 @@ if [ $rc -ne 0 ]; then grc=$rc; fi
 if [ $grc -eq 0 ]; then
   ${DC} -c ${DFLAGS} dimport.d
   if [ $? -ne 0 ]; then
-    echo "compile dimport.d failed" >&9
+    echo "## compile dimport.d failed"
     grc=1
   fi
 fi

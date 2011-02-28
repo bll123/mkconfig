@@ -86,7 +86,7 @@ done
 if [ $grc -eq 0 ]; then
   ${DC} -c ${DFLAGS} dcmember.d
   if [ $? -ne 0 ]; then
-    echo "compile dcmember.d failed" >&9
+    echo "## compile dcmember.d failed"
     grc=1
   fi
 fi

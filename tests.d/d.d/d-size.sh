@@ -30,7 +30,7 @@ fi
 if [ $grc -eq 0 ]; then
   ${DC} -c ${DFLAGS} dsize.d
   if [ $? -ne 0 ]; then
-    echo "compile dsize.d failed" >&9
+    echo "## compile dsize.d failed"
     grc=1
   fi
 fi

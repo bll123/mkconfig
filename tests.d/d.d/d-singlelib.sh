@@ -31,7 +31,7 @@ _HERE_
 
 ${DC} -c ${DFLAGS} slib1.d
 if [ $? -ne 0 ]; then
-  echo "compile slib1.d failed" >&9
+  echo "## compile slib1.d failed"
   exit 1
 fi
 test -f libslib1.a && rm -f libslib1.a
