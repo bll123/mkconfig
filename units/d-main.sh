@@ -143,7 +143,7 @@ ${cdcls}
         -e "s/xshortx/${_c_short}/g" \
         -e "s/xcharx/${_c_char}/g" \
         -e 's/xbytex/byte/g' |
-      eval "sed ${cchglist} -e 's/a/a/'" | 
+      eval "sed ${cchglist} -e 's/a/a/'" |
       sed -e 's/__/_t_/g;# double underscore not allowed'
     set +f
   fi
@@ -315,7 +315,7 @@ check_lib () {
   fi
 
   trc=0
-  code="int main (char[][] args) { auto f = slib1_f; 
+  code="int main (char[][] args) { auto f = slib1_f;
       return (is(typeof(${rfunc}) == return)); }"
 
   _d_chk_run ${name} "${code}" all
@@ -931,8 +931,8 @@ check_cdcl () {
 
   set -f
   oldprecc="${precc}"
-  doappend precc "/* get rid of gcc-isms */
-#define __asm__(a)
+  doappend precc "/* get rid of most gcc-isms */
+/* keep __asm__ to check for function renames */
 #define __attribute__(a)
 #define __nonnull__(a,b)
 #define __restrict
@@ -941,6 +941,7 @@ check_cdcl () {
 "
   set +f
 
+  code="main () { return (0); }"
   _c_chk_cpp ${name} "${code}" all
   rc=$?
 
@@ -960,6 +961,16 @@ check_cdcl () {
       eval $cmd
       if [ "$DVERSION" = 1 ]; then
         dosubst dcl 'const' ''
+      fi
+      echo "## dcl(A): ${dcl}" >&9
+      dclren=`echo $dcl | sed -e 's/.*__asm__[ 	]*("" "\([a-z0-9A-Z_]*\)")/\1/'`
+      echo "## dclren: ${dclren}" >&9
+      if [ "$dclren" != "" ]; then
+        doappend ctypes "alias ${dclren} ${dname};
+"
+        cmd="dcl=\`echo \"\$dcl\" | sed -e 's/[ 	]*__asm__[ 	]*([^)]*)[ 	]*//' -e 's/${dname}/${dclren}/' \`"
+        eval $cmd
+        echo "## dcl(B): ${dcl}" >&9
       fi
       set +f
       if [ $argflag = 1 ]; then
