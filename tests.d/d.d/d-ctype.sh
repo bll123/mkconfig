@@ -38,11 +38,10 @@ typedef unsigned char f;
 typedef signed short int g;
 typedef unsigned short int h;
 typedef signed int i;
-/* __extension__ typedef struct { int __val[2]; } l; */
+#if __GNUC__
 __extension__ typedef void * m;
-/* typedef struct { int n; } n_t; */
+#endif
 typedef void *o;
-/* typedef int (*p)(); */
 typedef float q;
 typedef double r;
 
@@ -86,7 +85,7 @@ for x in a e f; do
   egrep -l ?"^enum (: )?int ({ )?_ctypeconv_${x} = ${csiz}( })?;$" dctypeconv.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
-    echo "test $x failed"
+    echo "test $x failed" >&9
     grc=1
   fi
 done
@@ -95,16 +94,27 @@ for x in b g h; do
   egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${ssiz}( })?;$" dctypeconv.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
-    echo "test $x failed"
+    echo "test $x failed" >&9
     grc=1
   fi
 done
 
-for x in c i m o; do
+if [ "${_MKCONFIG_USING_GCC}" = "Y" ]; then
+  for x in m; do
+    egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${isiz}( })?;$" dctypeconv.d > /dev/null 2>&1
+    rc=$?
+    if [ $rc -ne 0 ]; then
+      echo "test $x failed" >&9
+      grc=1
+    fi
+  done
+fi
+
+for x in c i o; do
   egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${isiz}( })?;$" dctypeconv.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
-    echo "test $x failed"
+    echo "test $x failed" >&9
     grc=1
   fi
 done
@@ -113,7 +123,7 @@ for x in d; do
   egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${lsiz}( })?;$" dctypeconv.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
-    echo "test $x failed"
+    echo "test $x failed" >&9
     grc=1
   fi
 done
@@ -124,7 +134,7 @@ if [ $llsiz -gt 0 ]; then
         > /dev/null 2>&1
     rc=$?
     if [ $rc -ne 0 ]; then
-      echo "test $x failed"
+      echo "test $x failed" >&9
       grc=1
     fi
   done
@@ -134,7 +144,7 @@ for x in q; do
   egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${fsiz}( })?;$" dctypeconv.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
-    echo "test $x failed"
+    echo "test $x failed" >&9
     grc=1
   fi
 done
@@ -143,7 +153,7 @@ for x in r; do
   egrep -l "^enum (: )?int ({ )?_ctypeconv_${x} = ${dsiz}( })?;$" dctypeconv.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
-    echo "test $x failed"
+    echo "test $x failed" >&9
     grc=1
   fi
 done
@@ -154,7 +164,7 @@ if [ $ldsiz -gt 0 ]; then
         > /dev/null 2>&1
     rc=$?
     if [ $rc -ne 0 ]; then
-      echo "test $x failed"
+      echo "test $x failed" >&9
       grc=1
     fi
   done
@@ -163,7 +173,7 @@ fi
 if [ $grc -eq 0 ]; then
   ${DC} -c ${DFLAGS} dctypeconv.d
   if [ $? -ne 0 ]; then
-    echo "compile dctypeconv.d failed"
+    echo "compile dctypeconv.d failed" >&9
     grc=1
   fi
 fi

@@ -38,9 +38,11 @@ typedef unsigned char f;
 typedef signed short int g;
 typedef unsigned short int h;
 typedef signed int i;
+#if __GNUC__
 __extension__ typedef signed long long int j;
 __extension__ typedef unsigned long long int k;
 __extension__ typedef void * l;
+#endif
 typedef void *m;
 struct ns { int n; };
 typedef struct ns n;
@@ -54,7 +56,23 @@ _HERE_
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-ctypedef.dat
 grc=0
 
-for x in a b c d e f g h i j k l m n o p; do
+if [ "${_MKCONFIG_USING_GCC}" = "Y" ]; then
+  for x in j k l; do
+    egrep -l "^enum (: )?bool ({ )?_ctypedef_${x} = true( })?;$" dctypedef.d > /dev/null 2>&1
+    rc=$?
+    if [ $rc -ne 0 ]; then
+      grc=1
+    fi
+    grep -l "alias.*[ \*]${x};$" dctypedef.d > /dev/null 2>&1
+    rc=$?
+    if [ $rc -ne 0 ]; then
+      echo "## check for alias ${x} failed (gcc)" >&9
+      grc=1
+    fi
+  done
+fi
+
+for x in a b c d e f g h i m n o p; do
   egrep -l "^enum (: )?bool ({ )?_ctypedef_${x} = true( })?;$" dctypedef.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
@@ -63,6 +81,7 @@ for x in a b c d e f g h i j k l m n o p; do
   grep -l "alias.*[ \*]${x};$" dctypedef.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
+    echo "## check for alias ${x} failed" >&9
     grc=1
   fi
 done
@@ -70,7 +89,7 @@ done
 if [ $grc -eq 0 ]; then
   ${DC} -c ${DFLAGS} dctypedef.d
   if [ $? -ne 0 ]; then
-    echo "compile dctypedef.d failed"
+    echo "compile dctypedef.d failed" >&9
     grc=1
   fi
 fi
