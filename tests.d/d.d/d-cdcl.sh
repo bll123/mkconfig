@@ -57,7 +57,6 @@ extern int n (int, int, char *, int);
 #if __GNUC__
 extern int o (int, int, char *, int) __asm__ ("" "o64");
 #endif
-extern int p ();
 
 #endif
 _HERE_
@@ -66,7 +65,7 @@ ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-cdcl.dat
 grc=0
 
 if [ "${_MKCONFIG_USING_GCC}" = "Y" ]; then
-  for x in a h i j o64; do
+  for x in a h i j o; do
     egrep -l "^enum (: )?bool ({ )?_cdcl_${x} = true( })?;$" dcdcl.d > /dev/null 2>&1
     rc=$?
     if [ $rc -ne 0 ]; then
@@ -98,7 +97,7 @@ if [ "${_MKCONFIG_USING_GCC}" = "Y" ]; then
   done
 fi
 
-for x in b c d e f g k l m n p; do
+for x in b c d e f g k l m n; do
   egrep -l "^enum (: )?bool ({ )?_cdcl_${x} = true( })?;$" dcdcl.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
@@ -108,8 +107,8 @@ for x in b c d e f g k l m n p; do
 done
 
 
-set 3 2 1 4 0
-for x in k l m n p; do
+set 3 2 1 4
+for x in k l m n; do
   val=$1
   shift
   egrep -l "^enum (: )?int ({ )?_c_args_${x} = ${val}( })?;$" dcdcl.d > /dev/null 2>&1
