@@ -43,7 +43,7 @@ if [ $rc -ne 0 ]; then grc=$rc; fi
 if [ $grc -eq 0 ]; then
   ${DC} -c ${DFLAGS} dset.d
   if [ $? -ne 0 ]; then
-    echo "compile dset.d failed"
+    echo "compile dset.d failed" >&9
     grc=1
   fi
 fi

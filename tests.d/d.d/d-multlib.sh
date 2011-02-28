@@ -31,7 +31,7 @@ _HERE_
 
 ${DC} -c ${DFLAGS} ${CPPFLAGS} mlib2.d
 if [ $? -ne 0 ]; then
-  echo "compile mlib2.d failed"
+  echo "compile mlib2.d failed" >&9
   exit 1
 fi
 test -f libmlib2.a && rm -f libmlib2.a

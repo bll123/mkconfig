@@ -344,7 +344,7 @@ done
 if [ $grc -eq 0 ]; then
   ${DC} -c ${DFLAGS} dcstruct.d
   if [ $? -ne 0 ]; then
-    echo "compile dcstruct.d failed"
+    echo "compile dcstruct.d failed" >&9
     grc=1
   fi
 fi

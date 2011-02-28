@@ -71,7 +71,7 @@ if [ $rc -ne 0 ]; then grc=1; fi
 if [ $grc -eq 0 ]; then
   ${DC} -c ${DFLAGS} dcdefstr.d
   if [ $? -ne 0 ]; then
-    echo "compile dcdefstr.d failed"
+    echo "compile dcdefstr.d failed" >&9
     grc=1
   fi
 fi

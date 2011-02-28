@@ -47,7 +47,7 @@ if [ $rc -ne 0 ]; then grc=$rc; fi
 if [ $grc -eq 0 ]; then
   ${DC} -c ${DFLAGS} dclass.d
   if [ $? -ne 0 ]; then
-    echo "compile dclass.d failed"
+    echo "compile dclass.d failed" >&9
     grc=1
   fi
 fi

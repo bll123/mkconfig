@@ -61,7 +61,7 @@ if [ $rc -ne 0 ]; then grc=1; fi
 if [ $grc -eq 0 ]; then
   ${DC} -c ${DFLAGS} dcdefint.d
   if [ $? -ne 0 ]; then
-    echo "compile dcdefint.d failed"
+    echo "compile dcdefint.d failed" >&9
     grc=1
   fi
 fi

@@ -33,7 +33,7 @@ rm -f t
 if [ $grc -eq 0 ]; then
   ${DC} -c ${DFLAGS} dclib.d
   if [ $? -ne 0 ]; then
-    echo "compile dclib.d failed"
+    echo "compile dclib.d failed" >&9
     grc=1
   fi
 fi
