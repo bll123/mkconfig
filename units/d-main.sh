@@ -562,7 +562,6 @@ check_cdefstr () {
   type=$1
   defname=$2
   shift;shift
-  hdrs=$*
 
   nm="_cdefstr_${defname}"
   name=$nm
@@ -597,7 +596,6 @@ check_cdefint () {
   type=$1
   defname=$2
   shift;shift
-  hdrs=$*
 
   nm="_cdefint_${defname}"
   name=$nm
@@ -632,7 +630,6 @@ check_ctypeconv () {
   type=$2
   typname=$3
   shift;shift
-  hdrs=$*
 
   nm="_ctypeconv_${typname}"
   name=$nm
@@ -700,7 +697,6 @@ check_ctypedef () {
   type=$1
   typname=$2
   shift;shift
-  hdrs=$*
 
   nm="_ctypedef_${typname}"
   name=$nm
@@ -709,8 +705,8 @@ check_ctypedef () {
   # no caching
 
   trc=0
-  code="int main () { return (0); }"
-  _c_chk_cpp ${name} "${code}" all
+  code=""
+  _c_chk_cpp ${name} "" all
   rc=$?
   if [ $rc -eq 0 ]; then
     echo "### ctypedef: grep out begin" >&9
@@ -747,7 +743,6 @@ check_cstruct () {
   type=$1
   s=$2
   shift;shift
-  hdrs=$*
 
   nm="_${type}_${s}"
   ctype=$type
@@ -766,6 +761,7 @@ check_cstruct () {
   printlabel $name "c-${ctype}: ${s}"
   # no caching
 
+  code=""
   _c_chk_cpp $name "" all
   rc=$?
   trc=0
@@ -919,7 +915,6 @@ check_cdcl () {
     dname=$1
     shift
   fi
-  hdrs=$*
 
   nm="_cdcl_${dname}"
   name=$nm
@@ -941,8 +936,8 @@ check_cdcl () {
 "
   set +f
 
-  code="main () { return (0); }"
-  _c_chk_cpp ${name} "${code}" all
+  code=""
+  _c_chk_cpp ${name} "" all
   rc=$?
 
   if [ $rc -eq 0 ]; then
@@ -983,7 +978,7 @@ check_cdcl () {
         c=`echo ${dcl} | sed 's/[^,]*//g'`
         set +f
         ccount=`echo ${EN} "$c${EC}" | wc -c`
-        domath ccount "$ccount + 1"  # 0==1 also
+        domath ccount "$ccount + 1"  # 0==1 also, unfortunately
       fi
       set -f
       doappend cdcls "${dcl};
