@@ -963,7 +963,12 @@ check_cdcl () {
         dosubst dcl 'const' ''
       fi
       echo "## dcl(A): ${dcl}" >&9
-      dclren=`echo $dcl | sed -e 's/.*__asm__[ 	]*("" "\([a-z0-9A-Z_]*\)")/\1/'`
+      echo $dcl | grep __asm__ > /dev/null 2>&1
+      rc=$?
+      dclren=""
+      if [ $rc -eq 0 ]; then
+        dclren=`echo $dcl | sed -e 's/.*__asm__[ 	]*("" "\([a-z0-9A-Z_]*\)")/\1/'`
+      fi
       echo "## dclren: ${dclren}" >&9
       if [ "$dclren" != "" ]; then
         doappend ctypes "alias ${dclren} ${dname};
