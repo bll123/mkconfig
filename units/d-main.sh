@@ -29,10 +29,12 @@ PI_ALL=F
 chdr_standard_done=F
 
 cdefs=""
-ctypes=""
 cdcls=""
+ctypes=""
 cstructs=""
 cchglist=""
+daliases=""
+dasserts=""
 
 ENUM1=""
 ENUM2=""
@@ -84,15 +86,14 @@ dump_ccode () {
     doappend ccode "${cdefs}"
     set +f
   fi
+  if [ "${ctypes}" != "" ]; then
+    set -f
+    doappend ccode "${ctypes}"
+    set +f
+  fi
   if [ "${cstructs}" != "" ]; then
     set -f
     doappend ccode "${cstructs}"
-    set +f
-  fi
-  if [ "${ctypes}" != "" ]; then
-    set -f
-    doappend ccode "
-${ctypes}"
     set +f
   fi
   if [ "${cdcls}" != "" ]; then
@@ -144,9 +145,20 @@ ${cdcls}
         -e "s/xcharx/${_c_char}/g" \
         -e 's/xbytex/byte/g' |
       eval "sed ${cchglist} -e 's/a/a/'" |
-      sed -e 's/__/_t_/g;# double underscore not allowed'
+      sed -e 's/ __/ _t_/g;# leading double underscore not allowed'
     set +f
   fi
+  if [ "${daliases}" != "" ]; then
+    set -f
+    echo "${daliases}"
+    set +f
+  fi
+  if [ "${dasserts}" != "" ]; then
+    set -f
+    echo "${dasserts}"
+    set +f
+  fi
+
 }
 
 create_chdr_nm () {
@@ -626,34 +638,43 @@ check_cdefint () {
   setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
 }
 
-check_ctypeconv () {
+check_ctype () {
   type=$2
   typname=$3
   shift;shift
 
-  nm="_ctypeconv_${typname}"
+  nm="_ctype_${typname}"
   name=$nm
 
-  printlabel $name "c-typeconv: ${typname} ($type)"
+  printlabel $name "c-type: ${typname} ($type)"
   # no caching
 
   val=0
+  u=""
   code="int main () { printf (\"%u\", sizeof(${typname})); return (0); }"
   _c_chk_cpp ${name} "${code}" all
   rc=$?
   if [ $rc -eq 0 ]; then
-    tdata=`egrep ".*typedef.*[	 \*]+${typname}[^a-zA-Z0-9_]" $name.out 2>/dev/null`
+    tdata=`egrep ".*typedef.*[	 \*]+${typname}[	 ]*;" $name.out 2>/dev/null |
+        sed -e 's/ *__attribute__ *(.*) *//' `
     rc=$?
     if [ $rc -eq 0 ]; then
-      u=""
-      case $tdata in
-        *unsigned*)
-          u=u
-          ;;
-      esac
       _c_chk_run ${name} "${code}" all
       rc=$?
       val=$_retval
+    fi
+  fi
+  if [ $rc -eq 0 ]; then
+    code="int main () { int rc; ${typname} ww; ww = ~ 0; rc = ww < 0 ? 0 : 1;
+        printf (\"%d\", rc); return (0); }"
+    _c_chk_run ${name}_uchk "${code}" all
+    rc=$?
+    uval=$_retval
+    if [ $rc -ne 0 ]; then
+      uval=0
+    fi
+    if [ $uval -eq 1 ]; then
+      u=u
     fi
   fi
   if [ $type = "int" -a $rc -eq 0 ]; then
@@ -686,7 +707,13 @@ check_ctypeconv () {
     esac
   fi
   if [ $rc -eq 0 ]; then
-    doappend cchglist "-e 's/\([^a-zA-Z0-9_]\)${typname}\([^a-zA-Z0-9_]\)/\1${u}${dtype}\2/g' "
+    ntypname=$typname
+    ntypname=_CT_${ntypname}
+    doappend daliases "alias ${u}${dtype} ${ntypname};
+"
+    doappend dasserts "static assert ((${ntypname}).sizeof == ${val});
+"
+    doappend cchglist "-e 's/\([^a-zA-Z0-9_]\)${typname}\([^a-zA-Z0-9_]\)/\1${ntypname}\2/g' "
   fi
 
   printyesno_val $name $val ""
@@ -870,7 +897,7 @@ ${st}
 "
     fi
     if [ $lab != "enum" -a $rval -gt 0 ]; then
-      doappend cstructs "static assert ((${lab}${s}).sizeof == ${rval});
+      doappend dasserts "static assert ((${lab}${s}).sizeof == ${rval});
 "
     fi
   fi
@@ -966,12 +993,17 @@ check_cdcl () {
       fi
       echo "## dclren: ${dclren}" >&9
       if [ "$dclren" != "" ]; then
-        doappend ctypes "alias ${dclren} ${dname};
+        doappend daliases "alias ${dclren} ${dname};
 "
-        cmd="dcl=\`echo \"\$dcl\" | sed -e 's/[ 	]*__asm__[ 	]*([^)]*)[ 	]*//' -e 's/${dname}/${dclren}/' \`"
+        cmd="dcl=\`echo \"\$dcl\" | \
+            sed -e 's/[ 	]*__asm__[ 	]*([^)]*)[ 	]*//' \
+            -e 's/${dname}/${dclren}/' \`"
         eval $cmd
         echo "## dcl(B): ${dcl}" >&9
       fi
+      cmd="dcl=\`echo \"\$dcl\" | sed -e 's/( *void *)/()/' \`"
+      eval $cmd
+      echo "## dcl(C): ${dcl}" >&9
       set +f
       if [ $argflag = 1 ]; then
         set -f
@@ -981,7 +1013,7 @@ check_cdcl () {
         domath ccount "$ccount + 1"  # 0==1 also, unfortunately
       fi
       set -f
-      doappend cdcls "${dcl};
+      doappend cdcls " ${dcl};
 "
       set +f
     fi
@@ -1014,7 +1046,7 @@ output_item () {
       dosubst tname '_setstr_' '' '_opt_' ''
       _create_enum -o string ${tname} "${val}"
       ;;
-    _setint_*|_csiz_*|_siz_*|_c_args_*|_ctypeconv_*)
+    _setint_*|_csiz_*|_siz_*|_c_args_*|_ctype_*)
       tname=$name
       dosubst tname '_setint_' ''
       _create_enum -o int ${tname} ${val}
