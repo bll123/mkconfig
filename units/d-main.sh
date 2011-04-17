@@ -33,6 +33,7 @@ cdcls=""
 ctypes=""
 cstructs=""
 cchglist=""
+dmacros=""
 daliases=""
 dasserts=""
 
@@ -146,6 +147,11 @@ ${cdcls}
         -e 's/xbytex/byte/g' |
       eval "sed ${cchglist} -e 's/a/a/'" |
       sed -e 's/ __/ _t_/g;# leading double underscore not allowed'
+    set +f
+  fi
+  if [ "${dmacros}" != "" ]; then
+    set -f
+    echo "${dmacros}"
     set +f
   fi
   if [ "${daliases}" != "" ]; then
@@ -641,7 +647,7 @@ check_cdefint () {
 check_ctype () {
   type=$2
   typname=$3
-  shift;shift
+  shift;shift;shift
 
   nm="_ctype_${typname}"
   name=$nm
@@ -737,9 +743,9 @@ check_ctypedef () {
   rc=$?
   if [ $rc -eq 0 ]; then
     echo "### ctypedef: grep out begin" >&9
-    egrep ".*typedef.*[	 \*]${typname}[	 ]*;([	 ]//.*)?$" $name.out >&9
+    egrep ".*typedef.*[	 \*]${typname}[	 ]*;([	 ]//.*)?\$" $name.out >&9
     echo "### ctypedef: grep out end" >&9
-    tdata=`egrep ".*typedef.*[	 \*]${typname}[	 ]*;([	 ]//.*)?$" $name.out 2>/dev/null`
+    tdata=`egrep ".*typedef.*[	 \*]${typname}[	 ]*;([	 ]//.*)?\$" $name.out 2>/dev/null`
     rc=$?
     set -f
     echo "### ctypedef: $tdata" >&9
@@ -755,6 +761,122 @@ check_ctypedef () {
   fi
 
   printyesno $name $trc ""
+  setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
+}
+
+check_cmacro () {
+  mname=$2
+  shift;shift
+
+  nm="_cmacro_${mname}"
+  name=$nm
+
+  printlabel $name "c-macro: ${mname}"
+  # no caching
+
+  trc=0
+  cmpaths=""
+
+  while test $# -gt 0; do
+    thdr=$1
+    case $thdr in
+        *.h)
+          create_chdr_nm nhdr $thdr
+          getdata vhdr ${_MKCONFIG_PREFIX} $nhdr
+          if [ "${vhdr}" != "0" -a "${vhdr}" != "" ]; then
+            # need path to header file
+            if [ "$cmpaths" = "" ]; then
+              cmpaths="/usr/include . "
+              if [ "$CFLAGS" != "" ]; then
+                for f in $CFLAGS; do
+                  case $f in
+                    -I*)
+                      dosubst f '-I' ''
+                      doappend cmpaths $f
+                      ;;
+                  esac
+                done
+              fi
+            fi
+            for p in $cmpaths; do
+              if [ -f $p/$thdr ]; then
+                egrep "define[	 ]*${mname}[^a-zA-Z0-9_]" $p/$thdr >/dev/null 2>&1
+                rc=$?
+                if [ $rc -eq 0 ]; then
+                  trc=1
+                  fhdr=$p/$thdr
+                  break
+                fi
+              fi
+            done
+          fi
+          ;;
+    esac
+
+    if [ $trc -eq 1 ]; then
+      macro=`awk -f ${_MKCONFIG_DIR}/mkcextmacro.awk $fhdr ${mname}`
+      set -f
+      cmd="macro=\`echo \"\${macro}\" |
+          sed -e 's/^#[ 	]*define[ 	]*//'
+          -e 's/\$/; }/'
+          -e 's/^/auto _CM_/'
+          -e 's/\(_CM_[a-zA-Z0-9_]*([^)]*)[ 	]*\)/\1 { return /'
+          -e 's/\(_CM_[a-zA-Z0-9_]*[ 	][ 	]*\)/\1 () { return /' \`"
+      eval $cmd
+      set +f
+      break
+    fi
+    shift
+  done
+
+  # eat the rest of the .h args
+  while test $# -gt 0; do
+    thdr=$1
+    case $thdr in
+        *.h)
+          ;;
+        *)
+          break
+          ;;
+    esac
+    shift
+  done
+
+  tfirst=1
+  if [ $rc -eq 0 -a $trc -eq 1 -a $# -gt 0 ]; then
+    while test $# -gt 0; do
+      type=$1
+      if [ $tfirst -eq 1 ]; then
+        set -f
+        cmd="macro=\`echo \"\${macro}\" |
+            sed -e 's/(/(${type} /' \`"
+        eval $cmd
+        tfirst=0
+        tmp="($type [a-zA-Z0-9_]*"
+        set +f
+      else
+        set -f
+        cmd="macro=\`echo \"\${macro}\" |
+            sed -e 's/\(${tmp}\)[ 	]*,[ 	]*/\1, ${type} /' \`"
+        eval $cmd
+        doappend tmp ", ${type} [a-zA-Z0-9_]*"
+        set +f
+      fi
+      shift
+    done
+  fi
+
+  if [ $rc -eq 0 -a $trc -eq 1 ]; then
+    nmname=$mname
+    nmname=_CM_${nmname}
+    set -f
+    doappend dmacros "${macro}
+"
+    set +f
+    doappend cchglist "-e 's/\([^a-zA-Z0-9_]\)${mname}\([^a-zA-Z0-9_]\)/\1${nmname}\2/g' "
+  fi
+
+  printyesno_val $name $trc ""
   setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
 }
 
