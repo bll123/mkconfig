@@ -10,10 +10,9 @@
 5 d-clib
 5 d-cmacro
 5 d-ctype
-5 d-ctypedef
 6 d-cstruct
-6 d-cdefstr
-6 d-cdefint
+6 d-cdefine
+7 d-ctypedef
 7 d-cmember
 7 d-cdcl
 8 d-singlelib
