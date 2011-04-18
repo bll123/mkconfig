@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ "$1" = "-d" ]; then
-  echo ${EN} " c-typedef size${EC}"
+  echo ${EN} " c-typedef ${EC}"
   exit 0
 fi
 
