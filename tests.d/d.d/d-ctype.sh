@@ -90,7 +90,7 @@ for x in a e f; do
 done
 
 for x in e; do
-  egrep -l ?"^alias byte _CT_${x};$" dctype.d > /dev/null 2>&1
+  egrep -l ?"^alias byte C_TYP_${x};$" dctype.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     echo "## test $x failed alias chk"
@@ -99,7 +99,7 @@ for x in e; do
 done
 
 for x in a f; do
-  egrep -l ?"^alias ubyte _CT_${x};$" dctype.d > /dev/null 2>&1
+  egrep -l ?"^alias ubyte C_TYP_${x};$" dctype.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     echo "## test $x failed alias chk"
@@ -117,7 +117,7 @@ for x in b g h; do
 done
 
 for x in g; do
-  egrep -l ?"^alias short _CT_${x};$" dctype.d > /dev/null 2>&1
+  egrep -l ?"^alias short C_TYP_${x};$" dctype.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     echo "## test $x failed alias chk"
@@ -126,7 +126,7 @@ for x in g; do
 done
 
 for x in b h; do
-  egrep -l ?"^alias ushort _CT_${x};$" dctype.d > /dev/null 2>&1
+  egrep -l ?"^alias ushort C_TYP_${x};$" dctype.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     echo "## test $x failed alias chk"
@@ -144,7 +144,7 @@ for x in c i o t; do
 done
 
 for x in i; do
-  egrep -l ?"^alias int _CT_${x};$" dctype.d > /dev/null 2>&1
+  egrep -l ?"^alias int C_TYP_${x};$" dctype.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     echo "## test $x failed alias chk"
@@ -153,7 +153,7 @@ for x in i; do
 done
 
 for x in c t; do
-  egrep -l ?"^alias uint _CT_${x};$" dctype.d > /dev/null 2>&1
+  egrep -l ?"^alias uint C_TYP_${x};$" dctype.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     echo "## test $x failed alias chk"
@@ -171,7 +171,7 @@ for x in d o; do
 done
 
 for x in o; do
-  egrep -l ?"^alias int _CT_${x};$" dctype.d > /dev/null 2>&1
+  egrep -l ?"^alias int C_TYP_${x};$" dctype.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     echo "## test $x failed alias chk"
@@ -180,7 +180,7 @@ for x in o; do
 done
 
 for x in d; do
-  egrep -l ?"^alias uint _CT_${x};$" dctype.d > /dev/null 2>&1
+  egrep -l ?"^alias uint C_TYP_${x};$" dctype.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     echo "## test $x failed alias chk"
@@ -200,7 +200,7 @@ if [ $llsiz -gt 0 ]; then
   done
 
   for x in j; do
-    egrep -l ?"^alias long _CT_${x};$" dctype.d > /dev/null 2>&1
+    egrep -l ?"^alias long C_TYP_${x};$" dctype.d > /dev/null 2>&1
     rc=$?
     if [ $rc -ne 0 ]; then
       echo "## test $x failed alias chk"
@@ -209,7 +209,7 @@ if [ $llsiz -gt 0 ]; then
   done
 
   for x in k; do
-    egrep -l ?"^alias ulong _CT_${x};$" dctype.d > /dev/null 2>&1
+    egrep -l ?"^alias ulong C_TYP_${x};$" dctype.d > /dev/null 2>&1
     rc=$?
     if [ $rc -ne 0 ]; then
       echo "## test $x failed alias chk"
@@ -225,7 +225,7 @@ for x in q; do
     echo "## test $x failed enum chk"
     grc=1
   fi
-  egrep -l ?"^alias float _CT_${x};$" dctype.d > /dev/null 2>&1
+  egrep -l ?"^alias float C_TYP_${x};$" dctype.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     echo "## test $x failed alias chk"
@@ -240,7 +240,7 @@ for x in r; do
     echo "## test $x failed enum chk"
     grc=1
   fi
-  egrep -l ?"^alias double _CT_${x};$" dctype.d > /dev/null 2>&1
+  egrep -l ?"^alias double C_TYP_${x};$" dctype.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     echo "## test $x failed alias chk"
@@ -257,7 +257,7 @@ if [ $ldsiz -gt 0 ]; then
       echo "## test $x failed enum chk"
       grc=1
     fi
-    egrep -l ?"^alias real _CT_${x};$" dctype.d > /dev/null 2>&1
+    egrep -l ?"^alias real C_TYP_${x};$" dctype.d > /dev/null 2>&1
     rc=$?
     if [ $rc -ne 0 ]; then
       echo "## test $x failed alias chk"
