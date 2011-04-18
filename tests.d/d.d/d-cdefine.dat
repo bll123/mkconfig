@@ -1,11 +1,19 @@
-output dcdefint.d
+output dcdefine.d
 loadunit d-main
 standard
 
 csizes
 
-chdr    cdefint.h
+chdr    cdefine.h
 
-cdefint a
-cdefint b
-cdefint c
+cdefine int a
+cdefine int b
+cdefine int c
+
+cdefine string d
+cdefine string e
+
+cdefine hex g
+cdefine hex h
+
+cdefine float pi
