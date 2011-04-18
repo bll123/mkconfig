@@ -145,8 +145,10 @@ modify_ccode () {
     sed -e '# handle function prototypes' \
         -e '# first line converts two-liners ending in comma' \
         -e '# second line handles one-liners' \
+        -e '# change (void) to ()' \
         -e '/^.*([ 	]*\*[ 	]*[a-zA-Z0-9_][a-zA-Z0-9_]*[ 	]*)[ 	]*(.*,[ 	]*$/ N' \
         -e 's/^\(.*\)([ 	]*\*[ 	]*\([a-zA-Z0-9_][a-zA-Z0-9_]*\)[ 	]*)[ 	]*(\(.*\))[ 	]*;/\1 function(\3) \2;/' \
+        -e 's/(void)/()/' \
         |
     sed -e '# leading double underscores are not allowed' \
         -e 's/\([ \*]\)__/\1_t_/g'
@@ -694,7 +696,7 @@ check_ctype () {
   nm="_ctype_${typname}"
   name=$nm
 
-  printlabel $name "c-type: ${typname} ($type)"
+  printlabel $name "c-type ($type): ${typname}"
   # no caching
 
   val=0
@@ -756,7 +758,7 @@ check_ctype () {
   fi
   if [ $rc -eq 0 ]; then
     ntypname=$typname
-    ntypname=_CT_${ntypname}
+    ntypname=C_TYP_${ntypname}
     doappend daliases "alias ${u}${dtype} ${ntypname};
 "
     doappend dasserts "static assert ((${ntypname}).sizeof == ${val});
@@ -792,14 +794,35 @@ check_ctypedef () {
     set -f
     echo "### ctypedef: $tdata" >&9
     set +f
-  fi
-  if [ $rc -eq 0 ]; then
-    trc=1
-    set -f
-    dosubst tdata typedef alias
-    doappend ctypes "$tdata
+    if [ $rc -eq 0 ]; then
+      trc=1
+      set -f
+      dosubst tdata typedef alias
+      doappend ctypes "$tdata
 "
+      set +f
+    fi
+  fi
+  if [ $rc -ne 0 ]; then
+    echo "### ctypedef (func*): grep out begin" >&9
+    egrep ".*typedef.*[	 \*]\(\*[ 	]*${typname}\)[	 ]*\(" $name.out >&9
+    echo "### ctypedef (func*): grep out end" >&9
+    # typedef bool_t (*xdrproc_t) (XDR *, void *,...);
+    tdata=`egrep ".*typedef.*[	 \*]\(\*[ 	]*${typname}\)[	 ]*\(" $name.out 2>/dev/null |
+      sed -e 's/typedef[ 	]*//' \
+          -e 's/^\(.*\)([ 	]*\*[ 	]*\([a-zA-Z0-9_][a-zA-Z0-9_]*\)[ 	]*)[ 	]*(\(.*\))[ 	]*;/\1 function(\3) \2;/' \
+          -e 's/^/alias /' `
+    rc=$?
+    set -f
+    echo "### ctypedef: $tdata" >&9
     set +f
+    if [ $rc -eq 0 ]; then
+      trc=1
+      set -f
+      doappend ctypes "$tdata
+"
+      set +f
+    fi
   fi
 
   printyesno $name $trc ""
@@ -861,9 +884,9 @@ check_cmacro () {
       cmd="macro=\`echo \"\${macro}\" |
           sed -e 's/^#[ 	]*define[ 	]*//'
           -e 's/\$/; }/'
-          -e 's/^/auto _CM_/'
-          -e 's/\(_CM_[a-zA-Z0-9_]*([^)]*)[ 	]*\)/\1 { return /'
-          -e 's/\(_CM_[a-zA-Z0-9_]*[ 	][ 	]*\)/\1 () { return /' \`"
+          -e 's/^/auto C_MACRO_/'
+          -e 's/\(C_MACRO_[a-zA-Z0-9_]*([^)]*)[ 	]*\)/\1 { return /'
+          -e 's/\(C_MACRO_[a-zA-Z0-9_]*[ 	][ 	]*\)/\1 () { return /' \`"
       eval $cmd
       set +f
       break
@@ -910,7 +933,7 @@ check_cmacro () {
 
   if [ $rc -eq 0 -a $trc -eq 1 ]; then
     nmname=$mname
-    nmname=_CM_${nmname}
+    nmname=C_MACRO_${nmname}
     set -f
     doappend cmacros "${macro}
 "
