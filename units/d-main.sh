@@ -33,7 +33,7 @@ cdcls=""
 ctypes=""
 cstructs=""
 cchglist=""
-dmacros=""
+cmacros=""
 daliases=""
 dasserts=""
 
@@ -79,6 +79,89 @@ _create_enum () {
   set +f
 }
 
+modify_ctypes () {
+  tmcnm=$1
+  tcode="$2"
+
+  set -f
+  tcode=`echo "${tcode}" | sed -e 's/"/\\\\"/g'`
+  cmd="
+    sed -e 's/[	 ]long[	 ]*int[	 ]/ long /g;# still C' \
+      -e 's/[	 ]short[	 ]*int[	 ]/ short /g;# still C' \
+      -e 's/[	 ]signed[	 ]*/ /g;# still C' \
+      -e 's/[	 ]long[	 ]*double[	 ]/ xlongdx /g' \
+      -e 's/double[	 ]/xdoublex /g' \
+      -e 's/float[	 ]/xfloatx /g' \
+      -e 's/unsigned[	 ]long[	 ]*long[	 ]/uxlonglongx /g' \
+      -e 's/long[	 ]*long[	 ]/xlonglongx /g' \
+      -e 's/unsigned[	 ]*short[	 ]/uxshortx /g' \
+      -e 's/unsigned[	 ]*char[	 ]/uxbytex /g' \
+      -e 's/unsigned[	 ]*int[	 ]/uxintx /g' \
+      -e 's/unsigned[	 ]*long[	 ]/uxlongx /g' \
+      -e 's/[	 ]char[	 ]/ xcharx /g' \
+      -e 's/[	 ]short[	 ]/ xshortx /g' \
+      -e 's/[	 ]int[	 ]/ xintx /g' \
+      -e 's/[	 ]long[	 ]/ xlongx /g' \
+      |
+    sed -e 's/xlongdx/${_c_long_double}/g' \
+      -e 's/xdoublex/${_c_double}/g' \
+      -e 's/xfloatx/${_c_float}/g' \
+      -e 's/xlonglongx/${_c_long_long}/g' \
+      -e 's/xlongx/${_c_long}/g' \
+      -e 's/xintx/${_c_int}/g' \
+      -e 's/xshortx/${_c_short}/g' \
+      -e 's/xcharx/${_c_char}/g' \
+      -e 's/xbytex/byte/g'
+    "
+  echo "#####  modify_ctypes" >&9
+  echo "##### modify_ctypes: before" >&9
+  echo "$tcode" >&9
+  echo "##### modify_ctypes: $cmd" >&9
+  eval "${tmcnm}=\`echo \"${tcode}\" | ${cmd}\`" >&9 2>&9
+  echo "#### modify_ctypes: $tmcnm after" >&9
+  eval "echo \"\$${tmcnm}\"" >&9
+  echo "#### modify_ctypes: end $tmcnm after" >&9
+  set +f
+}
+
+modify_ccode () {
+  tmcnm=$1
+  tcode="$2"
+
+  set -f
+  tcode=`echo "${tcode}" | sed -e 's/"/\\\\"/g'`
+  cmd="
+    sed -e 's/[	 ][	 ]*/ /g;# clean up spacing' \
+      -e 's,/\*[^\*]*\*/,,;# remove comments' \
+      -e 's,//.*$,,;# remove comments' \
+      -e 's/sizeof[	 ]*\(([^)]*)\)/\1.sizeof/g;# gcc-ism' \
+      -e 's/__extension__//g;# gcc-ism' \
+      -e 's/__const//g;# gcc-ism' \
+      -e 's/\*[	 ]const/*/g; # not handled' \
+      -e 's/[	 ]*\([\{\}]\)/ \1/;# spacing before braces' \
+      |
+    sed ${cchglist} -e 's/a/a/;# could be empty' \
+      |
+    sed -e '# handle function prototypes' \
+        -e '# first line converts two-liners ending in comma' \
+        -e '# second line handles one-liners' \
+        -e '/^.*([ 	]*\*[ 	]*[a-zA-Z0-9_][a-zA-Z0-9_]*[ 	]*)[ 	]*(.*,[ 	]*$/ N' \
+        -e 's/^\(.*\)([ 	]*\*[ 	]*\([a-zA-Z0-9_][a-zA-Z0-9_]*\)[ 	]*)[ 	]*(\(.*\))[ 	]*;/\1 function(\3) \2;/' \
+        |
+    sed -e '# leading double underscores are not allowed' \
+        -e 's/\([ \*]\)__/\1_t_/g'
+    "
+  echo "#####  modify_ccode" >&9
+  echo "##### modify_ccode: before" >&9
+  echo "$tcode" >&9
+  echo "##### modify_ccode: $cmd" >&9
+  eval "${tmcnm}=\`echo \"${tcode}\" | ${cmd}\`" >&9 2>&9
+  echo "#### modify_ccode: $tmcnm after" >&9
+  eval "echo \"\$${tmcnm}\"" >&9
+  echo "#### modify_ccode: end $tmcnm after" >&9
+  set +f
+}
+
 dump_ccode () {
 
   ccode=""
@@ -89,7 +172,8 @@ dump_ccode () {
   fi
   if [ "${ctypes}" != "" ]; then
     set -f
-    doappend ccode "${ctypes}"
+    doappend ccode "
+${ctypes}"
     set +f
   fi
   if [ "${cstructs}" != "" ]; then
@@ -107,51 +191,25 @@ ${cdcls}
 "
     set +f
   fi
-
   if [ "${ccode}" != "" ]; then
-    echo ""
+    # handle types separately; don't want to do this on converted macros
     set -f
-    echo "${ccode}" |
-      sed -e 's/[	 ][	 ]*/ /g' \
-        -e 's,/\*[^\*]*\*/,,' \
-        -e 's,//.*$,,' \
-        -e 's/sizeof[	 ]*\(([^)]*)\)/\1.sizeof/g;# gcc-ism' \
-        -e 's/__extension__//g;# gcc-ism' \
-        -e 's/\*[	 ]const/*/g; # not handled' \
-        -e 's/[	 ]*\([\{\}]\)/ \1/' \
-        -e 's/[	 ]long[	 ]*int[	 ]/ long /g;# still C' \
-        -e 's/[	 ]short[	 ]*int[	 ]/ short /g;# still C' \
-        -e 's/[	 ]signed[	 ]*/ /g;# still C' \
-        -e 's/[	 ]long[	 ]*double[	 ]/ xlongdx /g' \
-        -e 's/double[	 ]/xdoublex /g' \
-        -e 's/float[	 ]/xfloatx /g' \
-        -e 's/unsigned[	 ]long[	 ]*long[	 ]/uxlonglongx /g' \
-        -e 's/long[	 ]*long[	 ]/xlonglongx /g' \
-        -e 's/unsigned[	 ]*short[	 ]/uxshortx /g' \
-        -e 's/unsigned[	 ]*char[	 ]/uxbytex /g' \
-        -e 's/unsigned[	 ]*int[	 ]/uxintx /g' \
-        -e 's/unsigned[	 ]*long[	 ]/uxlongx /g' \
-        -e 's/[	 ]char[	 ]/ xcharx /g' \
-        -e 's/[	 ]short[	 ]/ xshortx /g' \
-        -e 's/[	 ]int[	 ]/ xintx /g' \
-        -e 's/[	 ]long[	 ]/ xlongx /g' \
-        |
-      sed -e "s/xlongdx/${_c_long_double}/g" \
-        -e "s/xdoublex/${_c_double}/g" \
-        -e "s/xfloatx/${_c_float}/g" \
-        -e "s/xlonglongx/${_c_long_long}/g" \
-        -e "s/xlongx/${_c_long}/g" \
-        -e "s/xintx/${_c_int}/g" \
-        -e "s/xshortx/${_c_short}/g" \
-        -e "s/xcharx/${_c_char}/g" \
-        -e 's/xbytex/byte/g' |
-      eval "sed ${cchglist} -e 's/a/a/'" |
-      sed -e 's/ __/ _t_/g;# leading double underscore not allowed'
+    echo ""
+    modify_ctypes ccode "${ccode}"
     set +f
   fi
-  if [ "${dmacros}" != "" ]; then
+  if [ "${cmacros}" != "" ]; then
     set -f
-    echo "${dmacros}"
+    doappend ccode "
+${cmacros}"
+    set +f
+  fi
+  if [ "${ccode}" != "" ]; then
+    echo ""
+    modify_ccode ccode "${ccode}"
+    set -f
+    echo "${ccode}
+"
     set +f
   fi
   if [ "${daliases}" != "" ]; then
@@ -576,18 +634,36 @@ check_csys () {
   check_chdr $@
 }
 
-check_cdefstr () {
-  type=$1
-  defname=$2
-  shift;shift
+check_cdefine () {
+  btype=$2
+  defname=$3
+  shift;shift;shift
 
-  nm="_cdefstr_${defname}"
+  nm="_cdefine_${defname}"
   name=$nm
 
-  printlabel $name "c-define-string: ${defname}"
+  printlabel $name "c-define ($btype): ${defname}"
   # no caching
 
-  code="int main () { printf (\"%s\", ${defname}); return (0); }"
+  btype2=$btype
+  case $btype in
+    int)
+      o="%d"
+      ;;
+    hex)
+      o="0x%x"
+      btype2=int
+      ;;
+    float)
+      o="%g"
+      btype2=double
+      ;;
+    string)
+      o="%s"
+      ;;
+  esac
+
+  code="int main () { printf (\"${o}\", ${defname}); return (0); }"
 
   _c_chk_run ${name} "${code}" all
   rc=$?
@@ -598,41 +674,7 @@ check_cdefstr () {
   trc=0
 
   if [ $rc -eq 0 -a "$val" != "" ]; then
-    _create_enum string ${defname} "${val}"
-    trc=1
-    set -f
-    doappend cdefs "${tenum}
-"
-    set +f
-  fi
-
-  printyesno $name $trc ""
-  setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
-}
-
-check_cdefint () {
-  type=$1
-  defname=$2
-  shift;shift
-
-  nm="_cdefint_${defname}"
-  name=$nm
-
-  printlabel $name "c-define-int: ${defname}"
-  # no caching
-
-  code="int main () { printf (\"%d\", ${defname}); return (0); }"
-
-  _c_chk_run ${name} "${code}" all
-  rc=$?
-  if [ $rc -lt 0 ]; then
-    _exitmkconfig $rc
-  fi
-  val=$_retval
-  trc=0
-
-  if [ $rc -eq 0 -a "$val" != "" ]; then
-    _create_enum int ${defname} ${val}
+    _create_enum ${btype2} ${defname} "${val}"
     trc=1
     set -f
     doappend cdefs "${tenum}
@@ -870,13 +912,13 @@ check_cmacro () {
     nmname=$mname
     nmname=_CM_${nmname}
     set -f
-    doappend dmacros "${macro}
+    doappend cmacros "${macro}
 "
     set +f
     doappend cchglist "-e 's/\([^a-zA-Z0-9_]\)${mname}\([^a-zA-Z0-9_]\)/\1${nmname}\2/g' "
   fi
 
-  printyesno_val $name $trc ""
+  printyesno $name $trc ""
   setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
 }
 
@@ -976,9 +1018,9 @@ check_cstruct () {
 
     if [ "$std" = "" ]; then
       std=$s
-      if [ $ctype != "enum" ]; then
+#      if [ $ctype != "enum" ]; then  # why?
         std="${ctype} ${s}"
-      fi
+#      fi
     fi
     echo "#### std=${std}" >&9
 
