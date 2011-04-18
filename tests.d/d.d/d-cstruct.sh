@@ -28,7 +28,7 @@ export CFLAGS DFLAGS LDFLAGS
 cat > cstructhdr.h << _HERE_
 #ifndef _INC_cstructhdr_H_
 #define _INC_cstructhdr_H_
-struct a
+struct sa
 {
   long double ld;
   double d;
@@ -60,7 +60,7 @@ struct a
   char  carr [20];
 };
 
-struct b
+struct sb
 {
   long double  b;
   float b1;
@@ -71,43 +71,43 @@ struct b
 typedef struct
 {
   double  c;
-} c_t;
+} sc_t;
 
-typedef struct d
+typedef struct sd
 {
   float  d;
-} d_t;
+} sd_t;
 
-struct e
+struct se
   {
   long long e;
   } ;
 
-struct f {
+struct sf {
   long f;
 };
 
-struct g {
+struct sg {
 // stuff
   int g;
 };
 
-struct h {
+struct sh {
 /* stuff */
   short h;
 };
 
-struct i {
+struct si {
   char i;
 };
 
-struct j { int j; };
+struct sj { int j; };
 
-typedef struct k { int k; } k_t;
+typedef struct sk { int k; } sk_t;
 
-typedef struct { int l; } l_t;
+typedef struct { int l; } sl_t;
 
-struct m {
+struct sm {
  int m;
  union {
    int a;
@@ -115,55 +115,58 @@ struct m {
  };
 } m_t;
 
-struct { int n; union { int a; long b; }; int n2; } n_t;
+struct { int n; union { int a; long b; }; int n2; } sn_t;
 
 /* forward dcl */
-struct o;
+struct so;
 
-struct o {
+struct so {
   int o;
 };
 
 /* forward dcl */
-struct p;
+struct sp;
 
 /* forward dcl */
-struct q;
+struct sq;
 
-struct q {
+struct sq {
   int q;
-  struct q *qq;
+  struct sq *qq;
 };
 
 /* named union */
-struct r {
+struct sr {
  int r;
  union {
    int a;
    long b;
- } r_named ;
-} r_t;
+ } sr_named ;
+} sr_t;
 
 /* named struct */
-struct s {
+struct ss {
  int s;
  struct {
    int a;
    long b;
- } s_named ;
-} s_t;
+ } ss_named ;
+} ss_t;
 
-/* doesn't work...(extraction fails)
+typedef struct st
+{
+  double  t;
+} st_t;
+
 typedef struct
 {
-  double  c;
-} t;
-*/
+  double  u;
+} su_t;
 
-typedef struct u
+typedef struct sv
 {
   double  c;
-} u;
+} sv;
 
 union ua
 {
@@ -309,19 +312,21 @@ _HERE_
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-cstruct.dat
 grc=0
 
-for x in a b c d e f g h i j k l m n o q r s u; do
+for x in sa sb sc sd se sf sg sh si sj sk sl sm sn so sq sr ss st su sv; do
   egrep -l "^enum (: )?bool ({ )?_cstruct_${x} = true( })?;$" dcstruct.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     grc=1
+    echo "## failed: $x"
   fi
 done
 
-for x in p; do
+for x in sp; do
   egrep -l "^enum (: )?bool ({ )?_cstruct_${x} = false( })?;$" dcstruct.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     grc=1
+    echo "## failed: $x"
   fi
 done
 
@@ -330,6 +335,7 @@ for x in ua ub uc ud ue uf ug uh ui uj uk ul um un uo uq ur us uu; do
   rc=$?
   if [ $rc -ne 0 ]; then
     grc=1
+    echo "## failed: $x"
   fi
 done
 
@@ -338,6 +344,7 @@ for x in up; do
   rc=$?
   if [ $rc -ne 0 ]; then
     grc=1
+    echo "## failed: $x"
   fi
 done
 
