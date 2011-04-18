@@ -44,6 +44,15 @@ _HERE_
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-cmacro.dat
 grc=0
 
+for x in T0 T1 T2 T3 T4 T5 T9 ; do
+  egrep -l ?"^auto _CM_${x}" dcmacro.d > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "## test $x failed macro chk"
+    grc=1
+  fi
+done
+
 if [ $grc -eq 0 ]; then
   ${DC} -c ${DFLAGS} dcmacro.d
   if [ $? -ne 0 ]; then
