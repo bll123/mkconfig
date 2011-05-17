@@ -71,6 +71,14 @@ _create_enum () {
       e3=""
     fi
   fi
+  if [ $type = "double" ]; then
+    if [ "$DVERSION" = "1" ]; then
+      estr=""
+      e1=""
+      e2=""
+      e3=""
+    fi
+  fi
   tenum="${estr}${e1}${type} ${e2}${var} = ${strq}${val}${strq}${e3};"
   set -f
   if [ $out = "T" ]; then
@@ -906,6 +914,19 @@ check_cmacro () {
     esac
     shift
   done
+
+  # make a guess what the return type will be...
+  if [ "$DVERSION" = 1 -a $rc -eq 0 -a $trc -eq 1 ]; then
+    type=$1
+    set -f
+    if [ "$type" = "" ]; then
+      type=int
+    fi
+    cmd="macro=\`echo \"\${macro}\" |
+        sed -e 's/^auto/${type}/' \`"
+    eval $cmd
+    set +f
+  fi
 
   tfirst=1
   if [ $rc -eq 0 -a $trc -eq 1 -a $# -gt 0 ]; then
