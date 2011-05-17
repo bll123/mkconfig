@@ -3,6 +3,7 @@ Makefile
 MANIFEST		MANIFEST
 VERSION			version
 mkcextdcl.awk		script to extract C language declarations
+mkcextmacro.awk		script to extract C language macros
 mkcextstruct.awk	script to extract C language structures
 mkconfig.7		manual page
 mkconfig_c.7		manual page
@@ -123,14 +124,10 @@ tests.d/d.d/d-cdcl.dat
 tests.d/d.d/d-cdcl.env.dat
 tests.d/d.d/d-cdcl.mksh
 tests.d/d.d/d-cdcl.sh
-tests.d/d.d/d-cdefint.dat
-tests.d/d.d/d-cdefint.env.dat
-tests.d/d.d/d-cdefint.mksh
-tests.d/d.d/d-cdefint.sh
-tests.d/d.d/d-cdefstr.dat
-tests.d/d.d/d-cdefstr.env.dat
-tests.d/d.d/d-cdefstr.mksh
-tests.d/d.d/d-cdefstr.sh
+tests.d/d.d/d-cdefine.dat
+tests.d/d.d/d-cdefine.env.dat
+tests.d/d.d/d-cdefine.mksh
+tests.d/d.d/d-cdefine.sh
 tests.d/d.d/d-chdr.dat
 tests.d/d.d/d-chdr.env.dat
 tests.d/d.d/d-chdr.mksh
@@ -144,6 +141,10 @@ tests.d/d.d/d-clib.dat
 tests.d/d.d/d-clib.env.dat
 tests.d/d.d/d-clib.mksh
 tests.d/d.d/d-clib.sh
+tests.d/d.d/d-cmacro.dat
+tests.d/d.d/d-cmacro.env.dat
+tests.d/d.d/d-cmacro.mksh
+tests.d/d.d/d-cmacro.sh
 tests.d/d.d/d-cmember.dat
 tests.d/d.d/d-cmember.env.dat
 tests.d/d.d/d-cmember.mksh
@@ -157,10 +158,10 @@ tests.d/d.d/d-csyshdr.dat
 tests.d/d.d/d-csyshdr.env.dat
 tests.d/d.d/d-csyshdr.mksh
 tests.d/d.d/d-csyshdr.sh
-tests.d/d.d/d-ctypeconv.dat
-tests.d/d.d/d-ctypeconv.env.dat
-tests.d/d.d/d-ctypeconv.mksh
-tests.d/d.d/d-ctypeconv.sh
+tests.d/d.d/d-ctype.dat
+tests.d/d.d/d-ctype.env.dat
+tests.d/d.d/d-ctype.mksh
+tests.d/d.d/d-ctype.sh
 tests.d/d.d/d-ctypedef.dat
 tests.d/d.d/d-ctypedef.env.dat
 tests.d/d.d/d-ctypedef.mksh
