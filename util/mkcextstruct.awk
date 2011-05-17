@@ -37,7 +37,7 @@ BEGIN {
   } else if (ins == 0 && $0 ~ ststart && $0 !~ stforward && $0 !~ stother) {
 #print "start: " $0;
     hadend = 0;
-    delete nsarr;
+    for (val in nsarr) { delete nsarr[val]; }
     nsarr[0] = "";
     savens = "";
     ins = 1;
@@ -59,7 +59,7 @@ BEGIN {
       $0 !~ stforward && $0 !~ stother) {
 #print "struct: " $0;
     hadend = 0;
-    delete nsarr;
+    for (val in nsarr) { delete nsarr[val]; }
     nsarr[0] = "";
     savens = "";
     ins = 1;
@@ -73,7 +73,7 @@ BEGIN {
       ins = 0;
       bcount = 0;
       savens = "";
-      delete nsarr;
+      for (val in nsarr) { delete nsarr[val]; }
       nsarr[0] = "";
     }
     if ($0 ~ stend) {
@@ -161,7 +161,7 @@ BEGIN {
         savens = "";
         bcount = 0;
         acount = 0;
-        delete nsarr;
+        for (val in nsarr) { delete nsarr[val]; }
         nsarr[0] = "";
       }
       ins = 0;
