@@ -124,36 +124,43 @@ Sets of libraries to be tested are separated by commas.
 Output: _clib_quotactl
 .RE
 .TP
-\fBcdefint\fP def
+\fBcdefine {int|hex|float|string}\fP def
 .br
-Checks for a C #define of \fIdef\fP exists.
-A D language 'enum int ...' will be output
+Checks if a C #define of \fIdef\fP exists.
+A D language 'enum ...' will be output
 to the output file.
 .TP
-\fBcdefstr\fP def
-.br
-Checks if a C #define of \fIdef\P exists.
-A D language 'enum string ...' will be output
-to the output file.
-.TP
-\fBctypeconv\fP {int|float} type\-name
+\fBctype\fP {int|float} type\-name
 .RS
-\fItype\-name\fP will be converted to a D language type whenever
-it is pulled from a c\-header using the cstruct or cdcl check commands.
+\fItype\-name\fP will be converted to a D language alias for the
+type.  The C language type will be renamed to _CT_<type>.
 This only works for basic types.  The \fIint\fP or \fIfloat\fP keyword
 indicates whether or not \fItype\-name\fP is an integer type
-or a floating point type.  For structures or if
-the actual typedef is wanted, use ctypedef.
+or a floating point type.
+For structures or if the actual typedef is wanted, use ctypedef.
 .IP
-.e.g. ctypeconv int u_int
+.e.g. ctype int u_int
 .br
-Output: _ctypeconv
+Output: _ctype_u_int
 .RE
 .TP
 \fBctypedef\fP type\-name
 .br
 Checks for the typedef \fItype\-name\fP, and if it exists,
 outputs the D language alias for that typedef.
+.TP
+\fBcmacro\fP macro\-name req\-header [...] [types, ...]
+.RS
+\fImacro\-name\fP will be converted to a D language function to replace the
+macro.  The C language macro will be renamed to _CM_<macro>.
+\fIreq\-header\fP is the list of headers where \fImacro\-name\fP will be
+found.  If \fImacro\-name\fP takes arguments, then the list of types
+must be specified at the end of the cmacro check command.
+.IP
+.e.g. cmacro MIN sys/types.h int int
+.br
+Output: _cmacro_MIN
+.RE
 .TP
 \fBcstruct\fP struct\-name
 .br
@@ -163,7 +170,7 @@ Checks to see if struct \fIstruct\-name\fP or a typedef
 definition for \fIstruct\-name\fP
 exists.  The structure will be modified for the D language and output
 to the output file.  Note that any types used by the structure must
-be checked for first using ctypeconv or ctypedef.
+be checked for first using ctype or ctypedef.
 .TP
 \fBcmember\fP struct\-name member
 .br
@@ -176,9 +183,10 @@ before this check command.
 Checks to see if \fIfunction\fP is declared and outputs the
 declaration to the output file.  If the \fIargs\fP keyword is
 present, the number of arguments to the function is counted,
-and the check variable: _c_args_function is writtent to the output
+and the check variable: _c_args_function is written to the output
 file indicating the number of arguments that should be passed to
-the function.
+the function.  In addition, the _c_arg_<N>_function check variable is
+written to the output file indicating the type of argument.
 .RE
 .SH See Also
 iffe(1) autoconf(1) dist(7) mkconfig(7) mkconfig_c(7) mkconfig_env(7)
