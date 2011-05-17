@@ -1192,12 +1192,34 @@ check_cdcl () {
       eval $cmd
       echo "## dcl(C): ${dcl}" >&9
       set +f
+      tdcl=$dcl
+      modify_ctypes tdcl "${tdcl}"
+      echo "## tdcl(D): ${tdcl}" >&9
       if [ $argflag = 1 ]; then
         set -f
-        c=`echo ${dcl} | sed 's/[^,]*//g'`
+        c=`echo ${tdcl} | sed 's/[^,]*//g'`
         set +f
         ccount=`echo ${EN} "$c${EC}" | wc -c`
         domath ccount "$ccount + 1"  # 0==1 also, unfortunately
+        set -f
+        c=`echo ${tdcl} | sed 's/^[^(]*(//'`
+        c=`echo ${c} | sed 's/)[^)]*$//'`
+        echo "## c(E): ${c}" >&9
+        set +f
+        val=1
+        while test "${c}" != ""; do
+          tmp=$c
+          set -f
+          tmp=`echo ${c} | sed -e 's/,.*$//' -e 's/[	 ]/ /g' \
+            -e 's/const *//' -e 's/ .*$//'`
+          echo "## tmp(F): ${tmp}" >&9
+          set +f
+          nm="_c_arg_${val}_${dname}"
+          setdata ${_MKCONFIG_PREFIX} ${nm} ${tmp}
+          domath val "$val + 1"
+          set -f
+          c=`echo ${c} | sed -e 's/^[^,]*//' -e 's/^[	 ,]*//'`
+        done
       fi
       set -f
       doappend cdcls " ${dcl};
@@ -1228,7 +1250,7 @@ output_item () {
     tval=true
   fi
   case ${name} in
-    _setstr_*|_opt_*)
+    _setstr_*|_opt_*|_c_arg_*)
       tname=$name
       dosubst tname '_setstr_' '' '_opt_' ''
       _create_enum -o string ${tname} "${val}"
