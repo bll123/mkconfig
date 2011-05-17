@@ -28,6 +28,11 @@ cstruct ss
 cstruct st
 cstruct su
 cstruct sv
+cstruct sw
+cstruct sx
+cstruct sy
+cstruct sz
+cstruct saa
 
 cunion ua
 cunion ub

@@ -168,6 +168,53 @@ typedef struct sv
   double  c;
 } sv;
 
+/* anonymous struct */
+struct sw
+{
+  double  c;
+  struct sww {
+    double d;
+  };
+};
+
+/* named struct */
+struct sx
+{
+  double  c;
+  struct sxx {
+    double d;
+  } _sxx;
+};
+
+/* pointer to struct */
+struct sy
+{
+  double  c;
+  struct syy {
+    double d;
+  } * _syy;
+};
+
+/* pointer to struct B */
+struct sz
+{
+  double  c;
+  struct szz {
+    double d;
+  }
+  * _szz;
+};
+
+/* named struct B  */
+struct saa
+{
+  double  c;
+  struct saaa {
+    double d;
+  }
+  _saaa;
+};
+
 union ua
 {
   long double ld;
@@ -312,7 +359,8 @@ _HERE_
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-cstruct.dat
 grc=0
 
-for x in sa sb sc sd se sf sg sh si sj sk sl sm sn so sq sr ss st su sv; do
+for x in sa sb sc sd se sf sg sh si sj sk sl sm sn so sq sr \
+    ss st su sv sw sx sy sz saa ; do
   egrep -l "^enum (: )?bool ({ )?_cstruct_${x} = true( })?;$" dcstruct.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
