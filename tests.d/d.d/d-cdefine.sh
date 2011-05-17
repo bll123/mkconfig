@@ -154,8 +154,13 @@ if [ $rc -ne 0 ]; then
   echo "## failed: pi"
 fi
 
-egrep -l "^enum (: )?double ({ )?pi = 3.14159( })?;$" dcdefine.d > /dev/null 2>&1
-rc=$?
+if [ "$DVERSION" = 1 ]; then
+  egrep -l "^double pi = 3.14159;$" dcdefine.d > /dev/null 2>&1
+  rc=$?
+else
+  egrep -l "^enum (: )?double ({ )?pi = 3.14159( })?;$" dcdefine.d > /dev/null 2>&1
+  rc=$?
+fi
 if [ $rc -ne 0 ]; then
   grc=1
   echo "## failed: pi enum"
