@@ -37,6 +37,9 @@ BEGIN {
   } else if (ins == 0 && $0 ~ ststart && $0 !~ stforward && $0 !~ stother) {
 #print "start: " $0;
     hadend = 0;
+    delete nsarr;
+    nsarr[0] = "";
+    savens = "";
     ins = 1;
     acount = 0;
     sarr[acount] = $0;
@@ -56,6 +59,9 @@ BEGIN {
       $0 !~ stforward && $0 !~ stother) {
 #print "struct: " $0;
     hadend = 0;
+    delete nsarr;
+    nsarr[0] = "";
+    savens = "";
     ins = 1;
     tstr = $0;
     gsub (/[^{]/, "", tstr);
@@ -65,6 +71,10 @@ BEGIN {
     bcount = bcount - length (tstr);
     if (bcount <= 0 && length(tstr) > 0) {
       ins = 0;
+      bcount = 0;
+      savens = "";
+      delete nsarr;
+      nsarr[0] = "";
     }
     if ($0 ~ stend) {
       doend = 1;
@@ -82,6 +92,7 @@ BEGIN {
         $0 ~ /(struct|union)[	 ]/ && $0 !~ /(struct|union)[	 ].*;/) {
 #print "struct: " $0;
     hadend = 0;
+    savens = "";
     sarr[acount] = $0;
     acount = acount + 1;
     tstr = $0;
@@ -142,37 +153,36 @@ BEGIN {
       hadend = 1;
     }
     if (bcount <= 0) {
+#print "}: bcount: 0";
       if (havestart == 1) {
         doend = 1;
+      } else {
+        hadend = 0;
+        savens = "";
+        bcount = 0;
+        acount = 0;
+        delete nsarr;
+        nsarr[0] = "";
       }
       ins = 0;
-    } else if (length (tstr) > 0 && $0 !~ /}[	 ]*;/) {
+    } else if (length (tstr) > 0 && $0 !~ /}[	 ;]*$/) {
 #print "end struct dcl: " $0;
-      # turn any non-pointer named union/struct into anonymous
-      if ($0 !~ /\*/) {
-#print "non-pointer struct dcl - remove: " $0;
-        tstr = $0;
-        sub (/}.*;/, "};", tstr);
-        sarr [acount - 1] = tstr;
-      } else {
-#print "pointer struct dcl: " $0;
-        tstr = $0;
-        sub (/}.*;/, "};", tstr);
-        sarr [acount - 1] = tstr;
+      tstr = $0;
+      sub (/}.*/, "};", tstr);
+      sarr [acount - 1] = tstr;
+      if (nsarr[bcount + 1] != "") {
         tstr = $0;
         sub (/}[	 ]*/, "C_ST_" nsarr[bcount + 1] " ", tstr);
         sarr [acount] = tstr;
         acount = acount + 1;
-        hadend = 0;
       }
+      hadend = 0;
     }
   } else if (ins == 1) {
 #print "1: " $0;
 #print "1: hadend:" hadend;
-    if (hadend == 1) {
-      tstr = "\\*[	 ]*[A-Za-z]";
-#print "1: hadend:" tstr;
-      if ($0 ~ tstr) {
+    if (hadend == 1 && nsarr[bcount + 1] != "") {
+      if ($0 ~ /[	 *]*[_A-Za-z]/) {
 #print "1: hadend: match"
         sarr[acount] = " C_ST_" nsarr[bcount + 1] " " $0;
         acount = acount + 1;
