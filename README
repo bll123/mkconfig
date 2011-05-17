@@ -1,10 +1,23 @@
-mkconfig - configuration tool (version 1.13)
+mkconfig - configuration tool (version 1.14)
 
 Please e-mail any configuration units and the corresponding
 manual page entry to brad.lanam.di_at_gmail.com.  They will be
 included in the next release.
 
 CHANGES
+
+    1.14                                    [16 May 2011]
+        Renamed ctypeconv to ctype (breaks backwards compatibility).
+        Rewrite ctype check command to use the
+          C typedef name, and add an alias.
+        Fixed ctype to handle unsigned typedefs correctly.
+        Fixed nested structure handling.
+        ctypedef will now find function pointer typedefs.
+        Made D-C prefixes more consistent (breaks backwards compatibility).
+        Added cmacro to convert C macros to functions.
+        Merged cdefint and cdefstr to cdefine; made more generic
+          (breaks backwards compatibility).
+        Added breakdown of arg types for "cdcl args ...".
 
     1.13                                    [27 Feb 2011]
     	Handle gcc __asm__ function renames.
