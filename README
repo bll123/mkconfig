@@ -6,7 +6,7 @@ included in the next release.
 
 CHANGES
 
-    1.14                                    [16 May 2011]
+    1.14                                    [22 May 2011]
         Renamed ctypeconv to ctype (breaks backwards compatibility).
         Rewrite ctype check command to use the
           C typedef name, and add an alias.
