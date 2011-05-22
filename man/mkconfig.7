@@ -159,10 +159,15 @@ Units include specific check routines that may be performed.
 \fBcommand\fP name\-of\-command
 .br
 Check if command exists in the path.
+.PP
 .IP
-e.g.: command sed
+Example: command sed
 .br
-Output: _command_sed
+Output:
+.br
+#define _command_sed 1 /* C */
+.br
+enum bool _command_sed = true; /* D */
 .TP
 \fBifoption\fP option\-name ... [else ...] endif
 .TP
@@ -170,7 +175,6 @@ Output: _command_sed
 .RS
 The \fIifoption\fP and \fIifnotoption\fP statements check the options
 set in the options file and process the appropriate block of statements.
-This value is not cached.
 .PP
 If there is no options file, or the option does not exist, both
 \fIifoption\fP and \fIifnotoption\fP will return a false return.
@@ -179,16 +183,21 @@ The \fIifoption\fP, \fIifnotoption\fP and \fIif\fP statements may be
 nested.
 .RE
 .TP
-\fBif\fP label if\-statement ... [else ...] endif
+\fBif\fP label if\-statement ... [\fBelse\fP ...] \fBendif\fP
 .RS
 The \fIif\fP statement is a combination of check variables, &&, ||,
 ! (not) and parentheses.  It is recommended that parentheses be used
 copiously to avoid any possible precedence differences between different
-shells.  Only boolean tests are currently supported.
-This value is not cached.
+shells.  Only boolean tests are currently supported.  The \fIlabel\fP is
+used for display output.
 .PP
-e.g. if mylabel _lib_func1 && _hdr_header1 && ( ! (_lib_func3 || _lib_func4)) &&
-_setint_my_var
+Example:
+.br
+if mylabel _hdr_header1 && ( ! (_lib_func3 || _lib_func4)) && _setint_my_var
+.br
+ setint _my_var_b 1
+.br
+endif
 .PP
 The \fIifoption\fP, \fIifnotoption\fP and \fIif\fP statements may be
 nested.
