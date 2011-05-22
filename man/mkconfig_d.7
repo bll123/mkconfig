@@ -133,7 +133,7 @@ to the output file.
 \fBctype\fP {int|float} type\-name
 .RS
 \fItype\-name\fP will be converted to a D language alias for the
-type.  The C language type will be renamed to _CT_<type>.
+type.  The C language type will be renamed to C_TYP_<type>.
 This only works for basic types.  The \fIint\fP or \fIfloat\fP keyword
 indicates whether or not \fItype\-name\fP is an integer type
 or a floating point type.
@@ -141,13 +141,25 @@ For structures or if the actual typedef is wanted, use ctypedef.
 .IP
 .e.g. ctype int u_int
 .br
-Output: _ctype_u_int
+Output:
+.br
+alias uint C_TYP_u_int;
+.br
+enum int _ctype_u_int = 4;
 .RE
 .TP
 \fBctypedef\fP type\-name
 .br
 Checks for the typedef \fItype\-name\fP, and if it exists,
 outputs the D language alias for that typedef.
+.IP
+e.g. ctypedef rquota
+.br
+Output:
+.br
+alias C_ST_rquota rquota;
+.br
+enum bool _ctypedef_rquota = true;
 .TP
 \fBcmacro\fP macro\-name req\-header [...] [types, ...]
 .RS
@@ -159,7 +171,11 @@ must be specified at the end of the cmacro check command.
 .IP
 .e.g. cmacro MIN sys/types.h int int
 .br
-Output: _cmacro_MIN
+Output:
+.br
+auto C_MACRO_MIN(int a, int b) { return ((a) < (b) ? (a) : (b)); }
+.br
+enum bool _cmacro_MIN = true;
 .RE
 .TP
 \fBcstruct\fP struct\-name
@@ -185,8 +201,9 @@ declaration to the output file.  If the \fIargs\fP keyword is
 present, the number of arguments to the function is counted,
 and the check variable: _c_args_function is written to the output
 file indicating the number of arguments that should be passed to
-the function.  In addition, the _c_arg_<N>_function check variable is
-written to the output file indicating the type of argument.
+the function.  In addition, the _c_arg_N_function check variable is
+written to the output file indicating the type of argument where \fIN\fP
+refers to the argument position.
 .RE
 .SH See Also
 iffe(1) autoconf(1) dist(7) mkconfig(7) mkconfig_c(7) mkconfig_env(7)
