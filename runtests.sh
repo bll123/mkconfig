@@ -81,13 +81,11 @@ getlistofshells () {
         done
       fi
       if [ -x $rs ]; then
-        cmd="$rs -c \". $_MKCONFIG_DIR/shellfuncs.sh;getshelltype;echo \\\$shell\""
-        shell=`eval $cmd`
+        cmd="$rs -c \". $_MKCONFIG_DIR/shellfuncs.sh;getshelltype echo\""
+        set `eval $cmd`
+	shell=$2
         echo "  found: $rs ($shell)" >&8
         case $shell in
-          pdksh)
-            echo "    skip" >&8
-            ;;
           *)
             tshelllist="${tshelllist}
 $rs"
@@ -102,17 +100,23 @@ $rs"
   shelllist=""
   for s in $tshelllist; do
     echo ${EN} "  check $s${EC}" >&8
-    echo ${EN} "$s${EC}"
-    cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;TSHELL=$s;chkshell\""
+    echo ${EN} "   $s${EC}"
+    cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;TSHELL=$s;chkshell echo\""
     eval $cmd >&8 2>&1
+    cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;TSHELL=$s;getshelltype echo\""
+    set `eval $cmd`
+    tbaseshell=$1
+    tshell=$2
+    shift;shift
+    tdvers=$@
     if [ $? -eq 0 ]; then
       echo " ok" >&8
-      echo ${EN} "(ok) ${EC}"
       shelllist="${shelllist} $s"
+      echo " [$tshell $tdvers] (ok)"
     else
       echo " ng" >&8
-      echo ${EN} "(ng) ${EC}"
-      echo $chkmsg >&8
+      echo "$chkmsg" >&8
+      echo " [$tshell $tdvers] (ng)"
     fi
   done
 }
@@ -235,9 +239,7 @@ exec 8>>$MAINLOG
 
 if [ $SUBDIR = "F" ]; then
   echo "## locating valid shells"
-  echo ${EN} "   ${EC}"
   getlistofshells
-  echo ""
 fi
 
 export shelllist
@@ -345,8 +347,9 @@ while read tline; do
     for s in $shelllist; do
       unset _shell
       unset shell
-      cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;getshelltype;echo \\\$shell\""
-      ss=`eval $cmd`
+      cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;getshelltype echo\""
+      set `eval $cmd`
+      ss=$2
       if [ "$ss" = "sh" ]; then
         ss=`echo $s | sed 's,.*/,,'`
       fi
