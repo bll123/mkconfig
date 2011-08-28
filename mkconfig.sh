@@ -68,6 +68,10 @@ setdata () {
     sdname=$2
     sdval=$3
 
+    if [ "$_MKCONFIG_EXPORT" = "T" ]; then
+      _doexport $sdname "$sdval"
+    fi
+
     cmd="test \"X\$di_${prefix}_${sdname}\" != X > /dev/null 2>&1"
     eval $cmd
     rc=$?
@@ -132,10 +136,6 @@ printyesno_actual () {
 
   echo "   [${ynname}] $ynval ${yntag}" >&9
   echo "$ynval ${yntag}" >&1
-
-  if [ "$_MKCONFIG_EXPORT" = "T" ]; then
-    _doexport $ynname "$ynval"
-  fi
 }
 
 printyesno_val () {
@@ -296,18 +296,71 @@ check_if () {
     trc=0  # if option is not set, it's false
 
     nline="test "
+    ineq=0
+    qtoken=""
+    quoted=0
     for token in $ifline; do
+      set -f
+      echo "## token: $token" >&9
+      set +f
+
       case $token in
-        \(|\)|-a|-o|!)
-          doappend nline " $token"
+        \'*)
+          set -f
+          qtoken=$token
+          echo "## qtoken: $qtoken" >&9
+          set +f
+          quoted=1
+          continue
           ;;
-        *)
-          getdata tvar ${_MKCONFIG_PREFIX} $token
-          if [ "$tvar" != "0" ]; then tvar=1; fi
-          tvar="( $tvar = 1 )"
-          doappend nline " $tvar"
-        ;;
       esac
+
+      if [ $quoted -eq 1 ]; then
+        case $token in
+          *\')
+            set -f
+            token="${qtoken} $token"
+            token=`echo $token | sed -e s,\',,g`
+            echo "## (Q) token: $token" >&9
+            set +f
+            quoted=0
+            ;;
+          *)
+            set -f
+            qtoken="$qtoken $token"
+            echo "## qtoken: $qtoken" >&9
+            set +f
+            continue
+            ;;
+        esac
+      fi
+
+      if [ $ineq -eq 1 ]; then
+        ineq=2
+        getdata tvar ${_MKCONFIG_PREFIX} $token
+      elif [ $ineq -eq 2 ]; then
+        doappend nline " ( '$tvar' $eqtok '$token' )"
+        ineq=0
+      else
+        case $token in
+          \(|\)|-a|-o|!)
+            doappend nline " $token"
+            ;;
+          ==|!=)
+            ineq=1
+            eqtok=$token
+            if [ "$eqtok" = "==" ]; then
+              eqtok="="
+            fi
+            ;;
+          *)
+            getdata tvar ${_MKCONFIG_PREFIX} $token
+            if [ "$tvar" != "0" ]; then tvar=1; fi
+            tvar="( $tvar = 1 )"
+            doappend nline " $tvar"
+          ;;
+        esac
+      fi
     done
 
     if [ "$ifline" != "" ]; then
