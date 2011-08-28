@@ -171,6 +171,7 @@ check_cflags () {
   then
       echo "set gcc flags" >&9
       gccflags="-Wall -Waggregate-return -Wconversion -Wformat -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wpointer-arith -Wshadow -Wstrict-prototypes -Wunused"
+      # -Wextra -Wno-unused-but-set-variable -Wno-unused-parameter
   fi
 
   TCC=${CC}
@@ -265,6 +266,28 @@ check_cflags () {
 
   printyesno_val CFLAGS "$ccflags $ccincludes"
   setdata ${_MKCONFIG_PREFIX} CFLAGS "$ccflags $ccincludes"
+}
+
+check_addcflag () {
+  name=$1
+  flag=$2
+  ccflags="${CFLAGS:-}"
+
+  printlabel CFLAGS "Add C flag: ${flag}"
+
+  echo "#include <stdio.h>
+main () { return 0; }" > t.c
+  echo "# test ${flag}" >&9
+  ${CC} ${flag} t.c >&9 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    flag=0
+  fi
+  printyesno $name ${flag}
+  if [ $flag = "0" ]; then
+    flag=""
+  fi
+  setdata ${_MKCONFIG_PREFIX} CFLAGS "$ccflags ${flag}"
 }
 
 check_ldflags () {
