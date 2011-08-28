@@ -150,7 +150,7 @@ check_hdr () {
   # input may be:  ctype.h kernel/fs_info.h
   #    storage/Directory.h
   nm1=`echo ${hdr} | sed -e 's,/.*,,'`
-  nm2="_`echo $hdr | sed -e \"s,^${nm1},,\" -e 's,^/*,,'`"
+  nm2="_`echo $hdr | sed -e s,\^${nm1},, -e 's,^/*,,'`"
   nm="_${type}_${nm1}"
   if [ "$nm2" != "_" ]; then
     doappend nm $nm2
@@ -387,6 +387,132 @@ check_dcl () {
   elif [ "$type" = "ptr" ]; then
     check_ptr_declare $nm $var
   fi
+}
+
+check_args () {
+  type=$1
+  noconst=F
+  if [ "$2" = "noconst" ]; then
+    noconst=T
+    shift
+  fi
+  funcnm=$2
+
+  nm="_args_${funcnm}"
+  name=$nm
+
+  printlabel $name "args: ${funcnm}"
+  checkcache ${_MKCONFIG_PREFIX} $name
+  if [ $rc -eq 0 ]; then return; fi
+
+  trc=0
+  ccount=0
+
+  set -f
+  oldprecc="${precc}"
+  doappend precc "/* get rid of most gcc-isms */
+/* keep __asm__ to check for function renames */
+#define __attribute__(a)
+#define __nonnull__(a,b)
+#define __restrict
+#define __THROW
+#define __const const
+"
+  set +f
+
+  code=""
+  _c_chk_cpp ${name} "" all
+  rc=$?
+
+  set -f
+  precc="${oldprecc}"
+  set +f
+
+  if [ $rc -eq 0 ]; then
+    egrep "[	 *]${funcnm}[	 ]*\(" $name.out >/dev/null 2>&1
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      trc=1
+    fi
+
+    # have a declaration
+    if [ $trc -eq 1 ]; then
+      dcl=`awk -f ${_MKCONFIG_DIR}/mkcextdcl.awk ${name}.out ${funcnm}`
+      set -f
+      # extern will be replaced
+      # ; may or may not be present, so remove it.
+      cmd="dcl=\`echo \"\$dcl\" | sed -e 's/extern *//' -e 's/;//' \`"
+      eval $cmd
+      echo "## dcl(A): ${dcl}" >&9
+      # check for gnu-cc's renaming function
+      echo $dcl | grep __asm__ > /dev/null 2>&1
+      rc=$?
+      dclren=""
+      if [ $rc -eq 0 ]; then
+        dclren=`echo $dcl | sed -e 's/.*__asm__[ 	]*("" "\([a-z0-9A-Z_]*\)")/\1/'`
+      fi
+      echo "## dclren: ${dclren}" >&9
+      if [ "$dclren" != "" ]; then
+        cmd="dcl=\`echo \"\$dcl\" | \
+            sed -e 's/[ 	]*__asm__[ 	]*([^)]*)[ 	]*//' \
+            -e 's/${funcnm}/${dclren}/' \`"
+        eval $cmd
+        echo "## dcl(B): ${dcl}" >&9
+      fi
+      cmd="dcl=\`echo \"\$dcl\" | sed -e 's/( *void *)/()/' \`"
+      eval $cmd
+      echo "## dcl(C): ${dcl}" >&9
+      set +f
+      set -f
+      c=`echo ${dcl} | sed 's/[^,]*//g'`
+      set +f
+      ccount=`echo ${EN} "$c${EC}" | wc -c`
+      domath ccount "$ccount + 1"  # 0==1 also, unfortunately
+      set -f
+      c=`echo ${dcl} | sed 's/^[^(]*(//'`
+      c=`echo ${c} | sed 's/)[^)]*$//'`
+      echo "## c(E): ${c}" >&9
+      set +f
+      val=1
+      while test "${c}" != ""; do
+        tmp=$c
+        set -f
+        tmp=`echo ${c} | sed -e 's/ *,.*$//' -e 's/[	 ]/ /g'`
+        dosubst tmp 'struct ' 'struct#' 'union ' 'union#' 'enum ' 'enum#'
+        # only do the following if the names of the variables are declared
+        echo ${tmp} | grep ' ' > /dev/null 2>&1
+        rc=$?
+        if [ $rc -eq 0 ]; then
+          tmp=`echo ${tmp} | sed -e 's/ *[A-Za-z0-9_]*$//'`
+        fi
+        dosubst tmp 'struct#' 'struct ' 'union#' 'union ' 'enum#' 'enum '
+        if [ $noconst = T ]; then
+          tmp=`echo ${tmp} | sed -e 's/const *//'`
+        fi
+        echo "## tmp(F): ${tmp}" >&9
+        set +f
+        nm="_c_arg_${val}_${funcnm}"
+        setdata ${_MKCONFIG_PREFIX} ${nm} "${tmp}"
+        domath val "$val + 1"
+        set -f
+        c=`echo ${c} | sed -e 's/^[^,]*//' -e 's/^[	 ,]*//'`
+        echo "## c(G): ${c}" >&9
+        set +f
+      done
+      set -f
+      c=`echo ${dcl} | sed -e 's/[ 	]*/ /g' -e "s/ *${funcnm}.*//" -e 's/^ *//`
+      if [ $noconst = T ]; then
+        c=`echo ${c} | sed -e 's/const *//'`
+      fi
+      set +f
+      nm="_c_type_${funcnm}"
+      setdata ${_MKCONFIG_PREFIX} ${nm} "${tmp}"
+    fi
+  fi
+
+  printyesno_val $name $ccount ""
+  nm="_args_${funcnm}"
+  setdata ${_MKCONFIG_PREFIX} ${nm} ${ccount}
 }
 
 check_int_declare () {
