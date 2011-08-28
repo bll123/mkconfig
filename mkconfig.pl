@@ -17,6 +17,7 @@ my $OPTIONFILE = "options.dat";
 my $CACHEFILE = "mkconfig.cache";
 my $VARSFILE = "mkconfig_c.vars";
 my $REQLIB = "mkconfig.reqlibs";
+my $MKC_DIR = "invalid";
 
 my $precc = <<'_HERE_';
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
@@ -350,12 +351,14 @@ _chk_link_libs
 }
 
 sub
-_check_cpp
+_chk_cpp
 {
-    my ($name, $code, $r_a, $r_clist, $r_config) = @_;
+    my ($name, $code, $r_clist, $r_config, $r_a) = @_;
 
     open (CCFH, ">$name.c");
     print CCFH $precc;
+    my $hdrs = print_headers ($r_a, $r_clist, $r_config);
+    print CCFH $hdrs;
     print CCFH $code;
     close CCFH;
 
@@ -384,9 +387,7 @@ _chk_compile
     my ($name, $code, $r_clist, $r_config, $r_a) = @_;
 
     open (CCFH, ">$name.c");
-
     print CCFH $precc;
-
     my $hdrs = print_headers ($r_a, $r_clist, $r_config);
     print CCFH $hdrs;
     print CCFH $code;
@@ -624,8 +625,42 @@ check_if
     printlabel $name, "if ($ifcount): $iflabel";
     my $nline = '';
     print LOGFH "## ifline: $ifline\n";
+    my $ineq = 0;
+    my $val;
+    my $eqtok;
+    my $quoted = 0;
+    my $qtoken;
     foreach my $token (split (/\s/, $ifline)) {
-      if ($token eq '(' || $token eq ')' || $token eq '&&' ||
+      if ($token =~ /^'/o) {
+        $qtoken = $token;
+        $quoted = 1;
+        next;
+      }
+      if ($quoted) {
+        if ($token =~ /'$/o) {
+          $token = $qtoken . ' ' . $token;
+          $token =~ s/'//go;
+          $quoted = 0;
+        } else {
+          $qtoken = $qtoken . ' ' . $token;
+          next;
+        }
+      }
+
+      if ($ineq == 1) {
+        $ineq = 2;
+        print LOGFH "## value of $token(A): " . $r_config->{$token} . "\n";
+        $val = $r_config->{$token};
+      } elsif ($ineq == 2) {
+        $ineq = 0;
+        if ($eqtok eq '==') { $eqtok = 'eq'; }
+        if ($eqtok eq '!=') { $eqtok = 'ne'; }
+        $nline .= "('$val' $eqtok '$token') ? 1 : 0";
+        $nline .= ' ';
+      } elsif ($token eq '==' || $token eq '!=') {
+        $ineq = 1;
+        $eqtok = $token;
+      } elsif ($token eq '(' || $token eq ')' || $token eq '&&' ||
           $token eq '||' || $token eq '!') {
         $nline .= $token . ' ';
       } else {
@@ -690,66 +725,6 @@ check_option
 }
 
 sub
-check_quotactl_pos
-{
-  my ($name, $r_clist, $r_config) = @_;
-
-  printlabel $name, "quotactl position";
-  if (checkcache ($name, $r_config) == 0) {
-    return;
-  }
-
-  setlist $r_clist, $name;
-
-  if ($r_config->{'_lib_quotactl'} eq '0') {
-    $r_config->{$name} = '0';
-    printyesno_val $name, $r_config->{$name};
-    return;
-  }
-
-  my $hdr = '';
-  foreach my $hnm ('_sys_quota', '_hdr_ufs_ufs_quota', '_hdr_ufs_quota',
-      '_hdr_linux_quota') {
-    if ($r_config->{$hnm} ne '0') {
-      $hdr = $r_config->{$hnm};
-      last;
-    }
-  }
-  my $uhdr = $r_config->{'_hdr_unistd'};
-
-  my $code = '';
-  if ($hdr ne '') {
-    $code .= "#include <${hdr}>\n";
-    if ($uhdr ne '0') {
-      $code .= "#include <${uhdr}>\n";
-    }
-    my $rc = _check_cpp ($name, $code, {}, $r_clist, $r_config);
-    if ($rc == 0) {
-       $cmd = "egrep -l 'quotactl *\\( *int[^,]*, *(const *)?char' $name.out >>$LOG 2>&1";
-       print LOGFH "##  quotactl_pos: $cmd\n";
-       $rc = system ($cmd);
-       if ($rc == 0) {
-         $r_config->{$name} = 2;
-         printyesno_val $name, $r_config->{$name};
-         return;
-       }
-
-       $cmd = "egrep -l 'quotactl *\\( *(const *)?char[^,]*, *int' $name.out >>$LOG 2>&1";
-       print LOGFH "##  quotactl_pos: $cmd\n";
-       $rc = system ($cmd);
-       if ($rc == 0) {
-         $r_config->{$name} = 1;
-         printyesno_val $name, $r_config->{$name};
-         return;
-       }
-    }
-  }
-
-  $r_config->{$name} = 0;
-  printyesno_val $name, $r_config->{$name};
-}
-
-sub
 check_rquota_xdr
 {
   my ($name, $r_clist, $r_config) = @_;
@@ -770,7 +745,7 @@ check_rquota_xdr
   my $code = '';
   my $hdr = $r_config->{'_hdr_rpcsvc_rquota'};
   $code .= "#include <$hdr>\n";
-  my $rc = _check_cpp ($name, $code, {}, $r_clist, $r_config);
+  my $rc = _chk_cpp ($name, $code, $r_clist, $r_config, {});
   if ($rc == 0) {
     $cmd = "sed '1,/struct *rquota *{/d' $name.out |
         egrep '[	 ]*rq_bhardlimit[	 ]*;' >>$LOG 2>&1";
@@ -813,7 +788,7 @@ check_gqa_uid_xdr
   my $code = '';
   my $hdr = $r_config->{'_hdr_rpcsvc_rquota'};
   $code .= "#include <$hdr>\n";
-  my $rc = _check_cpp ($name, $code, {}, $r_clist, $r_config);
+  my $rc = _chk_cpp ($name, $code, $r_clist, $r_config, {});
   if ($rc == 0) {
     $cmd = "sed '1,/struct *getquota_args *{/d' $name.out |
         egrep '[	 ]*gqa_uid[	 ]*;' >>$LOG 2>&1";
@@ -826,56 +801,6 @@ check_gqa_uid_xdr
       $rval =~ s/[	 ][	 ]*gqa_uid.*//;
       $rval =~ s/^[	 ]*//;
       $r_config->{$name} = "xdr_" . ${rval};
-      printyesno_val $name, $r_config->{$name};
-      return;
-    }
-  }
-
-  $r_config->{$name} = 0;
-  printyesno_val $name, $r_config->{$name};
-}
-
-sub
-check_getfsstat_type
-{
-  my ($name, $r_clist, $r_config) = @_;
-
-  printlabel $name, "getfsstat type";
-  if (checkcache ($name, $r_config) == 0) {
-    return;
-  }
-
-  setlist $r_clist, $name;
-
-  if ($r_config->{'_lib_getfsstat'} eq '0') {
-    $r_config->{$name} = '0';
-    printyesno_val $name, $r_config->{$name};
-    return;
-  }
-
-  if ($r_config->{'_sys_mount'} eq '0') {
-    $r_config->{$name} = '0';
-    printyesno_val $name, $r_config->{$name};
-    return;
-  }
-
-  my $code = '';
-  my $hdr = $r_config->{'_sys_mount'};
-  $code .= "#include <$hdr>\n";
-  my $rc = _check_cpp ($name, $code, {}, $r_clist, $r_config);
-  if ($rc == 0) {
-    $cmd = "egrep -l 'getfsstat[	 ]*\\(' $name.out >>$LOG 2>&1";
-    $rc = system ($cmd);
-    print LOGFH "##  getfsstat_type: $cmd $rc\n";
-    if ($rc == 0) {
-      my $rval = `egrep 'getfsstat[	 ]*\\(' $name.out`;
-      print LOGFH "##  getfsstat_type: $rval\n";
-      chomp $rval;
-      $rval =~ s/^[^,]*,[	 ]*//;
-      $rval =~ s/,.*$//;
-      $rval =~ s/  *[_a-z0-9]*$//;  # strip any trailing var name
-      print LOGFH "##  getfsstat_type: $rval\n";
-      $r_config->{$name} = ${rval};
       printyesno_val $name, $r_config->{$name};
       return;
     }
@@ -1131,111 +1056,93 @@ _HERE_
 }
 
 sub
-check_setmntent_args
+check_args
 {
-    my ($name, $r_clist, $r_config) = @_;
+    my ($name, $funcnm, $r_a, $r_clist, $r_config) = @_;
 
-    printlabel $name, "setmntent # arguments";
-    if (checkcache ($name, $r_config) == 0)
+    printlabel $name, "args: $funcnm";
+    if (checkcache_val ($name, $r_config) == 0)
     {
         return;
     }
 
-    setlist $r_clist, $name;
-    $r_config->{$name} = 0;
+    my $oldprecc = $precc;
+    $precc .= "/* get rid of most gcc-isms */
+/* keep __asm__ to check for function renames */
+#define __attribute__(a)
+#define __nonnull__(a,b)
+#define __restrict
+#define __THROW
+#define __const const
+";
 
-    if ($r_config->{'_lib_setmntent'} eq '0')
-    {
-        printyesno_val $name, $r_config->{$name};
-        return;
-    }
-    my $code = <<"_HERE_";
-main () { setmntent ("/etc/mnttab"); }
-_HERE_
-    my $rc = _chk_link ($name, $code, $r_clist, $r_config,
-        { 'incheaders' => 'all', 'otherlibs' => undef, });
-    if ($rc == 0)
-    {
-        $r_config->{$name} = 2;
-        printyesno_val $name, $r_config->{$name};
-        return;
-    }
+   my $rc = _chk_cpp ($name, "", $r_clist, $r_config,
+        { 'incheaders' => 'all', });
+   $precc = $oldprecc;
+   my $ccount = 0;
 
-    $code = <<"_HERE_";
-main () { setmntent ("/etc/mnttab", "r"); }
-_HERE_
-    $rc = _chk_link ($name, $code, $r_clist, $r_config,
-        { 'incheaders' => 'all', 'otherlibs' => undef, });
-    if ($rc == 0)
-    {
-        $r_config->{$name} = 3;
-    }
-    printyesno_val $name, $r_config->{$name};
-}
+   if ($rc == 0) {
+     my $cmd = "egrep \"[	 *]" . ${funcnm} . "[	 ]*\\(\" $name.out >/dev/null 2>&1";
+     $rc = system ($cmd);
+     print LOGFH "##  args: $cmd $rc\n";
+     if ($rc == 0) {
+       my $dcl = `awk -f ${MKC_DIR}/mkcextdcl.awk ${name}.out ${funcnm}`;
+       # $dcl may be multi-line...fix this now.
+       $dcl =~ s/[ 	\n]/ /gos;
+       $dcl =~ s/extern *//o;
+       $dcl =~ s/;//o;
+       print LOGFH "##  dcl(A): $dcl\n";
+       my $dclren = '';
+       if ($dcl =~ m/__asm__/o) {
+         $dclren = $dcl;
+         $dclren =~ s/.*__asm__[ 	]*\("" "([a-z0-9A-Z_]*)"\)/$1/;
+       }
+       print LOGFH "##  args: dclren: $dclren\n";
+       if ($dclren ne "") {
+         $dcl =~ s/[ 	]*__asm__[ 	]*\([^\)]*\)[ 	]*//o;
+         $dcl =~ s/${funcnm}/${dclren}/;
+         print LOGFH "##  dcl(B): $dcl\n";
+       }
+       $dcl =~ s/\( *void *\)/()/o;
+       print LOGFH "##  dcl(C): $dcl\n";
 
-sub
-check_statfs_args
-{
-    my ($name, $r_clist, $r_config) = @_;
+       my $c = $dcl;
+       $c =~ s/[^,]*//go;
+       $ccount = length ($c);
+       $ccount += 1;
 
-    printlabel $name, "statfs # arguments";
-    if (checkcache ($name, $r_config) == 0)
-    {
-        return;
-    }
+       $c = $dcl;
+       $c =~ s/^[^\(]*\(//o;
+       $c =~ s/\)[^\)]*$//o;
+       print LOGFH "## c(E): ${c}\n";
+       my $val = 1;
+       while (${c} ne "") {
+         my $tc = $c;
+         $tc =~ s/ *,.*$//o;
+         if ($r_a->{'noconst'} eq 'T') {
+           $tc =~ s/const *//o;
+         }
+         # only do the following if the names of the variables are declared
+         $tc =~ s/(struct|union|enum) /$1#/;
+         if ($tc =~ / /o) {
+           $tc =~ s/ *[A-Za-z0-9_]*$//o;
+         }
+         $tc =~ s/(struct|union|enum)#/$1 /;
+         print LOGFH "## tc(F): ${tc}\n";
+         my $nm = "_c_arg_${val}_${funcnm}";
+         setlist $r_clist, $nm;
+         $r_config->{$nm} = $tc;
+         $val += 1;
+         $c =~ s/^[^,]*//o;
+         $c =~ s/^[	 ,]*//o;
+         print LOGFH "## c(G): ${c}\n";
+       }
+     }
+   }
 
-    setlist $r_clist, $name;
-    $r_config->{$name} = 0;
-
-    if ($r_config->{'_lib_statfs'} eq '0')
-    {
-        printyesno_val $name, $r_config->{$name};
-        return;
-    }
-
-    my $code = <<"_HERE_";
-main () {
-    struct statfs statBuf; char *name; name = "/";
-    statfs (name, &statBuf);
-}
-_HERE_
-    my $rc = _chk_link ($name, $code, $r_clist, $r_config,
-        { 'incheaders' => 'all', 'otherlibs' => undef, });
-    if ($rc == 0)
-    {
-        $r_config->{$name} = 2;
-        printyesno_val $name, $r_config->{$name};
-        return;
-    }
-
-    $code = <<"_HERE_";
-main () {
-    struct statfs statBuf; char *name; name = "/";
-    statfs (name, &statBuf, sizeof (statBuf));
-}
-_HERE_
-    $rc = _chk_link ($name, $code, $r_clist, $r_config,
-        { 'incheaders' => 'all', 'otherlibs' => undef, });
-    if ($rc == 0)
-    {
-        $r_config->{$name} = 3;
-        printyesno_val $name, $r_config->{$name};
-        return;
-    }
-
-    $code = <<"_HERE_";
-main () {
-    struct statfs statBuf; char *name; name = "/";
-    statfs (name, &statBuf, sizeof (statBuf), 0);
-}
-_HERE_
-    $rc = _chk_link ($name, $code, $r_clist, $r_config,
-        { 'incheaders' => 'all', 'otherlibs' => undef, });
-    if ($rc == 0)
-    {
-        $r_config->{$name} = 4;
-    }
-    printyesno_val $name, $r_config->{$name};
+   setlist $r_clist, $name;
+   $r_config->{$name} = $ccount;
+   printyesno_val $name, $r_config->{$name};
 }
 
 sub
@@ -1592,23 +1499,26 @@ main_process
         {
             ;
         }
-        elsif ($line =~ m#^\s*setmntent_args#o)
+        elsif ($line =~ m#^\s*args\s+(.*)$#o)
         {
-            check_setmntent_args ('_setmntent_args', \%clist, \%config);
-        }
-        elsif ($line =~ m#^\s*statfs_args#o)
-        {
-            check_statfs_args ('_statfs_args', \%clist, \%config);
+            my $funcnm = $1;
+
+            %args = ( 'noconst' => 'F' );
+            if ($funcnm =~ /^noconst */o) {
+              $funcnm =~ s/^noconst *//o;
+              $args{'noconst'} = 'T';
+            }
+
+            my $nm = "_args_${funcnm}";
+            $nm =~ s,/,_,go;
+            $nm =~ s,:,_,go;
+            check_args ($nm, $funcnm, \%args, \%clist, \%config);
         }
         elsif ($line =~ m#^\s*include_conflict\s+([^\s]+)\s+([^\s]+)#o)
         {
             my $i1 = $1;
             my $i2 = $2;
             check_include_conflict ('_inc_conflict', $i1, $i2, \%clist, \%config);
-        }
-        elsif ($line =~ m#^\s*quotactl_pos$#o)
-        {
-            check_quotactl_pos ('_quotactl_pos', \%clist, \%config);
         }
         elsif ($line =~ m#^\s*rquota_xdr$#o)
         {
@@ -1617,10 +1527,6 @@ main_process
         elsif ($line =~ m#^\s*gqa_uid_xdr$#o)
         {
             check_gqa_uid_xdr ('_gqa_uid_xdr', \%clist, \%config);
-        }
-        elsif ($line =~ m#^\s*getfsstat_type$#o)
-        {
-            check_getfsstat_type ('_getfsstat_type', \%clist, \%config);
         }
         elsif ($line =~ m#^\s*include$#o)
         {
@@ -1895,6 +1801,26 @@ $CACHEFILE = "../$CACHEFILE";
 $VARSFILE = "../$VARSFILE";
 $OPTIONFILE = "../$OPTIONFILE";
 
+delete $ENV{'CDPATH'};
+delete $ENV{'GREP_OPTIONS'};
+delete $ENV{'DI_ARGS'};
+delete $ENV{'DI_FMT'};
+delete $ENV{'ENV'};
+$ENV{'LC_ALL'} = "C";
+
+my $tpath = $0;
+$tpath =~ s,/[^/]*$,,;
+my $currdir =`pwd`;
+chomp $currdir;
+if (! chdir $tpath) {
+  die ("Unable to cd to $tpath. $!\n");
+}
+$MKC_DIR = `pwd`;
+chomp $MKC_DIR;
+if (! chdir $currdir) {
+  die ("Unable to cd to $currdir. $!\n");
+}
+
 if (-d $TMP) { system ("rm -rf $TMP"); }
 mkdir $TMP, 0777;
 chdir $TMP;
@@ -1920,5 +1846,7 @@ main_process $configfile;
 close LOGFH;
 
 chdir "..";
-if (-d $TMP) { system ("rm -rf $TMP"); }
+if ($ENV{'MKC_KEEP_TMP'} eq "") {
+  if (-d $TMP) { system ("rm -rf $TMP"); }
+}
 exit 0;
