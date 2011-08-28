@@ -10,9 +10,12 @@ read _MKCONFIG_VERSION < ${_MKCONFIG_DIR}/VERSION
 export _MKCONFIG_VERSION
 
 # posh set command doesn't output correct data; don't bother with it.
-# pdksh is often broken; avoid it.
-# zsh set output not correct.
-tryshell="ash bash dash ksh mksh sh sh5"
+# yash has quoting/backquote issues
+# zsh is not bourne shell compatible
+#   set | grep can be fixed with: set | strings | grep
+#   and 'emulate ksh' can be set in mkconfig.sh, but there
+#   are more issues, and I'm not interested in tracking them down.
+tryshell="ash bash dash ksh mksh pdksh sh sh5"
 
 mkconfigversion () {
   echo "mkconfig version ${_MKCONFIG_VERSION}"
@@ -96,6 +99,11 @@ testshcapability () {
 }
 
 getshelltype () {
+  doecho=F
+  if [ "$1" = "echo" ]; then
+    doecho=T
+  fi
+
   shell=${_shell:-sh}   # unknown or old
   baseshell=${_shell:-sh}
   ( eval 'echo ${.sh.version}' ) >/dev/null 2>&1
@@ -105,6 +113,7 @@ getshelltype () {
   if [ "$KSH_VERSION" != "" ]; then
     shell=ksh
     baseshell=ksh
+    dvers=$KSH_VERSION
     case $KSH_VERSION in
       *PD*)
         shell=pdksh
@@ -121,19 +130,29 @@ getshelltype () {
     esac
   elif [ "$BASH_VERSION" != "" ]; then
     baseshell=bash
+    dvers=$BASH_VERSION
     ver=`echo $BASH_VERSION | sed 's/\..*//'`
     shell=bash${ver}
   elif [ "$ZSH_VERSION" != "" ]; then
     baseshell=zsh
+    dvers=$ZSH_VERSION
     shell=zsh
   elif [ "$POSH_VERSION" != "" ]; then
     baseshell=posh
+    dvers=$POSH_VERSION
     shell=posh
+  elif [ "$YASH_VERSION" != "" ]; then
+    baseshell=yash
+    dvers=$YASH_VERSION
+    shell=yash
   fi
 
   # can try --version, but don't really know the path
   # of the shell running us; can't depend on $SHELL.
   # and it only works for bash and some versions of ksh.
+  if [ $doecho = "T" ]; then
+    echo $baseshell $shell $dvers
+  fi
 }
 
 doshelltest () {
@@ -182,14 +201,20 @@ locatecmd () {
 # function to make sure the shell has
 # some basic capabilities w/o weirdness.
 chkshell () {
+  doecho=F
+  if [ "$1" = "echo" ]; then
+    doecho=T
+  fi
 
   grc=0
 
   TMP=chksh$$
   chkmsg=""
   # test to make sure the set command works properly
+  # some shells output xyzzy=abc def
   # some shells output xyzzy='abc def'
   # some shells output xyzzy=$'abc def' (ok; handled in mkconfig.sh)
+  # yash does this correctly, but has quoting/backquote issues
   (
     cmd='xyzzy="abc def"; val=`set | grep "^xyzzy"`; test "$val" = "xyzzy=abc def"'
     eval $cmd 2>/dev/null
@@ -235,6 +260,10 @@ chkshell () {
       chkmsg="${chkmsg}
   Does not support -n."
     fi
+  fi
+
+  if [ $doecho = "T" ]; then
+    echo $chkmsg
   fi
 
   return $grc
@@ -288,6 +317,7 @@ initifs () {
 }
 
 setifs () {
+  # just newline for parsing include section
   IFS="
 "
 }
