@@ -3,7 +3,7 @@
 # Copyright 2010 Brad Lanam Walnut Creek CA USA
 #
 #
-# check and see how many arguments setmntent() takes.
+# get the xdr type for rquota and gqa_uid_xdr
 #
 
 #
