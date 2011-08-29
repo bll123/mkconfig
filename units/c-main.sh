@@ -500,13 +500,15 @@ check_args () {
         set +f
       done
       set -f
-      c=`echo ${dcl} | sed -e 's/[ 	]*/ /g' -e "s/ *${funcnm}.*//" -e 's/^ *//`
+      c=`echo ${dcl} | sed -e 's/[ 	]/ /g' -e "s/ *${funcnm}.*//" -e 's/^ *//'`
+      echo "## c(T0): ${c}" >&9
       if [ $noconst = T ]; then
         c=`echo ${c} | sed -e 's/const *//'`
       fi
+      echo "## c(T1): ${c}" >&9
       set +f
       nm="_c_type_${funcnm}"
-      setdata ${_MKCONFIG_PREFIX} ${nm} "${tmp}"
+      setdata ${_MKCONFIG_PREFIX} ${nm} "${c}"
     fi
   fi
 
