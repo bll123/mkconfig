@@ -13,24 +13,24 @@ grc=0
 
 case ${script} in
   *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/env-set.dat
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/g-set.dat
     ;;
   *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/env-set.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/g-set.dat
     ;;
 esac
-l=`grep "^_test1=\"1\"$" env-set.ctest | wc -l`
+l=`grep "^#define _test1 1$" g-set.ctest | wc -l`
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 if [ $l -ne 1 ]; then grc=1; fi
-grep "^_test2=\"a b c\"$" env-set.ctest
+grep "^#define _test2 \"a b c\"$" g-set.ctest
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 if [ "$stag" != "" ]; then
-  mv env-set.ctest env-set.ctest${stag}
+  mv g-set.ctest g-set.ctest${stag}
   mv mkconfig.log mkconfig.log${stag}
   mv mkconfig.cache mkconfig.cache${stag}
-  mv mkconfig_env.vars mkconfig_env.vars${stag}
+  mv mkconfig_c.vars mkconfig_c.vars${stag}
 fi
 
 exit $grc
