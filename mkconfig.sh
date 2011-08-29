@@ -305,10 +305,16 @@ check_if () {
       set +f
 
       case $token in
+        \'*\')
+          set -f
+          token=`echo $token | sed -e s,\',,g`
+          echo "## begin/end quoted token" >&9
+          set +f
+          ;;
         \'*)
           set -f
           qtoken=$token
-          echo "## qtoken: $qtoken" >&9
+          echo "## begin qtoken: $qtoken" >&9
           set +f
           quoted=1
           continue
@@ -321,14 +327,14 @@ check_if () {
             set -f
             token="${qtoken} $token"
             token=`echo $token | sed -e s,\',,g`
-            echo "## (Q) token: $token" >&9
+            echo "## end qtoken: $token" >&9
             set +f
             quoted=0
             ;;
           *)
             set -f
             qtoken="$qtoken $token"
-            echo "## qtoken: $qtoken" >&9
+            echo "## in qtoken: $qtoken" >&9
             set +f
             continue
             ;;
@@ -339,19 +345,15 @@ check_if () {
         ineq=2
         getdata tvar ${_MKCONFIG_PREFIX} $token
       elif [ $ineq -eq 2 ]; then
-        doappend nline " ( '$tvar' $eqtok '$token' )"
+        doappend nline " ( '$tvar' = '$token' )"
         ineq=0
       else
         case $token in
+          ==)
+            ineq=1
+            ;;
           \(|\)|-a|-o|!)
             doappend nline " $token"
-            ;;
-          ==|!=)
-            ineq=1
-            eqtok=$token
-            if [ "$eqtok" = "==" ]; then
-              eqtok="="
-            fi
             ;;
           *)
             getdata tvar ${_MKCONFIG_PREFIX} $token

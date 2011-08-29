@@ -627,37 +627,42 @@ check_if
     print LOGFH "## ifline: $ifline\n";
     my $ineq = 0;
     my $val;
-    my $eqtok;
     my $quoted = 0;
     my $qtoken;
     foreach my $token (split (/\s/, $ifline)) {
-      if ($token =~ /^'/o) {
+      if ($token =~ /^'.*'$/o) {
+        print LOGFH "## start/end qtoken\n";
+        $token =~ s/'//go;
+      } elsif ($token =~ /^'/o) {
         $qtoken = $token;
         $quoted = 1;
+        print LOGFH "## start qtoken\n";
         next;
       }
       if ($quoted) {
         if ($token =~ /'$/o) {
           $token = $qtoken . ' ' . $token;
           $token =~ s/'//go;
+          print LOGFH "## end qtoken\n";
           $quoted = 0;
         } else {
           $qtoken = $qtoken . ' ' . $token;
+          print LOGFH "## in qtoken\n";
           next;
         }
       }
 
       if ($ineq == 1) {
         $ineq = 2;
-        print LOGFH "## value of $token(A): " . $r_config->{$token} . "\n";
+        print LOGFH "## value of $token(B): " . $r_config->{$token} . "\n";
         $val = $r_config->{$token};
       } elsif ($ineq == 2) {
+        print LOGFH "## end ==\n";
         $ineq = 0;
-        if ($eqtok eq '==') { $eqtok = 'eq'; }
-        if ($eqtok eq '!=') { $eqtok = 'ne'; }
-        $nline .= "('$val' $eqtok '$token') ? 1 : 0";
+        $nline .= "('$val' eq '$token') ? 1 : 0";
         $nline .= ' ';
-      } elsif ($token eq '==' || $token eq '!=') {
+      } elsif ($token eq '==') {
+        print LOGFH "## begin ==\n";
         $ineq = 1;
         $eqtok = $token;
       } elsif ($token eq '(' || $token eq ')' || $token eq '&&' ||
