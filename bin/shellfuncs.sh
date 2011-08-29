@@ -71,7 +71,7 @@ test_math () {
 
 test_upper () {
   shhasupper=0
-  (eval 'typeset -u var;var=x;test z$var = zX') 2>/dev/null
+  (eval 'typeset -u xuvar;xuvar=x;test z$xuvar = zX') 2>/dev/null
   if [ $? -eq 0 ]; then
     shhasupper=1
     eval 'toupper () { ucvar=$1; typeset -u uval; eval "uval=\${$ucvar};$ucvar=\$uval"; }'
@@ -82,7 +82,7 @@ test_upper () {
 
 test_lower () {
   shhaslower=0
-  (eval 'typeset -l var;var=X;test z$var = zx') 2>/dev/null
+  (eval 'typeset -l xuvar;xuvar=X;test z$xuvar = zx') 2>/dev/null
   if [ $? -eq 0 ]; then
     shhaslower=1
     eval 'tolower () { lcvar=$1; typeset -l lval; eval "lval=\${$lcvar};$lcvar=\$lval"; }'
