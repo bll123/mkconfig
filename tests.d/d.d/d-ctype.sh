@@ -134,7 +134,7 @@ for x in b h; do
   fi
 done
 
-for x in c i o t; do
+for x in c i t; do
   egrep -l "^enum (: )?int ({ )?_ctype_${x} = ${isiz}( })?;$" dctype.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
@@ -171,7 +171,7 @@ for x in d o; do
 done
 
 for x in o; do
-  egrep -l ?"^alias int C_TYP_${x};$" dctype.d > /dev/null 2>&1
+  egrep -l ?"^alias long C_TYP_${x};$" dctype.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     echo "## test $x failed alias chk"
@@ -180,7 +180,7 @@ for x in o; do
 done
 
 for x in d; do
-  egrep -l ?"^alias uint C_TYP_${x};$" dctype.d > /dev/null 2>&1
+  egrep -l ?"^alias ulong C_TYP_${x};$" dctype.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     echo "## test $x failed alias chk"
