@@ -1150,7 +1150,7 @@ check_cdcl () {
     argflag=1
     dname=$1
     shift
-    if [ "$dname" = "args" ]; then
+    if [ "$dname" = "noconst" ]; then
       noconst=T
       dname=$1
       shift
@@ -1240,7 +1240,9 @@ check_cdcl () {
           tmp=`echo ${c} | sed -e 's/ *,.*$//' -e 's/[	 ]/ /g'`
           dosubst tmp 'struct ' 'struct#' 'union ' 'union#' 'enum ' 'enum#'
           # only do the following if the names of the variables are declared
-          if [ `echo ${tmp} | grep ' ' > /dev/null 2>&1` ]; then
+          echo ${tmp} | grep ' ' > /dev/null 2>&1
+          rc=$?
+          if [ $rc -eq 0 ]; then
             tmp=`echo ${tmp} | sed -e 's/ *[A-Za-z0-9_]*$//'`
           fi
           dosubst tmp 'struct#' 'struct ' 'union#' 'union ' 'enum#' 'enum '
@@ -1257,13 +1259,13 @@ check_cdcl () {
           set +f
         done
         set -f
-        c=`echo ${dcl} | sed -e 's/[ 	]*/ /g' -e "s/ *${funcnm}.*//" -e 's/^ *//`
+        c=`echo ${dcl} | sed -e 's/[ 	]/ /g' -e "s/ *${dname}.*//" -e 's/^ *//'`
         if [ $noconst = T ]; then
           c=`echo ${c} | sed -e 's/const *//'`
         fi
         set +f
-        nm="_c_type_${funcnm}"
-        setdata ${_MKCONFIG_PREFIX} ${nm} "${tmp}"
+        nm="_c_type_${dname}"
+        setdata ${_MKCONFIG_PREFIX} ${nm} "${c}"
       fi
       set -f
       doappend cdcls " ${dcl};
