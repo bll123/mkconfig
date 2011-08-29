@@ -1,7 +1,7 @@
 # test if
 
-output env-if.ctest
-loadunit env-main
+output g-if.ctest
+loadunit c-main
 standard
 
 setint _var_a 1
@@ -123,3 +123,44 @@ else
   setint _test_n2_ok 0
 endif
 setint _test_n6_ok 1
+
+setint _test_p1_ok 0
+setint _test_p2_ok 0
+setint _test_p3_ok 0
+setint _test_p4_ok 0
+setint _test_p5_ok 0
+setint _test_p6_ok 0
+setint _test_p7_ok 0
+
+setstr _var_e abc
+setstr _var_f abc def
+setstr _var_g abc def ghi
+
+# ==
+if eqa == _setint__var_a 1
+  setint _test_p1_ok 1
+endif
+# ==
+if noteqa ! == _setint__var_a 0
+  setint _test_p2_ok 1
+endif
+# ==
+if eqe == _setstr__var_e abc
+  setint _test_p3_ok 1
+endif
+# ==
+if noteqe ! == _setstr__var_e def
+  setint _test_p4_ok 1
+endif
+# ==
+if quote_eqf == _setstr__var_f 'abc def'
+  setint _test_p5_ok 1
+endif
+# ==
+if quote_noteqf ! == _setstr__var_f 'abc'
+  setint _test_p6_ok 1
+endif
+# ==
+if quote_eqg == _setstr__var_g 'abc def ghi'
+  setint _test_p7_ok 1
+endif

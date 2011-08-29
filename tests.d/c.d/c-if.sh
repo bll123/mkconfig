@@ -13,10 +13,10 @@ grc=0
 
 case ${script} in
   *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/env-if.dat
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/g-if.dat
     ;;
   *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/env-if.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/g-if.dat
     ;;
 esac
 for t in \
@@ -28,18 +28,20 @@ for t in \
     _test_m1_ok _test_m2_ok _test_m3_ok _test_m4_ok \
     _test_n1_ok _test_n2_ok _test_n3_ok _test_n4_ok \
         _test_n5_ok _test_n6_ok \
+    _test_p1_ok _test_p2_ok _test_p3_ok _test_p4_ok \
+        _test_p5_ok _test_p6_ok _test_p7_ok \
     ; do
   echo "chk: $t (1)"
-  grep "^${t}=\"1\"$" env-if.ctest
+  grep "^#define ${t} 1$" g-if.ctest
   rc=$?
   if [ $rc -ne 0 ]; then grc=$rc; fi
 done
 
 if [ "$stag" != "" ]; then
-  mv env-if.ctest env-if.ctest${stag}
+  mv g-if.ctest g-if.ctest${stag}
   mv mkconfig.log mkconfig.log${stag}
   mv mkconfig.cache mkconfig.cache${stag}
-  mv mkconfig_env.vars mkconfig_env.vars${stag}
+  mv mkconfig_c.vars mkconfig_c.vars${stag}
 fi
 
 exit $grc
