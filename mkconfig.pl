@@ -1137,6 +1137,16 @@ check_args
          $c =~ s/^[	 ,]*//o;
          print LOGFH "## c(G): ${c}\n";
        }
+       $c = $dcl;
+       $c =~ s/[ 	]/ /go;
+       $c =~ s/ *${funcnm}.*//;
+       $c =~ s/^ *//o;
+       if ($r_a->{'noconst'}) {
+         $c =~ s/const *//;
+       }
+       $nm = "_c_type_${funcnm}";
+       setlist $r_clist, $nm;
+       $r_config->{$nm} = $c;
      }
    }
 
