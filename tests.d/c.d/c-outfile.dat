@@ -1,4 +1,4 @@
-loadunit env-main
+loadunit c-main
 
 output outfile1.ctest
 
