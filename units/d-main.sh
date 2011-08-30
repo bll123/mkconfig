@@ -1211,7 +1211,7 @@ check_cdcl () {
 "
         cmd="dcl=\`echo \"\$dcl\" | \
             sed -e 's/[ 	]*__asm__[ 	]*([^)]*)[ 	]*//' \
-            -e 's/${dname}/${dclren}/' \`"
+            -e 's/\([ \*]\)${dname}\([ (]\)/\1${dclren}\2/' \`"
         eval $cmd
         echo "## dcl(B): ${dcl}" >&9
       fi
@@ -1259,7 +1259,9 @@ check_cdcl () {
           set +f
         done
         set -f
-        c=`echo ${dcl} | sed -e 's/[ 	]/ /g' -e "s/ *${dname}.*//" -e 's/^ *//'`
+        c=`echo ${dcl} | sed -e 's/[ 	]/ /g' \
+            -e "s/\( *[ \*]\)${dname}[ (].*/\1/" -e 's/^ *//' \
+            -e 's/ *$//'`
         if [ $noconst = T ]; then
           c=`echo ${c} | sed -e 's/const *//'`
         fi
