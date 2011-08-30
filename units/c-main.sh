@@ -411,7 +411,7 @@ check_args () {
   set -f
   oldprecc="${precc}"
   doappend precc "/* get rid of most gcc-isms */
-/* keep __asm__ to check for function renames */
+#define __asm__(a)
 #define __attribute__(a)
 #define __nonnull__(a,b)
 #define __restrict
@@ -435,48 +435,27 @@ check_args () {
       trc=1
     fi
 
+    set -f
     # have a declaration
     if [ $trc -eq 1 ]; then
       dcl=`awk -f ${_MKCONFIG_DIR}/mkcextdcl.awk ${name}.out ${funcnm}`
-      set -f
       # extern will be replaced
       # ; may or may not be present, so remove it.
       cmd="dcl=\`echo \"\$dcl\" | sed -e 's/extern *//' -e 's/;//' \`"
       eval $cmd
       echo "## dcl(A): ${dcl}" >&9
-      # check for gnu-cc's renaming function
-      echo $dcl | grep __asm__ > /dev/null 2>&1
-      rc=$?
-      dclren=""
-      if [ $rc -eq 0 ]; then
-        dclren=`echo $dcl | sed -e 's/.*__asm__[ 	]*("" "\([a-z0-9A-Z_]*\)")/\1/'`
-      fi
-      echo "## dclren: ${dclren}" >&9
-      if [ "$dclren" != "" ]; then
-        cmd="dcl=\`echo \"\$dcl\" | \
-            sed -e 's/[ 	]*__asm__[ 	]*([^)]*)[ 	]*//' \
-            -e 's/${funcnm}/${dclren}/' \`"
-        eval $cmd
-        echo "## dcl(B): ${dcl}" >&9
-      fi
       cmd="dcl=\`echo \"\$dcl\" | sed -e 's/( *void *)/()/' \`"
       eval $cmd
       echo "## dcl(C): ${dcl}" >&9
-      set +f
-      set -f
       c=`echo ${dcl} | sed 's/[^,]*//g'`
-      set +f
       ccount=`echo ${EN} "$c${EC}" | wc -c`
       domath ccount "$ccount + 1"  # 0==1 also, unfortunately
-      set -f
       c=`echo ${dcl} | sed 's/^[^(]*(//'`
       c=`echo ${c} | sed 's/)[^)]*$//'`
       echo "## c(E): ${c}" >&9
-      set +f
       val=1
       while test "${c}" != ""; do
         tmp=$c
-        set -f
         tmp=`echo ${c} | sed -e 's/ *,.*$//' -e 's/[	 ]/ /g'`
         dosubst tmp 'struct ' 'struct#' 'union ' 'union#' 'enum ' 'enum#'
         # only do the following if the names of the variables are declared
@@ -490,26 +469,24 @@ check_args () {
           tmp=`echo ${tmp} | sed -e 's/const *//'`
         fi
         echo "## tmp(F): ${tmp}" >&9
-        set +f
         nm="_c_arg_${val}_${funcnm}"
         setdata ${_MKCONFIG_PREFIX} ${nm} "${tmp}"
         domath val "$val + 1"
-        set -f
         c=`echo ${c} | sed -e 's/^[^,]*//' -e 's/^[	 ,]*//'`
         echo "## c(G): ${c}" >&9
-        set +f
       done
-      set -f
-      c=`echo ${dcl} | sed -e 's/[ 	]/ /g' -e "s/ *${funcnm}.*//" -e 's/^ *//'`
+      c=`echo ${dcl} | sed -e 's/[ 	]/ /g' \
+            -e "s/\( *[ \*]\)${funcnm}[ (].*/\1/" -e 's/^ *//' \
+            -e 's/ *$//'`
       echo "## c(T0): ${c}" >&9
       if [ $noconst = T ]; then
         c=`echo ${c} | sed -e 's/const *//'`
       fi
       echo "## c(T1): ${c}" >&9
-      set +f
       nm="_c_type_${funcnm}"
       setdata ${_MKCONFIG_PREFIX} ${nm} "${c}"
     fi
+    set +f
   fi
 
   printyesno_val $name $ccount ""
@@ -702,7 +679,7 @@ output_item () {
       echo "#define ${tname} ${val}"
       set +f
       ;;
-    _setstr_*|_opt_*)
+    _setstr_*|_opt_*|_c_arg_*|_c_type_*)
       tname=$name
       dosubst tname '_setstr_' '' '_opt_' ''
       set -f

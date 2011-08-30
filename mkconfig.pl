@@ -1073,7 +1073,7 @@ check_args
 
     my $oldprecc = $precc;
     $precc .= "/* get rid of most gcc-isms */
-/* keep __asm__ to check for function renames */
+#define __asm__(a)
 #define __attribute__(a)
 #define __nonnull__(a,b)
 #define __restrict
@@ -1097,17 +1097,6 @@ check_args
        $dcl =~ s/extern *//o;
        $dcl =~ s/;//o;
        print LOGFH "##  dcl(A): $dcl\n";
-       my $dclren = '';
-       if ($dcl =~ m/__asm__/o) {
-         $dclren = $dcl;
-         $dclren =~ s/.*__asm__[ 	]*\("" "([a-z0-9A-Z_]*)"\)/$1/;
-       }
-       print LOGFH "##  args: dclren: $dclren\n";
-       if ($dclren ne "") {
-         $dcl =~ s/[ 	]*__asm__[ 	]*\([^\)]*\)[ 	]*//o;
-         $dcl =~ s/${funcnm}/${dclren}/;
-         print LOGFH "##  dcl(B): $dcl\n";
-       }
        $dcl =~ s/\( *void *\)/()/o;
        print LOGFH "##  dcl(C): $dcl\n";
 
@@ -1124,6 +1113,7 @@ check_args
        while (${c} ne "") {
          my $tc = $c;
          $tc =~ s/ *,.*$//o;
+         $tc =~ s/[ 	]/ /go;
          if ($r_a->{'noconst'} eq 'T') {
            $tc =~ s/const *//o;
          }
@@ -1144,8 +1134,9 @@ check_args
        }
        $c = $dcl;
        $c =~ s/[ 	]/ /go;
-       $c =~ s/ *${funcnm}.*//;
+       $c =~ s/( *[ \*])${funcnm}[ \(].*/$1/;
        $c =~ s/^ *//o;
+       $c =~ s/ *$//o;
        if ($r_a->{'noconst'}) {
          $c =~ s/const *//;
        }
@@ -1315,7 +1306,8 @@ _HERE_
       $tnm = $val;
       $tnm =~ s/^_setint_//;
       print CCOFH "#define $tnm " . $r_config->{$val} . "\n";
-    } elsif ($val =~ m#^_setstr_#o || $val =~ m#^_opt_#o) {
+    } elsif ($val =~ m#^_setstr_#o || $val =~ m#^_opt_#o ||
+        $val =~ m#^_c_arg_#o || $val =~ m#^_c_type_#o) {
       $tnm = $val;
       $tnm =~ s/^_setstr_//;
       $tnm =~ s/^_opt_//;
