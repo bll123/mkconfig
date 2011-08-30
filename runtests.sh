@@ -216,7 +216,7 @@ TMPORDER=test_order.tmp
 > $TMPORDER
 if [ "$teststorun" = "" ]; then
   if [ ! -f "$TESTORDER" ]; then
-    ls -1d *.d *.sh 2>/dev/null | sed -e 's/\.sh$//' -e 's/^/1 ' >> $TMPORDER
+    ls -1d *.d *.sh 2>/dev/null | sed -e 's/\.sh$//' -e 's/^/1/' >> $TMPORDER
   else
     sort -n $TESTORDER >> $TMPORDER
   fi
