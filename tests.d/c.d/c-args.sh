@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ "$1" = "-d" ]; then
-  echo ${EN} " args${EC}"
+  echo ${EN} " arguments${EC}"
   exit 0
 fi
 
@@ -31,6 +31,7 @@ cat > cargshdr.h << _HERE_
 
 /* modified from linux sys/statvfs.h */
 # if __GNUC__
+#  define __THROW
 extern int a (__const char *__restrict __file,
       long *__restrict __buf)
      __attribute__ ((__nothrow__)) __attribute__ ((__nonnull__ (1, 2)));
@@ -279,7 +280,12 @@ for x in g; do
 done
 
 if [ $grc -eq 0 ]; then
-  ${CC} -c ${CFLAGS} cargs.h
+  cat > cargs.c << _HERE_
+#include <stdio.h>
+#include <cargs.h>
+main (int argc, char *argv []) { return 0; }
+_HERE_
+  ${CC} -c ${CFLAGS} cargs.c
   if [ $? -ne 0 ]; then
     echo "## compile cargs.h failed"
     grc=1
@@ -287,6 +293,7 @@ if [ $grc -eq 0 ]; then
 fi
 
 if [ "$stag" != "" ]; then
+  mv cargs.c cargs.c${stag}
   mv cargs.h cargs.h${stag}
   mv mkconfig.log mkconfig.log${stag}
   mv mkconfig.cache mkconfig.cache${stag}
