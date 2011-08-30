@@ -679,7 +679,7 @@ output_item () {
       echo "#define ${tname} ${val}"
       set +f
       ;;
-    _setstr_*|_opt_*|_c_arg_*|_c_type_*)
+    _setstr_*|_opt_*)
       tname=$name
       dosubst tname '_setstr_' '' '_opt_' ''
       set -f
@@ -689,7 +689,7 @@ output_item () {
     _hdr*|_sys*|_command*)
       echo "#define ${name} ${tval}"
       ;;
-    *)
+    *)      # _c_arg, _c_type go here also
       echo "#define ${name} ${val}"
       ;;
   esac

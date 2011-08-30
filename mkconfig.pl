@@ -1306,8 +1306,7 @@ _HERE_
       $tnm = $val;
       $tnm =~ s/^_setint_//;
       print CCOFH "#define $tnm " . $r_config->{$val} . "\n";
-    } elsif ($val =~ m#^_setstr_#o || $val =~ m#^_opt_#o ||
-        $val =~ m#^_c_arg_#o || $val =~ m#^_c_type_#o) {
+    } elsif ($val =~ m#^(_setstr_|_opt_)#o) {
       $tnm = $val;
       $tnm =~ s/^_setstr_//;
       $tnm =~ s/^_opt_//;
