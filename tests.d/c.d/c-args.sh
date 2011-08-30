@@ -1,0 +1,296 @@
+#!/bin/sh
+
+if [ "$1" = "-d" ]; then
+  echo ${EN} " args${EC}"
+  exit 0
+fi
+
+if [ "${CC}" = "" ]; then
+  echo ${EN} " no C compiler; skipped${EC}" >&5
+  exit 0
+fi
+
+stag=$1
+shift
+script=$@
+
+CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
+DFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"
+LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
+export CFLAGS DFLAGS LDFLAGS
+
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
+    -C $_MKCONFIG_RUNTESTDIR/c-args.env.dat
+
+. ./cargs.env
+grc=0
+
+cat > cargshdr.h << _HERE_
+#ifndef _INC_cargshdr_H_
+#define _INC_cargshdr_H_
+
+/* modified from linux sys/statvfs.h */
+# if __GNUC__
+extern int a (__const char *__restrict __file,
+      long *__restrict __buf)
+     __attribute__ ((__nothrow__)) __attribute__ ((__nonnull__ (1, 2)));
+# endif
+int b (int);
+extern int c (long);
+extern int d (int, int, char *);
+extern int e (char **, int *);
+extern int f (int, char * const [], const char *);
+extern char *g (const char *);
+# if __GNUC__
+extern int h (__const char *__restrict __file,
+  long *__restrict __buf) __attribute__ ((__nothrow__))
+  __attribute__ ((__nonnull__ (1, 2)));
+extern char *i (__const char *__domainname,
+  __const char *__dirname) __THROW;
+extern char *j (__const char *__domainname,
+  __const char *__dirname) __THROW;
+# endif
+extern int k (int, int, char *);
+extern int l (int, int);
+extern int m (int);
+extern int n (int, int, char *, int);
+# if __GNUC__
+extern int o (int, int, char *, int) __asm__ ("" "o");
+# endif
+
+#endif
+_HERE_
+
+case ${script} in
+  *mkconfig.sh)
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-args.dat
+    ;;
+  *)
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-args.dat
+    ;;
+esac
+
+grc=0
+
+if [ "${_MKCONFIG_USING_GCC}" = "Y" ]; then
+  # two arguments
+  for x in a h i j; do
+    egrep -l "^#define _args_${x} 2$" cargs.h > /dev/null 2>&1
+    rc=$?
+    if [ $rc -ne 0 ]; then
+      echo "## check for _args_${x} failed (gcc)"
+      grc=1
+    fi
+  done
+
+  # four arguments
+  for x in o; do
+    egrep -l "^#define _args_${x} 4$" cargs.h > /dev/null 2>&1
+    rc=$?
+    if [ $rc -ne 0 ]; then
+      echo "## check for _args_${x} failed (gcc)"
+      grc=1
+    fi
+  done
+
+  # int check
+  set 1 2 4
+  for x in o o o; do
+    val=$1
+    shift
+    egrep -l "^#define _c_arg_${val}_${x} int$" cargs.h > /dev/null 2>&1
+    rc=$?
+    if [ $rc -ne 0 ]; then
+      echo "## check for _c_arg_${val}_${x} int failed (gcc)"
+      grc=1
+    fi
+  done
+
+  # char * check
+  set 1 1 1 2 1 2 3
+  for x in a h i i j j o; do
+    val=$1
+    shift
+    egrep -l "^#define _c_arg_${val}_${x} char \*$" cargs.h > /dev/null 2>&1
+    rc=$?
+    if [ $rc -ne 0 ]; then
+      echo "## check for _c_arg_${val}_${x} char * failed (gcc)"
+      grc=1
+    fi
+  done
+
+  # long * check
+  set 2 2
+  for x in a h; do
+    val=$1
+    shift
+    egrep -l "^#define _c_arg_${val}_${x} long \*$" cargs.h > /dev/null 2>&1
+    rc=$?
+    if [ $rc -ne 0 ]; then
+      echo "## check for _c_arg_${val}_${x} long * failed (gcc)"
+      grc=1
+    fi
+  done
+
+  # int type check
+  for x in a h o; do
+    egrep -l "^#define _c_type_${x} int$" cargs.h > /dev/null 2>&1
+    rc=$?
+    if [ $rc -ne 0 ]; then
+      echo "## check for _c_type_${x} int failed (gcc)"
+      grc=1
+    fi
+  done
+
+  # char * type check
+  for x in i j; do
+    egrep -l "^#define _c_type_${x} char \*$" cargs.h > /dev/null 2>&1
+    rc=$?
+    if [ $rc -ne 0 ]; then
+      echo "## check for _c_type_${x} char * failed (gcc)"
+      grc=1
+    fi
+  done
+fi
+
+# one argument
+for x in b c g m; do
+  egrep -l "^#define _args_${x} 1$" cargs.h > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "## check for _args_${x} failed"
+    grc=1
+  fi
+done
+
+# two arguments
+for x in e l; do
+  egrep -l "^#define _args_${x} 2$" cargs.h > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "## check for _args_${x} failed"
+    grc=1
+  fi
+done
+
+# three arguments
+for x in d f k; do
+  egrep -l "^#define _args_${x} 3$" cargs.h > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "## check for _args_${x} failed"
+    grc=1
+  fi
+done
+
+# four arguments
+for x in n; do
+  egrep -l "^#define _args_${x} 4$" cargs.h > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "## check for _args_${x} failed"
+    grc=1
+  fi
+done
+
+# int check
+set 1 1 2 1 1 2 1 2 1 1 2 4
+for x in b d d f k k l l m n n n; do
+  val=$1
+  shift
+  egrep -l "^#define _c_arg_${val}_${x} int$" cargs.h > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "## check for _c_arg_${val}_${x} int failed"
+    grc=1
+  fi
+done
+
+# long check
+set 1
+for x in c; do
+  val=$1
+  shift
+  egrep -l "^#define _c_arg_${val}_${x} long$" cargs.h > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "## check for _c_arg_${val}_${x} long failed"
+    grc=1
+  fi
+done
+
+# 'char *' check
+set 3 3 1 3 3
+for x in d f g k n; do
+  val=$1
+  shift
+  egrep -l "^#define _c_arg_${val}_${x} char \*$" cargs.h > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "## check for _c_arg_${val}_${x} char * failed"
+    grc=1
+  fi
+done
+
+# 'char **' check
+set 1
+for x in e; do
+  val=$1
+  shift
+  egrep -l "^#define _c_arg_${val}_${x} char \*\*$" cargs.h > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "## check for _c_arg_${val}_${x} char ** failed"
+    grc=1
+  fi
+done
+
+# 'char * []' check
+set 2
+for x in f; do
+  val=$1
+  shift
+  egrep -l "^#define _c_arg_${val}_${x} char \* \[\]$" cargs.h > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "## check for _c_arg_${val}_${x} char * [] failed"
+    grc=1
+  fi
+done
+
+# int type check
+for x in b c d e k l m n; do
+  egrep -l "^#define _c_type_${x} int$" cargs.h > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "## check for _c_type_${x} int failed"
+    grc=1
+  fi
+done
+
+# char * type check
+for x in g; do
+  egrep -l "^#define _c_type_${x} char \*$" cargs.h > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "## check for _c_type_${x} char * failed"
+    grc=1
+  fi
+done
+
+if [ $grc -eq 0 ]; then
+  ${CC} -c ${CFLAGS} cargs.h
+  if [ $? -ne 0 ]; then
+    echo "## compile cargs.h failed"
+    grc=1
+  fi
+fi
+
+if [ "$stag" != "" ]; then
+  mv cargs.h cargs.h${stag}
+  mv mkconfig.log mkconfig.log${stag}
+  mv mkconfig.cache mkconfig.cache${stag}
+  mv mkconfig_c.vars mkconfig_c.vars${stag}
+fi
+
+exit $grc

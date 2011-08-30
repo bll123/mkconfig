@@ -1,0 +1,21 @@
+output cargs.h
+loadunit c-main
+standard
+
+hdr cargshdr.h
+
+args noconst a
+args noconst b
+args noconst c
+args noconst d
+args noconst e
+args noconst f
+args noconst g
+args noconst h
+args noconst i
+args noconst j
+args noconst k
+args noconst l
+args noconst m
+args noconst n
+args noconst o
