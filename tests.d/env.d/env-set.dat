@@ -1,7 +1,7 @@
 # test set
 
-output g-set.ctest
-loadunit c-main
+output env-set.ctest
+loadunit env-main
 standard
 setint _test1 0
 setint _test1 1

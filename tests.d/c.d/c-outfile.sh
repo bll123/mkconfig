@@ -14,10 +14,10 @@ for f in outfile1.ctest outfile2.ctest \
 done
 case ${script} in
   *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/g-outfile.dat
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-outfile.dat
     ;;
   *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/g-outfile.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-outfile.dat
     ;;
 esac
 

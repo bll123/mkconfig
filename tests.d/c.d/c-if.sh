@@ -13,10 +13,10 @@ grc=0
 
 case ${script} in
   *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/g-if.dat
+    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-if.dat
     ;;
   *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/g-if.dat
+    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-if.dat
     ;;
 esac
 for t in \
@@ -32,13 +32,13 @@ for t in \
         _test_p5_ok _test_p6_ok _test_p7_ok \
     ; do
   echo "chk: $t (1)"
-  grep "^#define ${t} 1$" g-if.ctest
+  grep "^#define ${t} 1$" c-if.ctest
   rc=$?
   if [ $rc -ne 0 ]; then grc=$rc; fi
 done
 
 if [ "$stag" != "" ]; then
-  mv g-if.ctest g-if.ctest${stag}
+  mv c-if.ctest c-if.ctest${stag}
   mv mkconfig.log mkconfig.log${stag}
   mv mkconfig.cache mkconfig.cache${stag}
   mv mkconfig_c.vars mkconfig_c.vars${stag}

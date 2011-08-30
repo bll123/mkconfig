@@ -1,6 +1,6 @@
 # test when no options file
 
-output g-nooptfile.ctest
+output c-nooptfile.ctest
 loadunit c-main
 standard
 

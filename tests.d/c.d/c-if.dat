@@ -1,6 +1,6 @@
 # test if
 
-output g-if.ctest
+output c-if.ctest
 loadunit c-main
 standard
 

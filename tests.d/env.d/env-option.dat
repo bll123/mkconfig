@@ -1,6 +1,6 @@
-output g-option.ctest
-option-file g-option.opts
-loadunit c-main
+output env-option.ctest
+option-file env-option.opts
+loadunit env-main
 standard
 
 option TEST_OPT_DEF default
