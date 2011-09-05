@@ -278,7 +278,8 @@ check_addcflag () {
   echo "#include <stdio.h>
 main () { return 0; }" > t.c
   echo "# test ${flag}" >&9
-  ${CC} ${flag} t.c >&9 2>&1
+  # need to set w/all cflags; gcc doesn't always error out otherwise
+  ${CC} ${ccflags} ${flag} t.c >&9 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     flag=0
