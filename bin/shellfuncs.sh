@@ -6,7 +6,17 @@
 # Copyright 2010 Brad Lanam Walnut Creek, CA, USA
 #
 
-read _MKCONFIG_VERSION < ${_MKCONFIG_DIR}/VERSION
+if [ ! -f "${_MKCONFIG_DIR}/VERSION" ]; then
+  echo "Unable to locate ${_MKCONFIG_DIR}/VERSION."
+  echo "Not a valid mkconfig installation."
+  exit 1
+fi
+
+# dash on Mandriva 2011 segfaults intermittently when:
+#   read _MKCONFIG_VERSION < ${_MKCONFIG_DIR}/VERSION
+#   export _MKCONFIG_VERSION
+# was used.
+_MKCONFIG_VERSION=`cat ${_MKCONFIG_DIR}/VERSION`
 export _MKCONFIG_VERSION
 
 # posh set command doesn't output correct data; don't bother with it.
