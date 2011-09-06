@@ -1134,7 +1134,7 @@ check_args
        }
        $c = $dcl;
        $c =~ s/[ 	]/ /go;
-       $c =~ s/( *[ \*])${funcnm}[ \(].*/$1/;
+       $c =~ s/([ \*])${funcnm}[ \(].*/$1/;
        $c =~ s/^ *//o;
        $c =~ s/ *$//o;
        if ($r_a->{'noconst'}) {
