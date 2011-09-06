@@ -475,6 +475,7 @@ check_args () {
         c=`echo ${c} | sed -e 's/^[^,]*//' -e 's/^[	 ,]*//'`
         echo "## c(G): ${c}" >&9
       done
+      set -f
       c=`echo ${dcl} | sed -e 's/[ 	]/ /g' \
             -e "s/\([ \*]\)${funcnm}[ (].*/\1/" \
             -e 's/^ *//' \
@@ -484,6 +485,7 @@ check_args () {
         c=`echo ${c} | sed -e 's/const *//'`
       fi
       echo "## c(T1): ${c}" >&9
+      set +f
       nm="_c_type_${funcnm}"
       setdata ${_MKCONFIG_PREFIX} ${nm} "${c}"
     fi
