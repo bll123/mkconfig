@@ -476,7 +476,8 @@ check_args () {
         echo "## c(G): ${c}" >&9
       done
       c=`echo ${dcl} | sed -e 's/[ 	]/ /g' \
-            -e "s/\( *[ \*]\)${funcnm}[ (].*/\1/" -e 's/^ *//' \
+            -e "s/\([ \*]\)${funcnm}[ (].*/\1/" \
+            -e 's/^ *//' \
             -e 's/ *$//'`
       echo "## c(T0): ${c}" >&9
       if [ $noconst = T ]; then

@@ -1260,7 +1260,8 @@ check_cdcl () {
         done
         set -f
         c=`echo ${dcl} | sed -e 's/[ 	]/ /g' \
-            -e "s/\( *[ \*]\)${dname}[ (].*/\1/" -e 's/^ *//' \
+            -e "s/\([ \*]\)${dname}[ (].*/\1/" \
+            -e 's/^ *//' \
             -e 's/ *$//'`
         if [ $noconst = T ]; then
           c=`echo ${c} | sed -e 's/const *//'`
