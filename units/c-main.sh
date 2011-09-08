@@ -438,7 +438,7 @@ check_args () {
     set -f
     # have a declaration
     if [ $trc -eq 1 ]; then
-      dcl=`awk -f ${_MKCONFIG_DIR}/mkcextdcl.awk ${name}.out ${funcnm}`
+      dcl=`${awkcmd} -f ${_MKCONFIG_DIR}/mkcextdcl.awk ${name}.out ${funcnm}`
       # extern will be replaced
       # ; may or may not be present, so remove it.
       cmd="dcl=\`echo \"\$dcl\" | sed -e 's/extern *//' -e 's/;//' \`"

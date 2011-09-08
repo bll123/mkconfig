@@ -887,7 +887,7 @@ check_cmacro () {
     esac
 
     if [ $trc -eq 1 ]; then
-      macro=`awk -f ${_MKCONFIG_DIR}/mkcextmacro.awk $fhdr ${mname}`
+      macro=`${awkcmd} -f ${_MKCONFIG_DIR}/mkcextmacro.awk $fhdr ${mname}`
       set -f
       cmd="macro=\`echo \"\${macro}\" |
           sed -e 's/^#[ 	]*define[ 	]*//'
@@ -1005,7 +1005,7 @@ check_cstruct () {
   stnm=""
 
   if [ $rc -eq 0 ]; then
-    st=`awk -f ${_MKCONFIG_DIR}/mkcextstruct.awk ${name}.out ${s}`
+    st=`${awkcmd} -f ${_MKCONFIG_DIR}/mkcextstruct.awk ${name}.out ${s}`
     echo "#### initial ${ctype}" >&9
     echo "${st}" >&9
     echo "#### end initial ${ctype}" >&9
@@ -1189,7 +1189,7 @@ check_cdcl () {
     fi
 
     if [ $trc -eq 1 ]; then
-      dcl=`awk -f ${_MKCONFIG_DIR}/mkcextdcl.awk ${name}.out ${dname}`
+      dcl=`${awkcmd} -f ${_MKCONFIG_DIR}/mkcextdcl.awk ${name}.out ${dname}`
       set -f
       # extern will be replaced
       # ; may or may not be present, so remove it.
