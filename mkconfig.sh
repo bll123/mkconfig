@@ -762,6 +762,15 @@ unalias ls > /dev/null 2>&1
 unalias rm > /dev/null 2>&1
 LC_ALL=C
 export LC_ALL
+locatecmd awkcmd awk
+locatecmd nawkcmd nawk
+locatecmd gawkcmd gawk
+if [ "$nawkcmd" != "" ]; then
+  awkcmd=$nawkcmd
+fi
+if [ "$gawkcmd" != "" ]; then
+  awkcmd=$gawkcmd
+fi
 
 clearcache=0
 while test $# -gt 1; do

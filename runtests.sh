@@ -186,6 +186,16 @@ if [ ! -d $testdir ]; then
   exit 1
 fi
 
+locatecmd awkcmd awk
+locatecmd nawkcmd nawk
+locatecmd gawkcmd gawk
+if [ "$nawkcmd" != "" ]; then
+  awkcmd=$nawkcmd
+fi
+if [ "$gawkcmd" != "" ]; then
+  awkcmd=$gawkcmd
+fi
+
 shift
 teststorun=$*
 
