@@ -1071,6 +1071,23 @@ check_args
         return;
     }
 
+    my $awkcmd = 'awk';
+    foreach my $p (split /[;:]/o, $ENV{'PATH'})
+    {
+        if (-x "$p/awk" && $awkcmd == "")
+        {
+            $awkcmd = "$p/awk";
+        }
+        if (-x "$p/nawk" && $awkcmd !~ /gawk$/o)
+        {
+            $awkcmd = "$p/nawk";
+        }
+        if (-x "$p/gawk")
+        {
+            $awkcmd = "$p/gawk";
+        }
+    }
+
     my $oldprecc = $precc;
     $precc .= "/* get rid of most gcc-isms */
 #define __asm__(a)
@@ -1091,7 +1108,7 @@ check_args
      $rc = system ($cmd);
      print LOGFH "##  args: $cmd $rc\n";
      if ($rc == 0) {
-       my $dcl = `awk -f ${MKC_DIR}/mkcextdcl.awk ${name}.out ${funcnm}`;
+       my $dcl = `${awkcmd} -f ${MKC_DIR}/mkcextdcl.awk ${name}.out ${funcnm}`;
        # $dcl may be multi-line...fix this now.
        $dcl =~ s/[ 	\n]/ /gos;
        $dcl =~ s/extern *//o;
@@ -1123,6 +1140,7 @@ check_args
            $tc =~ s/ *[A-Za-z0-9_]*$//o;
          }
          $tc =~ s/(struct|union|enum)#/$1 /;
+         $tc =~ s/^ *//;
          print LOGFH "## tc(F): ${tc}\n";
          my $nm = "_c_arg_${val}_${funcnm}";
          setlist $r_clist, $nm;
