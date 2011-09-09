@@ -233,10 +233,8 @@ chkshell () {
     fi
     cmd="xyzzy=\"abc def\"; val=\`set | grep \"^xyzzy\"\`; test \"\$val\" = \"xyzzy='abc def'\" -o \"\$val\" = \"xyzzy=\\$'abc def'\""
     eval $cmd 2>/dev/null
-    if [ $? -eq 0 ]; then
-      exit 0
-    fi
-    exit 1
+    rc=$?
+    exit $rc
   )
   rc=$?
   if [ $rc -ne 0 ]; then
@@ -249,7 +247,7 @@ chkshell () {
     # test for -n not supported.
     (
       rm -f $TMP $TMP.out > /dev/null 2>&1
-      echo 'exit 1' > $TMP
+      echo 'while test $# -gt 1; do echo $1; shift; done; exit 1' > $TMP
       chmod a+rx $TMP
       cmd="$TSHELL -n $TMP;echo \$? > $TMP.out"
       eval $cmd &
