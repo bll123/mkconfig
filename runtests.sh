@@ -102,6 +102,7 @@ $rs"
     echo ${EN} "  check $s${EC}" >&8
     echo ${EN} "   $s${EC}"
     cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;TSHELL=$s;chkshell echo\""
+    rc=$?
     eval $cmd >&8 2>&1
     cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;TSHELL=$s;getshelltype echo\""
     set `eval $cmd`
@@ -109,7 +110,7 @@ $rs"
     tshell=$2
     shift;shift
     tdvers=$@
-    if [ $? -eq 0 ]; then
+    if [ $rc -eq 0 ]; then
       echo " ok" >&8
       shelllist="${shelllist} $s"
       echo " [$tshell $tdvers] (ok)"
