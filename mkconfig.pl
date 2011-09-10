@@ -1130,17 +1130,18 @@ check_args
        while (${c} ne "") {
          my $tc = $c;
          $tc =~ s/ *,.*$//o;
-         $tc =~ s/[ 	]/ /go;
+         $tc =~ s/[ 	]+/ /go;
          if ($r_a->{'noconst'} eq 'T') {
            $tc =~ s/const *//o;
          }
+         $tc =~ s/^ *//;
+         $tc =~ s/ *$//;
          # only do the following if the names of the variables are declared
          $tc =~ s/(struct|union|enum) /$1#/;
          if ($tc =~ / /o) {
            $tc =~ s/ *[A-Za-z0-9_]*$//o;
          }
          $tc =~ s/(struct|union|enum)#/$1 /;
-         $tc =~ s/^ *//;
          print LOGFH "## tc(F): ${tc}\n";
          my $nm = "_c_arg_${val}_${funcnm}";
          setlist $r_clist, $nm;
@@ -1151,7 +1152,7 @@ check_args
          print LOGFH "## c(G): ${c}\n";
        }
        $c = $dcl;
-       $c =~ s/[ 	]/ /go;
+       $c =~ s/[ 	]+/ /go;
        $c =~ s/([ \*])${funcnm}[ \(].*/$1/;
        $c =~ s/^ *//o;
        $c =~ s/ *$//o;
