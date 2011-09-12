@@ -58,6 +58,16 @@ extern int n (int, int, char *, int);
 # if __GNUC__
 extern int o (int, int, char *, int) __asm__ ("" "o");
 # endif
+/* w/var names */
+extern char *p (int a, int b, char *c, int d);
+/* w/var names and lots of spaces */
+extern int q ( int a , int b , char  * c , int d );
+/* w/no var names and lots of spaces */
+extern  int  r ( int ,  int , char  * , int );
+/* struct names */
+struct x_t { int a; };
+union y_t { int a; int b; };
+extern  int  s ( struct x_t x , union  y_t  y , char  * , int );
 
 #endif
 _HERE_
@@ -185,7 +195,7 @@ for x in d f k; do
 done
 
 # four arguments
-for x in n; do
+for x in n p q r s; do
   egrep -l "^#define _args_${x} 4$" cargs.h > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
@@ -195,8 +205,8 @@ for x in n; do
 done
 
 # int check
-set 1 1 2 1 1 2 1 2 1 1 2 4
-for x in b d d f k k l l m n n n; do
+set 1 1 2 1 1 2 1 2 1 1 2 4 1 2 4 1 2 4 1 2 4 4
+for x in b d d f k k l l m n n n p p p q q q r r r s; do
   val=$1
   shift
   egrep -l "^#define _c_arg_${val}_${x} int$" cargs.h > /dev/null 2>&1
@@ -221,8 +231,8 @@ for x in c; do
 done
 
 # 'char *' check
-set 3 3 1 3 3
-for x in d f g k n; do
+set 3 3 1 3 3 3 3 3 3
+for x in d f g k n p q r s; do
   val=$1
   shift
   egrep -l "^#define _c_arg_${val}_${x} char \*$" cargs.h > /dev/null 2>&1
@@ -259,8 +269,34 @@ for x in f; do
   fi
 done
 
+# 'struct x_t' check
+set 1
+for x in s; do
+  val=$1
+  shift
+  egrep -l "^#define _c_arg_${val}_${x} struct x_t$" cargs.h > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "## check for _c_arg_${val}_${x} struct x_t failed"
+    grc=1
+  fi
+done
+
+# 'union y_t' check
+set 2
+for x in s; do
+  val=$1
+  shift
+  egrep -l "^#define _c_arg_${val}_${x} union y_t$" cargs.h > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "## check for _c_arg_${val}_${x} union y_t failed"
+    grc=1
+  fi
+done
+
 # int type check
-for x in b c d e k l m n; do
+for x in b c d e k l m n q r s; do
   egrep -l "^#define _c_type_${x} int$" cargs.h > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
@@ -270,7 +306,7 @@ for x in b c d e k l m n; do
 done
 
 # char * type check
-for x in g; do
+for x in g p; do
   egrep -l "^#define _c_type_${x} char \*$" cargs.h > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
@@ -283,7 +319,7 @@ if [ $grc -eq 0 ]; then
   cat > cargs.c << _HERE_
 #include <stdio.h>
 #include <cargs.h>
-main (int argc, char *argv []) { return 0; }
+int main (int argc, char *argv []) { return 0; }
 _HERE_
   ${CC} -c ${CFLAGS} cargs.c
   if [ $? -ne 0 ]; then
