@@ -188,14 +188,26 @@ nested.
 The \fIif\fP statement is a combination of check variables, &&, ||,
 ! (not) and parentheses.  It is recommended that parentheses be used
 copiously to avoid any possible precedence differences between different
-shells.  Only boolean tests are currently supported.  The \fIlabel\fP is
-used for display output.
+shells.  The \fIlabel\fP is used for display output.
+.PP
+The equality operator is supported in prefix notation as:
+.br
+\fIif\fP label == check\-variable value
+.br
+The \fIvalue\fP may be enclosed in quotes, but preservation of extra spaces
+will not work.
 .PP
 Example:
 .br
 if mylabel _hdr_header1 && ( ! (_lib_func3 || _lib_func4)) && _setint_my_var
 .br
- setint _my_var_b 1
+ ...
+.br
+endif
+.br
+if quotactl_pos_1 == _c_arg_1_quotactl 'char *'
+.br
+ ...
 .br
 endif
 .PP
