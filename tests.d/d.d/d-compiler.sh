@@ -16,7 +16,6 @@ script=$@
 
 grc=0
 
-set -x
 cat > d_compiler.d << _HERE_
 int main (char[][] args) { return 0; }
 _HERE_
