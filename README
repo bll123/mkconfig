@@ -1,10 +1,22 @@
-mkconfig - configuration tool (version 1.14)
+mkconfig - configuration tool (version 1.15)
 
 Please e-mail any configuration units and the corresponding
 manual page entry to brad.lanam.di_at_gmail.com.  They will be
 included in the next release.
 
 CHANGES
+
+    1.15                                    [11 Sep 2011]
+        Added pdksh in as a valid shell
+        Added 'args' directive (C)
+        Removed statfs, setmntent, quotactl, getfsstat_type
+            (breaks backwards compatibility)
+        Added 'addcflags' directive (env)
+        Fixed args directive to return valid types (C)
+        Fixed cdcl directive to return valid types (D)
+        Updated args directive to save return type (C)
+        Updated cdcl directive to save return type (D)
+        Fixed shell validity tests.
 
     1.14                                    [22 May 2011]
         Renamed ctypeconv to ctype (breaks backwards compatibility).
