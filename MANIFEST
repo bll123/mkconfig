@@ -12,13 +12,9 @@ mkconfig_env.7		manual page
 mkconfig.pl		perl config program
 mkconfig.sh		shell config program
 mkconfig.units/		units for mkconfig.sh
-mkconfig.units/c-getfsstat.sh
 mkconfig.units/c-include-conflict.sh
 mkconfig.units/c-main.sh
-mkconfig.units/c-quotactl.sh
 mkconfig.units/c-rquota.sh
-mkconfig.units/c-setmntent.sh
-mkconfig.units/c-statfs.sh
 mkconfig.units/c-support.sh
 mkconfig.units/d-main.sh
 mkconfig.units/d-support.sh
@@ -49,6 +45,10 @@ tests.d/multword.mksh
 tests.d/multword.sh
 tests.d/c.d/            regression tests for C language
 tests.d/test_order
+tests.d/c.d/c-args.dat
+tests.d/c.d/c-args.env.dat
+tests.d/c.d/c-args.mkshpl
+tests.d/c.d/c-args.sh
 tests.d/c.d/c-cache.dat
 tests.d/c.d/c-cache.mkshpl
 tests.d/c.d/c-cache.sh
@@ -65,6 +65,12 @@ tests.d/c.d/c-define.sh
 tests.d/c.d/c-header.dat
 tests.d/c.d/c-header.mkshpl
 tests.d/c.d/c-header.sh
+tests.d/c.d/c-if.dat
+tests.d/c.d/c-if.mkshpl
+tests.d/c.d/c-if.sh
+tests.d/c.d/c-ifoption.dat
+tests.d/c.d/c-ifoption.mkshpl
+tests.d/c.d/c-ifoption.sh
 tests.d/c.d/c-incconflict.dat
 tests.d/c.d/c-incconflict.mkshpl
 tests.d/c.d/c-incconflict.sh
@@ -94,12 +100,21 @@ tests.d/c.d/c-multlib.env.dat
 tests.d/c.d/c-multlib.mkshpl
 tests.d/c.d/c-multlib.reqlibs
 tests.d/c.d/c-multlib.sh
+tests.d/c.d/c-nooptfile.dat
+tests.d/c.d/c-nooptfile.mkshpl
+tests.d/c.d/c-nooptfile.sh
+tests.d/c.d/c-nooption.dat
+tests.d/c.d/c-nooption.mkshpl
+tests.d/c.d/c-nooption.sh
 tests.d/c.d/c-npt.dat
 tests.d/c.d/c-npt.mkshpl
 tests.d/c.d/c-npt.sh
 tests.d/c.d/c-option.dat
 tests.d/c.d/c-option.mkshpl
 tests.d/c.d/c-option.sh
+tests.d/c.d/c-outfile.dat
+tests.d/c.d/c-outfile.mkshpl
+tests.d/c.d/c-outfile.sh
 tests.d/c.d/c-set.dat
 tests.d/c.d/c-set.mkshpl
 tests.d/c.d/c-set.sh
@@ -199,25 +214,13 @@ tests.d/d.d/d-size.env.dat
 tests.d/d.d/d-size.mksh
 tests.d/d.d/d-size.sh
 tests.d/d.d/test_order
-tests.d/env.d/		regression tests for shell
-tests.d/env.d/env-if.dat
-tests.d/env.d/env-if.mksh
-tests.d/env.d/env-ifoption.dat
-tests.d/env.d/env-ifoption.mksh
-tests.d/env.d/env-ifoption.sh
-tests.d/env.d/env-if.sh
-tests.d/env.d/env-nooptfile.dat
-tests.d/env.d/env-nooptfile.mksh
-tests.d/env.d/env-nooptfile.sh
-tests.d/env.d/env-nooption.dat
-tests.d/env.d/env-nooption.mksh
-tests.d/env.d/env-nooption.sh
-tests.d/env.d/env-option.dat
-tests.d/env.d/env-option.mksh
-tests.d/env.d/env-option.sh
+tests.d/env.d/			regression tests for shell
 tests.d/env.d/env-outfile.dat
 tests.d/env.d/env-outfile.mksh
 tests.d/env.d/env-outfile.sh
+tests.d/env.d/env-option.dat
+tests.d/env.d/env-option.mksh
+tests.d/env.d/env-option.sh
 tests.d/env.d/env-set.dat
 tests.d/env.d/env-set.mksh
 tests.d/env.d/env-set.sh
