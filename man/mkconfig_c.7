@@ -57,6 +57,20 @@ Output: _hdr_stdio, _hdr_stdlib, _sys_types, _sys_param,
 _key_void, _key_const, _param_void_star and _proto_stdc.
 .RE
 .TP
+\fBargs\fP [noconst] name\-of\-function
+.br
+Checks the number of arguments, the types of the arguments and
+the return type for a function.  If 'noconst' is specified, any
+'const' keywords will be stripped from the output so only the base
+data type is returned.  Outputs the following check variables:
+_args_func, indicating the number of
+arguments; _c_arg_N_function, indicating the argument data type; and
+_c_type_function with the return type of the function.
+Requires that 'awk' is available.
+.IP
+e.g. args noconst a
+.br
+.TP
 \fBhdr\fP name\-of\-header [required\-headers]
 .br
 Check for a header.
@@ -207,27 +221,6 @@ e.g. typ size_t; typ struct tm
 Output: _typ_size_t, _typ_struct_tm
 .RE
 .TP
-.B c\-statfs\-args
-.RS
-.TP
-\fBstatfs_args\fP
-.br
-Checks to see how many arguments the statfs() system call accepts.
-.br
-Output: _statfs_args
-.RE
-.RE
-.TP
-.B c\-setmntent\-args
-.RS
-.TP
-\fBsetmentent_args\fP
-.br
-Check to see how many arguments the setmntent() system call accepts.
-.br
-Output: _setmntent_args
-.RE
-.TP
 .B c\-include\-conflict
 .RS
 .TP
@@ -241,14 +234,6 @@ e.g. include_conflict time.h sys/time.h
 Output: _inc_conflict__hdr_time__sys_time
 .RE
 .TP
-.B c\-quotactl
-.RS
-.TP
-\fBquotactl_pos\fP
-.br
-Check to see if the character argument is argument 1 or 2 for the quotactl()
-library function.
-.RE
 .B c\-rquota
 .RS
 .TP
@@ -261,13 +246,6 @@ output the appropriate xdr function to use.
 .br
 Gets the type used in the getquota_args structure for the gqa_uid member
 and output the appropriate xdr function to use.
-.RE
-.B c\-getfsstat
-.RS
-.TP
-\fBgetfsstat_type\fP
-.br
-Gets the type used for the second argument of getfsstat.
 .RE
 .SH See Also
 iffe(1) autoconf(1) dist(7) mkconfig(7) mkconfig_env(7) mkconfig_d(7)

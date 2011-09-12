@@ -199,11 +199,13 @@ before this check command.
 Checks to see if \fIfunction\fP is declared and outputs the
 declaration to the output file.  If the \fIargs\fP keyword is
 present, the number of arguments to the function is counted,
-and the check variable: _c_args_function is written to the output
+and the check variables: _c_args_function is written to the output
 file indicating the number of arguments that should be passed to
-the function.  In addition, the _c_arg_N_function check variable is
+the function; the _c_arg_N_function check variable is
 written to the output file indicating the type of argument where \fIN\fP
-refers to the argument position.
+refers to the argument position; _c_type_function indicates the return type
+of the function.
+Requires that 'awk' is available.
 .RE
 .SH See Also
 iffe(1) autoconf(1) dist(7) mkconfig(7) mkconfig_c(7) mkconfig_env(7)
