@@ -58,6 +58,17 @@ extern int n (int, int, char *, int);
 extern int o (int, int, char *, int) __asm__ ("" "o64");
 #endif
 
+/* w/var names */
+extern char *p (int a, int b, char *c, int d);
+/* w/var names and lots of spaces */
+extern int q ( int a , int b , char  * c , int d );
+/* w/no var names and lots of spaces */
+extern  int  r ( int ,  int , char  * , int );
+/* struct names */
+struct x_t { int a; };
+union y_t { int a; int b; };
+extern  int  s ( struct x_t x , union  y_t  y , char  * , int );
+
 #endif
 _HERE_
 
@@ -74,6 +85,18 @@ if [ "${_MKCONFIG_USING_GCC}" = "Y" ]; then
     fi
   done
 
+  set 2 2 2 2 4
+  for x in a h i j o; do
+    val=$1
+    shift
+    egrep -l "^enum (: )?int ({ )?_c_args_${x} = ${val}( })?;$" dcdcl.d > /dev/null 2>&1
+    rc=$?
+    if [ $rc -ne 0 ]; then
+      echo "## check for enum _c_args_${x} failed"
+      grc=1
+    fi
+  done
+
   for x in o64; do
     xx=`echo $x | sed 's/64$//'`
     egrep -l "^alias ${x} ${xx};$" dcdcl.d > /dev/null 2>&1
@@ -84,20 +107,74 @@ if [ "${_MKCONFIG_USING_GCC}" = "Y" ]; then
     fi
   done
 
-  set 2
-  for x in j; do
+  set 1 2 4
+  for x in o o o; do
     val=$1
     shift
-    egrep -l "^enum (: )?int ({ )?_c_args_${x} = ${val}( })?;$" dcdcl.d > /dev/null 2>&1
+    egrep -l "^enum (: )?string ({ )?_c_arg_${val}_${x} = \"int\"( })?;$" dcdcl.d > /dev/null 2>&1
     rc=$?
     if [ $rc -ne 0 ]; then
-      echo "## check for enum _c_args_${x} failed (gcc)"
+      echo "## check for enum _c_args_${x} failed"
       grc=1
     fi
   done
+
+  # char * check
+  set 1 1 1 2 1 2 3
+  for x in a h i i j j o; do
+    val=$1
+    shift
+    set -f
+    egrep -l "^enum (: )?string ({ )?_c_arg_${val}_${x} = \"char \*\"( })?;$" dcdcl.d > /dev/null 2>&1
+    rc=$?
+    set +f
+    if [ $rc -ne 0 ]; then
+      echo "## check for _c_arg_${val}_${x} char * failed (gcc)"
+      grc=1
+    fi
+  done
+
+  # long * check
+  set 2 2
+  for x in a h; do
+    val=$1
+    shift
+    set -f
+    egrep -l "^enum (: )?string ({ )?_c_arg_${val}_${x} = \"long \*\"( })?;$" dcdcl.d > /dev/null 2>&1
+    rc=$?
+    if [ $rc -ne 0 ]; then
+      echo "## check for _c_arg_${val}_${x} long * failed (gcc)"
+      grc=1
+    fi
+    set +f
+  done
+
+  # int type check
+  for x in a h o; do
+    set -f
+    egrep -l "^enum (: )?string ({ )?_c_type_${x} = \"int\"( })?;$" dcdcl.d > /dev/null 2>&1
+    rc=$?
+    if [ $rc -ne 0 ]; then
+      echo "## check for _c_type_${x} int failed (gcc)"
+      grc=1
+    fi
+    set +f
+  done
+
+  # char * type check
+  for x in i j; do
+    set -f
+    egrep -l "^enum (: )?string ({ )?_c_type_${x} = \"char \*\"( })?;$" dcdcl.d > /dev/null 2>&1
+    rc=$?
+    if [ $rc -ne 0 ]; then
+      echo "## check for _c_type_${x} char * failed (gcc)"
+      grc=1
+    fi
+    set +f
+  done
 fi
 
-for x in b c d e f g k l m n; do
+for x in b c d e f g k l m n p q r s; do
   egrep -l "^enum (: )?bool ({ )?_cdcl_${x} = true( })?;$" dcdcl.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
@@ -107,14 +184,134 @@ for x in b c d e f g k l m n; do
 done
 
 
-set 3 2 1 4
-for x in k l m n; do
+# arguments
+set 1 1 3 2 3 1 3 2 1 4 4 4 4 4
+for x in b c d e f g k l m n p q r s; do
   val=$1
   shift
   egrep -l "^enum (: )?int ({ )?_c_args_${x} = ${val}( })?;$" dcdcl.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     echo "## check for enum _c_args_${x} failed"
+    grc=1
+  fi
+done
+
+# int check
+set 1 1 2 1 1 2 1 2 1 1 2 4 1 2 4 1 2 4 1 2 4 4
+for x in b d d f k k l l m n n n p p p q q q r r r s; do
+  val=$1
+  shift
+  egrep -l "^enum (: )?string ({ )?_c_arg_${val}_${x} = \"int\"( })?;$" dcdcl.d > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "## check for _c_arg_${val}_${x} int failed"
+    grc=1
+  fi
+done
+
+# long check
+set 1
+for x in c; do
+  val=$1
+  shift
+  egrep -l "^enum (: )?string ({ )?_c_arg_${val}_${x} = \"long\"( })?;$" dcdcl.d > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "## check for _c_arg_${val}_${x} long failed"
+    grc=1
+  fi
+done
+
+# 'char *' check
+set 3 3 1 3 3 3 3 3 3
+for x in d f g k n p q r s; do
+  val=$1
+  shift
+  set -f
+  egrep -l "^enum (: )?string ({ )?_c_arg_${val}_${x} = \"char \*\"( })?;$" dcdcl.d > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "## check for _c_arg_${val}_${x} char * failed"
+    grc=1
+  fi
+  set +f
+done
+
+# 'char **' check
+set 1
+for x in e; do
+  val=$1
+  shift
+  set -f
+  egrep -l "^enum (: )?string ({ )?_c_arg_${val}_${x} = \"char \*\*\"( })?;$" dcdcl.d > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "## check for _c_arg_${val}_${x} char ** failed"
+    grc=1
+  fi
+  set +f
+done
+
+# 'char * []' check
+set 2
+for x in f; do
+  val=$1
+  shift
+  set -f
+  egrep -l "^enum (: )?string ({ )?_c_arg_${val}_${x} = \"char \* \[\]\"( })?;$" dcdcl.d > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "## check for _c_arg_${val}_${x} char * [] failed"
+    grc=1
+  fi
+  set +f
+done
+
+# 'C_ST_x_t' check
+set 1
+for x in s; do
+  val=$1
+  shift
+  egrep -l "^enum (: )?string ({ )?_c_arg_${val}_${x} = \"C_ST_x_t\"( })?;$" dcdcl.d > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "## check for _c_arg_${val}_${x} C_ST_x_t failed"
+    grc=1
+  fi
+done
+
+# 'C_UN_y_t' check
+set 2
+for x in s; do
+  val=$1
+  shift
+  egrep -l "^enum (: )?string ({ )?_c_arg_${val}_${x} = \"C_UN_y_t\"( })?;$" dcdcl.d > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "## check for _c_arg_${val}_${x} C_UN_y_t failed"
+    grc=1
+  fi
+done
+
+# int type check
+for x in b c d e k l m n q r s; do
+  egrep -l "^enum (: )?string ({ )?_c_type_${x} = \"int\"( })?;$" dcdcl.d > /dev/null 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "## check for _c_type_${x} int failed"
+    grc=1
+  fi
+done
+
+# char * type check
+for x in g p; do
+  set -f
+  egrep -l "^enum (: )?string ({ )?_c_type_${x} = \"char \*\"( })?;$" dcdcl.d > /dev/null 2>&1
+  rc=$?
+  set +f
+  if [ $rc -ne 0 ]; then
+    echo "## check for _c_type_${x} char * failed"
     grc=1
   fi
 done
