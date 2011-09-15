@@ -1,6 +1,7 @@
 # test if
 
 output c-if.ctest
+prefix mkc
 loadunit c-main
 standard
 

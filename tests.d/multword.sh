@@ -21,8 +21,8 @@ case ${script} in
     ;;
 esac
 . ./mkconfig.cache
-if [ "$di_env_test_multword" != "word1 word2" ]; then
-  echo "   failed: cache: $di_env_test_multword"
+if [ "$mkc_env_test_multword" != "word1 word2" ]; then
+  echo "   failed: cache: $mkc_env_test_multword"
   grc=1
 fi
 . ./multword.env

@@ -1,4 +1,5 @@
 output doption.d
+prefix mkc
 option-file d-option.opts
 loadunit d-main
 standard

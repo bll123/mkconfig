@@ -12,6 +12,8 @@ if [ "$1" = "-d" ]; then
   shift
 fi
 unset CDPATH
+unset GREP_OPTIONS
+unset ENV
 RUNTOPDIR=`pwd`
 mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
 _MKCONFIG_DIR=`(cd $mypath;pwd)`
@@ -28,7 +30,7 @@ getlibdata () {
     gdname=$2
     lang=$3
 
-    cmd="${var}=\${di_${lang}_lib_${gdname}}"
+    cmd="${var}=\${${_MKC_MAIN_PREFIX}_${lang}_lib_${gdname}}"
     eval $cmd
 }
 

@@ -1,4 +1,5 @@
 output env-option.ctest
+prefix mkc
 option-file env-option.opts
 loadunit env-main
 standard

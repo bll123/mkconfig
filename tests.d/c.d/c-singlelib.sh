@@ -82,6 +82,7 @@ if [ "$stag" != "" ]; then
   mv singlelib.ctest singlelib.ctest${stag}
   mv mkconfig.log mkconfig.log${stag}
   mv mkconfig.cache mkconfig.cache${stag}
+  mv mkconfig.reqlibs mkconfig.reqlibs${stag}
   mv mkconfig_c.vars mkconfig_c.vars${stag}
 fi
 

@@ -1,6 +1,7 @@
 # test mkconfig include quoting, backslashes, indentation.
 
 output include.ctest
+prefix mkc
 loadunit c-main
 include
 

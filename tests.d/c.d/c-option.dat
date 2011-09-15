@@ -1,4 +1,5 @@
 output c-option.ctest
+prefix mkc
 option-file c-option.opts
 loadunit c-main
 standard

@@ -1,6 +1,7 @@
 # test when no options file
 
 output c-nooption.ctest
+prefix mkc
 option-file c-nooption.opts
 loadunit c-main
 standard

@@ -593,7 +593,7 @@ main () {  i(); return (i==0); }
   tag=""
   if [ $rc -eq 0 -a "$dlibs" != "" ]; then
     tag=" with ${dlibs}"
-    cmd="di_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
+    cmd="${_MKC_MAIN_PREFIX}_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
     eval $cmd
   fi
 
@@ -619,7 +619,7 @@ CPP_EXTERNS_END
     tag=""
     if [ $rc -eq 0 -a "$dlibs" != "" ]; then
       tag=" with ${dlibs}"
-      cmd="di_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
+      cmd="${_MKC_MAIN_PREFIX}_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
       eval $cmd
     fi
   fi
@@ -658,7 +658,7 @@ check_class () {
   tag=""
   if [ $rc -eq 0 -a "${dlibs}" != "" ]; then
     tag=" with ${dlibs}"
-    cmd="di_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
+    cmd="${_MKC_MAIN_PREFIX}_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
     eval $cmd
   fi
   printyesno $name $trc "$tag"

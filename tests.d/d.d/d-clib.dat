@@ -1,4 +1,5 @@
 output dclib.d
+prefix mkc
 loadunit d-main
 standard
 csizes

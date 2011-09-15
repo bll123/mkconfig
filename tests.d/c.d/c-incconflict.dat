@@ -1,4 +1,5 @@
 output incconflict.ctest
+prefix mkc
 loadunit c-main
 loadunit c-include-conflict
 hdr incconf1.h

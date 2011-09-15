@@ -1,4 +1,5 @@
 output syshdr.ctest
+prefix mkc
 loadunit c-main
 standard
 

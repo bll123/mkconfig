@@ -1,6 +1,7 @@
 # test define
 
 output define.ctest
+prefix mkc
 loadunit c-main
 hdr deftst.h
 define MYDEFINE

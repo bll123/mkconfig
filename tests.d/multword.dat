@@ -1,3 +1,4 @@
 output multword.env
+prefix mkc
 loadunit env-main
 test_multword

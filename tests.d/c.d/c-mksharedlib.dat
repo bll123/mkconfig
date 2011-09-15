@@ -4,6 +4,7 @@ loadunit env-cc
 loadunit env-extension
 
 output mksharedlib.env
+prefix mkc
 
 system type
 system rev
