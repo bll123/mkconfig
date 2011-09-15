@@ -34,6 +34,7 @@ LOG="mkconfig.log"
 _MKCONFIG_TMP="_tmp_mkconfig"
 CACHEFILE="mkconfig.cache"
 OPTIONFILE="options.dat"
+_MKCONFIG_PREFIX=mkc    # need a default in case no units loaded
 optionsloaded=F
 
 INC="mkcinclude.txt"                   # temporary
@@ -43,11 +44,15 @@ _chkconfigfname () {
     echo "Config file name not set.  Exiting."
     _exitmkconfig 1
   fi
+  if [ "$_MKC_MAIN_PREFIX" = "" ]; then
+    echo "Prefix not set.  Exiting."
+    _exitmkconfig 1
+  fi
 }
 
 _exitmkconfig () {
     rc=$1
-    exit 1
+    exit $rc
 }
 
 _savecache () {
@@ -57,10 +62,11 @@ _savecache () {
     # Then we have to undo it for bash.
     # Other shells do: x=$''; remove the $
     # And then there's: x='', which gets munged.
-    set | grep "^di_" | \
+    echo "_MKC_MAIN_PREFIX=${_MKC_MAIN_PREFIX}" > ${CACHEFILE}
+    set | grep "^${_MKC_MAIN_PREFIX}_" | \
       sed -e "s/=/='/" -e "s/$/'/" -e "s/''/'/g" \
       -e "s/='$/=''/" -e "s/='\$'/='/" \
-      > ${CACHEFILE}
+      >> ${CACHEFILE}
 }
 
 setdata () {
@@ -72,7 +78,7 @@ setdata () {
       _doexport $sdname "$sdval"
     fi
 
-    cmd="test \"X\$di_${prefix}_${sdname}\" != X > /dev/null 2>&1"
+    cmd="test \"X\$${_MKC_MAIN_PREFIX}_${prefix}_${sdname}\" != X > /dev/null 2>&1"
     eval $cmd
     rc=$?
     # if already in the list of vars, don't add it again.
@@ -87,7 +93,7 @@ setdata () {
         echo ${sdname} >&8
       fi
     fi
-    cmd="di_${prefix}_${sdname}=\"${sdval}\""
+    cmd="${_MKC_MAIN_PREFIX}_${prefix}_${sdname}=\"${sdval}\""
     eval $cmd
     echo "   set: $cmd" >&9
 }
@@ -97,7 +103,7 @@ getdata () {
     prefix=$2
     gdname=$3
 
-    cmd="${var}=\${di_${prefix}_${gdname}}"
+    cmd="${var}=\${${_MKC_MAIN_PREFIX}_${prefix}_${gdname}}"
     eval $cmd
 }
 
@@ -434,6 +440,20 @@ check_option () {
   setdata ${_MKCONFIG_PREFIX} ${nm} "${oval}"
 }
 
+check_echo () {
+  val=$1
+
+  set -f
+  echo "## echo: $val" >&9
+  echo "$val" >&1
+  set +f
+}
+
+check_exit () {
+  echo "## exit" >&9
+  _exitmkconfig 5
+}
+
 _doloadunit () {
   lu=$1
   dep=$2
@@ -527,6 +547,14 @@ main_process () {
   # this allows us to run the while loop in the
   # current shell rather than a subshell.
 
+  # default varsfile.  
+  # a loadunit will override this.
+  varsfiledflt=T
+  if [ "$VARSFILE" = "" -a "${_MKCONFIG_PREFIX}" != "" ]; then
+    VARSFILE="../mkconfig_${_MKCONFIG_PREFIX}.vars"
+  fi
+  exec 8>>$VARSFILE
+
   # save stdin in fd 7; open stdin
   exec 7<&0 < ${configfile}
   while read tdatline; do
@@ -592,80 +620,26 @@ main_process () {
 
       if [ $doproc -eq 1 ]; then
         case ${tdatline} in
+          command*)
+            _chkconfigfname
+            set $tdatline
+            cmd=$2
+            nm="_command_${cmd}"
+            check_command ${nm} ${cmd}
+            ;;
+          "echo"*)
+            _chkconfigfname
+            set -f
+            set $tdatline
+            shift
+            val=$@
+            set +f
+            check_echo "${val}"
+            ;;
+          "exit")
+            check_exit
+            ;;
           endinclude)
-            ;;
-          output*)
-            if [ $inproc -eq 1 ]; then
-              _create_output
-              CONFH=none
-            fi
-            set $tdatline
-            type=$1
-            file=$2
-            case ${file} in
-              none)
-                CONFH=${file}
-                ;;
-              /*)
-                CONFH=${file}
-                ;;
-              *)
-                CONFH="../${file}"
-                ;;
-            esac
-            echo "output-file: ${file}" >&1
-            echo "   config file name: ${CONFH}" >&9
-            inproc=1
-            ;;
-          option-file*)
-            set $tdatline
-            type=$1
-            file=$2
-            case ${file} in
-              /*)
-                OPTIONFILE=${file}
-                ;;
-              *)
-                OPTIONFILE="../${file}"
-                ;;
-            esac
-            echo "option-file: ${file}" >&1
-            echo "   option file name: ${OPTIONFILE}" >&9
-            ;;
-          loadunit*)
-            set $tdatline
-            type=$1
-            file=$2
-            _doloadunit ${file} N
-            if [ "$VARSFILE" = "" -a "${_MKCONFIG_PREFIX}" != "" ]; then
-              VARSFILE="../mkconfig_${_MKCONFIG_PREFIX}.vars"
-            fi
-            exec 8>>$VARSFILE
-            ;;
-          standard)
-            _chkconfigfname
-            standard_checks
-            ;;
-          "set "*|setint*|setstr*)
-            _chkconfigfname
-            set $tdatline
-            type=$1
-            nm=$2
-            if [ "$type" = "setint" -o "$type" = "setstr" ]; then
-              nm="_${type}_$2"
-            fi
-            shift; shift
-            tval=$@
-            check_set ${nm} $type "${tval}"
-            ;;
-          option*)
-            _chkconfigfname
-            set $tdatline
-            optnm=$2
-            shift; shift
-            tval=$@
-            nm="_opt_${optnm}"
-            check_option ${nm} $optnm "${tval}"
             ;;
           ifoption*|ifnotoption*)
             _chkconfigfname
@@ -704,16 +678,90 @@ main_process () {
             ;;
           "endif")
             ;;
-          command*)
-            _chkconfigfname
-            set $tdatline
-            cmd=$2
-            nm="_command_${cmd}"
-            check_command ${nm} ${cmd}
-            ;;
           include)
             _chkconfigfname
             ininclude=1
+            ;;
+          loadunit*)
+            set $tdatline
+            type=$1
+            file=$2
+            _doloadunit ${file} N
+            if [ "$varsfiledflt" = "T" -a "${_MKCONFIG_PREFIX}" != "" ]; then
+              VARSFILE="../mkconfig_${_MKCONFIG_PREFIX}.vars"
+              varsfiledflt=F
+            fi
+            exec 8>>$VARSFILE
+            ;;
+          option-file*)
+            set $tdatline
+            type=$1
+            file=$2
+            case ${file} in
+              /*)
+                OPTIONFILE=${file}
+                ;;
+              *)
+                OPTIONFILE="../${file}"
+                ;;
+            esac
+            echo "option-file: ${file}" >&1
+            echo "   option file name: ${OPTIONFILE}" >&9
+            ;;
+          option*)
+            _chkconfigfname
+            set $tdatline
+            optnm=$2
+            shift; shift
+            tval=$@
+            nm="_opt_${optnm}"
+            check_option ${nm} $optnm "${tval}"
+            ;;
+          output*)
+            if [ $inproc -eq 1 ]; then
+              _create_output
+              CONFH=none
+            fi
+            set $tdatline
+            type=$1
+            file=$2
+            case ${file} in
+              none)
+                CONFH=${file}
+                ;;
+              /*)
+                CONFH=${file}
+                ;;
+              *)
+                CONFH="../${file}"
+                ;;
+            esac
+            echo "output-file: ${file}" >&1
+            echo "   config file name: ${CONFH}" >&9
+            inproc=1
+            ;;
+          prefix*)
+            set $tdatline
+            type=$1
+            _MKC_MAIN_PREFIX=$2
+            export _MKC_MAIN_PREFIX
+            echo "## main prefix: ${_MKC_MAIN_PREFIX}" >&9
+            ;;
+          standard)
+            _chkconfigfname
+            standard_checks
+            ;;
+          "set "*|setint*|setstr*)
+            _chkconfigfname
+            set $tdatline
+            type=$1
+            nm=$2
+            if [ "$type" = "setint" -o "$type" = "setstr" ]; then
+              nm="_${type}_$2"
+            fi
+            shift; shift
+            tval=$@
+            check_set ${nm} $type "${tval}"
             ;;
           *)
             _chkconfigfname
@@ -753,8 +801,6 @@ defaults:
 mkconfigversion
 
 unset GREP_OPTIONS
-unset DI_ARGS
-unset DI_FMT
 unset ENV
 unalias sed > /dev/null 2>&1
 unalias grep > /dev/null 2>&1
