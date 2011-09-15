@@ -58,6 +58,7 @@ extern int n (int, int, char *, int);
 # if __GNUC__
 extern int o (int, int, char *, int) __asm__ ("" "o");
 # endif
+
 /* w/var names */
 extern char *p (int a, int b, char *c, int d);
 /* w/var names and lots of spaces */
@@ -84,19 +85,11 @@ esac
 grc=0
 
 if [ "${_MKCONFIG_USING_GCC}" = "Y" ]; then
-  # two arguments
-  for x in a h i j; do
-    egrep -l "^#define _args_${x} 2$" cargs.h > /dev/null 2>&1
-    rc=$?
-    if [ $rc -ne 0 ]; then
-      echo "## check for _args_${x} failed (gcc)"
-      grc=1
-    fi
-  done
-
-  # four arguments
-  for x in o; do
-    egrep -l "^#define _args_${x} 4$" cargs.h > /dev/null 2>&1
+  set 2 2 2 2 4
+  for x in a h i j o; do
+    val=$1
+    shift
+    egrep -l "^#define _args_${x} ${val}$" cargs.h > /dev/null 2>&1
     rc=$?
     if [ $rc -ne 0 ]; then
       echo "## check for _args_${x} failed (gcc)"
@@ -122,10 +115,14 @@ if [ "${_MKCONFIG_USING_GCC}" = "Y" ]; then
   for x in a h i i j j o; do
     val=$1
     shift
+    set -f
     egrep -l "^#define _c_arg_${val}_${x} char \*$" cargs.h > /dev/null 2>&1
     rc=$?
+    set +f
     if [ $rc -ne 0 ]; then
+      set -f
       echo "## check for _c_arg_${val}_${x} char * failed (gcc)"
+      set +f
       grc=1
     fi
   done
@@ -135,10 +132,14 @@ if [ "${_MKCONFIG_USING_GCC}" = "Y" ]; then
   for x in a h; do
     val=$1
     shift
+    set -f
     egrep -l "^#define _c_arg_${val}_${x} long \*$" cargs.h > /dev/null 2>&1
     rc=$?
+    set +f
     if [ $rc -ne 0 ]; then
+      set -f
       echo "## check for _c_arg_${val}_${x} long * failed (gcc)"
+      set +f
       grc=1
     fi
   done
@@ -155,48 +156,25 @@ if [ "${_MKCONFIG_USING_GCC}" = "Y" ]; then
 
   # char * type check
   for x in i j; do
+    set -f
     egrep -l "^#define _c_type_${x} char \*$" cargs.h > /dev/null 2>&1
     rc=$?
+    set +f
     if [ $rc -ne 0 ]; then
+      set -f
       echo "## check for _c_type_${x} char * failed (gcc)"
+      set +f
       grc=1
     fi
   done
 fi
 
-# one argument
-for x in b c g m; do
-  egrep -l "^#define _args_${x} 1$" cargs.h > /dev/null 2>&1
-  rc=$?
-  if [ $rc -ne 0 ]; then
-    echo "## check for _args_${x} failed"
-    grc=1
-  fi
-done
-
-# two arguments
-for x in e l; do
-  egrep -l "^#define _args_${x} 2$" cargs.h > /dev/null 2>&1
-  rc=$?
-  if [ $rc -ne 0 ]; then
-    echo "## check for _args_${x} failed"
-    grc=1
-  fi
-done
-
-# three arguments
-for x in d f k; do
-  egrep -l "^#define _args_${x} 3$" cargs.h > /dev/null 2>&1
-  rc=$?
-  if [ $rc -ne 0 ]; then
-    echo "## check for _args_${x} failed"
-    grc=1
-  fi
-done
-
-# four arguments
-for x in n p q r s; do
-  egrep -l "^#define _args_${x} 4$" cargs.h > /dev/null 2>&1
+# arguments
+set 1 1 3 2 3 1 3 2 1 4 4 4 4 4
+for x in b c d e f g k l m n p q r s; do
+  val=$1
+  shift
+  egrep -l "^#define _args_${x} ${val}$" cargs.h > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     echo "## check for _args_${x} failed"
@@ -235,10 +213,14 @@ set 3 3 1 3 3 3 3 3 3
 for x in d f g k n p q r s; do
   val=$1
   shift
+  set -f
   egrep -l "^#define _c_arg_${val}_${x} char \*$" cargs.h > /dev/null 2>&1
   rc=$?
+  set +f
   if [ $rc -ne 0 ]; then
+    set -f
     echo "## check for _c_arg_${val}_${x} char * failed"
+    set +f
     grc=1
   fi
 done
@@ -248,10 +230,14 @@ set 1
 for x in e; do
   val=$1
   shift
+  set -f
   egrep -l "^#define _c_arg_${val}_${x} char \*\*$" cargs.h > /dev/null 2>&1
   rc=$?
+  set +f
   if [ $rc -ne 0 ]; then
+    set -f
     echo "## check for _c_arg_${val}_${x} char ** failed"
+    set +f
     grc=1
   fi
 done
@@ -261,10 +247,14 @@ set 2
 for x in f; do
   val=$1
   shift
+  set -f
   egrep -l "^#define _c_arg_${val}_${x} char \* \[\]$" cargs.h > /dev/null 2>&1
   rc=$?
+  set +f
   if [ $rc -ne 0 ]; then
+    set -f
     echo "## check for _c_arg_${val}_${x} char * [] failed"
+    set +f
     grc=1
   fi
 done
@@ -307,8 +297,10 @@ done
 
 # char * type check
 for x in g p; do
+  set -f
   egrep -l "^#define _c_type_${x} char \*$" cargs.h > /dev/null 2>&1
   rc=$?
+  set +f
   if [ $rc -ne 0 ]; then
     echo "## check for _c_type_${x} char * failed"
     grc=1
