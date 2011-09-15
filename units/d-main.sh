@@ -132,6 +132,24 @@ modify_ctypes () {
   set +f
 }
 
+modify_cchglist () {
+  tmcnm=$1
+  tcode="$2"
+
+  set -f
+  tcode=`echo "${tcode}" | sed -e 's/"/\\\\"/g'`
+  cmd="sed ${cchglist} -e 's/a/a/;# could be empty'"
+  echo "#####  modify_cchglist" >&9
+  echo "##### modify_cchglist: before" >&9
+  echo "$tcode" >&9
+  echo "##### modify_cchglist: $cmd" >&9
+  eval "${tmcnm}=\`echo \"${tcode}\" | ${cmd}\`" >&9 2>&9
+  echo "#### modify_cchglist: $tmcnm after" >&9
+  eval "echo \"\$${tmcnm}\"" >&9
+  echo "#### modify_cchglist: end $tmcnm after" >&9
+  set +f
+}
+
 modify_ccode () {
   tmcnm=$1
   tcode="$2"
@@ -418,7 +436,7 @@ check_lib () {
   tag=""
   if [ $rc -eq 0 -a "$dlibs" != "" ]; then
     tag=" with ${dlibs}"
-    cmd="di_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
+    cmd="${_MKC_MAIN_PREFIX}_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
     eval $cmd
   fi
 
@@ -455,7 +473,7 @@ check_class () {
   tag=""
   if [ $rc -eq 0 -a "${dlibs}" != "" ]; then
     tag=" with ${dlibs}"
-    cmd="di_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
+    cmd="${_MKC_MAIN_PREFIX}_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
     eval $cmd
   fi
   printyesno $name $trc "$tag"
@@ -575,7 +593,7 @@ void main (char[][] args) { i(); }
   tag=""
   if [ $rc -eq 0 -a "$dlibs" != "" ]; then
     tag=" with ${dlibs}"
-    cmd="di_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
+    cmd="${_MKC_MAIN_PREFIX}_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
     eval $cmd
   fi
 
@@ -1221,6 +1239,7 @@ check_cdcl () {
       set +f
       tdcl=$dcl
       modify_ctypes tdcl "${tdcl}"
+      modify_cchglist tdcl "${tdcl}"    # need any struct renames for args
       echo "## tdcl(D): ${tdcl}" >&9
       if [ $argflag = 1 ]; then
         set -f
@@ -1250,25 +1269,25 @@ check_cdcl () {
             tmp=`echo ${tmp} | sed -e 's/const *//'`
           fi
           echo "## tmp(F): ${tmp}" >&9
-          set +f
           nm="_c_arg_${val}_${dname}"
           setdata ${_MKCONFIG_PREFIX} ${nm} "${tmp}"
           domath val "$val + 1"
-          set -f
           c=`echo ${c} | sed -e 's/^[^,]*//' -e 's/^[	 ,]*//'`
           set +f
         done
         set -f
-        c=`echo ${dcl} | sed -e 's/[ 	]/ /g' \
-            -e "s/\([ \*]\)${dname}[ (].*/\1/" \
+        tname=${dclren:-$dname}
+        echo "## tname(G): ${tname} ($dname - $dclren)" >&9
+        c=`echo ${tdcl} | sed -e 's/[ 	]/ /g' \
+            -e "s/\([ \*]\)${tname}[ (].*/\1/" \
             -e 's/^ *//' \
             -e 's/ *$//'`
         if [ $noconst = T ]; then
           c=`echo ${c} | sed -e 's/const *//'`
         fi
-        set +f
         nm="_c_type_${dname}"
         setdata ${_MKCONFIG_PREFIX} ${nm} "${c}"
+        set +f
       fi
       set -f
       doappend cdcls " ${dcl};
@@ -1299,7 +1318,7 @@ output_item () {
     tval=true
   fi
   case ${name} in
-    _setstr_*|_opt_*|_c_arg_*)
+    _setstr_*|_opt_*|_c_arg_*|_c_type_*)
       tname=$name
       dosubst tname '_setstr_' '' '_opt_' ''
       _create_enum -o string ${tname} "${val}"
