@@ -1,0 +1,46 @@
+output none
+prefix di
+
+command awk
+command nawk
+command gawk
+command cat
+command chmod
+command date
+command diff
+command grep
+command ls
+command mkdir
+command mv
+command perl
+command pwd
+command rm
+command sed
+command sleep
+command sort
+command tail
+command uname
+command wc
+
+setint hasawk 0
+if hasawk _command_awk || _command_nawk || _command_gawk
+  setint hasawk 1
+endif
+
+setint test_commands 0
+if test_cmds _setint_hasawk && _command_cat && _command_chmod && \
+    _command_date && _command_diff && _command_grep && _command_ls && \
+    _command_mkdir && _command_mv && _command_perl && _command_pwd && \
+    _command_rm && _command_sed && _command_sleep && \
+    _command_sort && _command_tail && _command_uname && _command_wc
+  setint test_commands 1
+endif
+
+if chk_test_cmds ! _setint_test_commands
+ echo
+ echo ** ERROR: mkconfig tests requires the following commands:
+ echo **   awk, cat, chmod, date, diff, grep, ls, mkdir, mv, perl, pwd
+ echo **   rm, sed, sleep, sort, tail, uname and wc
+ echo
+ exit
+endif
