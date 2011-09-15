@@ -1,4 +1,5 @@
 output dcdcl.d
+prefix mkc
 loadunit d-main
 standard
 
@@ -6,18 +7,24 @@ csizes
 
 chdr cdclhdr.h
 
-cdcl a
-cdcl b
-cdcl c
-cdcl d
-cdcl e
-cdcl f
-cdcl g
-cdcl h
-cdcl i
-cdcl args j
-cdcl args k
-cdcl args l
-cdcl args m
-cdcl args n
-cdcl o
+cdcl args noconst a
+cdcl args noconst b
+cdcl args noconst c
+cdcl args noconst d
+cdcl args noconst e
+cdcl args noconst f
+cdcl args noconst g
+cdcl args noconst h
+cdcl args noconst i
+cdcl args noconst j
+cdcl args noconst k
+cdcl args noconst l
+cdcl args noconst m
+cdcl args noconst n
+cdcl args noconst o
+cdcl args noconst p
+cdcl args noconst q
+cdcl args noconst r
+cstruct x_t
+cunion y_t
+cdcl args noconst s
