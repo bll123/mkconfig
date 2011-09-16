@@ -25,8 +25,7 @@ LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
 export DFLAGS LDFLAGS
 
 cat > mlib2.d <<_HERE_
-import std.stdio;
-int mlib2_f () { writefln ("hello world"); return 0; }
+int mlib2_f () { return 0; }
 _HERE_
 
 ${DC} -c ${DFLAGS} ${CPPFLAGS} mlib2.d
@@ -54,7 +53,14 @@ ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-multlib.dat
 ${_MKCONFIG_SHELL} ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh multlib.dtest
 
 echo "## diff 1"
-grep -v SYSTYPE multlib.dtest | grep -v '^$' |
+grep -v SYSTYPE multlib.dtest |
+    grep -v 'D_VERSION' |
+    grep -v '_d_tango_lib' |
+    grep -v 'alias char.. string;' |
+    grep -v '_type_string' |
+    grep -v '^import std.*string' |
+    grep -v '_import_std.*string' |
+    grep -v '^$' |
     sed -e 's/: //' -e 's/{ //' -e 's/ }//' > t
 diff -b d-multlib.ctmp t
 rc=$?
