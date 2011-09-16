@@ -21,9 +21,20 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
 grc=0
 
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-import.dat
-egrep "^enum (: )?bool ({ )?_import_std_conv = true( })?;$" dimport.d
-rc=$?
-if [ $rc -ne 0 ]; then grc=$rc; fi
+# check which library
+tangolib=`egrep "^enum (: )?bool ({ )?_d_tango_lib = " dimport.d |
+  sed 's/.*= \([^ ;]*\).*/\1/'`
+if [ "$tangolib" = "false" ]; then
+  egrep "^enum (: )?bool ({ )?_import_std_conv = true( })?;$" dimport.d
+  rc=$?
+else
+  egrep "^enum (: )?bool ({ )?_import_io_Stdout = true( })?;$" dimport.d
+  rc=$?
+fi
+if [ $rc -ne 0 ]; then
+  echo "## grep for import failed"
+  grc=$rc;
+fi
 
 if [ $grc -eq 0 ]; then
   ${DC} -c ${DFLAGS} dimport.d
