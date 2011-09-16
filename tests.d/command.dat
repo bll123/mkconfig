@@ -1,5 +1,4 @@
 output command.ctest
-prefix mkc
 loadunit c-main
 
 command sed
