@@ -30,7 +30,7 @@ getlibdata () {
     gdname=$2
     lang=$3
 
-    cmd="${var}=\${${_MKC_MAIN_PREFIX}_${lang}_lib_${gdname}}"
+    cmd="${var}=\${mkc_${lang}_lib_${gdname}}"
     eval $cmd
 }
 
