@@ -97,15 +97,14 @@ savecache
 
     open (MKCC, ">$CACHEFILE");
     open (MKCV, ">$VARSFILE");
-    print MKCC "_MKC_MAIN_PREFIX=${_MKC_MAIN_PREFIX}\n";
     foreach my $val (@{$r_clist->{'list'}})
     {
       if ($val =~ /^lib__lib_/o) {
         $tval = $val;
         $tval =~ s/^lib_//o;
-        print MKCC "${_MKC_MAIN_PREFIX}_c_lib_${tval}='" . $r_config->{$val} . "'\n";
+        print MKCC "mkc_c_lib_${tval}='" . $r_config->{$val} . "'\n";
       } else {
-        print MKCC "${_MKC_MAIN_PREFIX}_c_${val}='" . $r_config->{$val} . "'\n";
+        print MKCC "mkc_c_${val}='" . $r_config->{$val} . "'\n";
         print MKCV $val, "\n";
       }
     }
@@ -1386,10 +1385,7 @@ main_process
       open (MKCC, "<$CACHEFILE");
       while (my $line = <MKCC>) {
         chomp $line;
-        if ($line =~ m/^_MKC_MAIN_PREFIX=\$?'?(.*)'?/o) {
-          $_MKC_MAIN_PREFIX = $1;
-        }
-        if ($line =~ m/^${_MKC_MAIN_PREFIX}_c_(.*)=\$?'?(.*)'?/o) {
+        if ($line =~ m/^mkc_c_(.*)=\$?'?(.*)'?/o) {
           my $name = $1;
           my $val = $2;
           $config{$name} = $val;
@@ -1631,10 +1627,6 @@ main_process
         elsif ($line =~ m#^\s*exit$#o)
         {
             print $1;
-        }
-        elsif ($line =~ m#^\s*prefix\s+([^\s]*)$#o)
-        {
-            $_MKC_MAIN_PREFIX = $1;
         }
         elsif ($line =~ m#^\s*(set(int|str)?)\s+([^\s]+)\s*(.*)#o)
         {
