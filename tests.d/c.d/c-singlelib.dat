@@ -1,5 +1,4 @@
 output singlelib.ctest
-prefix mkc
 loadunit c-main
 standard
 hdr tst1lib.h

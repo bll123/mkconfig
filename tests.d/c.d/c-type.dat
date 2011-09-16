@@ -1,5 +1,4 @@
 output type.ctest
-prefix mkc
 loadunit c-main
 standard
 hdr typtst.h

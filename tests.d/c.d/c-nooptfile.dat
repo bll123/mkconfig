@@ -1,7 +1,6 @@
 # test when no options file
 
 output c-nooptfile.ctest
-prefix mkc
 loadunit c-main
 standard
 

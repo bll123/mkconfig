@@ -1,5 +1,4 @@
 output member.ctest
-prefix mkc
 loadunit c-main
 standard
 hdr memtst.h

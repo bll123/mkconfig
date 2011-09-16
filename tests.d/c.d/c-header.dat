@@ -1,5 +1,4 @@
 output header.ctest
-prefix mkc
 loadunit c-main
 standard
 

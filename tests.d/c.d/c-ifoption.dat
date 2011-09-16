@@ -1,7 +1,6 @@
 # test ifoption, ifnotoption
 
 output c-ifoption.ctest
-prefix mkc
 option-file c-ifoption.opts
 loadunit c-main
 standard

@@ -1,5 +1,4 @@
 output multlib.ctest
-prefix mkc
 loadunit c-main
 standard
 hdr tst2libb.h

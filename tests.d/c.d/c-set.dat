@@ -1,7 +1,6 @@
 # test set
 
 output c-set.ctest
-prefix mkc
 loadunit c-main
 standard
 

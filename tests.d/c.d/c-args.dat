@@ -1,5 +1,4 @@
 output cargs.h
-prefix mkc
 loadunit c-main
 standard
 

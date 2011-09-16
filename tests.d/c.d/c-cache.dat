@@ -1,7 +1,6 @@
 # test mkconfig caching
 
 output c-cache.ctest
-prefix mkc
 
 loadunit c-main
 standard

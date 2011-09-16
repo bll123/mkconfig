@@ -1,5 +1,4 @@
 output size.ctest
-prefix mkc
 loadunit c-main
 standard
 size long

@@ -4,7 +4,6 @@ loadunit env-cc
 loadunit env-extension
 
 output mkexeclibst.env
-prefix mkc
 
 system type
 system rev

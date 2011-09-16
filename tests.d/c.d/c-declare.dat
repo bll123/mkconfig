@@ -1,5 +1,4 @@
 output declare.ctest
-prefix mkc
 loadunit c-main
 standard
 hdr dcltst.h

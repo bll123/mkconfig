@@ -1,5 +1,4 @@
 output npt.ctest
-prefix mkc
 loadunit c-main
 standard
 hdr nptlib.h
