@@ -170,8 +170,13 @@ for x in d o; do
   fi
 done
 
-for x in o; do
-  egrep -l ?"^alias long C_TYP_${x};$" dctype.d > /dev/null 2>&1
+tt=int
+if [ $lsiz -eq 8 ]; then
+ tt=long
+fi
+
+for x in d; do
+  egrep -l ?"^alias u${tt} C_TYP_${x};$" dctype.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     echo "## test $x failed alias chk"
@@ -179,8 +184,8 @@ for x in o; do
   fi
 done
 
-for x in d; do
-  egrep -l ?"^alias ulong C_TYP_${x};$" dctype.d > /dev/null 2>&1
+for x in o; do
+  egrep -l ?"^alias ${tt} C_TYP_${x};$" dctype.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     echo "## test $x failed alias chk"
