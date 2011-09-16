@@ -51,7 +51,7 @@ done
 OUTFLAG="-o "
 DC_LINK=
 case ${comp} in
-  *dmd)
+  *dmd|*dmd2|*ldc|*ldc2)   # catches ldmd, ldmd2 also
     OUTFLAG="-of"
     DC_LINK=-L
     ;;
