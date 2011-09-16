@@ -44,10 +44,6 @@ _chkconfigfname () {
     echo "Config file name not set.  Exiting."
     _exitmkconfig 1
   fi
-  if [ "$_MKC_MAIN_PREFIX" = "" ]; then
-    echo "Prefix not set.  Exiting."
-    _exitmkconfig 1
-  fi
 }
 
 _exitmkconfig () {
@@ -62,11 +58,10 @@ _savecache () {
     # Then we have to undo it for bash.
     # Other shells do: x=$''; remove the $
     # And then there's: x='', which gets munged.
-    echo "_MKC_MAIN_PREFIX=${_MKC_MAIN_PREFIX}" > ${CACHEFILE}
-    set | grep "^${_MKC_MAIN_PREFIX}_" | \
+    set | grep "^mkc_" | \
       sed -e "s/=/='/" -e "s/$/'/" -e "s/''/'/g" \
       -e "s/='$/=''/" -e "s/='\$'/='/" \
-      >> ${CACHEFILE}
+      > ${CACHEFILE}
 }
 
 setdata () {
@@ -78,7 +73,11 @@ setdata () {
       _doexport $sdname "$sdval"
     fi
 
-    cmd="test \"X\$${_MKC_MAIN_PREFIX}_${prefix}_${sdname}\" != X > /dev/null 2>&1"
+    if [ $varsfileopen = "F" ]; then
+      exec 8>>$VARSFILE
+      varsfileopen=T
+    fi
+    cmd="test \"X\$mkc_${prefix}_${sdname}\" != X > /dev/null 2>&1"
     eval $cmd
     rc=$?
     # if already in the list of vars, don't add it again.
@@ -93,7 +92,7 @@ setdata () {
         echo ${sdname} >&8
       fi
     fi
-    cmd="${_MKC_MAIN_PREFIX}_${prefix}_${sdname}=\"${sdval}\""
+    cmd="mkc_${prefix}_${sdname}=\"${sdval}\""
     eval $cmd
     echo "   set: $cmd" >&9
 }
@@ -103,7 +102,7 @@ getdata () {
     prefix=$2
     gdname=$3
 
-    cmd="${var}=\${${_MKC_MAIN_PREFIX}_${prefix}_${gdname}}"
+    cmd="${var}=\${mkc_${prefix}_${gdname}}"
     eval $cmd
 }
 
@@ -547,13 +546,14 @@ main_process () {
   # this allows us to run the while loop in the
   # current shell rather than a subshell.
 
-  # default varsfile.  
-  # a loadunit will override this.
+  # default varsfile.
+  # a main loadunit will override this.
+  # but don't open it unless it is needed.
   varsfiledflt=T
+  varsfileopen=F
   if [ "$VARSFILE" = "" -a "${_MKCONFIG_PREFIX}" != "" ]; then
     VARSFILE="../mkconfig_${_MKCONFIG_PREFIX}.vars"
   fi
-  exec 8>>$VARSFILE
 
   # save stdin in fd 7; open stdin
   exec 7<&0 < ${configfile}
@@ -692,6 +692,7 @@ main_process () {
               varsfiledflt=F
             fi
             exec 8>>$VARSFILE
+            varsfileopen=T
             ;;
           option-file*)
             set $tdatline
@@ -739,13 +740,6 @@ main_process () {
             echo "output-file: ${file}" >&1
             echo "   config file name: ${CONFH}" >&9
             inproc=1
-            ;;
-          prefix*)
-            set $tdatline
-            type=$1
-            _MKC_MAIN_PREFIX=$2
-            export _MKC_MAIN_PREFIX
-            echo "## main prefix: ${_MKC_MAIN_PREFIX}" >&9
             ;;
           standard)
             _chkconfigfname
