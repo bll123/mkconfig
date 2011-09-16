@@ -1,6 +1,9 @@
 output dimport.d
-prefix mkc
 loadunit d-main
 standard
 
-import std.conv
+if hastangolib _d_tango_lib
+ import io.Stdout
+else
+ import std.conv
+endif
