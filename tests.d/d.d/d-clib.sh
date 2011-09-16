@@ -23,7 +23,15 @@ grc=0
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-clib.dat
 
 echo "## diff 1"
-grep -v SYSTYPE dclib.d | grep -v '_csiz_' | grep -v '^$' |
+grep -v SYSTYPE dclib.d |
+    grep -v 'D_VERSION' |
+    grep -v '_d_tango_lib' |
+    grep -v '_csiz_' |
+    grep -v 'alias char.. string;' |
+    grep -v '_type_string' |
+    grep -v '^import std.*string' |
+    grep -v '_import_std.*string' |
+    grep -v '^$' |
     sed -e 's/: //' -e 's/{ //' -e 's/ }//' > t
 diff -b d-clib.ctmp t
 rc=$?
