@@ -1,8 +1,6 @@
 #!/bin/sh
 #
-# Copyright 2010 Brad Lanam Walnut Creek CA USA
-#
-#
+# Copyright 2011 Brad Lanam Walnut Creek CA USA
 #
 
 #
@@ -276,13 +274,18 @@ preconfigfile () {
 
   set -f
   echo "DC: ${DC}" >&9
+  echo "DVERSION: ${DVERSION}" >&9
   echo "DFLAGS: ${DFLAGS}" >&9
   echo "LDFLAGS: ${LDFLAGS}" >&9
   echo "LIBS: ${LIBS}" >&9
   echo "DC_OF: ${DC_OF}" >&9
   set +f
 
-  echo "import std.string;"
+  _create_enum -o int D_VERSION "${DVERSION}"
+  getdata tval ${_MKCONFIG_PREFIX} '_type_string'
+  if [ "$tval" = "0" ]; then
+    echo "alias char[] string;"
+  fi
   if [ "${_MKCONFIG_SYSTYPE}" != "" ]; then
     _create_enum -o string SYSTYPE "${_MKCONFIG_SYSTYPE}"
   fi
@@ -308,6 +311,47 @@ standard_checks () {
     echo "No compiler specified" >&2
     return
   fi
+
+  check_type type string
+  check_tangolib
+}
+
+check_type () {
+  shift
+  type=$@
+  nm="_type_${type}"
+  dosubst nm ' ' '_'
+  name=$nm
+  dosubst type 'star' '*'
+
+  printlabel $name "type: ${type}"
+  checkcache ${_MKCONFIG_PREFIX} $name
+  if [ $rc -eq 0 ]; then return; fi
+
+  code="
+${type} value;
+struct xxx { ${type} mem; };
+static xxx v;
+xxx* f() { return &v; };
+int main () { xxx *tmp; tmp = f(); return (0); }
+"
+
+  do_d_check_compile ${name} "${code}" all
+}
+
+check_tangolib () {
+  tname=_d_tango_lib
+
+  printlabel $tname "Tango lib: "
+  checkcache ${_MKCONFIG_PREFIX} $tname
+  if [ $rc -eq 0 ]; then return; fi
+
+  code="
+import io.Stdout;
+int main () { Stdout (\"hello world\"); return (0); }
+"
+
+  do_d_check_compile ${tname} "${code}" all
 }
 
 check_import () {
@@ -382,11 +426,19 @@ check_size () {
 
   name=$nm
 
+  getdata tangoval ${_MKCONFIG_PREFIX} '_d_tango_lib'
+
   printlabel $name "sizeof: ${type}"
   checkcache_val ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
 
-  code="import std.stdio; void main (char[][] args){ writef(\"%d\", (${type}).sizeof); }"
+  if [ $tangoval -eq 0 ]; then
+    code="import std.stdio;
+        void main (char[][] args) { writef(\"%d\", (${type}).sizeof); }"
+  else
+    code="import io.Stdout;
+        void main (char[][] args) { Stdout ((${type}).sizeof); }"
+  fi
   _d_chk_run ${name} "${code}" all
   rc=$?
   val=$_retval
@@ -436,7 +488,7 @@ check_lib () {
   tag=""
   if [ $rc -eq 0 -a "$dlibs" != "" ]; then
     tag=" with ${dlibs}"
-    cmd="${_MKC_MAIN_PREFIX}_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
+    cmd="mkc_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
     eval $cmd
   fi
 
@@ -473,7 +525,7 @@ check_class () {
   tag=""
   if [ $rc -eq 0 -a "${dlibs}" != "" ]; then
     tag=" with ${dlibs}"
-    cmd="${_MKC_MAIN_PREFIX}_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
+    cmd="mkc_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
     eval $cmd
   fi
   printyesno $name $trc "$tag"
@@ -593,7 +645,7 @@ void main (char[][] args) { i(); }
   tag=""
   if [ $rc -eq 0 -a "$dlibs" != "" ]; then
     tag=" with ${dlibs}"
-    cmd="${_MKC_MAIN_PREFIX}_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
+    cmd="mkc_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
     eval $cmd
   fi
 
