@@ -20,9 +20,12 @@ cat > d_compiler.d << _HERE_
 int main (char[][] args) { return 0; }
 _HERE_
 
-${DC} d_compiler.d > /dev/null 2>&1
+${DC} d_compiler.d >&9
 rc=$?
-if [ $rc -ne 0 ]; then grc=$rc; fi
+if [ $rc -ne 0 ]; then 
+  grc=$rc; 
+  echo "## compilation failed"
+fi
 if [ -x a.out ]; then
   ./a.out
   rc=$?
@@ -36,6 +39,8 @@ elif [ -x d_compiler.exe ]; then
   rc=$?
   if [ $rc -ne 0 ]; then grc=$rc; fi
 else
+  echo "## unable to locate executable"
+  ls -l >&9
   grc=1
 fi
 
