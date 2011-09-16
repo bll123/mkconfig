@@ -1,5 +1,4 @@
 output none
-prefix di
 
 command awk
 command nawk
