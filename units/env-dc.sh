@@ -27,10 +27,13 @@ check_dc () {
   echo "dc:${DC}" >&9
 
   case ${DC} in
-    *dmd)
+    *dmd|dmd2|*/dmd2)
       dver=`${DC} --help | head -1 | sed 's/.*v//;s/\..*//'`
       ;;
-    *gdc)
+    *ldc|*ldc2|*ldmd|*ldmd2)
+      dver=`${DC} -version | head -2 | tail -1 | sed 's/.*DMD v//;s/\..*//'`
+      ;;
+    *gdc|*gdc2)
       # not very good.
       dver=`${DC} --version | grep '[12]\.[0-9]' |
             sed 's/.*[: ]\([12]\)\..*/\1/'`
@@ -42,24 +45,38 @@ check_dc () {
   setdata ${_MKCONFIG_PREFIX} DC "${DC}"
 
   case ${DC} in
-    *dmd)
+    *dmd|dmd2|*/dmd2)
       setdata ${_MKCONFIG_PREFIX} DC_OPT "-O"
       setdata ${_MKCONFIG_PREFIX} DC_OF "-of"
       setdata ${_MKCONFIG_PREFIX} DC_RELEASE "-release"
       setdata ${_MKCONFIG_PREFIX} DC_INLINE "-inline"
       setdata ${_MKCONFIG_PREFIX} DC_UNITTEST "-unittest"
       setdata ${_MKCONFIG_PREFIX} DC_DEBUG "-debug"
+      setdata ${_MKCONFIG_PREFIX} DC_VERSION "-version"
       setdata ${_MKCONFIG_PREFIX} DC_COV "-cov"
       setdata ${_MKCONFIG_PREFIX} DC_LINK "-L"
       setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_GDC "N"
       ;;
-    *gdc)
+    *ldc|*ldc2|*ldmd|*ldmd2)
+      setdata ${_MKCONFIG_PREFIX} DC_OPT "-O3"
+      setdata ${_MKCONFIG_PREFIX} DC_OF "-of"
+      setdata ${_MKCONFIG_PREFIX} DC_RELEASE "-release"
+      setdata ${_MKCONFIG_PREFIX} DC_INLINE ""
+      setdata ${_MKCONFIG_PREFIX} DC_UNITTEST "-unittest"
+      setdata ${_MKCONFIG_PREFIX} DC_DEBUG "-d-debug"
+      setdata ${_MKCONFIG_PREFIX} DC_VERSION "-d-version"
+      setdata ${_MKCONFIG_PREFIX} DC_COV ""
+      setdata ${_MKCONFIG_PREFIX} DC_LINK "-L"
+      setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_GDC "N"
+      ;;
+    *gdc|*gdc2)
       setdata ${_MKCONFIG_PREFIX} DC_OPT "-O2"
       setdata ${_MKCONFIG_PREFIX} DC_OF "-o"
       setdata ${_MKCONFIG_PREFIX} DC_RELEASE "--release"
       setdata ${_MKCONFIG_PREFIX} DC_INLINE "--inline"
       setdata ${_MKCONFIG_PREFIX} DC_UNITTEST "--unittest"
       setdata ${_MKCONFIG_PREFIX} DC_DEBUG "--debug"
+      setdata ${_MKCONFIG_PREFIX} DC_VERSION "--version"
       setdata ${_MKCONFIG_PREFIX} DC_COV "--cov"
       setdata ${_MKCONFIG_PREFIX} DC_LIBS "-lgcov"
       setdata ${_MKCONFIG_PREFIX} DC_LINK ""
@@ -118,12 +135,4 @@ check_dflags () {
 
   printyesno_val DFLAGS "$dflags"
   setdata ${_MKCONFIG_PREFIX} DFLAGS "$dflags"
-}
-
-check_dversion () {
-  ver=$1
-
-  printlabel DVERSION "D version"
-  printyesno_val DVERSION "$ver"
-  setdata ${_MKCONFIG_PREFIX} DVERSION "$ver"
 }
