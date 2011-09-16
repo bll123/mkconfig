@@ -1,5 +1,4 @@
 output dcsyshdr.d
-prefix mkc
 loadunit d-main
 standard
 

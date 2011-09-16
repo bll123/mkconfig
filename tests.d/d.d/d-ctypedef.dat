@@ -1,5 +1,4 @@
 output dctypedef.d
-prefix mkc
 loadunit d-main
 standard
 

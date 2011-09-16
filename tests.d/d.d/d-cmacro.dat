@@ -1,5 +1,4 @@
 output dcmacro.d
-prefix mkc
 loadunit d-main
 standard
 

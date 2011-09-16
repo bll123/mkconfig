@@ -1,5 +1,4 @@
 output dcstruct.d
-prefix mkc
 loadunit d-main
 standard
 

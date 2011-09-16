@@ -1,7 +1,8 @@
 output dclib.d
-prefix mkc
 loadunit d-main
 standard
+import std.string
+import stdc.string
 csizes
 clib printf
 clib prinft

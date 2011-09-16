@@ -1,5 +1,4 @@
 output dmember.d
-prefix mkc
 loadunit d-main
 standard
 import memtst

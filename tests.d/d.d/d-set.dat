@@ -1,7 +1,6 @@
 # test set
 
 output dset.d
-prefix mkc
 loadunit d-main
 standard
 

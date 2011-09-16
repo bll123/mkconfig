@@ -1,5 +1,4 @@
 output dcdcl.d
-prefix mkc
 loadunit d-main
 standard
 
