@@ -1,8 +1,6 @@
 output multlib.dtest
-prefix mkc
 loadunit d-main
 standard
-import std.stdio
 import mlib1
 import mlib2
 lib mlib1_f -lmlib1, -lmlib2, -lmlib1 -lmlib2

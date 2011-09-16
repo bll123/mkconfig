@@ -1,7 +1,5 @@
 output singlelib.dtest
-prefix mkc
 loadunit d-main
 standard
-import std.stdio
 import slib1
 lib slib1_f -lslib1
