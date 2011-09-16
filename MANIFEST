@@ -2,6 +2,8 @@ LICENSE			LICENSE
 Makefile
 MANIFEST		MANIFEST
 VERSION			version
+features/
+features/checktests.dat
 mkcextdcl.awk		script to extract C language declarations
 mkcextmacro.awk		script to extract C language macros
 mkcextstruct.awk	script to extract C language structures
