@@ -45,8 +45,11 @@ The d\-main unit creates a configuration file for D programs.
 .TP
 \fBstandard\fP
 .br
-Executes any \fIStandard\fP checks for the D language.  There
-are currently no standard checks.
+Executes any \fIStandard\fP checks for the D language.
+Currently there are checks to see if the 'string' type is valid and
+to see if the tango library is in use.  If 'string' is not valid, an
+alias is added to the configuration file.  The tango library check
+creates a check variable named '_d_tango_lib'.
 .TP
 \fBimport\fP name\-\of\-module
 .RS
@@ -56,14 +59,6 @@ e.g. import std.stdio
 .br
 Output: _import_std_stdio
 .RE
-.TP
-\fBmember\fP struct\-name member
-.br
-Check to see if \fImember\fP is a member of \fIstruct\-name\fP.
-.TP
-\fBsize\fP type\-name
-.br
-Check the size of type\-name
 .TP
 \fBlib\fP function [libs, ...]
 .br
@@ -83,6 +78,19 @@ the test will try first without the libraries, then with
 the first set of libraries specified, then the next set, etc.
 Sets of libraries to be tested are separated by commas.
 .RE
+.TP
+\fBmember\fP struct\-name member
+.br
+Check to see if \fImember\fP is a member of \fIstruct\-name\fP.
+.TP
+\fBsize\fP type\-name
+.br
+Check the size of type\-name
+.TP
+\fBtype\fP type\-name
+.br
+Check to see if type\-name exists.  This is used internally
+to see if 'string' is valid.
 .PP
 .B D Language Units \- C Language Interface
 .PP
