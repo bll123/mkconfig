@@ -1,7 +1,6 @@
 # test set
 
 output env-set.ctest
-prefix mkc
 loadunit env-main
 standard
 setint _test1 0

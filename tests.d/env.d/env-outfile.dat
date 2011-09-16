@@ -1,7 +1,6 @@
 loadunit env-main
 
 output outfile1.ctest
-prefix mkc
 
 standard
 setint _test1 0
