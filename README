@@ -1,10 +1,24 @@
-mkconfig - configuration tool (version 1.15)
+mkconfig - configuration tool (version 1.16)
 
 Please e-mail any configuration units and the corresponding
 manual page entry to brad.lanam.di_at_gmail.com.  They will be
 included in the next release.
 
 CHANGES
+
+    1.16                                    [16 Sep 2011]
+        Removed 'di' leftovers.
+        Changed internal prefix to 'mkc'.
+        Added 'echo' and 'exit' directives.
+        Fixed d language tests to be 32/64 bit safe.
+        Fixed d language tests for d version 1.
+        Fixed d language tests for tango library.
+        Added initial support for ldc and tango libraries.
+          * On 64-bit, ldc's unions don't match C language sizes.
+          * ldc1 doesn't have alias for 'string'.
+          * ldc2 tested w/-d flag.
+        Tested with dmd1, dmd2, ldc1, ldc2 on 64-bit.
+        Tested with dmd1, dmd2, ldc1, ldc2, gdc1, gdc2 on 32-bit.
 
     1.15                                    [11 Sep 2011]
         Added pdksh in as a valid shell
