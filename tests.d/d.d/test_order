@@ -13,7 +13,9 @@
 6 d-cdefine
 7 d-ctypedef
 7 d-cmember
+7 d-cmembertype
 7 d-cdcl
 8 d-cmacro
-9 d-singlelib
-10 d-multlib
+8 d-cmemberxdr
+10 d-singlelib
+11 d-multlib
