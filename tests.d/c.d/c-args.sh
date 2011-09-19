@@ -20,9 +20,8 @@ LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
 export CFLAGS DFLAGS LDFLAGS
 
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
-    -C $_MKCONFIG_RUNTESTDIR/c-args.env.dat
-
-. ./cargs.env
+    -C $_MKCONFIG_RUNTESTDIR/c.env.dat
+. ./c.env
 grc=0
 
 cat > cargshdr.h << _HERE_
