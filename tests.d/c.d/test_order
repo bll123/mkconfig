@@ -16,6 +16,7 @@
 9 c-declare
 9 c-define
 9 c-member
+9 c-memberxdr
 9 c-type
 9 c-npt
 9 c-incconflict
