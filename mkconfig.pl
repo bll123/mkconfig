@@ -1147,7 +1147,6 @@ check_memberxdr
         return;
     }
 
-    setlist $r_clist, $name;
     $r_config->{$name} = 0;
     my $rc = _chk_cpp ($name, "", $r_clist, $r_config,
         { 'incheaders' => 'all', });
@@ -1166,6 +1165,7 @@ check_memberxdr
         $r_config->{$name} = 1;
       }
     }
+    setlist $r_clist, $name;
     printyesno $name, $r_config->{$name};
 }
 
