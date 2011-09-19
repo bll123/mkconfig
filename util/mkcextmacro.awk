@@ -12,20 +12,33 @@ BEGIN {
   if (ins == 0 && $0 ~ macrostart) {
 #print "start: " $0;
     ins = 1;
-    tstr = $0;
+    macro = $0;
+#print "macroA:" macro;
     doend = 1;
     if ($0 ~ /\\$/) {
       doend = 0;
+      gsub (/[	 ]*\\$/, " ", macro);
+#print "macroB:" macro;
+#print "not end: ";
     }
-  } else if (ins == 1 && $0 ~ /\\$/) {
-#print "cont: " $0;
-    tstr = tstr + $0;
   } else if (ins == 1) {
+#print "cont: " $0;
+    macro = macro $0;
+#print "macroC:" macro;
+    doend = 1;
+    if ($0 ~ /\\$/) {
+      doend = 0;
+      gsub (/[	 ]*\\$/, " ", macro);
+#print "macroD:" macro;
+#print "not end: ";
+    }
+  } else if (ins == 1) {
+#print "ins = 1; end ";
     doend = 1;
   }
 
   if (doend == 1) {
-    print tstr;
+    print macro;
     exit;
   }
 }
