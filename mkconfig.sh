@@ -15,6 +15,8 @@
 #    4 - temporary                  (c-main.sh)
 #
 
+set -f  # set this globally.
+
 # this is a workaround for ksh93 on solaris
 if [ "$1" = "-d" ]; then
   cd $2
@@ -305,22 +307,16 @@ check_if () {
     qtoken=""
     quoted=0
     for token in $ifline; do
-      set -f
       echo "## token: $token" >&9
-      set +f
 
       case $token in
         \'*\')
-          set -f
           token=`echo $token | sed -e s,\',,g`
           echo "## begin/end quoted token" >&9
-          set +f
           ;;
         \'*)
-          set -f
           qtoken=$token
           echo "## begin qtoken: $qtoken" >&9
-          set +f
           quoted=1
           continue
           ;;
@@ -329,18 +325,14 @@ check_if () {
       if [ $quoted -eq 1 ]; then
         case $token in
           *\')
-            set -f
             token="${qtoken} $token"
             token=`echo $token | sed -e s,\',,g`
             echo "## end qtoken: $token" >&9
-            set +f
             quoted=0
             ;;
           *)
-            set -f
             qtoken="$qtoken $token"
             echo "## in qtoken: $qtoken" >&9
-            set +f
             continue
             ;;
         esac
@@ -442,10 +434,8 @@ check_option () {
 check_echo () {
   val=$1
 
-  set -f
   echo "## echo: $val" >&9
   echo "$val" >&1
-  set +f
 }
 
 check_exit () {
@@ -567,9 +557,7 @@ main_process () {
           ininclude=0
           resetifs
         else
-          set -f
           echo "${tdatline}" >> $INC
-          set +f
         fi
     else
         case ${tdatline} in
@@ -629,11 +617,9 @@ main_process () {
             ;;
           "echo"*)
             _chkconfigfname
-            set -f
             set $tdatline
             shift
             val=$@
-            set +f
             check_echo "${val}"
             ;;
           "exit")
