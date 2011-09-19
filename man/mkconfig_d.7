@@ -11,8 +11,9 @@
 .\"
 .\"  Notes on terminology:
 .\"    check variable - the variable name for the check.
-.\"    check command - a command from the mkconfig config file.
-.\"    mkconfig config file - file where mkconfig check commands are read from
+.\"    directive - a command from the mkconfig config file.
+.\"      [was check command ]
+.\"    mkconfig config file - file where mkconfig directives are read from
 .\"       not to be confused with "config.h".
 .\"    output file - file to which language units output is written
 .\"    options file -
@@ -50,14 +51,34 @@ Currently there are checks to see if the 'string' type is valid and
 to see if the tango library is in use.  If 'string' is not valid, an
 alias is added to the configuration file.  The tango library check
 creates a check variable named '_d_tango_lib'.
+.RS
+.PP
+Check variables are output as type enum where possible.  Other variables
+are also output as enums where possible.
+.PP
+.Vb
+.B e.g. D2
+enum bool _d_tango_lib = false;
+enum int _csiz_long_double = 16;
+enum int D_VERSION = 2;
+enum string SYSTYPE = "Linux";
+.B e.g. D1
+enum : bool { _d_tango_lib = true };
+enum : int { _csiz_long_double = 16 };
+enum : int { D_VERSION = 1 };
+string SYSTYPE = "Linux";
+.Ve
+.RE
 .TP
 \fBimport\fP name\-\of\-module
 .RS
 Checks to see if module can be imported.
-.IP
-e.g. import std.stdio
+.PP
+.B e.g.
 .br
-Output: _import_std_stdio
+import std.stdio
+.br
+Check Variable: _import_std_stdio
 .RE
 .TP
 \fBlib\fP function [libs, ...]
@@ -80,43 +101,53 @@ Sets of libraries to be tested are separated by commas.
 .RE
 .TP
 \fBmember\fP struct\-name member
-.br
+.RS
 Check to see if \fImember\fP is a member of \fIstruct\-name\fP.
+.RE
 .TP
 \fBsize\fP type\-name
-.br
+.RS
 Check the size of type\-name
+.RE
 .TP
 \fBtype\fP type\-name
-.br
+.RS
 Check to see if type\-name exists.  This is used internally
 to see if 'string' is valid.
+.RE
 .PP
 .B D Language Units \- C Language Interface
 .PP
-All C language interface checks for the D language are not
-cached.
+All C language types are converted to the corresponding D language
+type when output (operating system, architecture and compiler dependent).  Any
+variables with two leading underscores will be converted to '_t_'.
 .TP
 \fBchdr\fP header
 .RS
 Checks to see if the C Language \fIheader\fP exists.
-The \fIchdr\fP and \fIcsys\fP check commands must appear
-before other C language check commands.
-.IP
-e.g. chdr stdlib.h
+The \fIchdr\fP and \fIcsys\fP directives must appear
+before other C language directives.  The appropriate headers
+must be checked so that structure, typedef, defines and declarations
+may be extracted.
+.PP
+.B e.g.
 .br
-Output: _hdr_stdlib
+chdr stdlib.h
+.br
+Check Variable: _hdr_stdlib
 .RE
 .TP
 \fBcsys\fP header
 .RS
 Checks to see if the C language sys/\fIheader\fP exists.
-The \fIchdr\fP and \fIcsys\fP check commands must appear
-before other C language check commands.
-.IP
-e.g. csys types.h
+The \fIchdr\fP and \fIcsys\fP directives must appear
+before other C language directives.
+.PP
+.B e.g.
 .br
-Output: _sys_stdlib
+csys types.h
+.br
+Check Variable: _sys_types
 .RE
 .TP
 \fBclib\fP function [libs, ...]
@@ -126,94 +157,204 @@ If the optional \fIlibs\fP are specified,
 the test will try first without the libraries, then with
 the first set of libraries specified linked in, then the next set, etc.
 Sets of libraries to be tested are separated by commas.
-.IP
-.e.g. clib quotactl
+.PP
+.B e.g.
 .br
-Output: _clib_quotactl
+clib quotactl
+.br
+Check Variable: _clib_quotactl
+.PP
+clib bindtextdomain -lintl, -lintl -liconv
+.br
+[will test w/o any library, then with -lintl, then with both -lintl and -liconv]
 .RE
 .TP
 \fBcdefine {int|hex|float|string}\fP def
-.br
+.RS
 Checks if a C #define of \fIdef\fP exists.
-A D language 'enum ...' will be output
-to the output file.
+A D language 'enum' will be output to the output file.
+.PP
+.B e.g.
+.br
+cdefine hex LC_ALL
+.br
+cdefine string _PATH_MOUNTED
+.br
+Check Variable: _cdefine_LC_ALL
+.br
+.RE
 .TP
 \fBctype\fP {int|float} type\-name
 .RS
 \fItype\-name\fP will be converted to a D language alias for the
-type.  The C language type will be renamed to C_TYP_<type>.
-This only works for basic types.  The \fIint\fP or \fIfloat\fP keyword
+type.  The size of the type will be determined,
+and the corresponding D type will be used to alias the type.
+The C language type will be renamed to C_TYP_<type>.  All further
+instances of that type in the output will also be converted.
+The \fIint\fP or \fIfloat\fP keyword
 indicates whether or not \fItype\-name\fP is an integer type
 or a floating point type.
-For structures or if the actual typedef is wanted, use ctypedef.
-.IP
-.e.g. ctype int u_int
-.br
-Output:
-.br
-alias uint C_TYP_u_int;
-.br
-enum int _ctype_u_int = 4;
+For structures, character pointers, function pointers
+or if the actual typedef is wanted, use ctypedef.
+.PP
+.Vb
+.B e.g.
+ctype int uid_t
+Check Variable: _ctype_uid_t
+.B Output:
+alias uint C_TYP_uid_t;
+static assert ((C_TYP_uid_t).sizeof == 4);
+enum int _ctype_uid_t = 4;
+.Ve
 .RE
 .TP
 \fBctypedef\fP type\-name
-.br
+.RS
 Checks for the typedef \fItype\-name\fP, and if it exists,
-outputs the D language alias for that typedef.
-.IP
-e.g. ctypedef rquota
-.br
-Output:
-.br
-alias C_ST_rquota rquota;
-.br
-enum bool _ctypedef_rquota = true;
+outputs the D language alias for that typedef.  Unlike the \fIctype\fP
+directive, the size of the object is not determined.  The typedef
+is converted to a D alias as is and output.  If the type that is
+converted from is not defined, further \fIctype\fP or
+\fIctypedef\fP directives will be need to be added to the configuration
+file.
+.PP
+.Vb
+.B e.g.
+ctypedef __caddr_t
+ctypedef caddr_t
+.B Output:
+alias _t_caddr_t caddr_t;
+// from: typedef __caddr_t caddr_t;
+alias char *_t_caddr_t;
+// from: typedef char * __caddr_t;
+.Ve
+.RE
 .TP
-\fBcmacro\fP macro\-name req\-header [...] [types, ...]
+\fBcmacro\fP macro\-name req\-header [, req\-hdr2 [, ...]] [types, ...]
 .RS
 \fImacro\-name\fP will be converted to a D language function to replace the
-macro.  The C language macro will be renamed to _CM_<macro>.
+macro.  The C language macro will be renamed to C_MACRO_<macro>.
 \fIreq\-header\fP is the list of headers where \fImacro\-name\fP will be
 found.  If \fImacro\-name\fP takes arguments, then the list of types
-must be specified at the end of the cmacro check command.
-.IP
-.e.g. cmacro MIN sys/types.h int int
-.br
-Output:
-.br
+must be specified at the end of the cmacro directive.
+.PP
+.Vb
+.B e.g.
+cmacro MIN sys/types.h int int
+Check Variable: _cmacro_MIN
 auto C_MACRO_MIN(int a, int b) { return ((a) < (b) ? (a) : (b)); }
-.br
 enum bool _cmacro_MIN = true;
+.Ve
 .RE
 .TP
 \fBcstruct\fP struct\-name
 .br
 \fBcunion\fP union\-name
 .br
+\fBcenum\fP enum\-name
+.br
+.RS
 Checks to see if struct \fIstruct\-name\fP or a typedef
 definition for \fIstruct\-name\fP
 exists.  The structure will be modified for the D language and output
 to the output file.  Note that any types used by the structure must
-be checked for first using ctype or ctypedef.
+be checked for first using the \fIctype\fP or \fIctypedef\fP directives.
+The structure will be renamed to C_ST_struct\-name (C_UN for unions, C_ENUM
+for enums).
+.PP
+.Vb
+.B e.g.
+ctype int __time_t
+ctype int __suseconds_t
+cstruct timeval
+.B Output:
+struct C_ST_timeval
+ {
+ C_TYP___time_t tv_sec;
+ C_TYP___suseconds_t tv_usec;
+ };
+alias long C_TYP___time_t;
+alias long C_TYP___suseconds_t;
+static assert ((C_TYP___time_t).sizeof == 8);
+static assert ((C_TYP___suseconds_t).sizeof == 8);
+static assert ((C_ST_timeval).sizeof == 16);
+enum bool _cstruct_timeval = true;
+enum int _ctype___time_t = 8;
+enum int _ctype___suseconds_t = 8;
+.Ve
+.RE
 .TP
 \fBcmember\fP struct\-name member
-.br
+.RS
 Checks to see if \fImember\fP is a member of \fIstruct\-name\fP.
-The \fIcstruct\fP check command for the structure must appear
-before this check command.
+The \fIcstruct\fP directive for the structure must appear
+before this directive.
+.PP
+.Vb
+.B e.g.
+cmember statvfs f_basetype
+.B Output:
+enum bool _cmem_statvfs_f_basetype = false;
+.Ve
+.RE
 .TP
-\fBcdcl\fP [args] function
-.br
+\fBcmembertype\fP struct\-name member
+.RS
+Gets the type of \fIstruct\-name\fP.\fImember\fP.
+The \fIcstruct\fP directive for the structure must appear
+before this directive.
+.PP
+.Vb
+.B e.g.
+cmembertype getquota_args gqa_uid
+.B Output:
+enum bool _cmembertype_getquota_args_gqa_uid = true;
+.RE
+.TP
+\fBcmemberxdr\fP struct\-name member
+.RS
+Aliases the appropriate xdr function for \fIstruct\-name\fP.\fImember\fP.
+The \fIcstruct\fP directive for the structure must appear
+before this directive.
+.PP
+.Vb
+.B e.g.
+cmemberxdr getquota_args gqa_uid
+.B Output:
+alias xdr_int xdr_gqa_uid;
+enum bool _cmemberxdr_getquota_args_gqa_uid = true;
+.Ve
+.RE
+.TP
+\fBcdcl\fP [args [noconst]] function
+.RS
 Checks to see if \fIfunction\fP is declared and outputs the
 declaration to the output file.  If the \fIargs\fP keyword is
 present, the number of arguments to the function is counted,
-and the check variables: _c_args_function is written to the output
-file indicating the number of arguments that should be passed to
-the function; the _c_arg_N_function check variable is
-written to the output file indicating the type of argument where \fIN\fP
-refers to the argument position; _c_type_function indicates the return type
-of the function.
-Requires that 'awk' is available.
+and the check variables: _c_args_function, _c_arg_N_function,
+and c_type_function are written to the output file.
+_c_args_function indicates the number of arguments that should be passed to
+the function. _c_arg_N_function indicates the type of argument where \fIN\fP
+refers to the argument position.
+_c_type_function indicates the return type
+of the function.  If the \fInoconst\fP keyword is present, all 'const'
+keywords are stripped from the type.  All C declarations are wrapped in
+an 'extern (C) { ... }' block in the output file.
+The 'awk' program is a requirement for this directive.
+.PP
+.Vb
+.B e.g.
+cdcl args noconst setmntent
+.B Output:
+extern (C) {
+ FILE *setmntent (const char *_t_file, const char *_t_mode) ;
+}
+enum string _c_arg_1_setmntent = "char *";
+enum string _c_arg_2_setmntent = "char *";
+enum string _c_type_setmntent = "FILE *";
+enum bool _cdcl_setmntent = true;
+enum int _c_args_setmntent = 2;
+.Ve
 .RE
 .SH See Also
 iffe(1) autoconf(1) dist(7) mkconfig(7) mkconfig_c(7) mkconfig_env(7)
