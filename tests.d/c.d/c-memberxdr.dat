@@ -1,0 +1,8 @@
+output out.h
+loadunit c-main
+standard
+
+hdr    h.h
+
+memberxdr aa aa
+memberxdr aa bb
