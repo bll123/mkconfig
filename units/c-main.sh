@@ -335,6 +335,10 @@ check_member () {
     shift
     struct="struct $1"
   fi
+  if [ "$struct" = "union" ]; then
+    shift
+    struct="union $1"
+  fi
   shift
   member=$1
   nm="_mem_${struct}_${member}"
@@ -351,6 +355,45 @@ check_member () {
   do_c_check_compile ${name} "${code}" all
 }
 
+
+
+check_memberxdr () {
+  shift
+  struct=$1
+  shift
+  member=$1
+
+  nm="_memberxdr_${struct}_${member}"
+  dosubst nm ' ' '_'
+  name=$nm
+
+  printlabel $name "member:XDR: ${struct} ${member}"
+  checkcache ${_MKCONFIG_PREFIX} $name
+  if [ $rc -eq 0 ]; then return; fi
+
+  _c_chk_cpp $name "" all
+  rc=$?
+
+  trc=0
+  if [ $rc -eq 0 ]; then
+    st=`${awkcmd} -f ${_MKCONFIG_DIR}/mkcextstruct.awk ${name}.out ${struct}`
+    if [ "$st" != "" ]; then
+      echo "  ${struct}: ${st}" >&9
+      tmem=`echo "$st" | grep "${member} *;\$"`
+      rc=$?
+      echo "  found: ${tmem}" >&9
+      if [ $rc -eq 0 ]; then
+        mtype=`echo $tmem | sed -e "s/ *${member} *;$//" -e 's/^ *//'`
+        echo "  type: ${mtype}" >&9
+        trc=1
+        setdata ${_MKCONFIG_PREFIX} xdr_${member} xdr_${mtype}
+      fi
+    fi  # found the structure
+  fi  # cpp worked
+
+  printyesno $name $trc ""
+  setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
+}
 
 check_size () {
   shift
