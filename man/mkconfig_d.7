@@ -150,6 +150,25 @@ csys types.h
 Check Variable: _sys_types
 .RE
 .TP
+\fBcsizes\fP
+.RS
+Checks the sizes of the standard C data types.  This directive
+is required for most of the D/C language interface directives.
+Operating system, architecture and compiler dependent.
+.PP
+.Vb
+.B Output:
+enum int _csiz_char = 1;
+enum int _csiz_short = 2;
+enum int _csiz_int = 4;
+enum int _csiz_long = 8;
+enum int _csiz_long_long = 8;
+enum int _csiz_float = 4;
+enum int _csiz_double = 8;
+enum int _csiz_long_double = 16;
+.Ve
+.RE
+.TP
 \fBclib\fP function [libs, ...]
 .RS
 Check to see if the C library function \fIfunction\fP exists.
