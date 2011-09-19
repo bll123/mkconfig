@@ -1,0 +1,13 @@
+output dcmemxdr.d
+loadunit d-main
+standard
+
+chdr    memxdrhdr.h
+
+csizes
+
+ctypedef uu_int
+ctype int uu_int
+cstruct a
+cmemberxdr a a
+cmemberxdr a b
