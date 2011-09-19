@@ -694,7 +694,8 @@ check_cdefine () {
   name=$nm
 
   printlabel $name "c-define ($btype): ${defname}"
-  # no caching
+  checkcache ${_MKCONFIG_PREFIX} $name
+  if [ $rc -eq 0 ]; then return; fi
 
   btype2=$btype
   case $btype in
@@ -744,7 +745,8 @@ check_ctype () {
   name=$nm
 
   printlabel $name "c-type ($type): ${typname}"
-  # no caching
+  checkcache ${_MKCONFIG_PREFIX} $name
+  if [ $rc -eq 0 ]; then return; fi
 
   val=0
   u=""
@@ -826,7 +828,8 @@ check_ctypedef () {
   name=$nm
 
   printlabel $name "c-typedef: ${typname}"
-  # no caching
+  checkcache ${_MKCONFIG_PREFIX} $name
+  if [ $rc -eq 0 ]; then return; fi
 
   trc=0
   code=""
@@ -876,7 +879,8 @@ check_cmacro () {
   name=$nm
 
   printlabel $name "c-macro: ${mname}"
-  # no caching
+  checkcache ${_MKCONFIG_PREFIX} $name
+  if [ $rc -eq 0 ]; then return; fi
 
   trc=0
   cmpaths=""
@@ -903,6 +907,7 @@ check_cmacro () {
               fi
             fi
             for p in $cmpaths; do
+              echo "  checking $p/$thdr for $mname" >&9
               if [ -f $p/$thdr ]; then
                 egrep "define[	 ]*${mname}[^a-zA-Z0-9_]" $p/$thdr >/dev/null 2>&1
                 rc=$?
@@ -1023,7 +1028,8 @@ check_cstruct () {
   name=$nm
 
   printlabel $name "c-${ctype}: ${s}"
-  # no caching
+  checkcache ${_MKCONFIG_PREFIX} $name
+  if [ $rc -eq 0 ]; then return; fi
 
   code=""
   _c_chk_cpp $name "" all
@@ -1088,7 +1094,7 @@ check_cstruct () {
     echo "#### modified ${ctype}" >&9
     echo "${st}" >&9
     echo "#### end modified ${ctype}" >&9
-    # save this for possible later use (cmemtype, cmemtypxdr)
+    # save this for possible later use (cmembertype, cmemberxdr)
     cmd="CST_${s}=\${st}"
     eval $cmd
     echo "   save: CST_${s}" >&9
@@ -1154,6 +1160,8 @@ check_cmember () {
   name=$nm
 
   printlabel $name "exists (C): ${struct}.${member}"
+  checkcache ${_MKCONFIG_PREFIX} $name
+  if [ $rc -eq 0 ]; then return; fi
 
   trc=0
   tdfile="${name}.d"
@@ -1178,7 +1186,8 @@ check_cmembertype () {
   name=$nm
 
   printlabel $name "member:type (C): ${struct} ${member}"
-  # no cache
+  checkcache ${_MKCONFIG_PREFIX} $name
+  if [ $rc -eq 0 ]; then return; fi
 
   trc=0
   cmd="st=\${CST_${struct}}"
@@ -1214,7 +1223,8 @@ check_cmemberxdr () {
   name=$nm
 
   printlabel $name "member:XDR (C): ${struct} ${member}"
-  # no cache
+  checkcache ${_MKCONFIG_PREFIX} $name
+  if [ $rc -eq 0 ]; then return; fi
 
   trc=0
   cmd="st=\${CST_${struct}}"
@@ -1229,7 +1239,7 @@ check_cmemberxdr () {
       mtype=`echo $tmem | sed -e "s/ *${member} *;$//" -e 's/^ *//'`
       echo "  type: ${mtype}" >&9
       trc=1
-      doappend daliases "alias xdr_${mtype} _${member}_xdr;
+      doappend daliases "alias xdr_${mtype} xdr_${member};
 "
     fi
   fi
@@ -1260,7 +1270,8 @@ check_cdcl () {
   name=$nm
 
   printlabel $name "c-dcl: ${dname}"
-  # no caching
+  checkcache ${_MKCONFIG_PREFIX} $name
+  if [ $rc -eq 0 ]; then return; fi
 
   trc=0
 
