@@ -34,6 +34,16 @@ typedef struct my_struct {
   xyzzy_t   f;
   struct xyzzy g;
 } my_struct_t;
+
+typedef union my_union {
+  int       a;
+  char      *b;
+  void      *c;
+  long      d;
+  long      *e;
+  xyzzy_t   f;
+  struct xyzzy g;
+} my_union_t;
 '
 
 grc=0
@@ -50,6 +60,14 @@ for n in a b c d e f g; do
   rc=$?
   if [ $rc -ne 0 ]; then grc=$rc; fi
   grep "^#define _mem_struct_my_struct_${n} 1$" member.ctest
+  rc=$?
+  if [ $rc -ne 0 ]; then grc=$rc; fi
+done
+for n in g; do
+  grep "^#define _mem_my_union_t_${n} 1$" member.ctest
+  rc=$?
+  if [ $rc -ne 0 ]; then grc=$rc; fi
+  grep "^#define _mem_union_my_union_${n} 1$" member.ctest
   rc=$?
   if [ $rc -ne 0 ]; then grc=$rc; fi
 done
