@@ -42,6 +42,23 @@ my $optionsloaded = 0;
 my %optionshash;
 my $iflevels = '';
 
+my $awkcmd = 'awk';
+foreach my $p (split /[;:]/o, $ENV{'PATH'})
+{
+    if (-x "$p/awk" && $awkcmd == "")
+    {
+        $awkcmd = "$p/awk";
+    }
+    if (-x "$p/nawk" && $awkcmd !~ /gawk$/o)
+    {
+        $awkcmd = "$p/nawk";
+    }
+    if (-x "$p/gawk")
+    {
+        $awkcmd = "$p/gawk";
+    }
+}
+
 sub
 exitmkconfig
 {
@@ -729,92 +746,6 @@ check_option
 }
 
 sub
-check_rquota_xdr
-{
-  my ($name, $r_clist, $r_config) = @_;
-
-  printlabel $name, "rquota xdr";
-  if (checkcache ($name, $r_config) == 0) {
-    return;
-  }
-
-  setlist $r_clist, $name;
-
-  if ($r_config->{'_hdr_rpcsvc_rquota'} eq '0') {
-    $r_config->{$name} = '0';
-    printyesno_val $name, $r_config->{$name};
-    return;
-  }
-
-  my $code = '';
-  my $hdr = $r_config->{'_hdr_rpcsvc_rquota'};
-  $code .= "#include <$hdr>\n";
-  my $rc = _chk_cpp ($name, $code, $r_clist, $r_config, {});
-  if ($rc == 0) {
-    $cmd = "sed '1,/struct *rquota *{/d' $name.out |
-        egrep '[	 ]*rq_bhardlimit[	 ]*;' >>$LOG 2>&1";
-    print LOGFH "##  rquota_xdr: $cmd\n";
-    $rc = system ($cmd);
-    if ($rc == 0) {
-      my $rval = `sed '1,/struct *rquota *{/d' $name.out |
-          egrep '[	 ]*rq_bhardlimit[	 ]*;'`;
-      chomp $rval;
-      $rval =~ s/[	 ][	 ]*rq_bhardlimit.*//;
-      $rval =~ s/^[	 ]*//;
-      $r_config->{$name} = "xdr_" . ${rval};
-      printyesno_val $name, $r_config->{$name};
-      return;
-    }
-  }
-
-  $r_config->{$name} = 0;
-  printyesno_val $name, $r_config->{$name};
-}
-
-sub
-check_gqa_uid_xdr
-{
-  my ($name, $r_clist, $r_config) = @_;
-
-  printlabel $name, "gqa_uid xdr";
-  if (checkcache ($name, $r_config) == 0) {
-    return;
-  }
-
-  setlist $r_clist, $name;
-
-  if ($r_config->{'_hdr_rpcsvc_rquota'} eq '0') {
-    $r_config->{$name} = '0';
-    printyesno_val $name, $r_config->{$name};
-    return;
-  }
-
-  my $code = '';
-  my $hdr = $r_config->{'_hdr_rpcsvc_rquota'};
-  $code .= "#include <$hdr>\n";
-  my $rc = _chk_cpp ($name, $code, $r_clist, $r_config, {});
-  if ($rc == 0) {
-    $cmd = "sed '1,/struct *getquota_args *{/d' $name.out |
-        egrep '[	 ]*gqa_uid[	 ]*;' >>$LOG 2>&1";
-    print LOGFH "##  gqa_uid_xdr: $cmd\n";
-    $rc = system ($cmd);
-    if ($rc == 0) {
-      my $rval = `sed '1,/struct *getquota_args *{/d' $name.out |
-          egrep '[	 ]*gqa_uid[	 ]*;'`;
-      chomp $rval;
-      $rval =~ s/[	 ][	 ]*gqa_uid.*//;
-      $rval =~ s/^[	 ]*//;
-      $r_config->{$name} = "xdr_" . ${rval};
-      printyesno_val $name, $r_config->{$name};
-      return;
-    }
-  }
-
-  $r_config->{$name} = 0;
-  printyesno_val $name, $r_config->{$name};
-}
-
-sub
 check_include_conflict
 {
     my ($name, $h1, $h2, $r_clist, $r_config) = @_;
@@ -1070,23 +1001,6 @@ check_args
         return;
     }
 
-    my $awkcmd = 'awk';
-    foreach my $p (split /[;:]/o, $ENV{'PATH'})
-    {
-        if (-x "$p/awk" && $awkcmd == "")
-        {
-            $awkcmd = "$p/awk";
-        }
-        if (-x "$p/nawk" && $awkcmd !~ /gawk$/o)
-        {
-            $awkcmd = "$p/nawk";
-        }
-        if (-x "$p/gawk")
-        {
-            $awkcmd = "$p/gawk";
-        }
-    }
-
     my $oldprecc = $precc;
     $precc .= "/* get rid of most gcc-isms */
 #define __asm__(a)
@@ -1218,6 +1132,39 @@ _HERE_
     if ($rc == 0)
     {
         $r_config->{$name} = 1;
+    }
+    printyesno $name, $r_config->{$name};
+}
+
+sub
+check_memberxdr
+{
+    my ($name, $struct, $member, $r_clist, $r_config) = @_;
+
+    printlabel $name, "member:xdr: $struct.$member";
+    if (checkcache ($name, $r_config) == 0)
+    {
+        return;
+    }
+
+    setlist $r_clist, $name;
+    $r_config->{$name} = 0;
+    my $rc = _chk_cpp ($name, "", $r_clist, $r_config,
+        { 'incheaders' => 'all', });
+    if ($rc == 0) {
+      print LOGFH `pwd` . "\n";
+      print LOGFH "## ${awkcmd} -f ${MKC_DIR}/mkcextstruct.awk ${name}.out ${struct}\n";
+      my $st = `${awkcmd} -f ${MKC_DIR}/mkcextstruct.awk ${name}.out ${struct}`;
+      print LOGFH "##  xdr(A): $st\n";
+      if ($st =~ m/${member}\s*;/s) {
+        my $mtype = $st;
+        $mtype =~ s/\s*${member}\s*;.*//s;
+        $mtype =~ s/.*\s//os;
+        print LOGFH "##  xdr(B): $mtype\n";
+        setlist $r_clist, "xdr_${member}";
+        $r_config->{"xdr_${member}"} = "xdr_${mtype}";
+        $r_config->{$name} = 1;
+      }
     }
     printyesno $name, $r_config->{$name};
 }
@@ -1736,6 +1683,18 @@ main_process
                 $config{$nm} eq '0')
             {
                 check_member ($nm, $struct, $member, \%clist, \%config);
+            }
+        }
+        elsif ($line =~ m#^\s*memberxdr\s+(.*)\s+([^\s]+)#o)
+        {
+            my $struct = $1;
+            my $member = $2;
+            my $nm = "_memberxdr_" . $struct . '_' . $member;
+            $nm =~ s/ /_/go;
+            if (! defined ($config{$nm}) ||
+                $config{$nm} eq '0')
+            {
+                check_memberxdr ($nm, $struct, $member, \%clist, \%config);
             }
         }
         elsif ($line =~ m#^\s*size\s+(.*)#o)
