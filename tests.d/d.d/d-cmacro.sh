@@ -29,6 +29,17 @@ cat > macrohdr.h << _HERE_
 #ifndef _INC_MACROHDR_H_
 #define _INC_MACROHDR_H_
 
+struct b {
+   int a;
+   int b;
+};
+typedef struct CL CL;
+struct CL {
+   struct clnt_ops {
+     int (*cl_call)(CL *, int, int, int, int, int, struct b);
+   } *cl_ops;
+};
+
 #define T0 2
 #define T1(a) ((a)+1)
 #define T2(a, b) ((a)+(b)+1)
@@ -36,6 +47,10 @@ cat > macrohdr.h << _HERE_
 # define T4(args) (args)
 #define T5 (3)
 #    define   T6(a , b , c) ((a)*(b)*(c))
+/* tabs, ->, multi-line (was clnt_call) */
+#define	T7(rh, proc, xargs, argsp, xres, resp, secs)	\
+	((*(rh)->cl_ops->cl_call)(rh, proc, xargs, argsp, xres, resp, secs))
+#    define   T8( a , b , c ) ((a)*(b)*(c))
 #define T9(cmd, type)  (((cmd) << 8) | ((type) & 0x0f))
 
 #endif
@@ -44,7 +59,7 @@ _HERE_
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-cmacro.dat
 grc=0
 
-for x in T0 T1 T2 T3 T4 T5 T9 ; do
+for x in T0 T1 T2 T3 T4 T5 T6 T7 T9 ; do
   egrep -l ?"^(auto|int|string) C_MACRO_${x}" dcmacro.d > /dev/null 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
