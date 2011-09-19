@@ -1,13 +1,19 @@
-output dcmemxdr.d
+output d.d
 loadunit d-main
 standard
 
-chdr    memxdrhdr.h
+chdr    h.h
 
 csizes
 
 ctypedef uu_int
-ctype int uu_int
 cstruct a
 cmemberxdr a a
 cmemberxdr a b
+
+include
+
+auto xdr_uu_int (uu_int a) { return a; }
+auto xdr_int (int a) { return a; }
+
+endinclude
