@@ -9,6 +9,8 @@
 #   mkcsetopt.sh [-o options-file] option-name value
 #
 
+set -f
+
 # this is a workaround for ksh93 on solaris
 if [ "$1" = "-d" ]; then
   cd $2
@@ -41,7 +43,6 @@ done
 opt=$1
 val=$2
 
-set -f
 OPTNEW=options.new
 exec 8>>${OPTNEW}
 exec 7<&0 < ${OPTFILE}
@@ -54,7 +55,6 @@ while read oline; do
   echo $oline >&8
 done
 exec <&7 7<&-
-set +f
 
 mv ${OPTNEW} ${OPTFILE}
 test -f ${OPTNEW} && rm -f ${OPTNEW}

@@ -15,6 +15,8 @@
 #    5 - stdout (as 1 is directed to the log)
 #
 
+set -f # global
+
 DOPERL=T
 TESTORDER=test_order
 SUBDIR=F

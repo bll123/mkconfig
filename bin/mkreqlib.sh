@@ -5,6 +5,8 @@
 # Copyright 2009-2010 Brad Lanam Walnut Creek, CA USA
 #
 
+set -f
+
 # this is a workaround for ksh93 on solaris
 if [ "$1" = "-d" ]; then
   cd $2
@@ -92,12 +94,10 @@ while read cline; do
   esac
 
   # bash2 can't handle # in subst
-  set -f
   if [ $lang = "d" -a $dver -eq 1 ]; then
     dosubst cline ': ' '' '{ ' '' ' }' ''
   fi
   dosubst cline '#define ' '' ' 1' '' ' = true;' '' 'enum bool ' ''
-  set +f
   getlibdata var $cline $lang
   if [ "$var" != "" ]; then
     echo $reqlibs | grep -- $var > /dev/null 2>&1
