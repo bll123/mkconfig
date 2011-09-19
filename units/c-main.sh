@@ -75,13 +75,11 @@ CPP_EXTERNS_END
 preconfigfile () {
   pc_configfile=$1
 
-  set -f
   echo "CC: ${CC}" >&9
   echo "CFLAGS: ${CFLAGS}" >&9
   echo "CPPFLAGS: ${CPPFLAGS}" >&9
   echo "LDFLAGS: ${LDFLAGS}" >&9
   echo "LIBS: ${LIBS}" >&9
-  set +f
 
   if [ "${CC}" = "" ]; then
     echo "No compiler specified" >&2
@@ -408,7 +406,6 @@ check_args () {
   trc=0
   ccount=0
 
-  set -f
   oldprecc="${precc}"
   doappend precc "/* get rid of most gcc-isms */
 #define __asm__(a)
@@ -418,15 +415,12 @@ check_args () {
 #define __THROW
 #define __const const
 "
-  set +f
 
   code=""
   _c_chk_cpp ${name} "" all
   rc=$?
 
-  set -f
   precc="${oldprecc}"
-  set +f
 
   if [ $rc -eq 0 ]; then
     egrep "[	 *]${funcnm}[	 ]*\(" $name.out >/dev/null 2>&1
@@ -435,10 +429,10 @@ check_args () {
       trc=1
     fi
 
-    set -f
     # have a declaration
     if [ $trc -eq 1 ]; then
       dcl=`${awkcmd} -f ${_MKCONFIG_DIR}/mkcextdcl.awk ${name}.out ${funcnm}`
+      dcl=`echo $dcl` # make single line
       # extern will be replaced
       # ; may or may not be present, so remove it.
       cmd="dcl=\`echo \"\$dcl\" | sed -e 's/extern *//' -e 's/;//' \`"
@@ -475,7 +469,6 @@ check_args () {
         c=`echo ${c} | sed -e 's/^[^,]*//' -e 's/^[	 ,]*//'`
         echo "## c(G): ${c}" >&9
       done
-      set -f
       c=`echo ${dcl} | sed -e 's/[ 	]/ /g' \
             -e "s/\([ \*]\)${funcnm}[ (].*/\1/" \
             -e 's/^ *//' \
@@ -485,11 +478,9 @@ check_args () {
         c=`echo ${c} | sed -e 's/const *//'`
       fi
       echo "## c(T1): ${c}" >&9
-      set +f
       nm="_c_type_${funcnm}"
       setdata ${_MKCONFIG_PREFIX} ${nm} "${c}"
     fi
-    set +f
   fi
 
   printyesno_val $name $ccount ""
@@ -678,16 +669,12 @@ output_item () {
     _setint_*)
       tname=$name
       dosubst tname '_setint_' ''
-      set -f
       echo "#define ${tname} ${val}"
-      set +f
       ;;
     _setstr_*|_opt_*)
       tname=$name
       dosubst tname '_setstr_' '' '_opt_' ''
-      set -f
       echo "#define ${tname} \"${val}\""
-      set +f
       ;;
     _hdr*|_sys*|_command*)
       echo "#define ${name} ${tval}"
