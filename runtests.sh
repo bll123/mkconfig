@@ -175,6 +175,15 @@ _MKCONFIG_DIR=`(cd $mypath;pwd)`
 export _MKCONFIG_DIR
 . ${_MKCONFIG_DIR}/shellfuncs.sh
 
+_MKC_ONCE=0
+export _MKC_ONCE
+_MKC_SH=1
+export _MKC_SH
+_MKC_PL=2
+export _MKC_PL
+_MKC_SH_PL=3
+export _MKC_SH_PL
+
 doshelltest $0 $@
 if [ $SUBDIR = "F" ]; then
   setechovars
@@ -331,26 +340,23 @@ while read tline; do
 
   dt=`date`
   arg="mkconfig.sh"
-  suffix=""
-  if [ -f ${tbase}.mkshpl ]; then
-    suffix="_sh"
-  else
-    suffix=""
-  fi
 
   scount=""
   echo ${EN} "$tbase ...${EC}"
   echo ${EN} "$tbase ...${EC}" >&8
-  _MKCONFIG_TSTRUNTMPDIR=$_MKCONFIG_RUNTMPDIR/${tbase}${suffix}
+  _MKCONFIG_TSTRUNTMPDIR=$_MKCONFIG_RUNTMPDIR/${tbase}
   export _MKCONFIG_TSTRUNTMPDIR
   mkdir ${_MKCONFIG_TSTRUNTMPDIR}
   if [ -f $tconfig ]; then
     cp $tconfig $_MKCONFIG_TSTRUNTMPDIR/$tconfh
   fi
-  $_MKCONFIG_RUNTESTDIR/$tf -d
-  $_MKCONFIG_RUNTESTDIR/$tf -d >&8
+  tfdisp=`$_MKCONFIG_RUNTESTDIR/$tf -d`
+  echo ${EN} " ${tfdisp}${EC}"
+  echo ${EN} " ${tfdisp}${EC}" >&8
+  $_MKCONFIG_RUNTESTDIR/$tf -q
+  runshpl=$?
 
-  if [ -f ${tbase}.mksh -o -f ${tbase}.mkshpl ]; then
+  if [ $runshpl -eq $_MKC_SH -o $runshpl -eq $_MKC_SH_PL ]; then
     echo ${EN} " ...${EC}"
     echo ${EN} " ...${EC}" >&8
     src=0
@@ -407,7 +413,8 @@ while read tline; do
   fi
   domath count "$count + 1"
 
-  if [ "$DOPERL" = "T" -a \( -f ${tbase}.mkshpl -o -f ${tbase}.mkpl \) ]; then
+  if [ "$DOPERL" = "T" -a \
+       \( $runshpl -eq $_MKC_PL -o $runshpl -eq $_MKC_SH_PL \) ]; then
     _MKCONFIG_TSTRUNTMPDIR=$_MKCONFIG_RUNTMPDIR/${tbase}_pl
     export _MKCONFIG_TSTRUNTMPDIR
     mkdir ${_MKCONFIG_TSTRUNTMPDIR}
@@ -422,8 +429,8 @@ while read tline; do
     echo "####" >&9
     echo ${EN} "$tbase ...${EC}"
     echo ${EN} "$tbase ...${EC}" >&8
-    $_MKCONFIG_RUNTESTDIR/$tf -d
-    $_MKCONFIG_RUNTESTDIR/$tf -d >&8
+    echo ${EN} " ${tfdisp}${EC}"
+    echo ${EN} " ${tfdisp}${EC}" >&8
     echo ${EN} " ... perl${EC}"
     echo ${EN} " ... perl${EC}" >&8
     echo "## Using mkconfig.pl " >&9
@@ -433,7 +440,7 @@ while read tline; do
 
     cd $_MKCONFIG_TSTRUNTMPDIR
     # dup stdout to 5; redirect stdout to 9; redirect stderr to new 1.
-    $_MKCONFIG_RUNTESTDIR/$tf perl $_MKCONFIG_DIR/mkconfig.pl 5>&1 >&9 2>&1
+    $_MKCONFIG_RUNTESTDIR/$tf none $_MKCONFIG_DIR/mkconfig.pl 5>&1 >&9 2>&1
     rc=$?
     cd $_MKCONFIG_RUNTESTDIR
 
