@@ -1,40 +1,16 @@
 #!/bin/sh
 
-if [ "$1" = "-d" ]; then
-  echo ${EN} " output multiple words${EC}"
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-stag=$1
-shift
-script=$@
+maindodisplay $1 'output multiple words'
+maindoquery $1 $_MKC_SH
 
-grc=0
-
-rm -f mkconfig.cache multword.env mkconfig.log > /dev/null 2>&1
-case ${script} in
-  *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/multword.dat
-    ;;
-  *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/multword.dat
-    ;;
-esac
-. ./mkconfig.cache
-if [ "$mkc_env_test_multword" != "word1 word2" ]; then
-  echo "   failed: cache: $mkc_env_test_multword"
-  grc=1
-fi
-. ./multword.env
-if [ "$test_multword" != "word1 word2" ]; then
-  echo "   failed: env: $test_multword"
-  grc=1
-fi
-if [ "$stag" != "" ]; then
-  mv multword.ctest multword.ctest${stag}
-  mv mkconfig.log mkconfig.log${stag}
-  mv mkconfig.cache mkconfig.cache${stag}
-  mv mkconfig_env.vars mkconfig_env.vars${stag}
-fi
+getsname $0
+dosetup $@
+dorunmkc
+chkcache "^mkc_env_test_multword='word1 word2'$"
+chkenv '^test_multword="word1 word2"$'
+chkenv '^export test_multword$'
+testcleanup
 
 exit $grc

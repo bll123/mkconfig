@@ -1,15 +1,12 @@
 #!/bin/sh
 
-if [ "$1" = "-d" ]; then
-  echo ${EN} " compile shell scripts${EC}"
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-stag=$1
-shift
-script=$@
+maindodisplay $1 'compile shell scripts'
+maindoquery $1 $_MKC_SH
 
-grc=0
+getsname $0
+dosetup $@
 
 if [ "$_MKCONFIG_SHELL" = "" ]; then
   _MKCONFIG_SHELL=$SHELL
@@ -55,4 +52,5 @@ for f in *.sh; do
   if [ $rc -ne 0 ];then grc=$rc; fi
 done
 
+testcleanup
 exit $grc

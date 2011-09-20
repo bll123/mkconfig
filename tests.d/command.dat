@@ -1,4 +1,4 @@
-output command.ctest
+output out.h
 loadunit c-main
 
 command sed

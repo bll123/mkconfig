@@ -1,15 +1,12 @@
 #!/bin/sh
 
-if [ "$1" = "-d" ]; then
-  echo ${EN} " compile perl scripts${EC}"
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-stag=$1
-shift
-script=$@
+maindodisplay $1 'compile perl scripts'
+maindoquery $1 $_MKC_ONCE
 
-grc=0
+getsname $0
+dosetup $@
 
 cd $_MKCONFIG_DIR
 for i in *.pl; do
@@ -18,4 +15,5 @@ for i in *.pl; do
   if [ $rc -ne 0 ];then grc=$rc; fi
 done
 
+testcleanup
 exit $grc
