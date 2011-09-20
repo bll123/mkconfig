@@ -1,5 +1,5 @@
-output env-option.ctest
-option-file env-option.opts
+output test.env
+option-file opts
 loadunit env-main
 standard
 
