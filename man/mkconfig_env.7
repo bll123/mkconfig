@@ -11,7 +11,7 @@
 .\"
 .\"  Notes on terminology:
 .\"    check variable - the variable name for the check.
-.\"    check command - a command from the mkconfig config file.
+.\"    directive - a command from the mkconfig config file.
 .\"    mkconfig config file - file where mkconfig check commands are read from
 .\"       not to be confused with "config.h".
 .\"    output file - file to which language units output is written
@@ -30,7 +30,7 @@
 .fi
 ..
 .\"
-.TH mkconfig_env 7 "11 Sep 2011"
+.TH mkconfig_env 7 "19 Sep 2011"
 .SH Name
 mkconfig_env \- mkconfig environment units
 .\" .SH Synopsis
@@ -40,24 +40,23 @@ as shell script input to set your environment.
 .SH Environment Units
 .TP
 .B env-systype
-.br
 The systype environment unit determines what type, revision and
 architecture of the system you are running on.
 .RS
 .TP
 \fBsystem\fP {type|rev|arch}
-.br
-The type, rev and arch check commands will create
+.RS
+The type, rev and arch directives will create
 the _MKCONFIG_SYSTYPE, _MKCONFIG_SYSREV, and _MKCONFIG_SYSARCH
 environment variables respectively.  These
 correspond to the output of uname -s, uname -r and uname -m.
-On AIX, the oslevel check command is used to attempt to resolve the revision
-of the operating system.  On MacOSX, the revision is currently unchanged and
+On AIX, the oslevel command is used to attempt to resolve the revision
+of the operating system.  On MacOS X, the revision is the kernel revision and
 does not correspond to the marketing version.
 .RE
-.PP
+.RE
 .TP
-.B env-cc
+.B env\-cc
 .br
 The cc environment unit determines basic flags needed to run the
 C compiler.  Since these units are interdependent on each other, they
@@ -66,62 +65,73 @@ cflags, ldflags, and libs.
 .RS
 .TP
 \fB32bitflags\fP
-.br
-If used, this check command must appear before the cc, cflags, etc. commands.
+.RS
+If used, this directive must appear before the cc, cflags, etc. commands.
 It turns off use of the 'getconf' command and other 64-bit flags.
+.RE
 .TP
 \fBcc\fP
-.br
+.RS
 Determines the C compiler being used (default cc).
 Sets the CC environment variable.
+.RE
 .TP
 \fBusing_gcc\fP
-.br
+.RS
 Sets the _MKCONFIG_USING_GCC environment variable to 'Y' if the gcc
 compiler is being used.
+.RE
 .TP
 \fBcflags\fP
-.br
+.RS
 Sets the CFLAGS environment variable according to the 'getconf' program
 and appropriate to the operating system and compiler.
+.RE
 .TP
 \fBaddcflag\fP compiler\-flag
-.br
+.RS
 Checks to see if \fIcompiler\-flag\fP is valid for the compiler and
 if ok, adds it to the CFLAGS environment variable.
+.RE
 .TP
 \fBldflags\fP
-.br
+.RS
 Sets the LDFLAGS environment variable according to the 'getconf' program
 and appropriate to the operating system and compiler.
+.RE
 .TP
 \fBlibs\fP
-.br
+.RS
 Sets the LIBS environment variable according to the 'getconf' program
 and appropriate to the operating system and compiler.
+.RE
 .TP
 \fBshcflags\fP
-.br
+.RS
 Sets the SHCFLAGS environment variable for building position
 independent code
 as appropriate to the operating system and compiler.
+.RE
 .TP
 \fBshldflags\fP
-.br
+.RS
 Sets the SHLDFLAGS environment variable for building a shared library
 as appropriate to the operating system and compiler.
+.RE
 .TP
 \fBshareexeclinkflag\fP
-.br
+.RS
 Sets the SHEXECLINK environment variable for building an executable
 against shared libraries
 as appropriate to the operating system and compiler.
+.RE
 .TP
 \fBsharerunpathflag\fP
-.br
+.RS
 Sets the SHRUNPATH environment variable to the
 flag for setting the shared run path
 as appropriate to the operating system and compiler.
+.RE
 .RE
 .PP
 .TP

@@ -4,7 +4,7 @@
 .\"
 .\" mkconfig.7
 .\"
-.\" Copyright 2010 Brad Lanam  Walnut Creek CA USA
+.\" Copyright 2011 Brad Lanam  Walnut Creek CA USA
 .\"
 .\" brad.lanam.di_at_gmail.com
 .\"
@@ -30,7 +30,7 @@
 .fi
 ..
 .\"
-.TH mkconfig 7 "11 Sep 2011"
+.TH mkconfig 7 "19 Sep 2011"
 .SH Name
 mkconfig \- build configuration utilities
 .SH Synopsis
@@ -113,9 +113,10 @@ _MKCONFIG_SHELL environment variable is set to a particular shell,
 \fImkconfig.sh\fP will restart itself using that shell.
 .PP
 \fImkreqlib.sh\fP
-is used in conjunction with the c\-main language unit to output the
+is used in conjunction with the c\-main language unit or
+d\-main language unit to output the
 libraries required for linking.  See the description for the 'lib'
-check routine for the c\-main language unit below.
+check routine for the c\-main language unit.
 .PP
 \fImkcsetopt.sh\fP
 is a utility used to change the value of the options in the option file.
@@ -137,37 +138,41 @@ a list of library paths and libraries.
 .SH Basic Check Commands (mkconfig.sh)
 .TP
 \fB#\fP comment
-.br
+.RS
 Comments begin with a '#' in column 1.  Blank lines are ignored.
+.RE
 .TP
 \fBoutput\fP file\-name (required)
-.br
+.RS
 Specify the name of the output file.
 This command may be included multiple times in the mkconfig
 configuration file to output multiple files.
+.RE
 .TP
 \fBoption\-file\fP file\-name
-.br
+.RS
 Specify the name of the options file.  The options file can also be
 specified on the command line with the \-o option.
+.RE
 .TP
 \fBloadunit\fP unit\-name
-.br
+.RS
 Include a mkconfig unit for testing.
 Units include specific check routines that may be performed.
+.RE
 .TP
 \fBcommand\fP name\-of\-command
-.br
+.RS
 Check if command exists in the path.
 .PP
-.IP
-Example: command sed
-.br
-Output:
-.br
+.Vb
+.B e.g.
+command sed
+.B Output:
 #define _command_sed 1 /* C */
-.br
 enum bool _command_sed = true; /* D */
+.Ve
+.RE
 .TP
 \fBifoption\fP option\-name ... [else ...] endif
 .TP
@@ -191,37 +196,35 @@ copiously to avoid any possible precedence differences between different
 shells.  The \fIlabel\fP is used for display output.
 .PP
 The equality operator is supported in prefix notation as:
-.br
+.IP
 \fIif\fP label == check\-variable value
-.br
+.PP
 The \fIvalue\fP may be enclosed in quotes, but preservation of extra spaces
 will not work.
 .PP
-Example:
-.br
+.Vb
+.B e.g.
 if mylabel _hdr_header1 && ( ! (_lib_func3 || _lib_func4)) && _setint_my_var
-.br
  ...
-.br
 endif
-.br
 if quotactl_pos_1 == _c_arg_1_quotactl 'char *'
-.br
  ...
-.br
 endif
+.Ve
+.RE
 .PP
 The \fIifoption\fP, \fIifnotoption\fP and \fIif\fP statements may be
 nested.
 .RE
 .TP
 .B include endinclude
-.br
+.RS
 Include all of the code between these two tags
 in the output file.  Backslashes must
 be escaped with a backslash.  Note that the included text
 is only output at the end of the output\-file, not inline
 with the check command output.
+.RE
 .TP
 \fBoption\fP option\-name default\-value
 .RS
@@ -233,36 +236,46 @@ For use in if statements, the check variable is named _opt_option\-name.
 .RE
 .TP
 \fBset\fP check\-variable value
-.br
+.RS
 Set a check\-variable to value.
-.IP
-e.g.
-.br
+.PP
+.Vb
+.B e.g.
 lib quotactl
-.br
 set _lib_quotactl 0
+.Ve
+.RE
 .TP
 \fBsetint\fP check\-variable\-name value
-.br
+.RS
 Set an integer variable to a value.
 The check variable name will be output as
 specified, but when used in if statements, the check variable is named
 _setint_<name>.
-.IP
-e.g. setint _enable_nls 1
+.PP
+.Vb
+.B e.g.
+setint _enable_nls 1
+.Ve
+.RE
 .TP
 \fBsetstr\fP check\-variable\-name value
-.br
+.RS
 Set a string variable to a value.  The check variable name will be output as
 specified, but when used in if statements, the check variable is named
 _setstr_<name>.
-.IP
-e.g. setstr _my_lib_path /lib
+.PP
+.Vb
+.B e.g.
+setstr _my_lib_path /lib
+.Ve
+.RE
 .TP
 \fBstandard\fP
-.br
+.RS
 Perform any standard checks for the unit that was loaded.  See the
 description of the other units to see what the standard check does.
+.RE
 .SH Environment Units
 The environment units create an output file that can be used
 as shell script input to set your environment.
