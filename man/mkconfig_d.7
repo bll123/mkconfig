@@ -31,7 +31,7 @@
 .fi
 ..
 .\"
-.TH mkconfig_d 7 "16 Sep 2011"
+.TH mkconfig_d 7 "19 Sep 2011"
 .SH Name
 mkconfig_d \- mkconfig D language units
 .\" .SH Synopsis
@@ -256,6 +256,7 @@ macro.  The C language macro will be renamed to C_MACRO_<macro>.
 \fIreq\-header\fP is the list of headers where \fImacro\-name\fP will be
 found.  If \fImacro\-name\fP takes arguments, then the list of types
 must be specified at the end of the cmacro directive.
+The 'awk' program is a requirement for this directive.
 .PP
 .Vb
 .B e.g.
@@ -280,6 +281,7 @@ to the output file.  Note that any types used by the structure must
 be checked for first using the \fIctype\fP or \fIctypedef\fP directives.
 The structure will be renamed to C_ST_struct\-name (C_UN for unions, C_ENUM
 for enums).
+The 'awk' program is a requirement for this directive.
 .PP
 .Vb
 .B e.g.
@@ -332,7 +334,7 @@ enum bool _cmembertype_getquota_args_gqa_uid = true;
 .TP
 \fBcmemberxdr\fP struct\-name member
 .RS
-Aliases the appropriate xdr function for \fIstruct\-name\fP.\fImember\fP.
+Aliases the appropriate xdr function for \fIstruct\-name.member\fP.
 The \fIcstruct\fP directive for the structure must appear
 before this directive.
 .PP
