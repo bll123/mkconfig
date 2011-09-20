@@ -1,4 +1,4 @@
-output keyword.ctest
+output out.h
 loadunit c-main
 standard
 key long

@@ -1,7 +1,7 @@
 # test when no options file
 
-output c-nooption.ctest
-option-file c-nooption.opts
+output out.h
+option-file opts
 loadunit c-main
 standard
 

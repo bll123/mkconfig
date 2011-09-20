@@ -1,17 +1,15 @@
 #!/bin/sh
 
-if [ "$1" = "-d" ]; then
-  echo ${EN} " ifoption - no option${EC}"
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-stag=$1
-shift
-script=$@
+maindodisplay $1 'ifoption - no option'
+maindoquery $1 $_MKC_SH_PL
 
-grc=0
+chkccompiler
+getsname $0
+dosetup $@
 
-TMP=c-nooption.opts
+TMP=opts
 cat > $TMP << _HERE_
 TEST_ENABLE=enable
 TEST_DISABLE=disable
@@ -19,30 +17,13 @@ TEST_ASSIGN_T=t
 TEST_ASSIGN_F=f
 _HERE_
 
-case ${script} in
-  *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-nooption.dat
-    ;;
-  *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-nooption.dat
-    ;;
-esac
-for t in \
-    _test_a _test_b; do
-  echo "chk: $t (1)"
-  grep "^#define ${t} 0$" c-nooption.ctest
-  rc=$?
-  if [ $rc -ne 0 ]; then grc=1; fi
-  grep "^#define ${t} 1$" c-nooption.ctest
-  rc=$?
-  if [ $rc -eq 0 ]; then grc=1; fi
+dorunmkc
+
+for t in _test_a _test_b; do
+  chkouth "^#define ${t} 0$"
+  chkouth "^#define ${t} 1$" neg
 done
 
-if [ "$stag" != "" ]; then
-  mv c-nooption.ctest c-nooption.ctest${stag}
-  mv mkconfig.log mkconfig.log${stag}
-  mv mkconfig.cache mkconfig.cache${stag}
-  mv mkconfig_c.vars mkconfig_c.vars${stag}
-fi
+testcleanup
 
 exit $grc

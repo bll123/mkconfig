@@ -1,4 +1,4 @@
-output header.ctest
+output out.h
 loadunit c-main
 standard
 

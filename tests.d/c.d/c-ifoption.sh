@@ -1,17 +1,15 @@
 #!/bin/sh
 
-if [ "$1" = "-d" ]; then
-  echo ${EN} " c-ifoption${EC}"
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-stag=$1
-shift
-script=$@
+maindodisplay $1 c-ifoption
+maindoquery $1 $_MKC_SH_PL
 
-grc=0
+chkccompiler
+getsname $0
+dosetup $@
 
-TMP=c-ifoption.opts
+TMP=opts
 cat > $TMP << _HERE_
 TEST_ENABLE=enable
 TEST_DISABLE=disable
@@ -19,14 +17,8 @@ TEST_ASSIGN_T=t
 TEST_ASSIGN_F=f
 _HERE_
 
-case ${script} in
-  *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-ifoption.dat
-    ;;
-  *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-ifoption.dat
-    ;;
-esac
+dorunmkc
+
 for t in \
     _test_enable _test_disable \
     _test_assign_t _test_assign_f \
@@ -39,15 +31,9 @@ for t in \
     _test_a _test_b _test_c _test_d _test_e _test_f _test_g \
     _test_h _test_i _test_j _test_k _test_l _test_m _test_n; do
   echo "chk: $t (1)"
-  grep "^#define ${t} 1$" c-ifoption.ctest
-  rc=$?
-  if [ $rc -ne 0 ]; then grc=$rc; fi
+  chkouth "^#define ${t} 1$"
 done
-if [ "$stag" != "" ]; then
-  mv c-ifoption.ctest c-ifoption.ctest${stag}
-  mv mkconfig.log mkconfig.log${stag}
-  mv mkconfig.cache mkconfig.cache${stag}
-  mv mkconfig_c.vars mkconfig_c.vars${stag}
-fi
+
+testcleanup
 
 exit $grc

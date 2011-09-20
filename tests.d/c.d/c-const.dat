@@ -1,4 +1,4 @@
-output const.ctest
+output out.h
 loadunit c-main
 standard
 sys types.h

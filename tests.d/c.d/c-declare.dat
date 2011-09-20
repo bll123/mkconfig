@@ -1,4 +1,4 @@
-output declare.ctest
+output out.h
 loadunit c-main
 standard
 hdr dcltst.h

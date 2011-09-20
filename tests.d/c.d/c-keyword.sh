@@ -1,40 +1,18 @@
 #!/bin/sh
 
-if [ "$1" = "-d" ]; then
-  echo ${EN} " keyword${EC}"
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-if [ "${CC}" = "" ]; then
-  echo ${EN} " no cc; skipped${EC}" >&5
-  exit 0
-fi
+maindodisplay $1 keyword
+maindoquery $1 $_MKC_SH_PL
 
-stag=$1
-shift
-script=$@
+chkccompiler
+getsname $0
+dosetup $@
+dorunmkc
 
-grc=0
+chkouth "^#define _key_long 1$"
+chkouth "^#define _key_xyzzy 0$"
 
-case ${script} in
-  *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-keyword.dat
-    ;;
-  *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-keyword.dat
-    ;;
-esac
-grep "^#define _key_long 1$" keyword.ctest
-rc=$?
-if [ $rc -ne 0 ]; then grc=$rc; fi
-grep "^#define _key_xyzzy 0$" keyword.ctest
-rc=$?
-if [ $rc -ne 0 ]; then grc=$rc; fi
-if [ "$stag" != "" ]; then
-  mv keyword.ctest keyword.ctest${stag}
-  mv mkconfig.log mkconfig.log${stag}
-  mv mkconfig.cache mkconfig.cache${stag}
-  mv mkconfig_c.vars mkconfig_c.vars${stag}
-fi
+testcleanup
 
 exit $grc

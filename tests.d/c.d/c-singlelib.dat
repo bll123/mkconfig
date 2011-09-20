@@ -1,4 +1,4 @@
-output singlelib.ctest
+output out.h
 loadunit c-main
 standard
 hdr tst1lib.h

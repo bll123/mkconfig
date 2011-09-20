@@ -1,7 +1,7 @@
 # test ifoption, ifnotoption
 
-output c-ifoption.ctest
-option-file c-ifoption.opts
+output out.h
+option-file opts
 loadunit c-main
 standard
 setint _test_enable 0

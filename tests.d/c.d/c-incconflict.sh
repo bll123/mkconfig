@@ -1,20 +1,13 @@
 #!/bin/sh
 
-if [ "$1" = "-d" ]; then
-  echo ${EN} " include conflict${EC}"
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-if [ "${CC}" = "" ]; then
-  echo ${EN} " no cc; skipped${EC}" >&5
-  exit 0
-fi
+maindodisplay $1 'include conflict'
+maindoquery $1 $_MKC_SH_PL
 
-stag=$1
-shift
-script=$@
-
-grc=0
+chkccompiler
+getsname $0
+dosetup $@
 
 CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
 LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
@@ -51,26 +44,11 @@ extern char *incconf1 ();
 extern int incconf1 ();
 '
 
-case ${script} in
-  *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-incconflict.dat
-    ;;
-  *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-incconflict.dat
-    ;;
-esac
-grep "^#define _inc_conflict__hdr_incconf1__hdr_incconf2 0$" incconflict.ctest
-rc=$?
-if [ $rc -ne 0 ]; then grc=$rc; fi
-grep "^#define _inc_conflict__hdr_incconf1__hdr_incconf3 1$" incconflict.ctest
-rc=$?
-if [ $rc -ne 0 ]; then grc=$rc; fi
+dorunmkc
 
-if [ "$stag" != "" ]; then
-  mv incconflict.ctest incconflict.ctest${stag}
-  mv mkconfig.log mkconfig.log${stag}
-  mv mkconfig.cache mkconfig.cache${stag}
-  mv mkconfig_c.vars mkconfig_c.vars${stag}
-fi
+chkouth "^#define _inc_conflict__hdr_incconf1__hdr_incconf2 0$"
+chkouth "^#define _inc_conflict__hdr_incconf1__hdr_incconf3 1$"
+
+testcleanup
 
 exit $grc

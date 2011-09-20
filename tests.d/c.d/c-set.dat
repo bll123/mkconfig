@@ -1,6 +1,6 @@
 # test set
 
-output c-set.ctest
+output out.h
 loadunit c-main
 standard
 

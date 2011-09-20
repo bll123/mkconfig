@@ -1,6 +1,6 @@
 # test define
 
-output define.ctest
+output out.h
 loadunit c-main
 hdr deftst.h
 define MYDEFINE

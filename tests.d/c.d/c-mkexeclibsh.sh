@@ -1,21 +1,16 @@
 #!/bin/sh
 
-if [ "$1" = "-d" ]; then
-  echo ${EN} " create exec with shared lib${EC}"
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-if [ "${CC}" = "" ]; then
-  echo ${EN} " no cc; skipped${EC}" >&5
-  exit 0
-fi
+maindodisplay $1 'create exec with shared libs'
+maindoquery $1 $_MKC_ONCE
 
-stag=$1
-shift
-script=$@
+chkccompiler
+getsname $0
+dosetup $@
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` -C $_MKCONFIG_RUNTESTDIR/c-mkexeclibsh.dat
-. ./mkexeclibsh.env
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` -C $_MKCONFIG_RUNTESTDIR/c.env.dat
+. ./c.env
 
 if [ "${_MKCONFIG_SYSTYPE}" = "BSD" ]; then
   echo ${EN} " bsd; skipped${EC}" >&5
@@ -89,4 +84,6 @@ if [ $rc -ne 0 ]; then grc=$rc; fi
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-exit $rc
+testcleanup
+
+exit $grc

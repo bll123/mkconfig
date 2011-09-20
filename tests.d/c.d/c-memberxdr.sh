@@ -1,28 +1,13 @@
 #!/bin/sh
 
-if [ "$1" = "-d" ]; then
-  echo ${EN} " c-memberxdr${EC}"
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-if [ "${CC}" = "" ]; then
-  echo ${EN} " no C compiler; skipped${EC}" >&5
-  exit 0
-fi
+maindodisplay $1 c-memberxdr
+maindoquery $1 $_MKC_SH_PL
 
-stag=$1
-shift
-script=$@
-
-CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
-LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
-export CFLAGS LDFLAGS
-
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
-    -C $_MKCONFIG_RUNTESTDIR/c.env.dat
-. ./c.env
-
-grc=0
+chkccompiler
+getsname $0
+dosetup $@
 
 cat > h.h << _HERE_
 #ifndef _INC_H_H_
@@ -38,47 +23,31 @@ struct aa {
 #endif
 _HERE_
 
-case ${script} in
-  *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-memberxdr.dat
-    ;;
-  *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-memberxdr.dat
-    ;;
-esac
+CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
+LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
+export CFLAGS LDFLAGS
 
-grc=0
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
+    -C $_MKCONFIG_RUNTESTDIR/c.env.dat
+. ./c.env
 
-grep -l '^#define xdr_aa xdr_uu_int$' out.h > /dev/null 2>&1
-rc=$?
-if [ $rc -ne 0 ]; then grc=$rc; fi
-grep -l '^#define xdr_bb xdr_int$' out.h > /dev/null 2>&1
-rc=$?
-if [ $rc -ne 0 ]; then grc=$rc; fi
+dorunmkc
 
+chkouth '^#define xdr_aa xdr_uu_int$'
+chkouth '^#define xdr_bb xdr_int$'
 for x in aa bb; do
-  grep -l "^#define _memberxdr_aa_${x} 1$" out.h > /dev/null 2>&1
-  rc=$?
-  if [ $rc -ne 0 ]; then grc=$rc; fi
+  chkouth "^#define _memberxdr_aa_${x} 1$"
 done
 
 if [ $grc -eq 0 ]; then
-  cat > c.c << _HERE_
+  cat > mxdr.c << _HERE_
 #include <stdio.h>
 #include <out.h>
 int main (int argc, char *argv []) { return 0; }
 _HERE_
-  ${CC} -c ${CPPFLAGS} ${CFLAGS} c.c
-  if [ $? -ne 0 ]; then
-    echo "## compile c.c failed"
-    grc=1
-  fi
+  chkccompile mxdr.c
 fi
 
-if [ "$stag" != "" ]; then
-  for i in out.h mkconfig.log mkconfig.cache mkconfig_c.vars; do
-    mv $i ${i}${stag}
-  done
-fi
+testcleanup mxdr.c
 
 exit $grc

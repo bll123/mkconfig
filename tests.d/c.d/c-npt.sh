@@ -1,20 +1,13 @@
 #!/bin/sh
 
-if [ "$1" = "-d" ]; then
-  echo ${EN} " need prototype${EC}"
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-if [ "${CC}" = "" ]; then
-  echo ${EN} " no cc; skipped${EC}" >&5
-  exit 0
-fi
+maindodisplay $1 'need prototype'
+maindoquery $1 $_MKC_SH_PL
 
-stag=$1
-shift
-script=$@
-
-grc=0
+chkccompiler
+getsname $0
+dosetup $@
 
 CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
 LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
@@ -53,33 +46,14 @@ int npt1lib () { printf ("hello world\n"); return 0; }
 int npt2lib () { printf ("hello world\n"); return 0; }
 _HERE_
 
-${CC} -c ${CFLAGS} ${CPPFLAGS} nptlib.c
-if [ $? -ne 0 ]; then
-  echo "compile nptlib.c failed"
-  exit 1
-fi
+chkccompile nptlib.c
 ar cq libnptlib.a nptlib.o
 
-case ${script} in
-  *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-npt.dat
-    ;;
-  *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-npt.dat
-    ;;
-esac
-grep "^#define _npt_npt1lib 1$" npt.ctest
-rc=$?
-if [ $rc -ne 0 ]; then grc=$rc; fi
-grep "^#define _npt_npt2lib 0$" npt.ctest
-rc=$?
-if [ $rc -ne 0 ]; then grc=$rc; fi
+dorunmkc
 
-if [ "$stag" != "" ]; then
-  mv npt.ctest npt.ctest${stag}
-  mv mkconfig.log mkconfig.log${stag}
-  mv mkconfig.cache mkconfig.cache${stag}
-  mv mkconfig_c.vars mkconfig_c.vars${stag}
-fi
+chkouth "^#define _npt_npt1lib 1$"
+chkouth "^#define _npt_npt2lib 0$"
+
+testcleanup nptlib.c nptlib.h libnptlib.a
 
 exit $grc

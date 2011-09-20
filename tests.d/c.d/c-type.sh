@@ -1,45 +1,25 @@
 #!/bin/sh
 
-if [ "$1" = "-d" ]; then
-  echo ${EN} " typedef${EC}"
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-if [ "${CC}" = "" ]; then
-  echo ${EN} " no cc; skipped${EC}" >&5
-  exit 0
-fi
+maindodisplay $1 typedef
+maindoquery $1 $_MKC_SH_PL
 
-stag=$1
-shift
-script=$@
-
-grc=0
-
-CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
-export CFLAGS
+chkccompiler
+getsname $0
+dosetup $@
 
 > typtst.h echo '
 typedef int my_type_t;
 '
 
-grc=0
-case ${script} in
-  *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-type.dat
-    ;;
-  *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-type.dat
-    ;;
-esac
-grep "^#define _typ_my_type_t 1$" type.ctest
-rc=$?
-if [ $rc -ne 0 ]; then grc=$rc; fi
-if [ "$stag" != "" ]; then
-  mv type.ctest type.ctest${stag}
-  mv mkconfig.log mkconfig.log${stag}
-  mv mkconfig.cache mkconfig.cache${stag}
-  mv mkconfig_c.vars mkconfig_c.vars${stag}
-fi
+CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
+export CFLAGS
+
+dorunmkc
+
+chkouth "^#define _typ_my_type_t 1$"
+
+testcleanup
 
 exit $grc

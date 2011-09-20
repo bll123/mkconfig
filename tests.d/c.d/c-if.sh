@@ -1,24 +1,14 @@
 #!/bin/sh
 
-if [ "$1" = "-d" ]; then
-  echo ${EN} " if${EC}"
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-stag=$1
-shift
-script=$@
+maindodisplay $1 if
+maindoquery $1 $_MKC_SH_PL
 
-grc=0
-
-case ${script} in
-  *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-if.dat
-    ;;
-  *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-if.dat
-    ;;
-esac
+chkccompiler
+getsname $0
+dosetup $@
+dorunmkc
 for t in \
     _var_a _var_b \
     _test_b1_ok _test_b2_ok _test_b3_ok _test_b4_ok \
@@ -32,16 +22,9 @@ for t in \
         _test_p5_ok _test_p6_ok _test_p7_ok \
     ; do
   echo "chk: $t (1)"
-  grep "^#define ${t} 1$" c-if.ctest
-  rc=$?
-  if [ $rc -ne 0 ]; then grc=$rc; fi
+  chkouth "^#define ${t} 1$"
 done
 
-if [ "$stag" != "" ]; then
-  mv c-if.ctest c-if.ctest${stag}
-  mv mkconfig.log mkconfig.log${stag}
-  mv mkconfig.cache mkconfig.cache${stag}
-  mv mkconfig_c.vars mkconfig_c.vars${stag}
-fi
+testcleanup
 
 exit $grc

@@ -1,4 +1,4 @@
-output member.ctest
+output out.h
 loadunit c-main
 standard
 hdr memtst.h

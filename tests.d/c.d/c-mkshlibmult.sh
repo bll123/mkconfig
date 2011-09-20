@@ -1,20 +1,16 @@
 #!/bin/sh
-if [ "$1" = "-d" ]; then
-  echo ${EN} " create shared libs w/deps${EC}"
-  exit 0
-fi
 
-if [ "${CC}" = "" ]; then
-  echo ${EN} " no cc; skipped${EC}" >&5
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-stag=$1
-shift
-script=$@
+maindodisplay $1 'create shared libs w/deps'
+maindoquery $1 $_MKC_ONCE
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` -C $_MKCONFIG_RUNTESTDIR/c-mkshlibmult.dat
-. ./mkshlibmult.env
+chkccompiler
+getsname $0
+dosetup $@
+
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` -C $_MKCONFIG_RUNTESTDIR/c.env.dat
+. ./c.env
 
 if [ "${_MKCONFIG_SYSTYPE}" = "BSD" ]; then
   echo ${EN} " bsd; skipped${EC}" >&5
@@ -29,7 +25,6 @@ if [ "${_MKCONFIG_USING_GCC}" = "N" -a \
     exit 0
   fi
 fi
-
 
 i=1
 cat > mkct${i}.c <<_HERE_
@@ -171,4 +166,6 @@ if [ $rc -ne 0 ]; then grc=$rc; fi
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-exit $rc
+testcleanup
+
+exit $grc

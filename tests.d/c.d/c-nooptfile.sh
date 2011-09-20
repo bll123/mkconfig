@@ -1,40 +1,20 @@
 #!/bin/sh
 
-if [ "$1" = "-d" ]; then
-  echo ${EN} " ifoption - no options file${EC}"
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-stag=$1
-shift
-script=$@
+maindodisplay $1 'ifoption - no options file'
+maindoquery $1 $_MKC_SH_PL
 
-grc=0
+chkccompiler
+getsname $0
+dosetup $@
+dorunmkc
 
-case ${script} in
-  *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-nooptfile.dat
-    ;;
-  *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-nooptfile.dat
-    ;;
-esac
-for t in \
-    _test_a _test_b; do
-  echo "chk: $t (1)"
-  grep "^#define ${t} 0$" c-nooptfile.ctest
-  rc=$?
-  if [ $rc -ne 0 ]; then grc=1; fi
-  grep "^#define ${t} 1$" c-nooptfile.ctest
-  rc=$?
-  if [ $rc -eq 0 ]; then grc=1; fi
+for t in _test_a _test_b; do
+  chkoutfile "^#define ${t} 0$"
+  chkoutfile "^#define ${t} 1$"
 done
 
-if [ "$stag" != "" ]; then
-  mv c-nooptfile.ctest c-nooptfile.ctest${stag}
-  mv mkconfig.log mkconfig.log${stag}
-  mv mkconfig.cache mkconfig.cache${stag}
-  mv mkconfig_c.vars mkconfig_c.vars${stag}
-fi
+testcleanup
 
 exit $grc

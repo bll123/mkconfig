@@ -1,6 +1,6 @@
 # test mkconfig caching
 
-output c-cache.ctest
+output out.h
 
 loadunit c-main
 standard

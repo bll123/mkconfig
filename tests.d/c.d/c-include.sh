@@ -1,41 +1,19 @@
 #!/bin/sh
 
-if [ "$1" = "-d" ]; then
-  echo ${EN} " include${EC}"
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-if [ "${CC}" = "" ]; then
-  echo ${EN} " no cc; skipped${EC}" >&5
-  exit 0
-fi
+maindodisplay $1 include
+maindoquery $1 $_MKC_SH_PL
 
-stag=$1
-shift
-script=$@
+chkccompiler
+getsname $0
+dosetup $@
+dorunmkc
 
-grc=0
-
-case ${script} in
-  *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-include.dat
-    ;;
-  *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-include.dat
-    ;;
-esac
-echo "## $count: $s: diff c-include.ctmp include.ctest"
 sed -e '/^#define _key_/d' -e '/^#define _proto_/d' \
-    -e '/^#define _param_/d' include.ctest > t
-mv t include.ctest
-diff -b c-include.ctmp include.ctest
-rc=$?
-if [ $rc -ne 0 ]; then grc=$rc; fi
-if [ "$stag" != "" ]; then
-  mv include.ctest include.ctest${stag}
-  mv mkconfig.log mkconfig.log${stag}
-  mv mkconfig.cache mkconfig.cache${stag}
-  mv mkconfig_c.vars mkconfig_c.vars${stag}
-fi
+    -e '/^#define _param_/d' out.h > out.h.n
+chkdiff c-include.ctmp out.h.n
+
+testcleanup out.h.n
 
 exit $grc

@@ -1,28 +1,21 @@
 #!/bin/sh
 
-if [ "$1" = "-d" ]; then
-  echo ${EN} " w/single lib${EC}"
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-if [ "${CC}" = "" ]; then
-  echo ${EN} " no cc; skipped${EC}" >&5
-  exit 0
-fi
+maindodisplay $1 'w/single lib'
+maindoquery $1 $_MKC_SH_PL
 
-stag=$1
-shift
-script=$@
-
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
-    -C $_MKCONFIG_RUNTESTDIR/c.env.dat
-. ./c.env
-
-grc=0
+chkccompiler
+getsname $0
+dosetup $@
 
 CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
 LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
 export CFLAGS LDFLAGS
+
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
+    -C $_MKCONFIG_RUNTESTDIR/c.env.dat
+. ./c.env
 
 > tst1lib.h echo '
 
@@ -50,40 +43,13 @@ if [ $? -ne 0 ]; then
 fi
 ar cq libtst1lib.a tst1lib${OBJ_EXT}
 
-case ${script} in
-  *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-singlelib.dat
-    ;;
-  *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-singlelib.dat
-    ;;
-esac
-case $script in
-  *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh singlelib.ctest
-    ;;
-esac
+dorunmkc reqlibs
 
 sed -e '/^#define _key_/d' -e '/^#define _proto_/d' \
-    -e '/^#define _param_/d' singlelib.ctest > t
-mv t singlelib.ctest
+    -e '/^#define _param_/d' out.h > out.h.n
+chkdiff c-singlelib.ctmp out.h.n
+chkdiff ${_MKCONFIG_RUNTESTDIR}/c-singlelib.reqlibs mkconfig.reqlibs
 
-echo "## diff 1"
-diff -b c-singlelib.ctmp singlelib.ctest
-rc=$?
-if [ $rc -ne 0 ];then grc=$rc; fi
-
-echo "## diff 2"
-diff -b ${_MKCONFIG_RUNTESTDIR}/c-singlelib.reqlibs mkconfig.reqlibs
-rc=$?
-if [ $rc -ne 0 ];then grc=$rc; fi
-
-if [ "$stag" != "" ]; then
-  mv singlelib.ctest singlelib.ctest${stag}
-  mv mkconfig.log mkconfig.log${stag}
-  mv mkconfig.cache mkconfig.cache${stag}
-  mv mkconfig.reqlibs mkconfig.reqlibs${stag}
-  mv mkconfig_c.vars mkconfig_c.vars${stag}
-fi
+testcleanup
 
 exit $grc

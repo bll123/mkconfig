@@ -1,13 +1,13 @@
 loadunit c-main
 
-output outfile1.ctest
+output out.h
 
 standard
 setint _test1 0
 setint _test1 1
 setstr _test2 a b c
 
-output outfile2.ctest
+output out2.h
 
 standard
 setint _test1 0

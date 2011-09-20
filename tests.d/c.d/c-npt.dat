@@ -1,4 +1,4 @@
-output npt.ctest
+output out.h
 loadunit c-main
 standard
 hdr nptlib.h

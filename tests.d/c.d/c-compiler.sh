@@ -1,20 +1,14 @@
 #!/bin/sh
 
-if [ "$1" = "-d" ]; then
-  echo ${EN} " C compiler works${EC}"
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-if [ "${CC}" = "" ]; then
-  echo ${EN} " no cc; skipped${EC}" >&5
-  exit 0
-fi
+maindodisplay $1 'C compiler works'
+maindoquery $1 $_MKC_ONCE
 
-stag=$1
-shift
-script=$@
-
-grc=0
+chkccompiler
+getsname $0
+dosetup $@
+dorunmkc
 
 cat > c_compiler.c << _HERE_
 main () { exit (0); }
@@ -27,5 +21,7 @@ if [ ! -x c_compiler.exe ]; then grc=1; fi
 ./c_compiler.exe
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
+
+testcleanup
 
 exit $grc

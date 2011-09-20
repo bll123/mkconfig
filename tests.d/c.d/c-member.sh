@@ -1,24 +1,13 @@
 #!/bin/sh
 
-if [ "$1" = "-d" ]; then
-  echo ${EN} " member${EC}"
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-if [ "${CC}" = "" ]; then
-  echo ${EN} " no cc; skipped${EC}" >&5
-  exit 0
-fi
+maindodisplay $1 member
+maindoquery $1 $_MKC_SH_PL
 
-stag=$1
-shift
-script=$@
-
-grc=0
-
-CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
-LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
-export CFLAGS LDFLAGS
+chkccompiler
+getsname $0
+dosetup $@
 
 > memtst.h echo '
 typedef struct xyzzy {
@@ -46,36 +35,21 @@ typedef union my_union {
 } my_union_t;
 '
 
-grc=0
-case ${script} in
-  *mkconfig.sh)
-    ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/c-member.dat
-    ;;
-  *)
-    perl ${script} -C ${_MKCONFIG_RUNTESTDIR}/c-member.dat
-    ;;
-esac
+CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
+LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
+export CFLAGS LDFLAGS
+
+dorunmkc
+
 for n in a b c d e f g; do
-  grep "^#define _mem_my_struct_t_${n} 1$" member.ctest
-  rc=$?
-  if [ $rc -ne 0 ]; then grc=$rc; fi
-  grep "^#define _mem_struct_my_struct_${n} 1$" member.ctest
-  rc=$?
-  if [ $rc -ne 0 ]; then grc=$rc; fi
+  chkouth "^#define _mem_my_struct_t_${n} 1$"
+  chkouth "^#define _mem_struct_my_struct_${n} 1$"
 done
 for n in g; do
-  grep "^#define _mem_my_union_t_${n} 1$" member.ctest
-  rc=$?
-  if [ $rc -ne 0 ]; then grc=$rc; fi
-  grep "^#define _mem_union_my_union_${n} 1$" member.ctest
-  rc=$?
-  if [ $rc -ne 0 ]; then grc=$rc; fi
+  chkouth "^#define _mem_my_union_t_${n} 1$"
+  chkouth "^#define _mem_union_my_union_${n} 1$"
 done
-if [ "$stag" != "" ]; then
-  mv member.ctest member.ctest${stag}
-  mv mkconfig.log mkconfig.log${stag}
-  mv mkconfig.cache mkconfig.cache${stag}
-  mv mkconfig_c.vars mkconfig_c.vars${stag}
-fi
+
+testcleanup
 
 exit $grc

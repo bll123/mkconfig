@@ -1,6 +1,6 @@
-# test mkconfig include quoting, backslashes, indentation.
+# test mkconfig include quoting, backslashes, indentation, comments
 
-output include.ctest
+output out.h
 loadunit c-main
 include
 

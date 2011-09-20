@@ -1,4 +1,4 @@
-output type.ctest
+output out.h
 loadunit c-main
 standard
 hdr typtst.h
