@@ -442,7 +442,7 @@ check_lib () {
   fi
 
   trc=0
-  code="int main (char[][] args) { auto f = slib1_f;
+  code="int main (char[][] args) { auto f = ${rfunc};
       return (is(typeof(${rfunc}) == return)); }"
 
   _d_chk_run ${name} "${code}" all
