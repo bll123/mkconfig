@@ -1,4 +1,4 @@
-output d.d
+output out.d
 loadunit d-main
 standard
 

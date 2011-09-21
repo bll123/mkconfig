@@ -1,4 +1,4 @@
-output dcdcl.d
+output out.d
 loadunit d-main
 standard
 

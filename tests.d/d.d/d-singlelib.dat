@@ -1,4 +1,4 @@
-output singlelib.dtest
+output out.d
 loadunit d-main
 standard
 import slib1

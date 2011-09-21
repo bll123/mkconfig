@@ -1,58 +1,31 @@
 #!/bin/sh
 
-if [ "$1" = "-d" ]; then
-  echo ${EN} " set${EC}"
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-if [ "${DC}" = "" ]; then
-  echo ${EN} " no D compiler; skipped${EC}" >&5
-  exit 0
-fi
+maindodisplay $1 set
+maindoquery $1 $_MKC_SH
 
-stag=$1
-shift
-script=$@
+chkdcompiler
+getsname $0
+dosetup $@
 
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
     -C $_MKCONFIG_RUNTESTDIR/d.env.dat
 . ./d.env
 
-grc=0
+dorunmkc
 
-${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-set.dat
-
-egrep "^enum (: )?bool ({ )?_lib_something" dset.d
-rc=$?
-if [ $rc -eq 0 ]; then grc=1; fi
-
-l=`egrep "^enum (: )?int ({ )?_test1 = 1( })?;$" dset.d | wc -l`
-rc=$?
-if [ $rc -ne 0 ]; then grc=$rc; fi
-if [ $l -ne 1 ]; then grc=1; fi
-
+chkoutd "^enum (: )?bool ({ )?_lib_something" neg
+chkoutd "^enum (: )?int ({ )?_test1 = 1( })?;$" wc 1
 if [ "$DVERSION" = 1 ]; then
-  egrep "^string _test2 = \"a b c\";$" dset.d
-  rc=$?
+  chkoutd "^string _test2 = \"a b c\";$"
 else
-  egrep "^enum string _test2 = \"a b c\";$" dset.d
-  rc=$?
+  chkoutd "^enum string _test2 = \"a b c\";$"
 fi
-if [ $rc -ne 0 ]; then grc=$rc; fi
-
 if [ $grc -eq 0 ]; then
-  ${DC} -c ${DFLAGS} dset.d
-  if [ $? -ne 0 ]; then
-    echo "## compile dset.d failed"
-    grc=1
-  fi
+  chkdcompile out.d
 fi
 
-if [ "$stag" != "" ]; then
-  mv dset.d dset.d${stag}
-  mv mkconfig.log mkconfig.log${stag}
-  mv mkconfig.cache mkconfig.cache${stag}
-  mv mkconfig_d.vars mkconfig_d.vars${stag}
-fi
+testcleanup
 
 exit $grc

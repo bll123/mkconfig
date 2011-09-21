@@ -1,29 +1,13 @@
 #!/bin/sh
 
-if [ "$1" = "-d" ]; then
-  echo ${EN} " c-typedef ${EC}"
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-if [ "${DC}" = "" ]; then
-  echo ${EN} " no D compiler; skipped${EC}" >&5
-  exit 0
-fi
+maindodisplay $1 c-typedef
+maindoquery $1 $_MKC_SH
 
-stag=$1
-shift
-script=$@
-
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
-    -C $_MKCONFIG_RUNTESTDIR/d.env.dat
-. ./d.env
-
-grc=0
-
-CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
-DFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"
-LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
-export CFLAGS DFLAGS LDFLAGS
+chkdcompiler
+getsname $0
+dosetup $@
 
 cat > typedefhdr.h << _HERE_
 #ifndef _INC_TYPEDEFHDR_H_
@@ -53,54 +37,33 @@ typedef o p; // typedef of typedef
 #endif
 _HERE_
 
-${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-ctypedef.dat
-grc=0
+CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
+DFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"
+LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
+export CFLAGS DFLAGS LDFLAGS
+
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
+    -C $_MKCONFIG_RUNTESTDIR/d.env.dat
+. ./d.env
+
+dorunmkc
 
 if [ "${_MKCONFIG_USING_GCC}" = "Y" ]; then
   for x in j k l; do
-    egrep -l "^enum (: )?bool ({ )?_ctypedef_${x} = true( })?;$" dctypedef.d > /dev/null 2>&1
-    rc=$?
-    if [ $rc -ne 0 ]; then
-      echo "## check for enum ${x} failed"
-      grc=1
-    fi
-    grep -l "alias.*[ \*]${x};$" dctypedef.d > /dev/null 2>&1
-    rc=$?
-    if [ $rc -ne 0 ]; then
-      echo "## check for alias ${x} failed (gcc)"
-      grc=1
-    fi
+    chkoutd "^enum (: )?bool ({ )?_ctypedef_${x} = true( })?;$"
+    chkoutd "alias.*[ \*]${x};$"
   done
 fi
 
 for x in a b c d e f g h i m n o p; do
-  egrep -l "^enum (: )?bool ({ )?_ctypedef_${x} = true( })?;$" dctypedef.d > /dev/null 2>&1
-  rc=$?
-  if [ $rc -ne 0 ]; then
-    echo "## check for enum ${x} failed"
-    grc=1
-  fi
-  grep -l "alias.*[ \*]${x};$" dctypedef.d > /dev/null 2>&1
-  rc=$?
-  if [ $rc -ne 0 ]; then
-    echo "## check for alias ${x} failed"
-    grc=1
-  fi
+  chkoutd "^enum (: )?bool ({ )?_ctypedef_${x} = true( })?;$"
+  chkoutd "alias.*[ \*]${x};$"
 done
 
 if [ $grc -eq 0 ]; then
-  ${DC} -c ${DFLAGS} dctypedef.d
-  if [ $? -ne 0 ]; then
-    echo "## compile dctypedef.d failed"
-    grc=1
-  fi
+  chkdcompile out.d
 fi
 
-if [ "$stag" != "" ]; then
-  mv dctypedef.d dctypedef.d${stag}
-  mv mkconfig.log mkconfig.log${stag}
-  mv mkconfig.cache mkconfig.cache${stag}
-  mv mkconfig_d.vars mkconfig_d.vars${stag}
-fi
+testcleanup
 
 exit $grc

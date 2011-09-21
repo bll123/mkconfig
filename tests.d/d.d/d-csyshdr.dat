@@ -1,4 +1,4 @@
-output dcsyshdr.d
+output out.d
 loadunit d-main
 standard
 

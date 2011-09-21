@@ -1,54 +1,33 @@
 #!/bin/sh
 
-if [ "$1" = "-d" ]; then
-  echo ${EN} " import${EC}"
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-if [ "${DC}" = "" ]; then
-  echo ${EN} " no dc; skipped${EC}" >&5
-  exit 0
-fi
+maindodisplay $1 import
+maindoquery $1 $_MKC_SH
 
-stag=$1
-shift
-script=$@
+chkdcompiler
+getsname $0
+dosetup $@
 
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
     -C $_MKCONFIG_RUNTESTDIR/d.env.dat
 . ./d.env
 
-grc=0
+dorunmkc
 
-${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-import.dat
 # check which library
-tangolib=`egrep "^enum (: )?bool ({ )?_d_tango_lib = " dimport.d |
+tangolib=`egrep "^enum (: )?bool ({ )?_d_tango_lib = " out.d |
   sed 's/.*= \([^ ;]*\).*/\1/'`
 if [ "$tangolib" = "false" ]; then
-  egrep "^enum (: )?bool ({ )?_import_std_conv = true( })?;$" dimport.d
-  rc=$?
+  chkoutd "^enum (: )?bool ({ )?_import_std_conv = true( })?;$"
 else
-  egrep "^enum (: )?bool ({ )?_import_io_Stdout = true( })?;$" dimport.d
-  rc=$?
-fi
-if [ $rc -ne 0 ]; then
-  echo "## grep for import failed"
-  grc=$rc;
+  chkoutd "^enum (: )?bool ({ )?_import_io_Stdout = true( })?;$"
 fi
 
 if [ $grc -eq 0 ]; then
-  ${DC} -c ${DFLAGS} dimport.d
-  if [ $? -ne 0 ]; then
-    echo "## compile dimport.d failed"
-    grc=1
-  fi
+  chkdcompile out.d
 fi
 
-if [ "$stag" != "" ]; then
-  mv dimport.d dimport.d${stag}
-  mv mkconfig.log mkconfig.log${stag}
-  mv mkconfig.cache mkconfig.cache${stag}
-  mv mkconfig_d.vars mkconfig_d.vars${stag}
-fi
+testcleanup
 
 exit $grc

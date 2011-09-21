@@ -1,5 +1,5 @@
-output doption.d
-option-file d-option.opts
+output out.d
+option-file opts
 loadunit d-main
 standard
 

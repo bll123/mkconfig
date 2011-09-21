@@ -1,20 +1,17 @@
 #!/bin/sh
 
-if [ "$1" = "-d" ]; then
-  echo ${EN} " D compiler works${EC}"
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-if [ "${DC}" = "" ]; then
-  echo ${EN} " no d compiler; skipped${EC}" >&5
-  exit 0
-fi
+maindodisplay $1 'D compiler works'
+maindoquery $1 $_MKC_ONCE
 
-stag=$1
-shift
-script=$@
+chkdcompiler
+getsname $0
+dosetup $@
 
-grc=0
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
+    -C $_MKCONFIG_RUNTESTDIR/d.env.dat
+. ./d.env
 
 cat > d_compiler.d << _HERE_
 int main (char[][] args) { return 0; }
@@ -22,8 +19,8 @@ _HERE_
 
 ${DC} d_compiler.d >&9
 rc=$?
-if [ $rc -ne 0 ]; then 
-  grc=$rc; 
+if [ $rc -ne 0 ]; then
+  grc=$rc;
   echo "## compilation failed"
 fi
 if [ -x a.out ]; then
@@ -43,5 +40,7 @@ else
   ls -l >&9
   grc=1
 fi
+
+testcleanup
 
 exit $grc

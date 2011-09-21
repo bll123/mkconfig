@@ -1,4 +1,4 @@
-output dcmember.d
+output out.d
 loadunit d-main
 standard
 

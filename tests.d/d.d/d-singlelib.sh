@@ -1,28 +1,22 @@
 #!/bin/sh
 
-if [ "$1" = "-d" ]; then
-  echo ${EN} " w/single lib${EC}"
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-if [ "${DC}" = "" ]; then
-  echo ${EN} " no D compiler; skipped${EC}" >&5
-  exit 0
-fi
+maindodisplay $1 'w/multiple libs'
+maindoquery $1 $_MKC_SH
 
-stag=$1
-shift
-script=$@
+chkdcompiler
+getsname $0
+dosetup $@
+
+CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"
+DFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"
+LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
+export CFLAGS DFLAGS LDFLAGS
 
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
     -C $_MKCONFIG_RUNTESTDIR/d.env.dat
 . ./d.env
-
-grc=0
-
-DFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"
-LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
-export DFLAGS LDFLAGS
 
 cat > slib1.d <<_HERE_
 int slib1_f () { return 0; }
@@ -36,11 +30,9 @@ fi
 test -f libslib1.a && rm -f libslib1.a
 ar cq libslib1.a slib1${OBJ_EXT}
 
-${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-singlelib.dat
-${_MKCONFIG_SHELL} ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh singlelib.dtest
+dorunmkc reqlibs out.d
 
-echo "## diff 1"
-grep -v 'SYSTYPE' singlelib.dtest |
+grep -v 'SYSTYPE' out.d |
     grep -v 'D_VERSION' |
     grep -v '_d_tango_lib' |
     grep -v 'alias char.. string;' |
@@ -48,22 +40,11 @@ grep -v 'SYSTYPE' singlelib.dtest |
     grep -v '^import std.*string' |
     grep -v '_import_std.*string' |
     grep -v '^$' |
-    sed -e 's/: //' -e 's/{ //' -e 's/ }//' > t
-diff -b d-singlelib.ctmp t
-rc=$?
-if [ $rc -ne 0 ];then grc=$rc; fi
-rm -f t
+    sed -e 's/: //' -e 's/{ //' -e 's/ }//' > out.d.n
+chkdiff d-singlelib.ctmp out.d.n
 
-echo "## diff 2"
-diff -b ${_MKCONFIG_RUNTESTDIR}/d-singlelib.reqlibs mkconfig.reqlibs
-rc=$?
-if [ $rc -ne 0 ];then grc=$rc; fi
+chkdiff ${_MKCONFIG_RUNTESTDIR}/d-singlelib.reqlibs mkconfig.reqlibs
 
-if [ "$stag" != "" ]; then
-  mv singlelib.dtest singlelib.dtest${stag}
-  mv mkconfig.log mkconfig.log${stag}
-  mv mkconfig.cache mkconfig.cache${stag}
-  mv mkconfig_d.vars mkconfig_d.vars${stag}
-fi
+testcleanup out.d.n
 
 exit $grc

@@ -1,29 +1,13 @@
 #!/bin/sh
 
-if [ "$1" = "-d" ]; then
-  echo ${EN} " c-macro${EC}"
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-if [ "${DC}" = "" ]; then
-  echo ${EN} " no D compiler; skipped${EC}" >&5
-  exit 0
-fi
+maindodisplay $1 c-macro
+maindoquery $1 $_MKC_SH
 
-stag=$1
-shift
-script=$@
-
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
-    -C $_MKCONFIG_RUNTESTDIR/d.env.dat
-. ./d.env
-
-grc=0
-
-CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
-DFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"
-LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
-export CFLAGS DFLAGS LDFLAGS
+chkdcompiler
+getsname $0
+dosetup $@
 
 cat > macrohdr.h << _HERE_
 #ifndef _INC_MACROHDR_H_
@@ -56,31 +40,25 @@ struct CL {
 #endif
 _HERE_
 
-${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-cmacro.dat
-grc=0
+CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
+DFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"
+LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
+export CFLAGS DFLAGS LDFLAGS
+
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
+    -C $_MKCONFIG_RUNTESTDIR/d.env.dat
+. ./d.env
+
+dorunmkc
 
 for x in T0 T1 T2 T3 T4 T5 T6 T7 T9 ; do
-  egrep -l ?"^(auto|int|string) C_MACRO_${x}" dcmacro.d > /dev/null 2>&1
-  rc=$?
-  if [ $rc -ne 0 ]; then
-    echo "## test $x failed macro chk"
-    grc=1
-  fi
+  chkoutd "^(auto|int|string) C_MACRO_${x}"
 done
 
 if [ $grc -eq 0 ]; then
-  ${DC} -c ${DFLAGS} dcmacro.d
-  if [ $? -ne 0 ]; then
-    echo "## compile dcmacro.d failed"
-    grc=1
-  fi
+  chkdcompile out.d
 fi
 
-if [ "$stag" != "" ]; then
-  mv dcmacro.d dcmacro.d${stag}
-  mv mkconfig.log mkconfig.log${stag}
-  mv mkconfig.cache mkconfig.cache${stag}
-  mv mkconfig_d.vars mkconfig_d.vars${stag}
-fi
+testcleanup
 
 exit $grc

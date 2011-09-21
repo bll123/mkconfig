@@ -1,24 +1,13 @@
 #!/bin/sh
 
-if [ "$1" = "-d" ]; then
-  echo ${EN} " member${EC}"
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-if [ "${DC}" = "" ]; then
-  echo ${EN} " no D compiler; skipped${EC}" >&5
-  exit 0
-fi
+maindodisplay $1 member
+maindoquery $1 $_MKC_SH
 
-stag=$1
-shift
-script=$@
-
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
-    -C $_MKCONFIG_RUNTESTDIR/d.env.dat
-. ./d.env
-
-grc=0
+chkdcompiler
+getsname $0
+dosetup $@
 
 DFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"
 LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
@@ -39,28 +28,20 @@ struct my_struct {
 }
 '
 
-grc=0
-${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-member.dat
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
+    -C $_MKCONFIG_RUNTESTDIR/d.env.dat
+. ./d.env
+
+dorunmkc
 
 for n in a b c d e f; do
-  egrep "^enum (: )?bool ({ )?_mem_my_struct_${n} = true( })?;$" dmember.d
-  rc=$?
-  if [ $rc -ne 0 ]; then grc=$rc; fi
+  chkoutd "^enum (: )?bool ({ )?_mem_my_struct_${n} = true( })?;$"
 done
 
 if [ $grc -eq 0 ]; then
-  ${DC} -c ${DFLAGS} dmember.d
-  if [ $? -ne 0 ]; then
-    echo "## compile dmember.d failed"
-    grc=1
-  fi
+  chkdcompile out.d
 fi
 
-if [ "$stag" != "" ]; then
-  mv member.d member.d${stag}
-  mv mkconfig.log mkconfig.log${stag}
-  mv mkconfig.cache mkconfig.cache${stag}
-  mv mkconfig_d.vars mkconfig_d.vars${stag}
-fi
+testcleanup
 
 exit $grc

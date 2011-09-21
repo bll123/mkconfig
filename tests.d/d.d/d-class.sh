@@ -1,28 +1,13 @@
 #!/bin/sh
 
-if [ "$1" = "-d" ]; then
-  echo ${EN} " class${EC}"
-  exit 0
-fi
+. $_MKCONFIG_DIR/testfuncs.sh
 
-if [ "${DC}" = "" ]; then
-  echo ${EN} " no D compiler; skipped${EC}" >&5
-  exit 0
-fi
+maindodisplay $1 class
+maindoquery $1 $_MKC_SH
 
-stag=$1
-shift
-script=$@
-
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
-    -C $_MKCONFIG_RUNTESTDIR/d.env.dat
-. ./d.env
-
-grc=0
-
-DFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"
-LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
-export DFLAGS LDFLAGS
+chkdcompiler
+getsname $0
+dosetup $@
 
 > classtst.d echo '
 
@@ -33,30 +18,25 @@ class a {
 }
 '
 
-${DC} ${DFLAGS} -c classtst.d
-rc=$?
-if [ $rc -ne 0 ]; then grc=$rc; fi
+CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
+DFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"
+LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
+export CFLAGS DFLAGS LDFLAGS
 
-grc=0
-${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-class.dat
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
+    -C $_MKCONFIG_RUNTESTDIR/d.env.dat
+. ./d.env
 
-egrep "^enum (: )?bool ({ )?_class_a = true( })?;$" dclass.d
-rc=$?
-if [ $rc -ne 0 ]; then grc=$rc; fi
+chkdcompile classtst.d
+
+dorunmkc
+
+chkoutd "^enum (: )?bool ({ )?_class_a = true( })?;$"
 
 if [ $grc -eq 0 ]; then
-  ${DC} -c ${DFLAGS} dclass.d
-  if [ $? -ne 0 ]; then
-    echo "## compile dclass.d failed"
-    grc=1
-  fi
+  chkdcompile out.d
 fi
 
-if [ "$stag" != "" ]; then
-  mv dclass.d dclass.d${stag}
-  mv mkconfig.log mkconfig.log${stag}
-  mv mkconfig.cache mkconfig.cache${stag}
-  mv mkconfig_d.vars mkconfig_d.vars${stag}
-fi
+testcleanup
 
 exit $grc

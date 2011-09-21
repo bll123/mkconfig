@@ -1,4 +1,4 @@
-output dctypedef.d
+output out.d
 loadunit d-main
 standard
 

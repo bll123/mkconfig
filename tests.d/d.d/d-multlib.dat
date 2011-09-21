@@ -1,4 +1,4 @@
-output multlib.dtest
+output out.d
 loadunit d-main
 standard
 import mlib1
