@@ -954,12 +954,13 @@ check_cmacro () {
     shift
   done
 
-  # make a guess what the return type will be...
+  # always pull the type off the list, even for D2
+  type=$1
+  shift
+  if [ "$type" = "" ]; then
+    type=int
+  fi
   if [ "$DVERSION" = 1 -a $rc -eq 0 -a $trc -eq 1 ]; then
-    type=$1
-    if [ "$type" = "" ]; then
-      type=int
-    fi
     macro=`echo ${macro} | sed -e "s/^auto/${type}/"`
     echo "  macroC: $macro" >&9
   fi
