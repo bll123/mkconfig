@@ -141,19 +141,27 @@ chkgrep () {
 }
 
 chkouth () {
-  chkgrep "$1" out.h $2
+  xp=$1
+  shift
+  chkgrep "$xp" out.h $@
 }
 
 chkoutd () {
-  chkgrep "$1" out.d $2
+  xp=$1
+  shift
+  chkgrep "$xp" out.d $@
 }
 
 chkcache () {
-  chkgrep "$1" mkconfig.cache $2
+  xp=$1
+  shift
+  chkgrep "$xp" mkconfig.cache $@
 }
 
 chkenv () {
-  chkgrep "$1" test.env $2
+  xp=$1
+  shift
+  chkgrep "$xp" test.env $@
 }
 
 testcleanup () {
