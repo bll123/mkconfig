@@ -81,6 +81,17 @@ chkccompile () {
   fi
 }
 
+chkouthcompile () {
+  if [ $grc -eq 0 ]; then
+    > testouth.c echo '
+#include <stdio.h>
+#include <out.h>
+int main (int argc, char *argv []) { return 0; }
+'
+    chkccompile testouth.c
+  fi
+}
+
 chkdcompile () {
   fn=$1
   ${DC} -c ${DFLAGS} ${fn}
@@ -147,7 +158,7 @@ chkenv () {
 
 testcleanup () {
   if [ "$stag" != "none" ]; then
-    for x in out.h out.d opts test.env mkconfig.log \
+    for x in out.h out.d testouth.c opts test.env mkconfig.log \
         mkconfig.cache mkconfig_c.vars \
         mkconfig_d.vars mkconfig_env.vars mkconfig.reqlibs c.env $@; do
       test -f ${x} && mv ${x} ${x}${stag}
