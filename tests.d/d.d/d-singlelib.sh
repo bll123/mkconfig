@@ -2,7 +2,7 @@
 
 . $_MKCONFIG_DIR/testfuncs.sh
 
-maindodisplay $1 'w/multiple libs'
+maindodisplay $1 'w/single lib'
 maindoquery $1 $_MKC_SH
 
 chkdcompiler
