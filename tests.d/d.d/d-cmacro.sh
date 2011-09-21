@@ -51,8 +51,20 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
 
 dorunmkc
 
-for x in T0 T1 T2 T3 T4 T5 T6 T7 T9 ; do
-  chkoutd "^(auto|int|string) C_MACRO_${x}"
+for x in T0 T1 T2 T3 T4 T5 T6 T7 T8 T9 ; do
+  chkoutd "^enum (: )?bool ({ )?_cmacro_${x} = true( })?;$"
+done
+
+for x in T0 T1 T2 T3 T5 T7 T9 ; do
+  chkoutd "^(auto|int) C_MACRO_${x}"
+done
+
+for x in T4 ; do
+  chkoutd "^(auto|string) C_MACRO_${x}"
+done
+
+for x in T6 T8 ; do
+  chkoutd "^(auto|uint) C_MACRO_${x}"
 done
 
 if [ $grc -eq 0 ]; then
