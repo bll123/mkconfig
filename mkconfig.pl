@@ -332,6 +332,7 @@ _chk_link
       }
     }
 
+    $dlibs =~ s/ *$//o;
     $r_a->{'dlibs'} = $dlibs;
 
     return $rc;
