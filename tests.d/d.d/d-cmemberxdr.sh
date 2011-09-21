@@ -9,7 +9,7 @@ chkdcompiler
 getsname $0
 dosetup $@
 
-cat > h.h << _HERE_
+> h.h echo '
 #ifndef _INC_H_H_
 #define _INC_H_H_
 
@@ -21,7 +21,7 @@ struct a {
 };
 
 #endif
-_HERE_
+'
 
 CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
 DFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"

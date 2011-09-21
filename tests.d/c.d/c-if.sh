@@ -8,6 +8,15 @@ maindoquery $1 $_MKC_SH_PL
 chkccompiler
 getsname $0
 dosetup $@
+
+CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
+LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
+export CFLAGS LDFLAGS
+
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
+    -C $_MKCONFIG_RUNTESTDIR/c.env.dat
+. ./c.env
+
 dorunmkc
 for t in \
     _var_a _var_b \
@@ -24,6 +33,7 @@ for t in \
   echo "chk: $t (1)"
   chkouth "^#define ${t} 1$"
 done
+chkouthcompile
 
 testcleanup
 

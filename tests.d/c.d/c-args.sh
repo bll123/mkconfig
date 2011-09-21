@@ -184,14 +184,7 @@ for x in g p; do
   chkouth "^#define _c_type_${x} char \*$"
 done
 
-if [ $grc -eq 0 ]; then
-  > cargs.c echo '
-#include <stdio.h>
-#include <out.h>
-int main (int argc, char *argv []) { return 0; }
-'
-  chkccompile cargs.c
-fi
+chkouthcompile
 
 testcleanup cargs.c
 

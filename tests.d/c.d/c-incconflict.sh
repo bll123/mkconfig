@@ -9,10 +9,6 @@ chkccompiler
 getsname $0
 dosetup $@
 
-CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
-LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
-export CFLAGS LDFLAGS
-
 > incconf1.h echo '
 
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
@@ -44,10 +40,19 @@ extern char *incconf1 ();
 extern int incconf1 ();
 '
 
+CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
+LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
+export CFLAGS LDFLAGS
+
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
+    -C $_MKCONFIG_RUNTESTDIR/c.env.dat
+. ./c.env
+
 dorunmkc
 
 chkouth "^#define _inc_conflict__hdr_incconf1__hdr_incconf2 0$"
 chkouth "^#define _inc_conflict__hdr_incconf1__hdr_incconf3 1$"
+chkouthcompile
 
 testcleanup
 

@@ -38,15 +38,7 @@ chkouth '^#define xdr_bb xdr_int$'
 for x in aa bb; do
   chkouth "^#define _memberxdr_aa_${x} 1$"
 done
-
-if [ $grc -eq 0 ]; then
-  > mxdr.c echo '
-#include <stdio.h>
-#include <out.h>
-int main (int argc, char *argv []) { return 0; }
-'
-  chkccompile mxdr.c
-fi
+chkouthcompile
 
 testcleanup mxdr.c
 

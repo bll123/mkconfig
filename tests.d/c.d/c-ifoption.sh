@@ -17,6 +17,14 @@ TEST_ASSIGN_T=t
 TEST_ASSIGN_F=f
 '
 
+CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
+LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
+export CFLAGS LDFLAGS
+
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
+    -C $_MKCONFIG_RUNTESTDIR/c.env.dat
+. ./c.env
+
 dorunmkc
 
 for t in \
@@ -33,6 +41,7 @@ for t in \
   echo "chk: $t (1)"
   chkouth "^#define ${t} 1$"
 done
+chkouthcompile
 
 testcleanup
 

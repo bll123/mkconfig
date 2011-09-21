@@ -10,10 +10,10 @@ getsname $0
 dosetup $@
 
 TMP=opts
-cat > $TMP << _HERE_
+> $TMP echo '
 TEST_OPT_SET=abc123
 TEST_OPT_SET_SPACE=abc 123
-_HERE_
+'
 
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
     -C $_MKCONFIG_RUNTESTDIR/d.env.dat

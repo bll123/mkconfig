@@ -8,7 +8,6 @@ maindoquery $1 $_MKC_ONCE
 chkccompiler
 getsname $0
 dosetup $@
-dorunmkc
 
 > c_compiler.c echo '
 main () { exit (0); }

@@ -13,9 +13,9 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
     -C $_MKCONFIG_RUNTESTDIR/d.env.dat
 . ./d.env
 
-cat > d_compiler.d << _HERE_
+> d_compiler.d echo '
 int main (char[][] args) { return 0; }
-_HERE_
+'
 
 ${DC} d_compiler.d >&9
 rc=$?

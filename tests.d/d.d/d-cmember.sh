@@ -9,7 +9,7 @@ chkdcompiler
 getsname $0
 dosetup $@
 
-cat > cmemhdr.h << _HERE_
+> cmemhdr.h echo '
 #ifndef _INC_cmemhdr_H_
 #define _INC_cmemhdr_H_
 struct a
@@ -46,7 +46,7 @@ struct a
 
 #endif
 
-_HERE_
+'
 
 CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
 DFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"

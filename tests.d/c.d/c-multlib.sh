@@ -39,7 +39,7 @@ ar cq libtst2libb.a tst2libb${OBJ_EXT}
 #include <stdio.h>
 #include <stdlib.h>
 #include <tst2libc.h>
-int tst2libc () { printf ("hello world\n"); return 0; }
+int tst2libc () { printf ("hello world\\n"); return 0; }
 '
 
 ${CC} -c ${CFLAGS} ${CPPFLAGS} tst2libc.c >&5

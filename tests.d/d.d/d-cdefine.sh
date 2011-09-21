@@ -9,7 +9,7 @@ chkdcompiler
 getsname $0
 dosetup $@
 
-cat > cdefine.h << _HERE_
+> cdefine.h echo '
 #ifndef _INC_CDEFINE_H_
 #define _INC_CDEFINE_H_
 
@@ -25,7 +25,7 @@ cat > cdefine.h << _HERE_
 #define pi 3.14159
 
 #endif
-_HERE_
+'
 
 CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
 DFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"

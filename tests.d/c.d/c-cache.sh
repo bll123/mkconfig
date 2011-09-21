@@ -12,7 +12,6 @@ dosetup $@
 . $_MKCONFIG_DIR/shellfuncs.sh
 testshcapability
 
-
 ccclear="-nc"
 ccache_count=1  # this has to be a unique variable
 if [ -f ${_MKCONFIG_RUNTMPDIR}/c-cache.out.h ]; then

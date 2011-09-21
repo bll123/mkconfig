@@ -9,7 +9,7 @@ chkdcompiler
 getsname $0
 dosetup $@
 
-cat > cdclhdr.h << _HERE_
+> cdclhdr.h echo '
 #ifndef _INC_cdclhdr_H_
 #define _INC_cdclhdr_H_
 
@@ -54,7 +54,7 @@ union y_t { int a; int b; };
 extern  int  s ( struct x_t x , union  y_t  y , char  * , int );
 
 #endif
-_HERE_
+'
 
 CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
 DFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"
@@ -242,7 +242,7 @@ DFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"
 LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
 export CFLAGS DFLAGS LDFLAGS
 
-cat > cdclhdr.h << _HERE_
+> cdclhdr.h echo '
 #ifndef _INC_cdclhdr_H_
 #define _INC_cdclhdr_H_
 
@@ -287,7 +287,7 @@ union y_t { int a; int b; };
 extern  int  s ( struct x_t x , union  y_t  y , char  * , int );
 
 #endif
-_HERE_
+'
 
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-cdcl.dat
 grc=0

@@ -9,7 +9,7 @@ chkdcompiler
 getsname $0
 dosetup $@
 
-cat > cstructhdr.h << _HERE_
+> cstructhdr.h echo '
 #ifndef _INC_cstructhdr_H_
 #define _INC_cstructhdr_H_
 struct sa
@@ -324,7 +324,7 @@ union us {
  } us_named ;
 } us_t;
 
-/* doesn't work...(extraction fails)
+/* doesnt work...(extraction fails)
 typedef union
 {
   double  c;
@@ -338,7 +338,7 @@ typedef union uu
 
 #endif
 
-_HERE_
+'
 
 CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
 DFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"

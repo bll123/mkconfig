@@ -18,9 +18,9 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
     -C $_MKCONFIG_RUNTESTDIR/d.env.dat
 . ./d.env
 
-cat > slib1.d <<_HERE_
+> slib1.d echo '
 int slib1_f () { return 0; }
-_HERE_
+'
 
 ${DC} -c ${DFLAGS} slib1.d
 if [ $? -ne 0 ]; then

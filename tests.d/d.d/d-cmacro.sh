@@ -9,7 +9,7 @@ chkdcompiler
 getsname $0
 dosetup $@
 
-cat > macrohdr.h << _HERE_
+> macrohdr.h echo '
 #ifndef _INC_MACROHDR_H_
 #define _INC_MACROHDR_H_
 
@@ -38,7 +38,7 @@ struct CL {
 #define T9(cmd, type)  (((cmd) << 8) | ((type) & 0x0f))
 
 #endif
-_HERE_
+'
 
 CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
 DFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"

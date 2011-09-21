@@ -27,7 +27,7 @@ if [ "${_MKCONFIG_USING_GCC}" = "N" -a \
 fi
 
 i=1
-> mkct${i}.c echo '
+> mkct${i}.c echo "
 #include <stdio.h>
 #include <stdlib.h>
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
@@ -38,11 +38,11 @@ i=1
 #endif
 
 int mkct${i} () { return 1; }
-'
+"
 ${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c
 
 i=2
-> mkct${i}.c echo '
+> mkct${i}.c echo "
 #include <stdio.h>
 #include <stdlib.h>
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
@@ -56,11 +56,11 @@ extern int mkct1 _((void));
 int mkct${i} () { int i; i = 0;
     i += mkct1(); i += 2;
     return i; }
-'
+"
 ${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c
 
 i=3
-> mkct${i}.c echo '
+> mkct${i}.c echo "
 #include <stdio.h>
 #include <stdlib.h>
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
@@ -74,11 +74,11 @@ extern int mkct2 _((void));
 int mkct${i} () { int i; i = 0;
     i += mkct2(); i += 3;
     return i; }
-'
+"
 ${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c
 
 i=4
-> mkct${i}.c echo '
+> mkct${i}.c echo "
 #include <stdio.h>
 #include <stdlib.h>
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
@@ -92,11 +92,11 @@ extern int mkct3 _((void));
 int mkct${i} () { int i; i = 0;
     i += mkct3(); i += 4;
     return i; }
-'
+"
 ${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c
 
 i=5
-> mkct${i}.c echo '
+> mkct${i}.c echo "
 #include <stdio.h>
 #include <stdlib.h>
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
@@ -110,7 +110,7 @@ extern int mkct4 _((void));
 int mkct${i} () { int i; i = 0;
     i += mkct4();
     return i; }
-'
+"
 ${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c
 
 i=6

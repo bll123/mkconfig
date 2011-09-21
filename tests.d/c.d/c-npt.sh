@@ -9,10 +9,6 @@ chkccompiler
 getsname $0
 dosetup $@
 
-CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
-LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
-export CFLAGS LDFLAGS
-
 > nptlib.h echo '
 
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
@@ -42,9 +38,17 @@ CPP_EXTERNS_END
 #include <stdio.h>
 #include <stdlib.h>
 #include <nptlib.h>
-int npt1lib () { printf ("hello world\n"); return 0; }
-int npt2lib () { printf ("hello world\n"); return 0; }
+int npt1lib () { printf ("hello world\\n"); return 0; }
+int npt2lib () { printf ("hello world\\n"); return 0; }
 '
+
+CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
+LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
+export CFLAGS LDFLAGS
+
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
+    -C $_MKCONFIG_RUNTESTDIR/c.env.dat
+. ./c.env
 
 chkccompile nptlib.c
 ar cq libnptlib.a nptlib.o
@@ -53,6 +57,7 @@ dorunmkc
 
 chkouth "^#define _npt_npt1lib 1$"
 chkouth "^#define _npt_npt2lib 0$"
+chkouthcompile
 
 testcleanup nptlib.c nptlib.h libnptlib.a
 

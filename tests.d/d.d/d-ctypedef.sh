@@ -9,7 +9,7 @@ chkdcompiler
 getsname $0
 dosetup $@
 
-cat > typedefhdr.h << _HERE_
+> typedefhdr.h echo '
 #ifndef _INC_TYPEDEFHDR_H_
 #define _INC_TYPEDEFHDR_H_
 
@@ -35,7 +35,7 @@ typedef o_t o;
 typedef o p; // typedef of typedef
 
 #endif
-_HERE_
+'
 
 CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
 DFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"

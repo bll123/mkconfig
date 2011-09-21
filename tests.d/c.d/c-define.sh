@@ -12,11 +12,18 @@ dosetup $@
 > deftst.h echo '
 #define MYDEFINE 20
 '
+
 CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
-export CFLAGS
+LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
+export CFLAGS LDFLAGS
+
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
+    -C $_MKCONFIG_RUNTESTDIR/c.env.dat
+. ./c.env
 
 dorunmkc
 chkouth "^#define _define_MYDEFINE 1$"
+chkouthcompile
 testcleanup
 
 exit $grc

@@ -18,9 +18,9 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
     -C $_MKCONFIG_RUNTESTDIR/d.env.dat
 . ./d.env
 
-cat > mlib2.d <<_HERE_
+> mlib2.d echo '
 int mlib2_f () { return 0; }
-_HERE_
+'
 
 ${DC} -c ${DFLAGS} mlib2.d
 if [ $? -ne 0 ]; then
@@ -93,9 +93,9 @@ DFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"
 LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
 export DFLAGS LDFLAGS
 
-cat > mlib2.d <<_HERE_
+> mlib2.d echo '
 int mlib2_f () { return 0; }
-_HERE_
+'
 
 ${DC} -c ${DFLAGS} ${CPPFLAGS} mlib2.d
 if [ $? -ne 0 ]; then

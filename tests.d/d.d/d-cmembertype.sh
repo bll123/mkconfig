@@ -9,7 +9,7 @@ chkdcompiler
 getsname $0
 dosetup $@
 
-cat > memtypehdr.h << _HERE_
+> memtypehdr.h echo '
 #ifndef _INC_MEMTYPEHDR_H_
 #define _INC_MEMTYPEHDR_H_
 
@@ -19,7 +19,7 @@ struct getquota_args {
 };
 
 #endif
-_HERE_
+'
 
 CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
 DFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"

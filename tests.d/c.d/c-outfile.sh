@@ -9,18 +9,6 @@ chkccompiler
 getsname $0
 dosetup $@
 
-
-
-#!/bin/sh
-
-if [ "$1" = "-d" ]; then
-  echo ${EN} " multiple output files${EC}"
-  exit 0
-fi
-
-shift
-script=$@
-
 for f in out.h out2.h \
     mkconfig_env.vars mkconfig.log mkconfig.cache; do
   test -f $f && rm -f $f

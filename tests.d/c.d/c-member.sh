@@ -39,6 +39,10 @@ CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
 LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
 export CFLAGS LDFLAGS
 
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
+    -C $_MKCONFIG_RUNTESTDIR/c.env.dat
+. ./c.env
+
 dorunmkc
 
 for n in a b c d e f g; do
@@ -49,6 +53,7 @@ for n in g; do
   chkouth "^#define _mem_my_union_t_${n} 1$"
   chkouth "^#define _mem_union_my_union_${n} 1$"
 done
+chkouthcompile
 
 testcleanup
 

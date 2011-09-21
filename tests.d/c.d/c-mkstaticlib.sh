@@ -9,20 +9,21 @@ chkccompiler
 getsname $0
 dosetup $@
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` -C $_MKCONFIG_RUNTESTDIR/c.env.dat
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
+    -C $_MKCONFIG_RUNTESTDIR/c.env.dat
 . ./c.env
 
 for i in 1 2 3 4; do
-  > mkct${i}.c echo '
+  > mkct${i}.c echo "
 #include <stdio.h>
 #include <stdlib.h>
 int mkct${i} () { return ${i}; }
-'
+"
   ${CC} ${CPPFLAGS} ${CFLAGS} -c mkct${i}.c
 done
 
 i=5
-> mkct${i}.c echo '
+> mkct${i}.c echo "
 #include <stdio.h>
 #include <stdlib.h>
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
@@ -39,7 +40,7 @@ extern int mkct4 _((void));
 int mkct${i} () { int i; i = 0;
     i += mkct1(); i += mkct2(); i += mkct3(); i += mkct4();
     return i; }
-'
+"
 ${CC} ${CPPFLAGS} ${CFLAGS} -c mkct${i}.c
 
 i=6

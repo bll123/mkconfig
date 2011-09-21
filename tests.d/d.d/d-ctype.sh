@@ -9,7 +9,7 @@ chkdcompiler
 getsname $0
 dosetup $@
 
-cat > typehdr.h << _HERE_
+> typehdr.h echo '
 #ifndef _INC_TYPEHDR_H_
 #define _INC_TYPEHDR_H_
 
@@ -29,9 +29,9 @@ typedef unsigned int _t;
 typedef _t t;
 
 #endif
-_HERE_
+'
 
-cat > typehdr_ll.h << _HERE_
+> typehdr_ll.h echo '
 #ifndef _INC_TYPEHDR_LL_H_
 #define _INC_TYPEHDR_LL_H_
 
@@ -40,9 +40,9 @@ __extension__ typedef signed long long int j;
 __extension__ typedef unsigned long long int k;
 
 #endif
-_HERE_
+'
 
-cat > typehdr_ld.h << _HERE_
+> typehdr_ld.h echo '
 #ifndef _INC_TYPEHDR_LD_H_
 #define _INC_TYPEHDR_LD_H_
 
@@ -50,7 +50,7 @@ cat > typehdr_ld.h << _HERE_
 typedef long double s;
 
 #endif
-_HERE_
+'
 
 CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
 DFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${DFLAGS}"
