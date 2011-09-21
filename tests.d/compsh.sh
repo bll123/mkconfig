@@ -15,6 +15,9 @@ if [ "$_MKCONFIG_SHELL" = "" ]; then
   _MKCONFIG_SHELL=/bin/sh
 fi
 
+# need globbing on.
+set +f
+
 cd $_MKCONFIG_DIR
 for f in *.sh; do
   $_MKCONFIG_SHELL -n $f

@@ -8,6 +8,9 @@ maindoquery $1 $_MKC_ONCE
 getsname $0
 dosetup $@
 
+# need globbing on.
+set +f
+
 cd $_MKCONFIG_DIR
 for i in *.pl; do
   perl -cw $i
