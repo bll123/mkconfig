@@ -45,6 +45,7 @@ dosetup () {
   stag=$1
   shift
   script=$@
+  set -f
 }
 
 dorunmkc () {
@@ -65,7 +66,7 @@ dorunmkc () {
   if [ "$1" = "reqlibs" ]; then
     case $script in
       *mkconfig.sh)
-        ${_MKCONFIG_SHELL} ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh out.h
+        ${_MKCONFIG_SHELL} ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh $2
         ;;
     esac
   fi
@@ -75,7 +76,16 @@ chkccompile () {
   fn=$1
   ${CC} -c ${CPPFLAGS} ${CFLAGS} ${fn}
   if [ $? -ne 0 ]; then
-    echo "## compile ${fn} failed"
+    echo "## compile of ${fn} failed"
+    grc=1
+  fi
+}
+
+chkdcompile () {
+  fn=$1
+  ${DC} -c ${DFLAGS} ${fn}
+  if [ $? -ne 0 ]; then
+    echo "## compile of ${fn} failed"
     grc=1
   fi
 }
@@ -100,13 +110,13 @@ chkgrep () {
   arg2=$4
 
   if [ "$arg" = "wc" ]; then
-    tl=`grep -l "$pat" ${fn} 2>/dev/null | wc -l`
+    tl=`egrep -l "$pat" ${fn} 2>/dev/null | wc -l`
     rc=$?
     if [ ${tl} -ne ${arg2} ]; then
       grc=1
     fi
   else
-    grep -l "$pat" ${fn} >/dev/null 2>&1
+    egrep -l "$pat" ${fn} >/dev/null 2>&1
     rc=$?
   fi
   if [ "$arg" = "" -a $rc -ne 0 ]; then
@@ -137,7 +147,8 @@ chkenv () {
 
 testcleanup () {
   if [ "$stag" != "none" ]; then
-    for x in out.h opts test.env mkconfig.log mkconfig.cache mkconfig_c.vars \
+    for x in out.h out.d opts test.env mkconfig.log \
+        mkconfig.cache mkconfig_c.vars \
         mkconfig_d.vars mkconfig_env.vars mkconfig.reqlibs c.env $@; do
       test -f ${x} && mv ${x} ${x}${stag}
     done
