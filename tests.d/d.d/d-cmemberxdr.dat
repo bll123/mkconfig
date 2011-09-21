@@ -13,7 +13,7 @@ cmemberxdr a b
 
 include
 
-auto xdr_uu_int (uu_int a) { return a; }
-auto xdr_int (int a) { return a; }
+uu_int xdr_uu_int (uu_int a) { return a; }
+int xdr_int (int a) { return a; }
 
 endinclude
