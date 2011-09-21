@@ -9,13 +9,13 @@ csizes
 cstruct b
 cstruct CL
 ctypedef CL
-cmacro T0 macrohdr.h
-cmacro T1 macrohdr.h int
-cmacro T2 macrohdr.h int int
-cmacro T3 macrohdr.h int int int
-cmacro T4 macrohdr.h string
-cmacro T5 macrohdr.h
-cmacro T6 macrohdr.h uint uint uint
-cmacro T7 macrohdr.h 'CL *' int int int int int 'struct b'
-cmacro T8 macrohdr.h uint uint uint
-cmacro T9 macrohdr.h int int
+cmacro T0 macrohdr.h int
+cmacro T1 macrohdr.h int int
+cmacro T2 macrohdr.h int int int
+cmacro T3 macrohdr.h int int int int
+cmacro T4 macrohdr.h string string
+cmacro T5 macrohdr.h int
+cmacro T6 macrohdr.h uint uint uint uint
+cmacro T7 macrohdr.h int 'CL *' int int int int int 'struct b'
+cmacro T8 macrohdr.h uint uint uint uint
+cmacro T9 macrohdr.h int int int
