@@ -35,12 +35,12 @@ int tst2libb () { tst2libc(); return 0; }
 ${CC} -c ${CFLAGS} ${CPPFLAGS} tst2libb.c >&5
 ar cq libtst2libb.a tst2libb${OBJ_EXT}
 
-cat > tst2libc.c <<_HERE_
+> tst2libc.c echo '
 #include <stdio.h>
 #include <stdlib.h>
 #include <tst2libc.h>
 int tst2libc () { printf ("hello world\n"); return 0; }
-_HERE_
+'
 
 ${CC} -c ${CFLAGS} ${CPPFLAGS} tst2libc.c >&5
 ar cq libtst2libc.a tst2libc${OBJ_EXT}

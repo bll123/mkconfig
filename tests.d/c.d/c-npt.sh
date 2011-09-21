@@ -38,13 +38,13 @@ extern int npt2lib _((void));
 CPP_EXTERNS_END
 '
 
-cat > nptlib.c <<_HERE_
+> nptlib.c echo '
 #include <stdio.h>
 #include <stdlib.h>
 #include <nptlib.h>
 int npt1lib () { printf ("hello world\n"); return 0; }
 int npt2lib () { printf ("hello world\n"); return 0; }
-_HERE_
+'
 
 chkccompile nptlib.c
 ar cq libnptlib.a nptlib.o

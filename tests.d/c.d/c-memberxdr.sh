@@ -9,7 +9,7 @@ chkccompiler
 getsname $0
 dosetup $@
 
-cat > h.h << _HERE_
+> h.h echo '
 #ifndef _INC_H_H_
 #define _INC_H_H_
 
@@ -21,7 +21,7 @@ struct aa {
 };
 
 #endif
-_HERE_
+'
 
 CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
 LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
@@ -40,11 +40,11 @@ for x in aa bb; do
 done
 
 if [ $grc -eq 0 ]; then
-  cat > mxdr.c << _HERE_
+  > mxdr.c echo '
 #include <stdio.h>
 #include <out.h>
 int main (int argc, char *argv []) { return 0; }
-_HERE_
+'
   chkccompile mxdr.c
 fi
 

@@ -9,7 +9,7 @@ chkccompiler
 getsname $0
 dosetup $@
 
-cat > cargshdr.h << _HERE_
+> cargshdr.h echo '
 #ifndef _INC_cargshdr_H_
 #define _INC_cargshdr_H_
 
@@ -55,7 +55,7 @@ union y_t { int a; int b; };
 extern  int  s ( struct x_t x , union  y_t  y , char  * , int );
 
 #endif
-_HERE_
+'
 
 CFLAGS="-I${_MKCONFIG_TSTRUNTMPDIR} ${CFLAGS}"
 LDFLAGS="-L${_MKCONFIG_TSTRUNTMPDIR} ${LDFLAGS}"
@@ -185,11 +185,11 @@ for x in g p; do
 done
 
 if [ $grc -eq 0 ]; then
-  cat > cargs.c << _HERE_
+  > cargs.c echo '
 #include <stdio.h>
 #include <out.h>
 int main (int argc, char *argv []) { return 0; }
-_HERE_
+'
   chkccompile cargs.c
 fi
 

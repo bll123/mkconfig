@@ -29,12 +29,12 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
 extern int tst1lib ();
 '
 
-cat > tst1lib.c <<_HERE_
+> tst1lib.c echo '
 #include <stdio.h>
 #include <stdlib.h>
 #include <tst1lib.h>
 int tst1lib () { printf ("hello world\n"); return 0; }
-_HERE_
+'
 
 ${CC} -c ${CFLAGS} ${CPPFLAGS} tst1lib.c
 if [ $? -ne 0 ]; then

@@ -27,16 +27,16 @@ if [ "${_MKCONFIG_USING_GCC}" = "N" -a \
 fi
 
 for i in 1 2 3 4; do
-  cat > mkct${i}.c <<_HERE_
+  > mkct${i}.c echo '
 #include <stdio.h>
 #include <stdlib.h>
 int mkct${i} () { return ${i}; }
-_HERE_
+'
   ${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c
 done
 
 i=5
-cat > mkct${i}.c <<_HERE_
+> mkct${i}.c echo '
 #include <stdio.h>
 #include <stdlib.h>
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
@@ -53,11 +53,11 @@ extern int mkct4 _((void));
 int mkct${i} () { int i; i = 0;
     i += mkct1(); i += mkct2(); i += mkct3(); i += mkct4();
     return i; }
-_HERE_
+'
 ${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c
 
 i=6
-cat > mkct${i}.c <<_HERE_
+> mkct${i}.c echo '
 #include <stdio.h>
 #include <stdlib.h>
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
@@ -69,7 +69,7 @@ cat > mkct${i}.c <<_HERE_
 
 extern int mkct5 _((void));
 main () { int i, j; i = mkct5(); j = 1; if (i == 10) { j = 0; } return j; }
-_HERE_
+'
 ${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c
 
 grc=0

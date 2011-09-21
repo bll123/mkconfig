@@ -10,9 +10,9 @@ getsname $0
 dosetup $@
 dorunmkc
 
-cat > c_compiler.c << _HERE_
+> c_compiler.c echo '
 main () { exit (0); }
-_HERE_
+'
 
 ${CC} -o c_compiler.exe c_compiler.c > /dev/null 2>&1
 rc=$?

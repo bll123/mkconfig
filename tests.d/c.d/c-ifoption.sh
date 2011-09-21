@@ -10,12 +10,12 @@ getsname $0
 dosetup $@
 
 TMP=opts
-cat > $TMP << _HERE_
+> $TMP echo '
 TEST_ENABLE=enable
 TEST_DISABLE=disable
 TEST_ASSIGN_T=t
 TEST_ASSIGN_F=f
-_HERE_
+'
 
 dorunmkc
 
