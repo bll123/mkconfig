@@ -45,7 +45,7 @@ _HERE_
 ${CC} -c ${CFLAGS} ${CPPFLAGS} tst2libc.c >&5
 ar cq libtst2libc.a tst2libc${OBJ_EXT}
 
-dorunmkc reqlibs
+dorunmkc reqlibs out.h
 
 sed -e '/^#define _key_/d' -e '/^#define _proto_/d' \
     -e '/^#define _param_/d' out.h > out.h.n

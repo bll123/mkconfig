@@ -43,7 +43,7 @@ if [ $? -ne 0 ]; then
 fi
 ar cq libtst1lib.a tst1lib${OBJ_EXT}
 
-dorunmkc reqlibs
+dorunmkc reqlibs out.h
 
 sed -e '/^#define _key_/d' -e '/^#define _proto_/d' \
     -e '/^#define _param_/d' out.h > out.h.n
