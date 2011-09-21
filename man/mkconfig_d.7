@@ -31,7 +31,7 @@
 .fi
 ..
 .\"
-.TH mkconfig_d 7 "19 Sep 2011"
+.TH mkconfig_d 7 "20 Sep 2011"
 .SH Name
 mkconfig_d \- mkconfig D language units
 .\" .SH Synopsis
@@ -249,18 +249,22 @@ alias char *_t_caddr_t;
 .Ve
 .RE
 .TP
-\fBcmacro\fP macro\-name req\-header [, req\-hdr2 [, ...]] [types, ...]
+\fBcmacro\fP macro\-name req\-header [req\-hdr2 [...]] rettype [type1 ...]
 .RS
 \fImacro\-name\fP will be converted to a D language function to replace the
 macro.  The C language macro will be renamed to C_MACRO_<macro>.
 \fIreq\-header\fP is the list of headers where \fImacro\-name\fP will be
-found.  If \fImacro\-name\fP takes arguments, then the list of types
-must be specified at the end of the cmacro directive.
+found.  The return type of \fImacro\-name\fP must be listed
+after the required headers, and if
+\fImacro\-name\fP takes arguments, then the list of types
+must be specified at the end of the cmacro directive.  The return
+type is only used for D version 1.  D version 2 will always set the macro
+return type to 'auto'.
 The 'awk' program is a requirement for this directive.
 .PP
 .Vb
 .B e.g.
-cmacro MIN sys/types.h int int
+cmacro MIN sys/types.h int int int
 Check Variable: _cmacro_MIN
 auto C_MACRO_MIN(int a, int b) { return ((a) < (b) ? (a) : (b)); }
 enum bool _cmacro_MIN = true;
