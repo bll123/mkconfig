@@ -66,7 +66,7 @@ dorunmkc () {
   if [ "$1" = "reqlibs" ]; then
     case $script in
       *mkconfig.sh)
-        ${_MKCONFIG_SHELL} ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh $2
+        ${_MKCONFIG_SHELL} ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh -d `pwd` $2
         ;;
     esac
   fi
@@ -86,7 +86,7 @@ chkouthcompile () {
     > testouth.c echo '
 #include <stdio.h>
 #include <out.h>
-int main (int argc, char *argv []) { return 0; }
+int main () { return 0; }
 '
     chkccompile testouth.c
   fi
