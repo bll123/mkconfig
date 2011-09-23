@@ -42,6 +42,7 @@ BEGIN {
     savens = "";
     ins = 1;
     acount = 0;
+    gsub (/[	 ]*$/, "", $0);
     sarr[acount] = $0;
     acount = acount + 1;
     havestart = 1;
@@ -80,11 +81,13 @@ BEGIN {
       doend = 1;
     }
     acount = 0;
+    gsub (/[	 ]*$/, "", $0);
     sarr[acount] = $0;
     acount = acount + 1;
   } else if (ins == 1 && havestart == 0 && $0 ~ stend) {
 #print "end: " $0;
     hadend = 0;
+    gsub (/[	 ]*$/, "", $0);
     sarr[acount] = $0;
     acount = acount + 1;
     doend = 1;
@@ -93,6 +96,7 @@ BEGIN {
 #print "struct: " $0;
     hadend = 0;
     savens = "";
+    gsub (/[	 ]*$/, "", $0);
     sarr[acount] = $0;
     acount = acount + 1;
     tstr = $0;
@@ -143,6 +147,7 @@ BEGIN {
     }
   } else if (ins == 1 && $0 ~ /}/) {
 #print "}: " $0;
+    gsub (/[	 ]*$/, "", $0);
     sarr[acount] = $0;
     acount = acount + 1;
     tstr = $0;
@@ -187,10 +192,12 @@ BEGIN {
         sarr[acount] = " C_ST_" nsarr[bcount + 1] " " $0;
         acount = acount + 1;
       } else {
+        gsub (/[	 ]*$/, "", $0);
         sarr[acount] = $0;
         acount = acount + 1;
       }
     } else {
+      gsub (/[	 ]*$/, "", $0);
       sarr[acount] = $0;
       acount = acount + 1;
     }
