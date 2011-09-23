@@ -119,7 +119,7 @@ test -f libmlib1.a && rm -f libmlib1.a
 ar cq libmlib1.a mlib1${OBJ_EXT}
 
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-multlib.dat
-${_MKCONFIG_SHELL} ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh out.d
+${_MKCONFIG_SHELL} ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh -d `pwd` out.d
 
 echo "## diff 1"
 grep -v SYSTYPE multlib.dtest |
