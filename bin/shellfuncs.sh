@@ -243,6 +243,23 @@ chkshell () {
   'set' output not x=a b or x='a b' or x=\$'a b'."
   fi
 
+  # test to make sure the 'set -f' command is supported.
+  (
+    cmd='set -f'
+    eval $cmd 2>/dev/null
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      exit 0
+    fi
+    exit $rc
+  )
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    grc=$rc
+    chkmsg="${chkmsg}
+  'set -f' not supported"
+  fi
+
   if [ "$TSHELL" != "" ]; then
     # test for -n not supported.
     (
