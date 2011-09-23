@@ -386,20 +386,29 @@ check_shcflags () {
   shcflags="-fPIC $SHCFLAGS"
   if [ "$_MKCONFIG_USING_GCC" != "Y" ]; then
     case ${_MKCONFIG_SYSTYPE} in
-      SunOS|Irix)
-        shcflags="-KPIC $SHCFLAGS"
-        ;;
-      HP-UX)
-        shcflags="+Z $SHCFLAGS"
-        ;;
-      OSF1)
-        # none
+      CYGWIN*)
+        shcflags="$SHCFLAGS"
         ;;
       Darwin)
         shcflags="-fno-common $SHCFLAGS"
         ;;
-      CYGWIN*)
-        shcflags="$SHCFLAGS"
+      HP-UX)
+        shcflags="+Z $SHCFLAGS"
+        ;;
+      Irix)
+        shcflags="-KPIC $SHCFLAGS"
+        ;;
+      OSF1)
+        # none
+        ;;
+      SCO_SV)
+        shcflags="-KPIC $SHCFLAGS"
+        ;;
+      SunOS)
+        shcflags="-KPIC $SHCFLAGS"
+        ;;
+      UnixWare)
+        shcflags="-KPIC $SHCFLAGS"
         ;;
     esac
   fi
@@ -415,16 +424,25 @@ check_shldflags () {
   shldflags="$SHLDFLAGS -shared"
   if [ "$_MKCONFIG_USING_GCC" != "Y" ]; then
     case ${_MKCONFIG_SYSTYPE} in
-      SunOS)
-        shldflags="$SHLDFLAGS -G"
+      AIX)
+        shldflags="$SHLDFLAGS -dy -z text -G"
         ;;
       HP-UX)
         shldflags="$SHLDFLAGS -b"
         ;;
-      OSF1|Irix)
-        # -shared
+      Irix)
+        # "-shared"
         ;;
-      AIX)
+      OSF1)
+        shldflags="-shared -msym -no_archive"
+        ;;
+      SCO_SV)
+        shldflags="$SHLDFLAGS -G"
+        ;;
+      SunOS)
+        shldflags="$SHLDFLAGS -G"
+        ;;
+      UnixWare)
         shldflags="$SHLDFLAGS -G"
         ;;
     esac
@@ -446,17 +464,20 @@ check_sharednameflag () {
   SHLDNAMEFLAG="-Wl,-soname="
   if [ "$_MKCONFIG_USING_GNU_LD" != "Y" ]; then
     case ${_MKCONFIG_SYSTYPE} in
-      SunOS)
-        SHLDNAMEFLAG="-Wl,-h "
+      Darwin)
+        # -compatibility_version -current_version
         ;;
       HP-UX)
         SHLDNAMEFLAG="-Wl,+h "
         ;;
-      OSF1|Irix)
+      Irix)
         # -soname
         ;;
-      Darwin)
-        # -compatibility_version -current_version
+      OSF1)
+        # -soname
+        ;;
+      SunOS)
+        SHLDNAMEFLAG="-Wl,-h "
         ;;
     esac
   fi
@@ -468,22 +489,28 @@ check_sharednameflag () {
 check_shareexeclinkflag () {
   printlabel SHEXECLINK "shared executable link flag "
 
-  SHEXECLINK="-Bdynamic"
+  SHEXECLINK="-Bdynamic "
   if [ "$_MKCONFIG_USING_GCC" != "Y" ]; then
     case ${_MKCONFIG_SYSTYPE} in
+      AIX)
+        SHEXECLINK="-brtl -bdynamic "
+        ;;
+      Darwin)
+        SHEXECLINK=""
+        ;;
+      HP-UX)
+        SHEXECLINK="-a,shared "
+        ;;
+      OSF1)
+        SHEXECLINK="-msym -no_archive "
+        ;;
+      SCO_SV)
+        SHEXECLINK=""
+        ;;
       SunOS)
         # -Bdynamic
         ;;
-      HP-UX)
-        SHEXECLINK="-a,shared"
-        ;;
-      OSF1)
-        SHEXECLINK="-no_archive"
-        ;;
-      AIX)
-        SHEXECLINK="-brtl -bdynamic"
-        ;;
-      Darwin)
+      UnixWare)
         SHEXECLINK=""
         ;;
     esac
@@ -499,20 +526,26 @@ check_sharerunpathflag () {
   SHRUNPATH="-Wl,-rpath="
   if [ "$_MKCONFIG_USING_GNU_LD" != "Y" ]; then
     case ${_MKCONFIG_SYSTYPE} in
-      SunOS)
-        SHRUNPATH="-Wl,-R"
-        ;;
-      HP-UX)
-        SHRUNPATH="-Wl,+b "
-        ;;
       AIX)
         SHRUNPATH=""
         ;;
       Darwin)
         SHRUNPATH=""
         ;;
+      HP-UX)
+        SHRUNPATH="-Wl,+b "
+        ;;
       OSF1)
         SHRUNPATH="-rpath "
+        ;;
+      SCO_SV)
+        SHRUNPATH="-Wl,-R "
+        ;;
+      SunOS)
+        SHRUNPATH="-Wl,-R"
+        ;;
+      UnixWare)
+        SHRUNPATH="-Wl,-R "
         ;;
     esac
   fi
