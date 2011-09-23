@@ -62,36 +62,55 @@ getlistofshells () {
   echo "## paths: $_pthlist" >&8
 
   tshelllist=""
+  inodelist=""
   for d in $_pthlist; do
     for s in $tryshell ; do
       rs=$d/$s
-      if [ -h $rs ]; then
-        while [ -h $rs ]; do
-          rs="`ls -l $rs | sed 's/.* //'`"
-          case $rs in
-            /*)
-              ;;
+      if [ -f $rs ]; then
+        if [ -h $rs ]; then
+          while [ -h $rs ]; do
+            rs="`ls -l $rs | sed 's/.* //'`"
+            case $rs in
+              /*)
+                ;;
+              *)
+                rs="$d/$rs"
+                ;;
+            esac
+            rs=`echo $rs | sed 's,/[^/]*/\.\./,/,'`
+            rs=`echo $rs | sed 's,/[^/]*/\.\./,/,'`
+            rs=`echo $rs | sed 's,/[^/]*/\.\./,/,'`
+          done
+        fi # if symlink
+
+        inode=`ls -i ${rs} | sed 's/ .*//'`
+        inode=${inode}${s}   # append shell type also
+        found=F
+        for i in $inodelist; do
+          if [ "$inode" = "${i}" ]; then
+            found=T
+            break
+          fi
+        done
+        if [ $found = T ]; then
+          continue
+        fi
+
+        if [ -x $rs ]; then
+          cmd="$rs -c \". $_MKCONFIG_DIR/shellfuncs.sh;getshelltype echo\""
+          set `eval $cmd`
+  	shell=$2
+          echo "  found: $rs ($shell)" >&8
+          case $shell in
             *)
-              rs="$d/$rs"
+              tshelllist="${tshelllist}
+  $rs"
+              inodelist="${inodelist}
+  ${inode}"
               ;;
           esac
-          rs=`echo $rs | sed 's,/[^/]*/\.\./,/,'`
-          rs=`echo $rs | sed 's,/[^/]*/\.\./,/,'`
-          rs=`echo $rs | sed 's,/[^/]*/\.\./,/,'`
-        done
-      fi
-      if [ -x $rs ]; then
-        cmd="$rs -c \". $_MKCONFIG_DIR/shellfuncs.sh;getshelltype echo\""
-        set `eval $cmd`
-	shell=$2
-        echo "  found: $rs ($shell)" >&8
-        case $shell in
-          *)
-            tshelllist="${tshelllist}
-$rs"
-            ;;
-        esac
-      fi
+        fi # if executable
+      fi  # if there is a file
     done
   done
   tshelllist=`echo "$tshelllist" | sort -u`
@@ -116,7 +135,7 @@ $rs"
       echo " [$tshell $tdvers] (ok)"
     else
       echo " ng" >&8
-      echo "$chkmsg" >&8
+      echo " : $chkmsg" >&8
       echo " [$tshell $tdvers] (ng)"
     fi
   done
