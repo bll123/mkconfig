@@ -9,15 +9,15 @@ chkccompiler
 getsname $0
 dosetup $@
 
-> h.h echo '
-#ifndef _INC_H_H_
-#define _INC_H_H_
+> mxdr.h echo '
+#ifndef _INC_mxdr_H
+#define _INC_mxdr_H
 
 typedef unsigned int uu_int;
 
 struct aa {
-  uu_int aa;
-  int bb;
+  uu_int bb;
+  int cc;
 };
 
 #endif
@@ -33,9 +33,9 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
 
 dorunmkc
 
-chkouth '^#define xdr_aa xdr_uu_int$'
-chkouth '^#define xdr_bb xdr_int$'
-for x in aa bb; do
+chkouth '^#define xdr_bb xdr_uu_int$'
+chkouth '^#define xdr_cc xdr_int$'
+for x in bb cc; do
   chkouth "^#define _memberxdr_aa_${x} 1$"
 done
 chkouthcompile

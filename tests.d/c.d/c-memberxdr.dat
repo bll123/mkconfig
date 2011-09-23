@@ -2,7 +2,7 @@ output out.h
 loadunit c-main
 standard
 
-hdr    h.h
+hdr    mxdr.h
 
-memberxdr aa aa
 memberxdr aa bb
+memberxdr aa cc
