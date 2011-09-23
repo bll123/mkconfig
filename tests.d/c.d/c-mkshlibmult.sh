@@ -3,13 +3,13 @@
 . $_MKCONFIG_DIR/testfuncs.sh
 
 maindodisplay $1 'create shared libs w/deps'
-maindoquery $1 $_MKC_ONCE
+maindoquery $1 $_MKC_SH
 
 chkccompiler
 getsname $0
 dosetup $@
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` -C $_MKCONFIG_RUNTESTDIR/c.env.dat
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` -C $_MKCONFIG_RUNTESTDIR/c-shared.env.dat
 . ./c.env
 
 if [ "${_MKCONFIG_SYSTYPE}" = "BSD" ]; then
@@ -131,23 +131,27 @@ ${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c
 
 grc=0
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mksharedlib.sh -e mkct1 mkct1${OBJ_EXT}
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mksharedlib.sh -d `pwd` -e mkct1 mkct1${OBJ_EXT}
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mksharedlib.sh -e mkct2 mkct2${OBJ_EXT} -L. -lmkct1
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mksharedlib.sh -d `pwd` \
+    -e mkct2 mkct2${OBJ_EXT} -L. -lmkct1
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mksharedlib.sh -e mkct3 mkct3${OBJ_EXT} -L. -lmkct2
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mksharedlib.sh -d `pwd` \
+    -e mkct3 mkct3${OBJ_EXT} -L. -lmkct2
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mksharedlib.sh -e mkct4 mkct4${OBJ_EXT} -L. -lmkct3
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mksharedlib.sh -d `pwd` \
+    -e mkct4 mkct4${OBJ_EXT} -L. -lmkct3
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mksharedlib.sh -e mkct5 mkct5${OBJ_EXT} -L. -lmkct4
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mksharedlib.sh -d `pwd` \
+    -e mkct5 mkct5${OBJ_EXT} -L. -lmkct4
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
@@ -162,10 +166,13 @@ eval $cmd
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-./mkct6a
+./mkct6a${EXE_EXT}
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-testcleanup
+testcleanup mkct6a${EXE_EXT} \
+    mkct1${OBJ_EXT} mkct2${OBJ_EXT} mkct3${OBJ_EXT} \
+    mkct4${OBJ_EXT} mkct5${OBJ_EXT} mkct6${OBJ_EXT} \
+    mkct1.c mkct2.c mkct3.c mkct4.c mkct5.c mkct6.c
 
 exit $grc

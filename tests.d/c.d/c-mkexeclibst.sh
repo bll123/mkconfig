@@ -3,7 +3,7 @@
 . $_MKCONFIG_DIR/testfuncs.sh
 
 maindodisplay $1 'create exec with static lib'
-maindoquery $1 $_MKC_ONCE
+maindoquery $1 $_MKC_SH
 
 chkccompiler
 getsname $0
@@ -58,12 +58,14 @@ main () { int i, j; i = mkct5(); j = 1; if (i == 10) { j = 0; } return j; }
 ${CC} ${CPPFLAGS} ${CFLAGS} -c mkct${i}.c
 
 grc=0
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkstaticlib.sh -e mkct mkct[51234]${OBJ_EXT}
+set +f
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkstaticlib.sh -d `pwd` -e mkct mkct[51234]${OBJ_EXT}
+set -f
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mklink.sh -e -c ${CC} -o mkct6a.exe -- \
-    mkct6${OBJ_EXT} -L. -lmkct
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mklink.sh -d `pwd` -e \
+    -c ${CC} -o mkct6a.exe -- mkct6${OBJ_EXT} -L. -lmkct
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
@@ -71,6 +73,10 @@ if [ $rc -ne 0 ]; then grc=$rc; fi
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-testcleanup
+testcleanup mkct6a.exe \
+    mkct1${OBJ_EXT} mkct2${OBJ_EXT} mkct3${OBJ_EXT} \
+    mkct4${OBJ_EXT} mkct5${OBJ_EXT} mkct6${OBJ_EXT} \
+    mkct1.c mkct2.c mkct3.c mkct4.c mkct5.c mkct6.c
+
 
 exit $grc
