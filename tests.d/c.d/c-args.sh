@@ -65,6 +65,20 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
     -C $_MKCONFIG_RUNTESTDIR/c.env.dat
 . ./c.env
 
+if [ "${_MKCONFIG_SYSTYPE}" = "BSD" ]; then
+  echo ${EN} " bsd; skipped${EC}" >&5
+  exit 0
+fi
+if [ "${_MKCONFIG_USING_GCC}" = "N" -a \
+    "${_MKCONFIG_SYSTYPE}" = "HP-UX" ]; then
+  ${CC} -v 2>&1 | grep 'Bundled'
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    echo ${EN} " bundled cc; skipped${EC}" >&5
+    exit 0
+  fi
+fi
+
 dorunmkc
 
 if [ "${_MKCONFIG_USING_GCC}" = "Y" ]; then
