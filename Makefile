@@ -4,6 +4,7 @@
 
 RM = rm
 DC = gdc
+SHELL = /bin/sh
 
 ###
 #
