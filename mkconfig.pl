@@ -45,16 +45,16 @@ my $iflevels = '';
 my $awkcmd = 'awk';
 foreach my $p (split /[;:]/o, $ENV{'PATH'})
 {
-    if (-x "$p/awk" && $awkcmd == "")
-    {
+    if (-x "$p/awk" && $awkcmd == "") {
         $awkcmd = "$p/awk";
     }
-    if (-x "$p/nawk" && $awkcmd !~ /gawk$/o)
-    {
+    if (-x "$p/nawk" && $awkcmd !~ /mawk$/o && $awkcmd !~ /gawk$/o) {
         $awkcmd = "$p/nawk";
     }
-    if (-x "$p/gawk")
-    {
+    if (-x "$p/mawk" && $awkcmd !~ /gawk$/o) {
+        $awkcmd = "$p/mawk";
+    }
+    if (-x "$p/gawk") {
         $awkcmd = "$p/gawk";
     }
 }
@@ -1002,6 +1002,15 @@ check_args
         return;
     }
 
+    if ($ENV{'_MKCONFIG_USING_GCC'} == 'N' &&
+        $ENV{'_MKCONFIG_SYSTYPE'} == 'HP-UX' ) {
+      my $tcc = `${CC} -v 2>&1`;
+      if ($tcc =~ /Bundled/o) {
+        print " bundled cc; skipped";
+        return;
+      }
+    }
+
     my $oldprecc = $precc;
     $precc .= "/* get rid of most gcc-isms */
 #define __asm__(a)
@@ -1827,6 +1836,7 @@ print LOGFH "CFLAGS: $ENV{'CFLAGS'}\n";
 print LOGFH "CPPFLAGS: $ENV{'CPPFLAGS'}\n";
 print LOGFH "LDFLAGS: $ENV{'LDFLAGS'}\n";
 print LOGFH "LIBS: $ENV{'LIBS'}\n";
+print LOGFH "awk: $awkcmd\n";
 
 main_process $configfile;
 
