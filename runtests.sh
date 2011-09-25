@@ -215,16 +215,6 @@ if [ ! -d $testdir ]; then
   exit 1
 fi
 
-locatecmd awkcmd awk
-locatecmd nawkcmd nawk
-locatecmd gawkcmd gawk
-if [ "$nawkcmd" != "" ]; then
-  awkcmd=$nawkcmd
-fi
-if [ "$gawkcmd" != "" ]; then
-  awkcmd=$gawkcmd
-fi
-
 shift
 teststorun=$*
 
@@ -280,6 +270,21 @@ if [ $SUBDIR = "F" ]; then
   echo "## locating valid shells"
   getlistofshells
 fi
+
+locatecmd awkcmd awk
+locatecmd nawkcmd nawk
+locatecmd gawkcmd gawk
+locatecmd mawkcmd mawk
+if [ "$nawkcmd" != "" ]; then
+  awkcmd=$nawkcmd
+fi
+if [ "$mawkcmd" != "" ]; then
+  awkcmd=$mawkcmd
+fi
+if [ "$gawkcmd" != "" ]; then
+  awkcmd=$gawkcmd
+fi
+echo "awk: $awkcmd" >&8
 
 export shelllist
 grc=0

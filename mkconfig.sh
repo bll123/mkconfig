@@ -788,16 +788,6 @@ unalias ls > /dev/null 2>&1
 unalias rm > /dev/null 2>&1
 LC_ALL=C
 export LC_ALL
-locatecmd awkcmd awk
-locatecmd nawkcmd nawk
-locatecmd gawkcmd gawk
-if [ "$nawkcmd" != "" ]; then
-  awkcmd=$nawkcmd
-fi
-if [ "$gawkcmd" != "" ]; then
-  awkcmd=$gawkcmd
-fi
-
 clearcache=0
 while test $# -gt 1; do
   case $1 in
@@ -860,6 +850,21 @@ echo "shell: $shell" >&9
 echo "has append: ${shhasappend}" >&9
 echo "has math: ${shhasmath}" >&9
 echo "has upper: ${shhasupper}" >&9
+
+locatecmd awkcmd awk
+locatecmd nawkcmd nawk
+locatecmd gawkcmd gawk
+locatecmd mawkcmd mawk
+if [ "$nawkcmd" != "" ]; then
+  awkcmd=$nawkcmd
+fi
+if [ "$mawkcmd" != "" ]; then
+  awkcmd=$mawkcmd
+fi
+if [ "$gawkcmd" != "" ]; then
+  awkcmd=$gawkcmd
+fi
+echo "awk: $awkcmd" >&9
 
 echo "$0 ($shell) using $configfile"
 
