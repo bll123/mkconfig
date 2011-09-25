@@ -1,7 +1,7 @@
 #!/usr/bin/awk
 
 BEGIN {
-  ststruct1 = "(struct|union|enum)[	 ]*{"
+  ststruct1 = "(struct|union|enum)[	 ]*\\{"
   ststruct2 = "(struct|union|enum)[	 ]*$"
   ststart = "(struct|union|enum)[	 ]*" ARGV[2];
   stforward = "(struct|union|enum)[	 ]*" ARGV[2] "[	 ]*;";
@@ -47,7 +47,7 @@ BEGIN {
     acount = acount + 1;
     havestart = 1;
     tstr = $0;
-    gsub (/[^{]/, "", tstr);
+    gsub (/[^\{]/, "", tstr);
     bcount = bcount + length (tstr);
     tstr = $0;
     gsub (/[^}]/, "", tstr);
@@ -65,7 +65,7 @@ BEGIN {
     savens = "";
     ins = 1;
     tstr = $0;
-    gsub (/[^{]/, "", tstr);
+    gsub (/[^\{]/, "", tstr);
     bcount = bcount + length (tstr);
     tstr = $0;
     gsub (/[^}]/, "", tstr);
@@ -91,7 +91,7 @@ BEGIN {
     sarr[acount] = $0;
     acount = acount + 1;
     doend = 1;
-  } else if (ins == 1 && $0 !~ /(struct|union)[	 ]*{/ &&
+  } else if (ins == 1 && $0 !~ /(struct|union)[	 ]*\{/ &&
         $0 ~ /(struct|union)[	 ]/ && $0 !~ /(struct|union)[	 ].*;/) {
 #print "struct: " $0;
     hadend = 0;
@@ -103,7 +103,7 @@ BEGIN {
     sub (/(struct|union) */, "&C_ST_", tstr);
     sarr [acount - 1] = tstr;
     tstr = $0;
-    gsub (/[^{]/, "", tstr);
+    gsub (/[^\{]/, "", tstr);
     bcount = bcount + length (tstr);
     tstr = $0;
     gsub (/[^}]/, "", tstr);
@@ -123,13 +123,13 @@ BEGIN {
 #print "nested save: " tstr;
       }
     }
-  } else if (ins == 1 && $0 ~ /{/) {
+  } else if (ins == 1 && $0 ~ /\{/) {
 #print "{: " $0;
     hadend = 0;
     sarr[acount] = $0;
     acount = acount + 1;
     tstr = $0;
-    gsub (/[^{]/, "", tstr);
+    gsub (/[^\{]/, "", tstr);
     bcount = bcount + length (tstr);
     tstr = $0;
     gsub (/[^}]/, "", tstr);
