@@ -190,6 +190,9 @@ runshelltest () {
 _MKCONFIG_RUNTOPDIR=`pwd`
 export _MKCONFIG_RUNTOPDIR
 mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
+if [ "$mypath" = "runtests.sh" ]; then
+  mypath=.
+fi
 _MKCONFIG_DIR=`(cd $mypath;pwd)`
 export _MKCONFIG_DIR
 . ${_MKCONFIG_DIR}/shellfuncs.sh
