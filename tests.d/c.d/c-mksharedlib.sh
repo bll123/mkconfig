@@ -32,6 +32,7 @@ for i in 1 2 3 4; do
 #include <stdlib.h>
 int mkct${i} () { return ${i}; }
 "
+  echo "cmd: ${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c"
   ${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c
 done
 
@@ -54,6 +55,7 @@ int mkct${i} () { int i; i = 0;
     i += mkct1(); i += mkct2(); i += mkct3(); i += mkct4();
     return i; }
 "
+echo "cmd: ${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c"
 ${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c
 
 i=6
@@ -70,6 +72,7 @@ i=6
 extern int mkct5 _((void));
 main () { int i, j; i = mkct5(); j = 1; if (i == 10) { j = 0; } return j; }
 '
+echo "cmd: ${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c"
 ${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c
 
 grc=0
@@ -83,6 +86,8 @@ shrunpath=""
 if [ "${SHRUNPATH}" != "" ]; then
   shrunpath="${SHRUNPATH}."
 fi
+echo "cmd: ${CC} ${LDFLAGS} ${SHEXECLINK} -o mkct6a${EXE_EXT} mkct6${OBJ_EXT} \
+    ${shrunpath} -L. -lmkct"
 ${CC} ${LDFLAGS} ${SHEXECLINK} -o mkct6a${EXE_EXT} mkct6${OBJ_EXT} \
     ${shrunpath} -L. -lmkct
 rc=$?
