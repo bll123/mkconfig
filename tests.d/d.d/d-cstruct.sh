@@ -71,6 +71,15 @@ struct sf {
   long f;
 };
 
+/* this is here to confuse the extractor */
+enum xdr_op {
+   A = 1,
+   B = 2,
+   C = 3
+};
+extern void xdrmem_create(int *, const int, const int, const enum
+xdr_op);
+
 struct sg {
 // stuff
   int g;
