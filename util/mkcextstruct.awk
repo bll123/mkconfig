@@ -2,7 +2,7 @@
 
 BEGIN {
   ststruct1 = "(struct|union|enum)[	 ]*\\{"
-  ststruct2 = "(struct|union|enum)[	 ]*$"
+  ststruct2 = "typedef[	 ][	 ]*(struct|union|enum)[ 	]*$"
   ststart = "(struct|union|enum)[	 ]*" ARGV[2];
   stforward = "(struct|union|enum)[	 ]*" ARGV[2] "[	 ]*;";
   stother = "(struct|union|enum)[	 ]*" ARGV[2] "[	 ]*[*a-zA-Z_]";
