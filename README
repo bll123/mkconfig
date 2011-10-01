@@ -1,10 +1,23 @@
-mkconfig - configuration tool (version 1.16)
+mkconfig - configuration tool (version 1.17)
 
 Please e-mail any configuration units and the corresponding
 manual page entry to brad.lanam.di_at_gmail.com.  They will be
 included in the next release.
 
 CHANGES
+
+    1.17                                    [30 Sep 2011]
+        Fixed cmacro directive for D.
+        Added cmembertype, cmemberxdr for D.
+        Added memberxdr for C.
+        Removed rquota_xdr, gqa_uid_xdr.
+        Improved documentation.
+        Rewrote test suite.
+        Fixed 'lib' for D.
+        Updated env-cc.sh for SCO OpenServer and UnixWare.
+        Fixed structure extraction for HP-UX.
+        Various fixes for HP-UX, SCO OpenServer, UnixWare.
+        * Shared lib tests fail for HP-UX ansi cc.  
 
     1.16                                    [16 Sep 2011]
         Removed 'di' leftovers.
