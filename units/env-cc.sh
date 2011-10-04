@@ -499,7 +499,7 @@ check_shareexeclinkflag () {
         SHEXECLINK=""
         ;;
       HP-UX)
-        SHEXECLINK="-a,shared "
+        SHEXECLINK="-Z"
         ;;
       OSF1)
         SHEXECLINK="-msym -no_archive "
