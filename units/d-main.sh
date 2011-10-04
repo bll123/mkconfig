@@ -191,7 +191,11 @@ dump_ccode () {
 ${ctypes}"
   fi
   if [ "${cstructs}" != "" ]; then
-    doappend ccode "${cstructs}"
+    doappend ccode "
+extern (C) {
+    ${cstructs}
+}
+"
   fi
   if [ "${cdcls}" != "" ]; then
     doappend ccode "
