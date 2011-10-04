@@ -25,7 +25,7 @@ export _MKCONFIG_VERSION
 #   set | grep can be fixed with: set | strings | grep
 #   and 'emulate ksh' can be set in mkconfig.sh, but there
 #   are more issues, and I'm not interested in tracking them down.
-tryshell="ash bash dash ksh mksh pdksh sh sh5"
+tryshell="ash bash dash ksh ksh93 mksh pdksh sh sh5"
 
 mkconfigversion () {
   echo "mkconfig version ${_MKCONFIG_VERSION}"
