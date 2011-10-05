@@ -86,9 +86,9 @@ preconfigfile () {
     return
   fi
 
-  echo '#ifndef __INC_CONFIG_H
-#define __INC_CONFIG_H 1
-'
+  echo "#ifndef __INC_${CONFHTAGUC}_H
+#define __INC_${CONFHTAGUC}_H 1
+"
 }
 
 stdconfigfile () {
@@ -118,8 +118,8 @@ stdconfigfile () {
 
 postconfigfile () {
   pc_configfile=$1
-  echo '
-#endif /* __INC_CONFIG_H */'
+  echo "
+#endif /* __INC_${CONFHTAGUC}_H */"
 }
 
 standard_checks () {
