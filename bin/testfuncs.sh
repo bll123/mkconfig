@@ -167,8 +167,10 @@ chkenv () {
 testcleanup () {
   if [ "$stag" != "none" ]; then
     for x in out.h out.d testouth.c opts test.env mkconfig.log \
-        mkconfig.cache mkconfig_c.vars \
-        mkconfig_d.vars mkconfig_env.vars mkconfig.reqlibs c.env $@; do
+        mkconfig.cache mkconfig.reqlibs c.env \
+	mkc_none_mkc.vars mkc_none_c.vars mkc_out_c.vars mkc_out_d.vars \
+	mkc_none_env.vars \
+	$@; do
       test -f ${x} && mv ${x} ${x}${stag}
     done
   fi
