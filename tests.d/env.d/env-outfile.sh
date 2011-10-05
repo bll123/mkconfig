@@ -10,7 +10,8 @@ dosetup $@
 dorunmkc
 
 chkdiff test.env test2.env
+chkdiff mkc_test_env.vars mkc_test2_env.vars
 
-testcleanup test2.env
+testcleanup test2.env mkc_test_env.vars mkc_test2_env.vars
 
 exit $grc

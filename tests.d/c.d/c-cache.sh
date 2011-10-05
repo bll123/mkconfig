@@ -27,37 +27,35 @@ dorunmkc ${ccclear}
 # cache creation
 if [ ${ccache_count} -eq 1 ]; then
   ccclear=""
-  cp -f out.h ${_MKCONFIG_RUNTMPDIR}/c-cache.out.h
-  cp -f mkconfig_c.vars ${_MKCONFIG_RUNTMPDIR}/c-cache.mkconfig_c.vars
+  mv -f out.h ${_MKCONFIG_RUNTMPDIR}/c-cache.out.h
   cp -f mkconfig.cache ${_MKCONFIG_RUNTMPDIR}/c-cache.mkconfig_c.cache
-  mv out.h out.h.${ccache_count}
-  cp -f mkconfig_c.vars mkconfig_c.vars.${ccache_count}
-  mv -f mkconfig.log mkconfig.log.${ccache_count}
-  # keep mkconfig.cache and mkconfig_c.vars
+  mv -f mkc_out_c.vars ${_MKCONFIG_RUNTMPDIR}/c-cache.mkc_out_c.vars
+  # keep mkconfig.cache
   ${_MKCONFIG_SHELL} $0 $stag $script   # re-run this script for this shell
   exit $?
 fi
 
 mv -f out.h out.h.${ccache_count}
-mv -f mkconfig_c.vars mkconfig_c.vars.${ccache_count}
+mv -f mkc_out_c.vars mkc_out_c.vars.${ccache_count}
 
 c=2
 while test $c -lt $ccache_count; do
-  echo "## diff out.h ${c}"
+  echo "## diff c-cache.out.h out.h.${c}"
   diff -b ${_MKCONFIG_RUNTMPDIR}/c-cache.out.h out.h.${c}
   rc=$?
   if [ $rc -ne 0 ]; then grc=$rc; fi
-  echo "## diff vars $c"
-  diff -b ${_MKCONFIG_RUNTMPDIR}/c-cache.mkconfig_c.vars mkconfig_c.vars.${c}
+
+  echo "## diff c-cache.mkc_out_c.vars mkc_out_c.vars.${c}"
+  diff -b ${_MKCONFIG_RUNTMPDIR}/c-cache.mkc_out_c.vars mkc_out_c.vars.${c}
   rc=$?
-  if [ $? -ne 0 ]; then grc=$rc; fi
+  if [ $rc -ne 0 ]; then grc=$rc; fi
+
   domath c "$c + 1"
 done
 
-# reset vars and cache
-cp -f ${_MKCONFIG_RUNTMPDIR}/c-cache.mkconfig_c.vars mkconfig_c.vars
+# reset cache
 cp -f ${_MKCONFIG_RUNTMPDIR}/c-cache.mkconfig_c.cache mkconfig_c.cache
-# keep mkconfig.cache and mkconfig_c.vars around...
+# keep mkc_out_c.cache
 
 mv -f mkconfig.log mkconfig.log.${ccache_count}
 
