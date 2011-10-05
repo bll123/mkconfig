@@ -18,7 +18,7 @@ dorunmkc
 
 chkenv "^TEST_OPT_DEF=\"default\"$"
 chkenv "^TEST_OPT_SET=\"abc123\"$"
-chkevn "^TEST_OPT_SET_SPACE=\"abc 123\"$"
+chkenv "^TEST_OPT_SET_SPACE=\"abc 123\"$"
 
 testcleanup
 exit $grc
