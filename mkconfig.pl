@@ -14,8 +14,8 @@ my $CONFH;
 my $LOG = "mkconfig.log";
 my $TMP = "_tmp_mkconfig";
 my $OPTIONFILE = "options.dat";
+my $VARSFILE = "mkc_none_c.vars";
 my $CACHEFILE = "mkconfig.cache";
-my $VARSFILE = "mkconfig_c.vars";
 my $REQLIB = "mkconfig.reqlibs";
 my $MKC_DIR = "invalid";
 
@@ -108,13 +108,25 @@ printyesno
 }
 
 sub
+savevars
+{
+    my ($r_clist) = @_;
+
+    open (MKCV, ">$VARSFILE");
+    foreach my $val (@{$r_clist->{'vars'}})
+    {
+      print MKCV $val, "\n";
+    }
+    close (MKCV);
+}
+
+sub
 savecache
 {
     my ($r_clist, $r_config) = @_;
 
     open (MKCC, ">$CACHEFILE");
-    open (MKCV, ">$VARSFILE");
-    foreach my $val (@{$r_clist->{'list'}})
+    foreach my $val (@{$r_clist->{'clist'}})
     {
       if ($val =~ /^lib__lib_/o) {
         $tval = $val;
@@ -122,21 +134,22 @@ savecache
         print MKCC "mkc_c_lib_${tval}='" . $r_config->{$val} . "'\n";
       } else {
         print MKCC "mkc_c_${val}='" . $r_config->{$val} . "'\n";
-        print MKCV $val, "\n";
       }
     }
     close (MKCC);
-    close (MKCV);
 }
 
 sub
 checkcache_val
 {
-  my ($name, $r_config) = @_;
+  my ($name, $r_clist, $r_config) = @_;
 
   my $rc = 1;
   if (defined ($r_config->{$name}) && $r_config->{$name} ne "" )
   {
+    push @{$r_clist->{'vars'}}, $name;
+    my $r_hash = $r_clist->{'vhash'};
+    $r_hash->{$name} = 1;
     printyesno_val $name, $r_config->{$name}, " (cached)";
     $rc = 0;
   }
@@ -146,11 +159,14 @@ checkcache_val
 sub
 checkcache
 {
-  my ($name, $r_config) = @_;
+  my ($name, $r_clist, $r_config) = @_;
 
   my $rc = 1;
   if (defined ($r_config->{$name}) && $r_config->{$name} ne "" )
   {
+    push @{$r_clist->{'vars'}}, $name;
+    my $r_hash = $r_clist->{'vhash'};
+    $r_hash->{$name} = 1;
     printyesno $name, $r_config->{$name}, " (cached)";
     $rc = 0;
   }
@@ -179,10 +195,16 @@ sub
 setlist
 {
     my ($r_clist, $name) = @_;
-    my $r_hash = $r_clist->{'hash'};
+    my $r_hash = $r_clist->{'vhash'};
     if (! defined ($r_hash->{$name}))
     {
-      push @{$r_clist->{'list'}}, $name;
+      push @{$r_clist->{'vars'}}, $name;
+      $r_hash->{$name} = 1;
+    }
+    $r_hash = $r_clist->{'chash'};
+    if (! defined ($r_hash->{$name}))
+    {
+      push @{$r_clist->{'clist'}}, $name;
       $r_hash->{$name} = 1;
     }
 }
@@ -211,7 +233,7 @@ print_headers
 
     if ($r_a->{'incheaders'} eq 'all')
     {
-        foreach my $val (@{$r_clist->{'list'}})
+        foreach my $val (@{$r_clist->{'vars'}})
         {
             if ($val !~ m#^(_hdr_|_sys_)#o)
             {
@@ -444,7 +466,7 @@ check_header
     my ($name, $file, $r_clist, $r_config, $r_a) = @_;
 
     printlabel $name, "header: $file";
-    if (checkcache ($name, $r_config) == 0)
+    if (checkcache ($name, $r_clist, $r_config) == 0)
     {
         return;
     }
@@ -480,7 +502,7 @@ check_constant
     my ($name, $constant, $r_clist, $r_config, $r_a) = @_;
 
     printlabel $name, "constant: $constant";
-    if (checkcache ($name, $r_config) == 0)
+    if (checkcache ($name, $r_clist, $r_config) == 0)
     {
         return;
     }
@@ -506,7 +528,7 @@ check_keyword
     my ($name, $keyword, $r_clist, $r_config) = @_;
 
     printlabel $name, "keyword: $keyword";
-    if (checkcache ($name, $r_config) == 0)
+    if (checkcache ($name, $r_clist, $r_config) == 0)
     {
         return;
     }
@@ -531,7 +553,7 @@ check_proto
     my ($name, $r_clist, $r_config) = @_;
 
     printlabel $name, "supported: prototypes";
-    if (checkcache ($name, $r_config) == 0)
+    if (checkcache ($name, $r_clist, $r_config) == 0)
     {
         return;
     }
@@ -559,7 +581,7 @@ check_command
     my ($name, $cmd, $r_clist, $r_config) = @_;
 
     printlabel $name, "command: $cmd";
-    if (checkcache ($name, $r_config) == 0)
+    if (checkcache ($name, $r_clist, $r_config) == 0)
     {
         return;
     }
@@ -778,7 +800,7 @@ check_include_conflict
         defined ($r_config->{${i2}}) &&
         $r_config->{${i2}} ne '0')
     {
-        if (checkcache ($name, $r_config) == 0)
+        if (checkcache ($name, $r_clist, $r_config) == 0)
         {
             return;
         }
@@ -802,7 +824,7 @@ check_npt
     my ($name, $proto, $req, $r_clist, $r_config) = @_;
 
     printlabel $name, "need prototype: $proto";
-    if (checkcache ($name, $r_config) == 0)
+    if (checkcache ($name, $r_clist, $r_config) == 0)
     {
         return;
     }
@@ -831,7 +853,7 @@ check_type
 
     $type =~ s/star/*/og;
     printlabel $name, "type: $type";
-    if (checkcache ($name, $r_config) == 0)
+    if (checkcache ($name, $r_clist, $r_config) == 0)
     {
         return;
     }
@@ -851,7 +873,7 @@ check_defined
     my ($name, $def, $r_clist, $r_config) = @_;
 
     printlabel $name, "defined: $def";
-    if (checkcache ($name, $r_config) == 0)
+    if (checkcache ($name, $r_clist, $r_config) == 0)
     {
         return;
     }
@@ -878,7 +900,7 @@ check_param_void_star
     my ($name, $r_clist, $r_config) = @_;
 
     printlabel $name, "parameter: void *";
-    if (checkcache ($name, $r_config) == 0)
+    if (checkcache ($name, $r_clist, $r_config) == 0)
     {
         return;
     }
@@ -912,7 +934,7 @@ check_lib
     else
     {
         printlabel $name, "function: $rfunc";
-        if (checkcache ($name, $r_config) == 0)
+        if (checkcache ($name, $r_clist, $r_config) == 0)
         {
             return;
         }
@@ -961,7 +983,7 @@ check_class
     else
     {
         printlabel $name, "class: $class";
-        if (checkcache ($name, $r_config) == 0)
+        if (checkcache ($name, $r_clist, $r_config) == 0)
         {
             return;
         }
@@ -997,7 +1019,7 @@ check_args
     my ($name, $funcnm, $r_a, $r_clist, $r_config) = @_;
 
     printlabel $name, "args: $funcnm";
-    if (checkcache_val ($name, $r_config) == 0)
+    if (checkcache_val ($name, $r_clist, $r_config) == 0)
     {
         return;
     }
@@ -1099,7 +1121,7 @@ check_size
     my ($name, $type, $r_clist, $r_config) = @_;
 
     printlabel $name, "sizeof: $type";
-    if (checkcache ($name, $r_config) == 0)
+    if (checkcache ($name, $r_clist, $r_config) == 0)
     {
         return;
     }
@@ -1127,7 +1149,7 @@ check_member
     my ($name, $struct, $member, $r_clist, $r_config) = @_;
 
     printlabel $name, "exists: $struct.$member";
-    if (checkcache ($name, $r_config) == 0)
+    if (checkcache ($name, $r_clist, $r_config) == 0)
     {
         return;
     }
@@ -1152,7 +1174,7 @@ check_memberxdr
     my ($name, $struct, $member, $r_clist, $r_config) = @_;
 
     printlabel $name, "member:xdr: $struct.$member";
-    if (checkcache ($name, $r_config) == 0)
+    if (checkcache ($name, $r_clist, $r_config) == 0)
     {
         return;
     }
@@ -1185,7 +1207,7 @@ check_int_declare
     my ($name, $function, $r_clist, $r_config) = @_;
 
     printlabel $name, "declared: $function";
-    if (checkcache ($name, $r_config) == 0)
+    if (checkcache ($name, $r_clist, $r_config) == 0)
     {
         return;
     }
@@ -1210,7 +1232,7 @@ check_ptr_declare
     my ($name, $function, $r_clist, $r_config) = @_;
 
     printlabel $name, "declared: $function";
-    if (checkcache ($name, $r_config) == 0)
+    if (checkcache ($name, $r_clist, $r_config) == 0)
     {
         return;
     }
@@ -1262,13 +1284,13 @@ create_output
   if ($CONFH eq 'none') { return; }
 
   open (CCOFH, ">$CONFH");
-  print CCOFH <<'_HERE_';
-#ifndef __INC_CONFIG_H
-#define __INC_CONFIG_H 1
+  print CCOFH <<"_HERE_";
+#ifndef __INC_${CONFHTAGUC}_H
+#define __INC_${CONFHTAGUC}_H 1
 
 _HERE_
 
-  foreach my $val (@{$r_clist->{'list'}})
+  foreach my $val (@{$r_clist->{'vars'}})
   {
     if ($val =~ m#^lib__lib_#o) {
       next;
@@ -1320,9 +1342,9 @@ _HERE_
 
   print CCOFH $include;
 
-  print CCOFH <<'_HERE_';
+  print CCOFH <<"_HERE_";
 
-#endif /* __INC_CONFIG_H */
+#endif /* __INC_${CONFHTAGUC}_H */
 _HERE_
   close CCOFH;
 }
@@ -1333,8 +1355,10 @@ main_process
     my ($configfile) = @_;
     my (%clist, %config);
 
-    $clist{'list'} = ();
-    $clist{'hash'} = {};
+    $clist{'clist'} = ();
+    $clist{'chash'} = {};
+    $clist{'vars'} = ();
+    $clist{'vhash'} = {};
     $config{'reqlibs'} = {};
     $config{'reqlibs_list'} = ();
 
@@ -1346,19 +1370,12 @@ main_process
           my $name = $1;
           my $val = $2;
           $config{$name} = $val;
-          $clist{'hash'}->{$name} = 1;
+          push @{$clist{'clist'}}, $name;
+          $clist{'chash'}->{$name} = 1;
         }
       }
       close (MKCC);
-      open (MKCV, "<$VARSFILE");
-      while (my $line = <MKCV>)
-      {
-        chomp $line;
-        push @{$clist{'list'}}, $line;
-      }
-      close (MKCV);
     }
-
 
     my $tconfigfile = $configfile;
     if ($configfile !~ m#^/#) {
@@ -1443,8 +1460,11 @@ main_process
         if ($line =~ m#^\s*output\s+([^\s]+)#o)
         {
             if ($inproc == 1) {
+              savevars (\%clist);
               create_output (\%clist, \%config, $include);
               $CONFH = 'none';
+              $CONFHTAG = 'none';
+              $CONFHTAGUC = 'NONE';
               $include = '';
             }
 
@@ -1455,8 +1475,15 @@ main_process
             } else {
               $CONFH = "../$tconfh";
             }
+            $CONFHTAG = $tconfh;
+            $CONFHTAG =~ s,.*/,,;
+            $CONFHTAG =~ s,\..*$,,;
+            $CONFHTAGUC = uc $CONFHTAG;
             print LOGFH "config file: $CONFH\n";
             $inproc = 1;
+            $VARSFILE = "../mkc_${CONFHTAG}_c.vars";
+            $clist{'vars'} = ();
+            $clist{'vhash'} = {};
         }
         elsif ($line =~ m#^\s*option\-file\s+([^\s]+)#o)
         {
@@ -1727,6 +1754,7 @@ main_process
       }
     }
 
+    savevars (\%clist);
     savecache (\%clist, \%config);
     create_output (\%clist, \%config, $include);
 
