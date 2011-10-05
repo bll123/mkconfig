@@ -8,11 +8,11 @@
 #
 # speed at the cost of maintainability...
 # File Descriptors:
-#    9 - >>$LOG                     (mkconfig.sh)
-#    8 - >>$VARSFILE, >>$CONFH      (mkconfig.sh)
-#    7 - saved stdin                (mkconfig.sh)
-#    6 - temporary                  (c-main.sh, mkconfig.sh)
-#    4 - temporary                  (c-main.sh)
+#    9 - >>$LOG                 (mkconfig.sh)
+#    8 - >>$VARSFILE, >>$CONFH  (mkconfig.sh)
+#    7 - saved stdin            (mkconfig.sh)
+#    6 - temporary              (c-main.sh, mkconfig.sh)
+#    4 - temporary              (c-main.sh)
 #
 
 set -f  # set this globally.
@@ -66,37 +66,46 @@ _savecache () {
       > ${CACHEFILE}
 }
 
+setvar () {
+    prefix=$1
+    svname=$2
+
+    if [ $varsfileopen = F ]; then
+      for v in `set | grep "^mkv_" | sed 's/=.*$//'`; do
+        unset $v
+      done
+      varsfileopen=T
+      exec 8>>$VARSFILE
+    fi
+
+    cmd="test \"X\$mkv_${prefix}_${svname}\" != X > /dev/null 2>&1"
+    eval $cmd
+    rc=$?
+    # if already in the list of vars, don't add it to the file again.
+    if [ $rc -ne 0 ]; then
+      if [ $rc -ne 0 ]; then
+        echo ${svname} >&8
+      fi
+    fi
+
+    cmd="mkv_${prefix}_${svname}=T"
+    eval $cmd
+    echo "   setvar: $cmd" >&9
+}
+
 setdata () {
     prefix=$1
     sdname=$2
     sdval=$3
 
-    if [ "$_MKCONFIG_EXPORT" = "T" ]; then
+    if [ "$_MKCONFIG_EXPORT" = T ]; then
       _doexport $sdname "$sdval"
     fi
 
-    if [ $varsfileopen = "F" ]; then
-      exec 8>>$VARSFILE
-      varsfileopen=T
-    fi
-    cmd="test \"X\$mkc_${prefix}_${sdname}\" != X > /dev/null 2>&1"
-    eval $cmd
-    rc=$?
-    # if already in the list of vars, don't add it again.
-    if [ $rc -ne 0 ]; then
-      if [ "$_MKCONFIG_HASEMPTY" = "T" ]; then
-        # have to check again, as empty vars don't work for the above test.
-        # need a better way to do this.
-        grep -l "^${sdname}\$" $VARSFILE > /dev/null 2>&1
-        rc=$?
-      fi
-      if [ $rc -ne 0 ]; then
-        echo ${sdname} >&8
-      fi
-    fi
     cmd="mkc_${prefix}_${sdname}=\"${sdval}\""
     eval $cmd
-    echo "   set: $cmd" >&9
+    echo "   setdata: $cmd" >&9
+    setvar $prefix $sdname
 }
 
 getdata () {
@@ -150,7 +159,7 @@ printyesno_val () {
   ynval=$2
   yntag=${3:-}
 
-  if [ "$ynval" != "0" ]; then
+  if [ "$ynval" != 0 ]; then
     printyesno_actual "$ynname" "$ynval" "${yntag}"
   else
     printyesno_actual "$ynname" no "${yntag}"
@@ -162,23 +171,10 @@ printyesno () {
     ynval=$2
     yntag=${3:-}
 
-    if [ "$ynval" != "0" ]; then
+    if [ "$ynval" != 0 ]; then
       ynval=yes
     fi
     printyesno_val "$ynname" $ynval "$yntag"
-}
-
-checkcache_actual () {
-  prefix=$1
-  tname=$2
-
-  getdata tval ${prefix} ${tname}
-  rc=1
-  if [ "$tval" != "" ]; then
-    printyesno_actual $tname "$tval" " (cached)"
-    rc=0
-  fi
-  return $rc
 }
 
 checkcache_val () {
@@ -188,7 +184,8 @@ checkcache_val () {
   getdata tval ${prefix} ${tname}
   rc=1
   if [ "$tval" != "" ]; then
-    printyesno_val $tname "$tval" " (cached)"
+    setvar $prefix $tname
+    printyesno_actual $tname "$tval" " (cached)"
     rc=0
   fi
   return $rc
@@ -201,6 +198,7 @@ checkcache () {
   getdata tval ${prefix} ${tname}
   rc=1
   if [ "$tval" != "" ]; then
+    setvar $prefix $tname
     printyesno $tname $tval " (cached)"
     rc=0
   fi
@@ -208,7 +206,7 @@ checkcache () {
 }
 
 _loadoptions () {
-  if [ $optionsloaded = "F" -a -f "${OPTIONFILE}" ]; then
+  if [ $optionsloaded = F -a -f "${OPTIONFILE}" ]; then
     exec 6<&0 < ${OPTIONFILE}
     while read o; do
       case $o in
@@ -255,32 +253,32 @@ check_ifoption () {
     trc=F  # if option is not set, it's false
 
     found=F
-    if [ "$optionsloaded" = "T" ]; then
+    if [ "$optionsloaded" = T ]; then
       eval tval=\$_mkc_opt_${oopt}
       if [ "$tval" != "" ]; then
         found=T
         trc=$tval
         tolower trc
         echo "  found: $oopt $trc" >&9
-        if [ "$trc" = "t" ]; then trc=T; fi
-        if [ "$trc" = "enable" ]; then trc=T; fi
-        if [ "$trc" = "f" ]; then trc=F; fi
-        if [ "$trc" = "disable" ]; then trc=F; fi
-        if [ "$trc" = "true" ]; then trc=T; fi
-        if [ "$trc" = "false" ]; then trc=F; fi
+        if [ "$trc" = t ]; then trc=T; fi
+        if [ "$trc" = enable ]; then trc=T; fi
+        if [ "$trc" = f ]; then trc=F; fi
+        if [ "$trc" = disable ]; then trc=F; fi
+        if [ "$trc" = true ]; then trc=T; fi
+        if [ "$trc" = false ]; then trc=F; fi
       fi
     fi
 
-    if [ "$trc" = "T" ]; then trc=1; fi
-    if [ "$trc" = "F" ]; then trc=0; fi
+    if [ "$trc" = T ]; then trc=1; fi
+    if [ "$trc" = F ]; then trc=0; fi
 
     if [ $type = "ifnotoption" ]; then
       if [ $trc -eq 0 ]; then trc=1; else trc=0; fi
     fi
-    if [ "$optionsloaded" = "F" ]; then
+    if [ "$optionsloaded" = F ]; then
       trc=0
       printyesno_actual $name "no options file"
-    elif [ "$found" = "F" ]; then
+    elif [ "$found" = F ]; then
       trc=0
       printyesno_actual $name "option not found"
     else
@@ -354,7 +352,7 @@ check_if () {
             ;;
           *)
             getdata tvar ${_MKCONFIG_PREFIX} $token
-            if [ "$tvar" != "0" ]; then tvar=1; fi
+            if [ "$tvar" != 0 ]; then tvar=1; fi
             tvar="( $tvar = 1 )"
             doappend nline " $tvar"
           ;;
@@ -419,7 +417,7 @@ check_option () {
   oval=$def
   printlabel $name "option: ${onm}"
 
-  if [ "$optionsloaded" = "T" ]; then
+  if [ "$optionsloaded" = T ]; then
     eval tval=\$_mkc_opt_${onm}
     if [ "$tval" != "" ]; then
       found=T
@@ -446,7 +444,7 @@ check_exit () {
 _doloadunit () {
   lu=$1
   dep=$2
-  if [ "$dep" = "Y" ]; then
+  if [ "$dep" = Y ]; then
    slu=${lu}
    tag=" (dependency)"
   fi
@@ -458,7 +456,7 @@ _doloadunit () {
     dosubst tlu '-' '_'
     eval "_MKCONFIG_UNIT_${tlu}=Y"
   fi
-  if [ "$dep" = "Y" ]; then
+  if [ "$dep" = Y ]; then
     lu=$slu
     tag=""
   fi
@@ -471,7 +469,7 @@ require_unit () {
     dosubst trqu '-' '_'
     cmd="val=\$_MKCONFIG_UNIT_${trqu}"
     eval $cmd
-    if [ "$val" = "Y" ]; then
+    if [ "$val" = Y ]; then
       echo "   required unit ${rqu} already loaded" >&9
       continue
     fi
@@ -487,12 +485,14 @@ _create_output () {
     exec 8>>${CONFH}
     preconfigfile ${CONFH} >&8
 
-    exec 6<&0 < $VARSFILE
-    while read cfgvar; do
-      getdata val ${_MKCONFIG_PREFIX} $cfgvar
-      output_item ${CONFH} ${cfgvar} "${val}" >&8
-    done
-    exec <&6 6<&-
+    if [ -f $VARSFILE ]; then
+      exec 6<&0 < $VARSFILE
+      while read cfgvar; do
+        getdata val ${_MKCONFIG_PREFIX} $cfgvar
+        output_item ${CONFH} ${cfgvar} "${val}" >&8
+      done
+      exec <&6 6<&-
+    fi
 
     stdconfigfile ${CONFH} >&8
     cat $INC >&8
@@ -539,10 +539,9 @@ main_process () {
   # default varsfile.
   # a main loadunit will override this.
   # but don't open it unless it is needed.
-  varsfiledflt=T
   varsfileopen=F
   if [ "$VARSFILE" = "" -a "${_MKCONFIG_PREFIX}" != "" ]; then
-    VARSFILE="../mkconfig_${_MKCONFIG_PREFIX}.vars"
+    VARSFILE="../mkc_none_${_MKCONFIG_PREFIX}.vars"
   fi
 
   # save stdin in fd 7; open stdin
@@ -673,12 +672,13 @@ main_process () {
             type=$1
             file=$2
             _doloadunit ${file} N
-            if [ "$varsfiledflt" = "T" -a "${_MKCONFIG_PREFIX}" != "" ]; then
-              VARSFILE="../mkconfig_${_MKCONFIG_PREFIX}.vars"
-              varsfiledflt=F
+            if [ $varsfileopen = T ]; then
+              exec 8>&-
+              varsfileopen=F
             fi
-            exec 8>>$VARSFILE
-            varsfileopen=T
+            if [ "${_MKCONFIG_PREFIX}" != "" ]; then
+              VARSFILE="../mkc_${CONFHTAG}_${_MKCONFIG_PREFIX}.vars"
+            fi
             ;;
           option-file*)
             set $tdatline
@@ -705,9 +705,15 @@ main_process () {
             check_option ${nm} $optnm "${tval}"
             ;;
           output*)
+            if [ $varsfileopen = T ]; then
+              exec 8>&-
+              varsfileopen=F
+            fi
             if [ $inproc -eq 1 ]; then
               _create_output
               CONFH=none
+              CONFHTAG=none
+              CONFHTAGUC=NONE
             fi
             set $tdatline
             type=$1
@@ -725,6 +731,14 @@ main_process () {
             esac
             echo "output-file: ${file}" >&1
             echo "   config file name: ${CONFH}" >&9
+            file=`echo $file | sed -e 's,.*/,,'`
+            file=`echo $file | sed -e 's/\..*//'`
+            CONFHTAG=$file
+            CONFHTAGUC=$file
+            toupper CONFHTAGUC
+            if [ "${_MKCONFIG_PREFIX}" != "" ]; then
+              VARSFILE="../mkc_${CONFHTAG}_${_MKCONFIG_PREFIX}.vars"
+            fi
             inproc=1
             ;;
           standard)
@@ -761,7 +775,10 @@ main_process () {
   # reset the file descriptors back to the norm.
   # set stdin to saved fd 7; close fd 7
   exec <&7 7<&-
-  exec 8>&-
+  if [ $varsfileopen = T ]; then
+    exec 8>&-
+    varsfileopen=F
+  fi
 
   _savecache     # save the cache file.
   _create_output
@@ -832,7 +849,11 @@ cd $_MKCONFIG_TMP
 LOG="../$LOG"
 REQLIB="../$REQLIB"
 CACHEFILE="../$CACHEFILE"
+VARSFILE="../$VARSFILE"
 OPTIONFILE="../$OPTIONFILE"
+CONFH=none
+CONFHTAG=none
+CONFHTAGUC=NONE
 
 if [ $clearcache -eq 1 ]; then
   rm -f $CACHEFILE > /dev/null 2>&1
