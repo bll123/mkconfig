@@ -9,15 +9,12 @@ chkccompiler
 getsname $0
 dosetup $@
 
-for f in out.h out2.h \
-    mkconfig_env.vars mkconfig.log mkconfig.cache; do
-  test -f $f && rm -f $f
-done
-
 dorunmkc
 
-chkdiff out.h out2.h
+sed -e 's/OUT2/OUT/' out2.h > out2.h.n
+chkdiff out.h out2.h.n
+chkdiff mkc_out_c.vars mkc_out2_c.vars
 
-testcleanup out2.h
+testcleanup out2.h mkc_out2_c.vars out2.h.n
 
 exit $grc
