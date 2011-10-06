@@ -220,9 +220,6 @@ check_cflags () {
         _dohpflags
         ccincludes="$hpccincludes $ccincludes"
         ;;
-      OSF1)
-        ccflags="-std1 $ccflags"
-        ;;
       SunOS)
         case ${_MKCONFIG_SYSREV} in
           5.*)
