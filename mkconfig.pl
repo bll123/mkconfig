@@ -192,6 +192,18 @@ loadoptions
 }
 
 sub
+setclist
+{
+    my ($r_clist, $name) = @_;
+    $r_hash = $r_clist->{'chash'};
+    if (! defined ($r_hash->{$name}))
+    {
+      push @{$r_clist->{'clist'}}, $name;
+      $r_hash->{$name} = 1;
+    }
+}
+
+sub
 setlist
 {
     my ($r_clist, $name) = @_;
@@ -201,12 +213,7 @@ setlist
       push @{$r_clist->{'vars'}}, $name;
       $r_hash->{$name} = 1;
     }
-    $r_hash = $r_clist->{'chash'};
-    if (! defined ($r_hash->{$name}))
-    {
-      push @{$r_clist->{'clist'}}, $name;
-      $r_hash->{$name} = 1;
-    }
+    setclist ($r_clist, $name);
 }
 
 sub
@@ -962,7 +969,7 @@ _HERE_
       {
           $tag = " with $a{'dlibs'}";
           $r_config->{"lib_$name"} = $a{'dlibs'};
-          setlist $r_clist, "lib_$name";
+          setclist $r_clist, "lib_$name";
       }
     }
     printyesno $name, $r_config->{$name}, $tag;
