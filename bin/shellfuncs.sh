@@ -25,7 +25,7 @@ export _MKCONFIG_VERSION
 #   set | grep can be fixed with: set | strings | grep
 #   and 'emulate ksh' can be set in mkconfig.sh, but there
 #   are more issues, and I'm not interested in tracking them down.
-tryshell="ash bash dash ksh ksh93 mksh pdksh sh sh5"
+tryshell="ash bash dash ksh ksh88 ksh93 mksh pdksh sh sh5"
 
 mkconfigversion () {
   echo "mkconfig version ${_MKCONFIG_VERSION}"
@@ -109,13 +109,22 @@ testshcapability () {
 }
 
 getshelltype () {
-  doecho=F
-  if [ "$1" = "echo" ]; then
-    doecho=T
+  if [ "$1" != "" ]; then
+    trs=$1
+    shift
+  fi
+  gstecho=F
+  if [ "$1" = echo ]; then
+    gstecho=T
   fi
 
-  shell=${_shell:-sh}   # unknown or old
-  baseshell=${_shell:-sh}
+  baseshell=${_shell:-sh} # unknown or old
+  shell=${_shell:-sh}     # unknown or old
+  if [ "$trs" != "" ]; then
+    dispshell=`echo $trs | sed -e 's,.*/,,'`
+  else
+    dispshell=$shell
+  fi
   ( eval 'echo ${.sh.version}' ) >/dev/null 2>&1
   if [ $? -eq 0 ]; then
     eval 'KSH_VERSION=${.sh.version}'
@@ -123,7 +132,7 @@ getshelltype () {
   if [ "$KSH_VERSION" != "" ]; then
     shell=ksh
     baseshell=ksh
-    dvers=$KSH_VERSION
+    shvers=$KSH_VERSION
     case $KSH_VERSION in
       *PD*)
         shell=pdksh
@@ -139,29 +148,34 @@ getshelltype () {
         ;;
     esac
   elif [ "$BASH_VERSION" != "" ]; then
-    baseshell=bash
-    dvers=$BASH_VERSION
+    shvers=$BASH_VERSION
     ver=`echo $BASH_VERSION | sed 's/\..*//'`
     shell=bash${ver}
+    baseshell=bash
   elif [ "$ZSH_VERSION" != "" ]; then
-    baseshell=zsh
-    dvers=$ZSH_VERSION
+    shvers=$ZSH_VERSION
     shell=zsh
+    baseshell=zsh
   elif [ "$POSH_VERSION" != "" ]; then
-    baseshell=posh
-    dvers=$POSH_VERSION
+    shvers=$POSH_VERSION
     shell=posh
+    baseshell=posh
   elif [ "$YASH_VERSION" != "" ]; then
-    baseshell=yash
-    dvers=$YASH_VERSION
+    shvers=$YASH_VERSION
     shell=yash
+    baseshell=yash
   fi
 
+  if [ $dispshell = sh -a $dispshell != $shell ]; then
+    dispshell="$dispshell-$shell"
+  elif [ $dispshell = $baseshell ]; then
+    dispshell=$shell
+  fi
   # can try --version, but don't really know the path
   # of the shell running us; can't depend on $SHELL.
   # and it only works for bash and some versions of ksh.
-  if [ $doecho = "T" ]; then
-    echo $baseshell $shell $dvers
+  if [ $gstecho = T ]; then
+    echo $dispshell $shvers
   fi
 }
 
@@ -178,11 +192,10 @@ doshelltest () {
     fi
   fi
 
-  getshelltype
-
+  getshelltype  # for display of error below
   chkshell
   if [ $? -ne 0 ]; then
-    echo "The shell in use ($shell) does not have the correct functionality:" >&2
+    echo "The shell in use ($dispshell) does not have the correct functionality:" >&2
     echo $chkmsg >&2
     echo "Please try another shell.
 _MKCONFIG_SHELL can be set to the path of another shell
