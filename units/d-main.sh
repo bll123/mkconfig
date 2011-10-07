@@ -925,6 +925,9 @@ check_cmacro () {
             done
           fi
           ;;
+      *)
+          break
+          ;;
     esac
 
     if [ $trc -eq 1 ]; then
