@@ -496,7 +496,7 @@ check_shareexeclinkflag () {
         SHEXECLINK=""
         ;;
       HP-UX)
-        SHEXECLINK="-Z"
+        SHEXECLINK="+Z"
         ;;
       OSF1)
         SHEXECLINK="-msym -no_archive "
