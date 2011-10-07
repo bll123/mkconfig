@@ -9,8 +9,8 @@ SHELL = /bin/sh
 ###
 #
 
-.PHONY: all-test
-all-test:	tests.done
+.PHONY: test
+test:	tests.done
 
 # leaves _tmp_mkconfig, _mkconfig_runtests, checktests
 .PHONY: clean
@@ -35,7 +35,7 @@ checktests:
 	$(_MKCONFIG_SHELL) ./mkconfig.sh features/checktests.dat
 	touch checktests
 
-tests.done: runtests.sh checktests
+tests.done: runtests.sh
 	@echo "## running mkconfig tests"
 	CC=$(CC) DC=$(DC) $(_MKCONFIG_SHELL) ./runtests.sh tests.d
 	touch tests.done
