@@ -66,24 +66,43 @@ getlistofshells () {
   for d in $_pthlist; do
     for s in $tryshell ; do
       rs=$d/$s
-      if [ -f $rs ]; then
-        if [ -h $rs ]; then
-          while [ -h $rs ]; do
-            rs="`ls -l $rs | sed 's/.* //'`"
-            case $rs in
-              /*)
-                ;;
-              *)
-                rs="$d/$rs"
-                ;;
-            esac
-            rs=`echo $rs | sed 's,/[^/]*/\.\./,/,'`
-            rs=`echo $rs | sed 's,/[^/]*/\.\./,/,'`
-            rs=`echo $rs | sed 's,/[^/]*/\.\./,/,'`
-          done
-        fi # if symlink
+      if [ -x $rs ]; then
+        while [ -h $rs ]; do
+          ors=$rs
+          rs="`ls -l $rs | sed 's/.* //'`"
+          case $rs in
+            /*)
+              ;;
+            *)
+              rs="$d/$rs"
+              ;;
+          esac
 
-        inode=`ls -i ${rs} | sed 's/ .*//'`
+          # /etc/alternatives/xxx has some weird names w/dots.
+          # all ksh* are ksh
+          # anything not ksh/bash/zsh is sh
+          # if the name is sh->bash or sh->ksh; don't follow symlink.
+          ts=`echo $rs | sed -e 's,.*[/\.],,' \
+              -e 's/ksh88/ksh/' -e 's/ksh93/ksh/' `
+          tts=`echo $s | sed -e 's/ksh88/ksh/' -e 's/ksh93/ksh/' `
+          if [ $ts != ksh -a $ts != bash -a $ts != zsh ]; then
+            ts=sh
+          fi
+          if [ $ts != ksh -a $tts != bash -a $tts != zsh ]; then
+            tts=sh
+          fi
+          if [ $ts != $tts ]; then
+            rs=$ors
+            break
+          fi
+
+          rs=`echo $rs | sed 's,/[^/]*/\.\./,/,'`
+          rs=`echo $rs | sed 's,/[^/]*/\.\./,/,'`
+          rs=`echo $rs | sed 's,/[^/]*/\.\./,/,'`
+          rs=`echo $rs | sed 's,/[^/]*/\.\./,/,'`
+        done
+
+        inode=`ls -i ${rs} | sed -e 's/^ *//' -e 's/ .*//'`
         inode=${inode}${s}   # append shell type also
         found=F
         for i in $inodelist; do
@@ -97,24 +116,26 @@ getlistofshells () {
         fi
 
         if [ -x $rs ]; then
-          cmd="$rs -c \". $_MKCONFIG_DIR/shellfuncs.sh;getshelltype echo\""
+          cmd="$rs -c \". $_MKCONFIG_DIR/shellfuncs.sh;getshelltype $rs echo\""
           set `eval $cmd`
-  	shell=$2
-          echo "  found: $rs ($shell)" >&8
-          case $shell in
+          dispshell=$1
+          echo "  found: $rs ($dispshell)" >&8
+          case $dispshell in
             *)
               tshelllist="${tshelllist}
-  $rs"
-              inodelist="${inodelist}
-  ${inode}"
+$rs"
+              if [ "${inode}" != ${s} ]; then
+                inodelist="${inodelist}
+${inode}"
+              fi
               ;;
           esac
         fi # if executable
       fi  # if there is a file
     done
   done
-  tshelllist=`echo "$tshelllist" | sort -u`
 
+  tshelllist=`echo "$tshelllist" | sort -u`
   systype=`uname -s`
   shelllist=""
   for s in $tshelllist; do
@@ -123,20 +144,19 @@ getlistofshells () {
     cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;TSHELL=$s;chkshell echo\""
     eval $cmd >&8 2>&1
     rc=$?
-    cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;TSHELL=$s;getshelltype echo\""
+    cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;TSHELL=$s;getshelltype $s echo\""
     set `eval $cmd`
-    tbaseshell=$1
-    tshell=$2
-    shift;shift
-    tdvers=$@
+    dispshell=$1
+    shift
+    shvers=$@
     if [ $rc -eq 0 ]; then
       echo " ok" >&8
       shelllist="${shelllist} $s"
-      echo " [$tshell $tdvers] (ok)"
+      echo " [$dispshell $shvers] (ok)"
     else
       echo " ng" >&8
       echo " : $chkmsg" >&8
-      echo " [$tshell $tdvers] (ng)"
+      echo " [$dispshell $shvers] (ng)"
     fi
   done
 }
@@ -144,7 +164,7 @@ getlistofshells () {
 runshelltest () {
   stag=""
   if [ "$_MKCONFIG_SHELL" != "" ]; then
-    stag=".${scount}_${shell}"
+    stag=".${scount}_${dispshell}"
   fi
   TSTRUNLOG=${_MKCONFIG_TSTRUNTMPDIR}/${tbase}.log${stag}
   > $TSTRUNLOG
@@ -160,7 +180,7 @@ runshelltest () {
 
   cd $_MKCONFIG_TSTRUNTMPDIR
   if [ "$_MKCONFIG_SHELL" != "" ]; then
-    echo ${EN} " ${ss}${EC}"
+    echo ${EN} " ${dispshell}${EC}"
   fi
   targ=$arg
   if [ "$arg" != "" ]; then
@@ -390,16 +410,12 @@ while read tline; do
     scount=1
     for s in $shelllist; do
       unset _shell
-      unset shell
-      cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;getshelltype echo\""
+      unset dispshell
+      cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;getshelltype $s echo\""
       set `eval $cmd`
-      ss=$2
-      if [ "$ss" = "sh" ]; then
-        ss=`echo $s | sed 's,.*/,,'`
-      fi
+      dispshell=$1
       _MKCONFIG_SHELL=$s
       export _MKCONFIG_SHELL
-      shell=$ss
 
       runshelltest
       rc=$?
@@ -407,7 +423,7 @@ while read tline; do
       domath scount "$scount + 1"
 
       unset _shell
-      unset shell
+      unset dispshell
       unset _MKCONFIG_SHELL
     done
   else
