@@ -1,10 +1,19 @@
-mkconfig - configuration tool (version 1.17)
+mkconfig - configuration tool (version 1.18)
 
 Please e-mail any configuration units and the corresponding
 manual page entry to brad.lanam.di_at_gmail.com.  They will be
 included in the next release.
 
 CHANGES
+
+    1.18                                    [8 Oct 2011]
+        D: C structures are wrapped in extern (C) {}
+          (to properly declare functions).
+        Fixed multiple output files in the same directory.
+        Fixed multiple inclusion tag for C output file.
+        Fixed and updated shell locater for runtests.sh.
+        Removed -std1 for OSF1 (Tru64).
+        Added 'ksh88', 'ksh93' as valid shell names.
 
     1.17                                    [30 Sep 2011]
         Fixed cmacro directive for D.
@@ -17,7 +26,7 @@ CHANGES
         Updated env-cc.sh for SCO OpenServer and UnixWare.
         Fixed structure extraction for HP-UX.
         Various fixes for HP-UX, SCO OpenServer, UnixWare.
-        * Shared lib tests fail for HP-UX ansi cc.  
+        * Shared lib tests fail for HP-UX ansi cc.
 
     1.16                                    [16 Sep 2011]
         Removed 'di' leftovers.
