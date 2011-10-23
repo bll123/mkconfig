@@ -33,6 +33,8 @@ cstruct sx
 cstruct sy
 cstruct sz
 cstruct saa
+cstruct sbb
+cstruct scc
 
 cunion ua
 cunion ub

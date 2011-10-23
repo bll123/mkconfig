@@ -208,6 +208,46 @@ struct saa
   _saaa;
 };
 
+/* typedef named struct - from freebsd rpc/xdr.h (XDR) */
+typedef struct sbb {
+  int     op;
+  const struct __rpc_xdr {
+    int (*x_getlong)(struct __rpc_xdr *, long *);
+    int (*x_putlong)(struct __rpc_xdr *, const long *);
+    int (*x_getbytes)(struct __rpc_xdr *, char *, int);
+    int (*x_putbytes)(struct __rpc_xdr *, const char *, int);
+    int (*x_getpostn)(struct __rpc_xdr *);
+    int (*x_setpostn)(struct __rpc_xdr *, int);
+    int *(*x_inline)(struct __rpc_xdr *, int);
+    void (*x_destroy)(struct __rpc_xdr *);
+    int (*x_control)(struct __rpc_xdr *, int, void *);
+  } *x_ops;
+  char *x_public;
+  void *x_private;
+  char *x_base;
+  int   x_handy;
+} tXDR;
+
+/* typedef named struct - from freebsd rpc/xdr.h (XDR) */
+typedef struct _tscc {
+  int     op;
+  const struct tscc {
+    int (*x_getlong)(struct tscc *, long *);
+    int (*x_putlong)(struct tscc *, const long *);
+    int (*x_getbytes)(struct tscc *, char *, int);
+    int (*x_putbytes)(struct tscc *, const char *, int);
+    int (*x_getpostn)(struct tscc *);
+    int (*x_setpostn)(struct tscc *, int);
+    int *(*x_inline)(struct tscc *, int);
+    void (*x_destroy)(struct tscc *);
+    int (*x_control)(struct tscc *, int, void *);
+  } *x_ops;
+  char *x_public;
+  void *x_private;
+  char *x_base;
+  int   x_handy;
+} scc;
+
 union ua
 {
   long double ld;
