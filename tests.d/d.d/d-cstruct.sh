@@ -248,6 +248,20 @@ typedef struct _tscc {
   int   x_handy;
 } scc;
 
+/* modified from rpc/clnt.h: CLIENT */
+struct sdd {
+  long      *cl_auth;
+  struct clnt_ops {
+    enum xdr_op (*cl_call) (struct sdd *, long, int, char *, int, char *, int);
+    void (*cl_abort) (void);
+    void (*cl_geterr) (struct sdd *, int *);
+    int (*cl_freeres) (struct sdd *, long, char *);
+    void (*cl_destroy) (struct sdd *);
+    int (*cl_control) (struct sdd *, int, char *);
+  } *cl_ops;
+  char *cl_private;
+};
+
 union ua
 {
   long double ld;
