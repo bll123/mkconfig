@@ -2,7 +2,6 @@
 
 output out.d
 loadunit d-main
-standard
 
 set _lib_something 1
 setint _test1 0

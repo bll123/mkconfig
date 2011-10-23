@@ -1,7 +1,6 @@
 output out.d
 option-file opts
 loadunit d-main
-standard
 
 option TEST_OPT_DEF default
 option TEST_OPT_SET default
