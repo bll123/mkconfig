@@ -1110,10 +1110,11 @@ check_cstruct () {
     # remove the struct/union/enum tags from the structure now also
     # for those definitions that are found.
     tst=$st
-    echo "${tst}" | egrep '^ *(const)? *(struct|union|enum) *C_[A-Z]*_[a-zA-Z_][a-zA-Z0-9_]*[ \{]*$' >&9
+    echo "${tst}" | egrep '^[ const]*(struct|union|enum) *C_[A-Z]*_[a-zA-Z_][a-zA-Z0-9_]*[ \\{]*$' >&9
     rc=$?
     while [ $rc -eq 0 ]; do
-      tl=`echo "${tst}" | egrep '^.*(struct|union|enum) C_[A-Z]*_*[a-zA-Z_][a-zA-Z0-9_]*'`
+      # make sure we only have the first matching line.
+      tl=`echo "${tst}" | egrep '^[ const]*(struct|union|enum) C_[A-Z]*_*[a-zA-Z_][a-zA-Z0-9_]*[ \\{]*' | sed '2,$d'`
       ttype=`echo "${tl}" | sed -e 's/^ *[const]* *\\([sue][trucniom]*\\) *C_[A-Z]*_.*/\\1/'`
       tlab=`echo "${tl}" | sed -e 's/^.*\\(C_[A-Z]*_\\).*/\\1/'`
       tl=`echo "${tl}" | sed -e 's/^.*C_[A-Z]*_\\([a-zA-Z_][a-zA-Z0-9_]*\\).*/\\1/'`
@@ -1121,8 +1122,8 @@ check_cstruct () {
       doappend cchglist "-e 's/^${tl}\\([^a-zA-Z0-9_]\\)/${tlab}${tl}\\1/g' "
       st=`echo "${st}" | sed -e "s/${ttype} *${tl}/${tl}/g"`
       tst=`echo "${tst}" | sed -e "s/${ttype} *${tl}/${tl}/g"`
-      tst=`echo "${tst}" | sed -e "s/.*${tlt} *C_ST_${tl}[ {]*\$//"`
-      echo "${tst}" | egrep '^.*(struct|union|enum) *C_[A-Z]*_[a-zA-Z_][a-zA-Z0-9_]*[ \{]*$' >&9
+      tst=`echo "${tst}" | sed -e "1,/.*${tlt} *C_ST_${tl}[ {]/d"`
+      echo "${tst}" | egrep '^[ const]*(struct|union|enum) *C_[A-Z]*_[a-zA-Z_][a-zA-Z0-9_]*[ \\{]*$' >&9
       rc=$?
     done
     st=`(
