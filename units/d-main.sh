@@ -161,9 +161,11 @@ modify_ccode () {
       |
     sed -e '# handle function prototypes' \
         -e '# first line converts two-liners ending in comma' \
-        -e '# second line handles one-liners' \
+        -e '# second line continues appending data w/trailing comma' \
+        -e '# third line handles one-liners' \
         -e '# change (void) to ()' \
-        -e '/^.*([ 	]*\*[ 	]*[a-zA-Z0-9_][a-zA-Z0-9_]*[ 	]*)[ 	]*(.*,[ 	]*$/ N' \
+        -e '/^.*([ 	]*\*[ 	]*[a-zA-Z0-9_][a-zA-Z0-9_]*[ 	]*)[ 	]*(.*,[ 	]*$/ N; # function dcl ending in comma' \
+        -e '/^.*,[ 	]*$/ N; # anything else ending in comma' \
         -e 's/^\(.*\)([ 	]*\*[ 	]*\([a-zA-Z0-9_][a-zA-Z0-9_]*\)[ 	]*)[ 	]*(\(.*\))[ 	]*;/\1 function(\3) \2;/' \
         -e 's/(void)/()/' \
         |
@@ -1308,6 +1310,7 @@ check_cdcl () {
   type=$1
   dname=$2
   argflag=0
+  ccount=0
   noconst=F
   shift;shift
   if [ "$dname" = "args" ]; then
