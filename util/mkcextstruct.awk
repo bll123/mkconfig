@@ -1,12 +1,18 @@
 #!/usr/bin/awk
 
 BEGIN {
+  dcode = "F";
+  if (ARGC == 4 && ARGV[3] == "d") {
+    dcode = "T";
+    delete ARGV[3];
+  }
   ststruct1 = "(struct|union|enum)[	 ]*\\{"
-  ststruct2 = "typedef[	 ][	 ]*(struct|union|enum)[ 	]*$"
+  ststruct2 = "typedef[	 ][	 ]*(struct|union|enum)[ 	]*[a-zA-Z0-9_]*[ 	]*{?[ 	]*$"
   ststart = "(struct|union|enum)[	 ]*" ARGV[2];
   stforward = "(struct|union|enum)[	 ]*" ARGV[2] "[	 ]*;";
-  stother = "(struct|union|enum)[	 ]*" ARGV[2] "[	 ]*[*a-zA-Z_]";
-  stend = "[	 ]" ARGV[2] "_t";
+  stother = "(struct|union|enum)[	 ]*" ARGV[2] "[	 ]*[*a-zA-Z0-9_]";
+  stend = "[	 ]" ARGV[2] "_t[ 	;]";
+  stendb = "[	 ]" ARGV[2] "[ 	;]";
   delete ARGV[2];
   bcount = 0;
   acount = 0;
@@ -17,25 +23,31 @@ BEGIN {
   sarr[0] = "";
   nsarr[0] = "";
   savens = "";
+  lineno = 0;
+#print "dcode:" dcode;
 #print "ststruct1:" ststruct1;
 #print "ststruct2:" ststruct2;
 #print "ststart:" ststart;
 #print "stforward:" stforward;
 #print "stother:" stother;
 #print "stend:" stend;
+#print "stendb:" stendb;
 }
 
 {
-#print "havestart:" havestart " ins:" ins " bcount:" bcount " acount:" acount;
-#if ($0 ~ ststruct1) { print "matches ststruct1"; }
-#if ($0 ~ ststruct2) { print "matches ststruct2"; }
-#if ($0 ~ ststart) { print "matches ststart"; }
-#if ($0 ~ stforward) { print "matches stforward"; }
-#if ($0 ~ stother) { print "matches stother: " $0; }
+  lineno = lineno + 1;
+#print lineno ": " $0
+#if ($0 ~ ststruct1) { print "  " lineno ":   matches ststruct1"; }
+#if ($0 ~ ststruct2) { print "  " lineno ":   matches ststruct2"; }
+#if ($0 ~ ststart) { print "  " lineno ":   matches ststart"; }
+#if ($0 ~ stforward) { print "  " lineno ":   matches stforward"; }
+#if ($0 ~ stother) { print "  " lineno ":   matches stother: " $0; }
+#if ($0 ~ stend) { print "  " lineno ":   matches stend: " $0; }
+#if ($0 ~ stendb) { print "  " lineno ":   matches stendb: " $0; }
   if ($0 ~ /^#/) {
     next;
   } else if (ins == 0 && $0 ~ ststart && $0 !~ stforward && $0 !~ stother) {
-#print "start: " $0;
+#print lineno ":   start: ";
     hadend = 0;
     for (val in nsarr) { delete nsarr[val]; }
     nsarr[0] = "";
@@ -58,7 +70,7 @@ BEGIN {
   } else if (havestart == 0 && bcount == 0 &&
       ($0 ~ ststruct1 || $0 ~ ststruct2) &&
       $0 !~ stforward && $0 !~ stother) {
-#print "struct: " $0;
+#print lineno ":   struct: ";
     hadend = 0;
     for (val in nsarr) { delete nsarr[val]; }
     nsarr[0] = "";
@@ -77,31 +89,48 @@ BEGIN {
       for (val in nsarr) { delete nsarr[val]; }
       nsarr[0] = "";
     }
-    if ($0 ~ stend) {
+    if ($0 ~ stend || $0 ~ stendb) {
       doend = 1;
     }
     acount = 0;
     gsub (/[	 ]*$/, "", $0);
     sarr[acount] = $0;
     acount = acount + 1;
-  } else if (ins == 1 && havestart == 0 && $0 ~ stend) {
-#print "end: " $0;
+  } else if (ins == 1 && havestart == 0 && ($0 ~ stend || $0 ~ stendb)) {
+#print lineno ":   end: ";
     hadend = 0;
     gsub (/[	 ]*$/, "", $0);
     sarr[acount] = $0;
     acount = acount + 1;
     doend = 1;
-  } else if (ins == 1 && $0 !~ /(struct|union)[	 ]*\{/ &&
-        $0 ~ /(struct|union)[	 ]/ && $0 !~ /(struct|union)[	 ].*;/) {
-#print "struct: " $0;
+  } else if (ins == 1 && $0 !~ /(struct|union|enum)[	 ]*\{/ &&
+        $0 ~ /(const *)?(struct|union|enum)[	 ]/ && $0 !~ /(const *)?(struct|union|enum)[	 ].*;/) {
+#print lineno ":   nested struct: ";
     hadend = 0;
     savens = "";
     gsub (/[	 ]*$/, "", $0);
-    sarr[acount] = $0;
-    acount = acount + 1;
     tstr = $0;
-    sub (/(struct|union) */, "&C_ST_", tstr);
-    sarr [acount - 1] = tstr;
+    if (dcode) {
+      if ($0 ~ /struct/) { 
+        ttype = "struct";
+        tlab = "C_ST_";
+#print lineno ":  found struct"
+      }
+      if ($0 ~ /union/) { 
+        ttype = "union";
+        tlab = "C_UN_";
+#print lineno ":  found union"
+      }
+      if ($0 ~ /enum/) { 
+        ttype = "enum";
+        tlab = "C_ENUM_";
+#print lineno ":  found enum"
+      }
+      sub (/(struct|union|enum)[ 	]*/, "&" tlab, tstr);
+#print lineno ":  nested(A): " tstr
+    }
+    sarr [acount] = tstr;
+    acount = acount + 1;
     tstr = $0;
     gsub (/[^\{]/, "", tstr);
     bcount = bcount + length (tstr);
@@ -113,18 +142,21 @@ BEGIN {
     }
     if (ins == 1) {
       tstr = $0;
-      sub (/[	 ]*(struct|union)[	 ]*/, "", tstr);
-      sub (/[	 ].*/, "", tstr);
-#print "nested: ", tstr;
+#print lineno ":   nested(B): ", $0
+      if (dcode) {
+        sub (/[	 const]*(struct|union|enum)[	 ]*/, "", tstr);
+        sub (/[	 ].*/, "", tstr);
+      }
+#print lineno ":   nested(C): ", tstr;
       savens = tstr;
       if (bcount > 1) {
         nsarr[bcount] = tstr;
         savens = "";
-#print "nested save: " tstr;
+#print lineno ":   nested save: " tstr;
       }
     }
   } else if (ins == 1 && $0 ~ /\{/) {
-#print "{: " $0;
+#print lineno ":   {: ";
     hadend = 0;
     sarr[acount] = $0;
     acount = acount + 1;
@@ -138,15 +170,15 @@ BEGIN {
       ins = 0;
     }
     if (ins == 1 && bcount > 1 && savens != "") {
-#print "nested last: ", savens;
+#print lineno ":   nested last: ", savens;
       if (bcount > 1) {
         nsarr[bcount] = savens;
-#print "nested save: " savens;
+#print lineno ":   nested save: " savens;
       }
       savens = "";
     }
   } else if (ins == 1 && $0 ~ /}/) {
-#print "}: " $0;
+#print lineno ":   }: ";
     gsub (/[	 ]*$/, "", $0);
     sarr[acount] = $0;
     acount = acount + 1;
@@ -154,11 +186,11 @@ BEGIN {
     gsub (/[^}]/, "", tstr);
     bcount = bcount - length (tstr);
     if (length(tstr) > 0 && $0 !~ /}[	 ]*;/) {
-#print "}: hadend: =1" $0;
+#print lineno ":   }: hadend: =1: ";
       hadend = 1;
     }
     if (bcount <= 0) {
-#print "}: bcount: 0";
+#print lineno ":   }: bcount: 0";
       if (havestart == 1) {
         doend = 1;
       } else {
@@ -171,25 +203,32 @@ BEGIN {
       }
       ins = 0;
     } else if (length (tstr) > 0 && $0 !~ /}[	 ;]*$/) {
-#print "end struct dcl: " $0;
-      tstr = $0;
-      sub (/}.*/, "};", tstr);
-      sarr [acount - 1] = tstr;
-      if (nsarr[bcount + 1] != "") {
+#print lineno ":   end struct dcl: " $0;
+      if (dcode) {
         tstr = $0;
-        sub (/}[	 ]*/, "C_ST_" nsarr[bcount + 1] " ", tstr);
-        sarr [acount] = tstr;
-        acount = acount + 1;
+        sub (/}.*/, "};", tstr);
+        sarr [acount - 1] = tstr;
+#print lineno ":   nsarr1: " nsarr[bcount + 1];
+        if (nsarr[bcount + 1] != "") {
+          tstr = $0;
+          sub (/}[	 ]*/, tlab nsarr[bcount + 1] " ", tstr);
+          sarr [acount] = tstr;
+          acount = acount + 1;
+        }
       }
       hadend = 0;
     }
   } else if (ins == 1) {
-#print "1: " $0;
-#print "1: hadend:" hadend;
+#print lineno ":   1: " $0;
+#print lineno ":   1: hadend:" hadend;
     if (hadend == 1 && nsarr[bcount + 1] != "") {
       if ($0 ~ /[	 *]*[_A-Za-z]/) {
-#print "1: hadend: match"
-        sarr[acount] = " C_ST_" nsarr[bcount + 1] " " $0;
+#print lineno ":   1: hadend: match"
+        tstr = $0;
+        if (dcode) {
+          tstr = " " tlab nsarr[bcount + 1] " " $0;
+        }
+        sarr[acount] = tstr;
         acount = acount + 1;
       } else {
         gsub (/[	 ]*$/, "", $0);
