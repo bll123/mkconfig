@@ -347,8 +347,7 @@ check_import () {
   file=$imp
 
   printlabel $name "import: ${file}"
-  checkcache ${_MKCONFIG_PREFIX} $name
-  if [ $rc -eq 0 ]; then return; fi
+  # no cache check
 
   code=""
   if [ "${reqimp}" != "" ]; then
@@ -698,8 +697,7 @@ check_cdefine () {
   name=$nm
 
   printlabel $name "c-define ($btype): ${defname}"
-  checkcache ${_MKCONFIG_PREFIX} $name
-  if [ $rc -eq 0 ]; then return; fi
+  # no cache
 
   btype2=$btype
   case $btype in
@@ -749,8 +747,7 @@ check_ctype () {
   name=$nm
 
   printlabel $name "c-type ($type): ${typname}"
-  checkcache ${_MKCONFIG_PREFIX} $name
-  if [ $rc -eq 0 ]; then return; fi
+  # no cache
 
   val=0
   u=""
@@ -832,8 +829,7 @@ check_ctypedef () {
   name=$nm
 
   printlabel $name "c-typedef: ${typname}"
-  checkcache ${_MKCONFIG_PREFIX} $name
-  if [ $rc -eq 0 ]; then return; fi
+  # no cache
 
   trc=0
   code=""
@@ -883,8 +879,7 @@ check_cmacro () {
   name=$nm
 
   printlabel $name "c-macro: ${mname}"
-  checkcache ${_MKCONFIG_PREFIX} $name
-  if [ $rc -eq 0 ]; then return; fi
+  # no cache
 
   trc=0
   cmpaths=""
@@ -1036,8 +1031,7 @@ check_cstruct () {
   name=$nm
 
   printlabel $name "c-${ctype}: ${s}"
-  checkcache ${_MKCONFIG_PREFIX} $name
-  if [ $rc -eq 0 ]; then return; fi
+  # no cache
 
   code=""
   _c_chk_cpp $name "" all
@@ -1048,21 +1042,28 @@ check_cstruct () {
   stnm=""
 
   if [ $rc -eq 0 ]; then
-    st=`${awkcmd} -f ${_MKCONFIG_DIR}/mkcextstruct.awk ${name}.out ${s}`
+    st=`${awkcmd} -f ${_MKCONFIG_DIR}/mkcextstruct.awk ${name}.out ${s} d`
     echo "#### initial ${ctype}" >&9
     echo "${st}" >&9
     echo "#### end initial ${ctype}" >&9
 
     # is there a typedef?
     # need to know whether the struct has a typedef name or not.
-    echo "### check for typedef w/_t" >&9
+    echo "### check for any typedef" >&9
+    echo $st | egrep "typedef[ 	]*" >&9 2>&1
+    rc=$?
+    havetypedef=F
+    if [ $rc -eq 0 ]; then
+      havetypedef=T
+    fi
+    echo "### check for being a typedef w/_t" >&9
     echo $st | egrep "typedef.*}[	 ]*${s}_t[	 ]*;" >&9 2>&1
     rc=$?
     if [ $rc -eq 0 ]; then
       std="${s}_t"
     else
       # sometimes typedef'd w/o _t
-      echo "### check for typedef w/o _t" >&9
+      echo "### check for being a typedef w/o _t" >&9
       echo $st | egrep "typedef.*}[	 ]*${s}[	 ]*;" >&9 2>&1
       rc=$?
       if [ $rc -eq 0 ]; then
@@ -1086,22 +1087,51 @@ check_cstruct () {
     fi
 
     st=`(
-      echo "${ctype} ${lab}${s} ";
       # remove only first "struct $s", first "struct", typedef name,
-      # any typedef.
+      # 'typedef' keyword, "struct somename".
+      # change all other struct/union/enum to our tag.
       echo "${st}" |
         sed -e 's/  / /g' \
           -e "s/${tstnm}[	 ]*;/;/;# typedef name or named struct" \
           -e "s/${ctype}[	 ]*${s}[	 ]*{/{/" \
-          -e "s/${ctype}[	 ]*${s}[	 ]*$//" \
+          -e "s/${ctype}[	 ]*${s}*[	 ]*$//" \
           -e 's/typedef[	 ]*//' \
+          -e "s/^${ctype}[	 ]*[a-zA-Z_][a-zA-Z0-9_]*[ 	]*{/{/" \
           -e "s/^${ctype}[	 ]*{/{/" \
-          -e "s/^[	 ]*${ctype}$//" |
-        grep -v '^[	 ]*$'
+          -e "s/^[	 ]*${ctype}$//" \
+          | grep -v '^[	 ]*$'
       )`
-    echo "#### modified ${ctype}" >&9
+    echo "#### modified ${ctype} (A)" >&9
     echo "${st}" >&9
-    echo "#### end modified ${ctype}" >&9
+    echo "#### end modified ${ctype} (A)" >&9
+    echo "### check for nested struct/union/enum" >&9
+    # look for any nested structure definitions as changed by
+    # the awk extractor and add them to the cchglist.
+    # remove the struct/union/enum tags from the structure now also
+    # for those definitions that are found.
+    tst=$st
+    echo "${tst}" | egrep '^ *(const)? *(struct|union|enum) *C_[A-Z]*_[a-zA-Z_][a-zA-Z0-9_]*[ \{]*$' >&9
+    rc=$?
+    while [ $rc -eq 0 ]; do
+      tl=`echo "${tst}" | egrep '^.*(struct|union|enum) C_[A-Z]*_*[a-zA-Z_][a-zA-Z0-9_]*'`
+      ttype=`echo "${tl}" | sed -e 's/^ *[const]* *\\([sue][trucniom]*\\) *C_[A-Z]*_.*/\\1/'`
+      tlab=`echo "${tl}" | sed -e 's/^.*\\(C_[A-Z]*_\\).*/\\1/'`
+      tl=`echo "${tl}" | sed -e 's/^.*C_[A-Z]*_\\([a-zA-Z_][a-zA-Z0-9_]*\\).*/\\1/'`
+      doappend cchglist "-e 's/\\([^a-zA-Z0-9_]\\)${tl}\\([^a-zA-Z0-9_]\\)/\\1${tlab}${tl}\2/g' "
+      doappend cchglist "-e 's/^${tl}\\([^a-zA-Z0-9_]\\)/${tlab}${tl}\\1/g' "
+      st=`echo "${st}" | sed -e "s/${ttype} *${tl}/${tl}/g"`
+      tst=`echo "${tst}" | sed -e "s/${ttype} *${tl}/${tl}/g"`
+      tst=`echo "${tst}" | sed -e "s/.*${tlt} *C_ST_${tl}[ {]*\$//"`
+      echo "${tst}" | egrep '^.*(struct|union|enum) *C_[A-Z]*_[a-zA-Z_][a-zA-Z0-9_]*[ \{]*$' >&9
+      rc=$?
+    done
+    st=`(
+        echo "${ctype} ${lab}${s} ";
+        echo "${st}"
+        )`
+    echo "#### modified ${ctype} (B)" >&9
+    echo "${st}" >&9
+    echo "#### end modified ${ctype} (B)" >&9
     # save this for possible later use (cmembertype, cmemberxdr)
     cmd="CST_${s}=\${st}"
     eval $cmd
@@ -1143,8 +1173,12 @@ check_cstruct () {
     doappend cstructs "
 ${st}
 "
-    if [ "$stnm" != "" ]; then
+    if [ $havetypedef = "F" -a "$stnm" != "" ]; then
       doappend cstructs "${lab}${s} ${stnm};
+"
+    fi
+    if [ $havetypedef = "T" -a "$stnm" != "" ]; then
+      doappend daliases "alias ${lab}${s} ${stnm};
 "
     fi
     if [ $lab != "enum" -a $rval -gt 0 ]; then
@@ -1194,8 +1228,7 @@ check_cmembertype () {
   name=$nm
 
   printlabel $name "member:type (C): ${struct} ${member}"
-  checkcache ${_MKCONFIG_PREFIX} $name
-  if [ $rc -eq 0 ]; then return; fi
+  # no cache
 
   trc=0
   cmd="st=\${CST_${struct}}"
@@ -1231,8 +1264,7 @@ check_cmemberxdr () {
   name=$nm
 
   printlabel $name "member:XDR (C): ${struct} ${member}"
-  checkcache ${_MKCONFIG_PREFIX} $name
-  if [ $rc -eq 0 ]; then return; fi
+  # no cache
 
   trc=0
   cmd="st=\${CST_${struct}}"
@@ -1278,8 +1310,7 @@ check_cdcl () {
   name=$nm
 
   printlabel $name "c-dcl: ${dname}"
-  checkcache ${_MKCONFIG_PREFIX} $name
-  if [ $rc -eq 0 ]; then return; fi
+  # no cache
 
   trc=0
 
