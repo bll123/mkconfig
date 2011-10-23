@@ -214,15 +214,8 @@ typedef struct sbb {
   const struct __rpc_xdr {
     int (*x_getlong)(struct __rpc_xdr *, long *);
     int (*x_putlong)(struct __rpc_xdr *, const long *);
-    int (*x_getbytes)(struct __rpc_xdr *, char *, int);
-    int (*x_putbytes)(struct __rpc_xdr *, const char *, int);
-    int (*x_getpostn)(struct __rpc_xdr *);
-    int (*x_setpostn)(struct __rpc_xdr *, int);
-    int *(*x_inline)(struct __rpc_xdr *, int);
     void (*x_destroy)(struct __rpc_xdr *);
-    int (*x_control)(struct __rpc_xdr *, int, void *);
   } *x_ops;
-  char *x_public;
   void *x_private;
   char *x_base;
   int   x_handy;
@@ -233,16 +226,9 @@ typedef struct _tscc {
   int     op;
   const struct tscc {
     int (*x_getlong)(struct tscc *, long *);
-    int (*x_putlong)(struct tscc *, const long *);
-    int (*x_getbytes)(struct tscc *, char *, int);
-    int (*x_putbytes)(struct tscc *, const char *, int);
-    int (*x_getpostn)(struct tscc *);
-    int (*x_setpostn)(struct tscc *, int);
     int *(*x_inline)(struct tscc *, int);
     void (*x_destroy)(struct tscc *);
-    int (*x_control)(struct tscc *, int, void *);
   } *x_ops;
-  char *x_public;
   void *x_private;
   char *x_base;
   int   x_handy;
@@ -256,11 +242,33 @@ struct sdd {
     void (*cl_abort) (void);
     void (*cl_geterr) (struct sdd *, int *);
     int (*cl_freeres) (struct sdd *, long, char *);
-    void (*cl_destroy) (struct sdd *);
-    int (*cl_control) (struct sdd *, int, char *);
   } *cl_ops;
   char *cl_private;
 };
+
+/* uses struct name in functions */
+typedef struct see {
+  int     op;
+  struct see *next;
+  struct seestuff {
+    int (*x_getlong)(struct see *, long *);
+    int (*x_putlong)(struct see *, const long *);
+    void (*x_destroy)(struct see *);
+  } *see_stuff;
+  void *morestuff;
+} SEE;
+
+/* uses struct name in functions */
+typedef struct __sff {
+  int     op;
+  struct __sff *next;
+  struct sffstuff {
+    int (*x_getlong)(struct __sff *, long *);
+    int (*x_putlong)(struct __sff *, const long *);
+    void (*x_destroy)(struct __sff *);
+  } *sff_stuff;
+  void *moreffstuff;
+} SFF;
 
 union ua
 {
