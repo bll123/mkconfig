@@ -1039,6 +1039,7 @@ check_cstruct () {
   trc=0
   rval=0
   std=""
+  origstnm=""
   stnm=""
 
   if [ $rc -eq 0 ]; then
@@ -1050,7 +1051,7 @@ check_cstruct () {
     # is there a typedef?
     # need to know whether the struct has a typedef name or not.
     echo "### check for any typedef" >&9
-    echo $st | egrep "typedef[ 	]*" >&9 2>&1
+    echo $st | egrep "typedef[ 	]*" >/dev/null 2>&1
     rc=$?
     havetypedef=F
     if [ $rc -eq 0 ]; then
@@ -1071,6 +1072,15 @@ check_cstruct () {
       fi
     fi
     echo "#### std=${std}" >&9
+    if [ $havetypedef = T -a "$std" != "" ]; then
+      echo "#### grab original struct name if there" >&9
+      tostnm=`echo $st | sed -e 's/[ 	]*{.*//' \
+        -e "s/[ 	]*typedef[ 	]*${ctype}[ 	]*//"`
+      if [ "$tostnm" != "" ]; then
+        origstnm=$tostnm
+        echo "#### origstnm=${origstnm}" >&9
+      fi
+    fi
 
     echo "### check for named struct" >&9
     if [ "$std" = "" ]; then
@@ -1174,15 +1184,19 @@ check_cstruct () {
     doappend cstructs "
 ${st}
 "
-    if [ $havetypedef = "F" -a "$stnm" != "" ]; then
+    if [ $havetypedef = F -a "$stnm" != "" ]; then
       doappend cstructs "${lab}${s} ${stnm};
 "
     fi
-    if [ $havetypedef = "T" -a "$stnm" != "" ]; then
+    if [ $havetypedef = T -a "$stnm" != "" ]; then
       doappend daliases "alias ${lab}${s} ${stnm};
 "
     fi
-    if [ $lab != "enum" -a $rval -gt 0 ]; then
+    if [ $havetypedef = T -a "$origstnm" != "" ]; then
+      doappend cchglist "-e 's/\([^a-zA-Z0-9_]\)${ctype} *${origstnm}\([^a-zA-Z0-9_]\)/\1${lab}${s}\2/g' "
+      doappend cchglist "-e 's/^${ctype} *${origstnm}\([^a-zA-Z0-9_]\)/${lab}${s}\1/g' "
+    fi
+    if [ $lab != enum -a $rval -gt 0 ]; then
       doappend dasserts "static assert ((${lab}${s}).sizeof == ${rval});
 "
     fi
