@@ -37,6 +37,8 @@ cstruct sbb
 cstruct scc
 cenum xdr_op
 cstruct sdd
+cstruct see
+cstruct SFF
 
 cunion ua
 cunion ub
