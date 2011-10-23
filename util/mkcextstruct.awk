@@ -6,11 +6,11 @@ BEGIN {
     dcode = "T";
     delete ARGV[3];
   }
-  ststruct1 = "(struct|union|enum)[	 ]*\\{"
-  ststruct2 = "typedef[	 ][	 ]*(struct|union|enum)[ 	]*[a-zA-Z0-9_]*[ 	]*{?[ 	]*$"
-  ststart = "(struct|union|enum)[	 ]*" ARGV[2];
-  stforward = "(struct|union|enum)[	 ]*" ARGV[2] "[	 ]*;";
-  stother = "(struct|union|enum)[	 ]*" ARGV[2] "[	 ]*[*a-zA-Z0-9_]";
+  ststruct1 = "(struct|class|union|enum)[	 ]*\\{"
+  ststruct2 = "typedef[	 ][	 ]*(struct|class|union|enum)[ 	]*[a-zA-Z0-9_]*[ 	]*{?[ 	]*$"
+  ststart = "(struct|class|union|enum)[	 ]*" ARGV[2];
+  stforward = "(struct|class|union|enum)[	 ]*" ARGV[2] "[	 ]*;";
+  stother = "(struct|class|union|enum)[	 ]*" ARGV[2] "[	 ]*[*a-zA-Z0-9_]";
   stend = "[	 ]" ARGV[2] "_t[ 	;]";
   stendb = "[	 ]" ARGV[2] "[ 	;]";
   delete ARGV[2];
@@ -103,8 +103,12 @@ BEGIN {
     sarr[acount] = $0;
     acount = acount + 1;
     doend = 1;
-  } else if (ins == 1 && $0 !~ /(struct|union|enum)[	 ]*\{/ &&
-        $0 ~ /(const *)?(struct|union|enum)[	 ]/ && $0 !~ /(const *)?(struct|union|enum)[	 ].*;/) {
+  } else if (ins == 1 && 
+      $0 !~ /(struct|class|union|enum)[	 ]*\{/ &&
+      $0 ~ /(const *)?(struct|class|union|enum)[	 ]*[a-zA-Z_][a-zA-Z0-9_]*[ 	\{]*$/ && 
+      $0 !~ /(const *)?(struct|class|union|enum)[	 ].*;/) {
+# nested structure, not an unnamed structure
+# is named, but not followed by anything else
 #print lineno ":   nested struct: ";
     hadend = 0;
     savens = "";
@@ -116,6 +120,11 @@ BEGIN {
         tlab = "C_ST_";
 #print lineno ":  found struct"
       }
+      if ($0 ~ /class/) { 
+        ttype = "class";
+        tlab = "C_CLASS_";
+#print lineno ":  found class"
+      }
       if ($0 ~ /union/) { 
         ttype = "union";
         tlab = "C_UN_";
@@ -126,7 +135,7 @@ BEGIN {
         tlab = "C_ENUM_";
 #print lineno ":  found enum"
       }
-      sub (/(struct|union|enum)[ 	]*/, "&" tlab, tstr);
+      sub (/(struct|class|union|enum)[ 	]*/, "&" tlab, tstr);
 #print lineno ":  nested(A): " tstr
     }
     sarr [acount] = tstr;
@@ -144,7 +153,7 @@ BEGIN {
       tstr = $0;
 #print lineno ":   nested(B): ", $0
       if (dcode) {
-        sub (/[	 const]*(struct|union|enum)[	 ]*/, "", tstr);
+        sub (/[	 const]*(struct|class|union|enum)[	 ]*/, "", tstr);
         sub (/[	 ].*/, "", tstr);
       }
 #print lineno ":   nested(C): ", tstr;
