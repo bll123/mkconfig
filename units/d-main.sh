@@ -1412,6 +1412,14 @@ check_cdcl () {
           echo "## tmp(F): ${tmp}" >&9
           nm="_c_arg_${val}_${dname}"
           setdata ${_MKCONFIG_PREFIX} ${nm} "${tmp}"
+          case ${tmp} in
+            struct*|union*|enum*)
+              ;;
+            *)
+              doappend daliases "alias ${tmp} ${nm}_alias;
+"
+              ;;
+          esac
           domath val "$val + 1"
           c=`echo ${c} | sed -e 's/^[^,]*//' -e 's/^[	 ,]*//'`
         done
