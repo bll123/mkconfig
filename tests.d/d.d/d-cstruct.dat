@@ -39,6 +39,10 @@ cenum xdr_op
 cstruct sdd
 cstruct see
 cstruct SFF
+cstruct sgg
+cstruct shh
+cstruct sii
+cstruct sjj
 
 cunion ua
 cunion ub

@@ -167,7 +167,7 @@ struct sw
   double  c;
   struct sww {
     double d;
-  };
+  } sw2;
 };
 
 /* named struct */
@@ -269,6 +269,42 @@ typedef struct __sff {
   } *sff_stuff;
   void *moreffstuff;
 } SFF;
+
+/* typedef of struct; same name */
+typedef struct sgg
+{
+  double  c;
+  struct sgg1 {
+    double d;
+  } _sgg1;
+} sgg;
+
+/* typedef of struct; diff name; use struct name */
+typedef struct shh
+{
+  double  c;
+  struct shh1 {
+    double d;
+  } _shh1;
+} shh_t;
+
+/* typedef of struct; diff name; use typedef name */
+typedef struct sii_s
+{
+  double  c;
+  struct sii1 {
+    double d;
+  } _sii1;
+} sii;
+
+/* non-typedef same name */
+struct sjj
+{
+  double  c;
+  struct sjj1 {
+    double d;
+  } _sjj1;
+} sjj;
 
 union ua
 {
