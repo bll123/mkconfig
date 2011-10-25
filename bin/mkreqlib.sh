@@ -80,11 +80,11 @@ while read cline; do
     "#define _lib_"*1)
       lang=c
       ;;
-    "enum bool _lib_"*" = true;")
+    "enum bool _clib_"*" = true;")
       lang=d
       dver=2
       ;;
-    "enum : bool { _lib_"*" = true };")
+    "enum : bool { _clib_"*" = true };")
       lang=d
       dver=1
       ;;
