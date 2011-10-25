@@ -892,6 +892,7 @@ check_cmacro () {
         *.h)
           create_chdr_nm nhdr $thdr
           getdata vhdr ${_MKCONFIG_PREFIX} $nhdr
+          echo "   checking $thdr : $nhdr : $vhdr " >&9
           if [ "${vhdr}" != "0" -a "${vhdr}" != "" ]; then
             # need path to header file
             if [ "$cmpaths" = "" ]; then
