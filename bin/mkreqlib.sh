@@ -38,15 +38,20 @@ getlibdata () {
 
 mkconfigversion
 
+debug=F
 OUTLIBFILE="mkconfig.reqlibs"
 while test $# -gt 1; do
   case $1 in
+    -X)
+      shift
+      debug=T
+      ;;
     -c)
       shift
       CACHEFILE=$1
       shift
       ;;
-    -l)
+    -o|-l)   # -l backwards compatibility
       shift
       OUTLIBFILE=$1
       shift
@@ -75,7 +80,9 @@ reqlibs=""
 exec 7<&0 < ${CONFH}
 dver=0
 while read cline; do
-  #echo $cline   # debug
+  if [ $debug = T ]; then
+    echo "cline:$cline:"
+  fi
   case $cline in
     "#define _lib_"*1)
       lang=c
@@ -84,7 +91,15 @@ while read cline; do
       lang=d
       dver=2
       ;;
+    "enum bool _lib_"*" = true;")
+      lang=d
+      dver=2
+      ;;
     "enum : bool { _clib_"*" = true };")
+      lang=d
+      dver=1
+      ;;
+    "enum : bool { _lib_"*" = true };")
       lang=d
       dver=1
       ;;
@@ -99,11 +114,17 @@ while read cline; do
   fi
   dosubst cline '#define ' '' ' 1' '' ' = true;' '' 'enum bool ' ''
   getlibdata var $cline $lang
+  if [ $debug = T ]; then
+    echo "cline:$cline:lang:$lang:var:$var:"
+  fi
   if [ "$var" != "" ]; then
     echo $reqlibs | grep -- $var > /dev/null 2>&1
     rc=$?
     if [ $rc -ne 0 ]; then
       doappend reqlibs " $var"
+      if [ $debug = T ]; then
+        echo "append:$var"
+      fi
     fi
   fi
 done
