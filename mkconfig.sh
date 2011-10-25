@@ -71,10 +71,11 @@ setvar () {
     svname=$2
 
     if [ $varsfileopen = F ]; then
-      for v in `set | grep "^mkv_" | sed 's/=.*$//'`; do
+      for v in `set | grep "^mkv_" | sed -e 's/=.*$//'`; do
         unset $v
       done
       varsfileopen=T
+      >$VARSFILE
       exec 8>>$VARSFILE
     fi
 
@@ -83,9 +84,7 @@ setvar () {
     rc=$?
     # if already in the list of vars, don't add it to the file again.
     if [ $rc -ne 0 ]; then
-      if [ $rc -ne 0 ]; then
-        echo ${svname} >&8
-      fi
+      echo ${svname} >&8
     fi
 
     cmd="mkv_${prefix}_${svname}=T"
