@@ -1331,7 +1331,7 @@ check_cdcl () {
   rc=$?
 
   if [ $rc -eq 0 ]; then
-    egrep "[	 *]${dname}[	 ]*\(" $name.out >/dev/null 2>&1
+    egrep "[	 \*]${dname}[	 ]*\(" $name.out >/dev/null 2>&1
     rc=$?
     if [ $rc -eq 0 ]; then
       trc=1
@@ -1340,6 +1340,7 @@ check_cdcl () {
     if [ $trc -eq 1 ]; then
       dcl=`${awkcmd} -f ${_MKCONFIG_DIR}/mkcextdcl.awk ${name}.out ${dname}`
       dcl=`echo $dcl`  # make single line.
+      echo "## dcl(0): ${dcl}" >&9
       # extern will be replaced
       # ; may or may not be present, so remove it.
       cmd="dcl=\`echo \"\$dcl\" | sed -e 's/extern *//' -e 's/;//' \`"
