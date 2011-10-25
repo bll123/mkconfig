@@ -1040,82 +1040,63 @@ check_cstruct () {
   rc=$?
   trc=0
   rval=0
-  std=""
   origstnm=""
   stnm=""
+  tdnm=""
 
   if [ $rc -eq 0 ]; then
     st=`${awkcmd} -f ${_MKCONFIG_DIR}/mkcextstruct.awk ${name}.out ${s} d`
     echo "#### initial ${ctype}" >&9
     echo "${st}" >&9
     echo "#### end initial ${ctype}" >&9
-
-    # is there a typedef?
-    # need to know whether the struct has a typedef name or not.
-    echo "### check for any typedef" >&9
-    echo $st | egrep "typedef[ 	]*" >/dev/null 2>&1
-    rc=$?
-    havetypedef=F
-    if [ $rc -eq 0 ]; then
-      havetypedef=T
-    fi
-    echo "### check for being a typedef w/_t" >&9
-    echo $st | egrep "typedef.*}[	 ]*${s}_t[	 ]*;" >&9 2>&1
-    rc=$?
-    if [ $rc -eq 0 ]; then
-      std="${s}_t"
-    else
-      # sometimes typedef'd w/o _t
-      echo "### check for being a typedef w/o _t" >&9
-      echo $st | egrep "typedef.*}[	 ]*${s}[	 ]*;" >&9 2>&1
-      rc=$?
-      if [ $rc -eq 0 ]; then
-        std="${s}"
+    tst=`echo ${st} | sed -e 's/{.*}/ = /' -e 's/[	]/ /g' -e 's/  / /g' \
+        -e 's/^ *//' -e 's/[ ;]*\$//'`
+    echo "### ${ctype} basics:${tst}:" >&9
+    # should now be: [typedef] {struct|union|enum} [name] = [name2]
+    if [ "${tst}" != "" ]; then
+      set ${tst}
+      havetypedef=F
+      if [ $1 = typedef ]; then
+        havetypedef=T
+        shift
       fi
-    fi
-    echo "#### std=${std}" >&9
-    if [ $havetypedef = T -a "$std" != "" ]; then
-      echo "#### grab original struct name if there" >&9
-      tostnm=`echo $st | sed -e 's/[ 	]*{.*//' \
-        -e "s/[ 	]*typedef[ 	]*${ctype}[ 	]*//"`
-      if [ "$tostnm" != "" ]; then
-        origstnm=$tostnm
-        echo "#### origstnm=${origstnm}" >&9
+      shift # the type, which we know already
+      if [ $1 != "=" ]; then
+        stnm=$1
+        shift
       fi
-    fi
+      shift # remove the equals sign
+      if [ $# -gt 0 ]; then
+        tdnm=$1
+        shift
+      fi
+      echo "#### stnm=${stnm}" >&9
+      echo "#### tdnm=${tdnm}" >&9
 
-    echo "### check for named struct" >&9
-    if [ "$std" = "" ]; then
-      stnm=`echo $st | egrep "}[	 ]*[a-zA-Z0-9_]*[	 ]*;" |
-          sed -e 's/.*}[	 ]*//' -e 's/[	 ]*;$//'`
-    fi
-    echo "#### stnm=${stnm}" >&9
+      trc=1
 
-    trc=1
-
-    tstnm=$std
-    if [ "$stnm" != "" ]; then
-      tstnm=$stnm
-    fi
-
-    st=`(
-      # remove only first "struct $s", first "struct", typedef name,
-      # 'typedef' keyword, "struct somename".
+      # remove 'typedef' keyword
+      # remove trailing name before ;
+      # remove "struct $stnm"
+      # remove "struct"
+      # remove any empty lines
+      st=`echo "${st}" |
+          sed -e 's/[	]/ /g' -e 's/  / /g' \
+            -e 's/typedef *//' \
+            -e "s/${tdnm} *;/;/; # typedef name or named struct" \
+            -e "s/ *${ctype} *${stnm} *{/{/" \
+            -e "s/^ *${ctype} *${stnm} *\$//" \
+            | grep -v '^ *$' `
       # change all other struct/union/enum to our tag.
-      echo "${st}" |
-        sed -e 's/  / /g' \
-          -e "s/${tstnm}[	 ]*;/;/;# typedef name or named struct" \
-          -e "s/${ctype}[	 ]*${s}[	 ]*{/{/" \
-          -e "s/${ctype}[	 ]*${s}*[	 ]*$//" \
-          -e 's/typedef[	 ]*//' \
-          -e "s/^${ctype}[	 ]*[a-zA-Z_][a-zA-Z0-9_]*[ 	]*{/{/" \
-          -e "s/^${ctype}[	 ]*{/{/" \
-          -e "s/^[	 ]*${ctype}$//" \
-          | grep -v '^[	 ]*$'
-      )`
-    echo "#### modified ${ctype} (A)" >&9
-    echo "${st}" >&9
-    echo "#### end modified ${ctype} (A)" >&9
+      if [ "$stnm" != "" ]; then
+        st=`echo "${st}" |
+            sed -e "s/${ctype} *${stnm}\\([^a-zA-Z0-9_]\\)/${lab}${stnm}\\1/"`
+      fi
+      echo "#### modified ${ctype} (A)" >&9
+      echo "${st}" >&9
+      echo "#### end modified ${ctype} (A)" >&9
+    fi
+
     echo "### check for nested struct/union/enum" >&9
     # look for any nested structure definitions as changed by
     # the awk extractor and add them to the cchglist.
@@ -1150,17 +1131,11 @@ check_cstruct () {
     eval $cmd
     echo "   save: CST_${s}" >&9
 
-    if [ "$std" = "" ]; then
-      std=$s
-      std="${ctype} ${s}"
-    fi
-    echo "#### std=${std}" >&9
-
     if [ $trc -eq 1 ]; then
       if [ $ctype != "enum" ]; then
-        tstnm=$std
-        if [ "$stnm" != "" ]; then
-          tstnm=$stnm
+        tstnm=$tdnm
+        if [ "$tstnm" = "" ]; then
+          tstnm="${ctype} ${stnm}"
         fi
         echo "#### check size using: ${tstnm}" >&9
         code="main () { printf (\"%d\", sizeof (${tstnm})); return (0); }"
@@ -1181,22 +1156,30 @@ check_cstruct () {
   fi
 
   if [ $trc -eq 1 ]; then
-    doappend cchglist "-e 's/\([^a-zA-Z0-9_]\)${std}\([^a-zA-Z0-9_]\)/\1${lab}${s}\2/g' "
-    doappend cchglist "-e 's/^${std}\([^a-zA-Z0-9_]\)/${lab}${s}\1/g' "
+    if [ "$stnm" != "" ]; then
+      doappend cchglist "-e 's/\([^a-zA-Z0-9_]\)${ctype} *${stnm}\([^a-zA-Z0-9_]\)/\1${lab}${s}\2/g' "
+      doappend cchglist "-e 's/^${ctype} *${stnm}\([^a-zA-Z0-9_]\)/${lab}${s}\1/g' "
+    fi
+    if [ $havetypedef = T -a "$tdnm" != "" ]; then
+      doappend cchglist "-e 's/\([^a-zA-Z0-9_]\)${tdnm}\([^a-zA-Z0-9_]\)/\1${lab}${s}\2/g' "
+      doappend cchglist "-e 's/^${tdnm}\([^a-zA-Z0-9_]\)/${lab}${s}\1/g' "
+    fi
     doappend cstructs "
 ${st}
 "
-    if [ $havetypedef = F -a "$stnm" != "" ]; then
-      doappend cstructs "${lab}${s} ${stnm};
+###    # is this needed???
+#    if [ $havetypedef = F -a "$tdnm" != "" ]; then
+#      doappend cstructs "${lab}${s} ${tdnm};
+#"
+#    fi
+    if [ $havetypedef = T -a "$tdnm" != "" ]; then
+      doappend daliases "alias ${lab}${s} ${tdnm};
 "
     fi
-    if [ $havetypedef = T -a "$stnm" != "" ]; then
-      doappend daliases "alias ${lab}${s} ${stnm};
+    if [ $havetypedef = T -a "$tdnm" != "" -a \
+        "$stnm" != "" -a "$stnm" != "$s" ]; then
+      doappend daliases "alias ${lab}${s} ${lab}${stnm};
 "
-    fi
-    if [ $havetypedef = T -a "$origstnm" != "" ]; then
-      doappend cchglist "-e 's/\([^a-zA-Z0-9_]\)${ctype} *${origstnm}\([^a-zA-Z0-9_]\)/\1${lab}${s}\2/g' "
-      doappend cchglist "-e 's/^${ctype} *${origstnm}\([^a-zA-Z0-9_]\)/${lab}${s}\1/g' "
     fi
     if [ $lab != enum -a $rval -gt 0 ]; then
       doappend dasserts "static assert ((${lab}${s}).sizeof == ${rval});
