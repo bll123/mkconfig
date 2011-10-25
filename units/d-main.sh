@@ -902,6 +902,7 @@ check_cmacro () {
                   case $f in
                     -I*)
                       dosubst f '-I' ''
+                      doappend cmpaths ' '
                       doappend cmpaths $f
                       ;;
                   esac
