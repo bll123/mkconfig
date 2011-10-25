@@ -36,6 +36,10 @@ struct CL {
 	((*(rh)->cl_ops->cl_call)(rh, proc, xargs, argsp, xres, resp, secs))
 #    define   T8( a , b , c ) ((a)*(b)*(c))
 #define T9(cmd, type)  (((cmd) << 8) | ((type) & 0x0f))
+#define T10(rh, proc, xargs, argsp, xres, resp, secs) \
+        ((*(rh)->cl_ops->cl_call)(rh, proc, xargs, \
+            argsp, xres, resp, secs))
+
 
 #endif
 '

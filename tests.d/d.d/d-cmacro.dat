@@ -19,3 +19,4 @@ cmacro T6 macrohdr.h uint uint uint uint
 cmacro T7 macrohdr.h int 'CL *' int int int int int 'struct b'
 cmacro T8 macrohdr.h uint uint uint uint
 cmacro T9 macrohdr.h int int int
+cmacro T10 macrohdr.h int 'CL *' int int int int int 'struct b'
