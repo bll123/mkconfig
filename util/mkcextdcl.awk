@@ -1,7 +1,7 @@
 #!/usr/bin/awk
 
 BEGIN {
-  dclstart = "[	 *]" ARGV[2] "[	 ]*\\(";
+  dclstart = "[	 \*]" ARGV[2] "[	 ]*\\(";
   delete ARGV[2];
   bcount = 0;
   acount = 0;
