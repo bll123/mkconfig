@@ -85,7 +85,8 @@ check_32bitflags () {
 }
 
 check_cc () {
-  CC=${CC:-cc}
+  _read_option CC CC cc
+  CC=${CC:-${CC}}
 
   printlabel CC "C compiler"
 
@@ -158,8 +159,10 @@ check_using_gnu_ld () {
 }
 
 check_cflags () {
-  ccflags="${CFLAGS:-}"
-  ccincludes="${CINCLUDES:-}"
+  _read_option CFLAGS CFLAGS ""
+  _read_option CINCLUDES CINCLUDES ""
+  ccflags="${CFLAGS:-${CFLAGS}}"
+  ccincludes="${CINCLUDES:-${CINCLUDES}}"
 
   printlabel CFLAGS "C flags"
 
@@ -289,7 +292,8 @@ main () { return 0; }" > t.c
 }
 
 check_ldflags () {
-  ldflags="${LDFLAGS:-}"
+  _read_option LDFLAGS LDFLAGS ""
+  ldflags="${LDFLAGS:-${LDFLAGS}}"
 
   printlabel LDFLAGS "C Load flags"
 
@@ -345,7 +349,8 @@ check_ldflags () {
 }
 
 check_libs () {
-  libs="${LIBS:-}"
+  _read_option LIBS LIBS ""
+  libs="${LIBS:-${LIBS}}"
 
   printlabel LIBS "C Libraries"
 
@@ -376,7 +381,8 @@ check_libs () {
 }
 
 check_shcflags () {
-  shcflags="${SHCFLAGS:-}"
+  _read_option SHCFLAGS SHCFLAGS ""
+  shcflags="${SHCFLAGS:-${SHCFLAGS}}"
 
   printlabel SHCFLAGS "shared library cflags"
 
@@ -415,7 +421,8 @@ check_shcflags () {
 }
 
 check_shldflags () {
-  shldflags="${SHLDFLAGS:-}"
+  _read_option SHLDFLAGS SHLDFLAGS ""
+  shldflags="${SHLDFLAGS:-${SHLDFLAGS}}"
   printlabel SHLDFLAGS "shared library ldflags"
 
   shldflags="$SHLDFLAGS -shared"
