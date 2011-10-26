@@ -147,6 +147,13 @@ modify_ccode () {
   tcode="$2"
 
   tcode=`echo "${tcode}" | sed -e 's/"/\\\\"/g'`
+  # remove tabs
+  # remove /* comments
+  # remove // comments
+  # change sizeof(v) to v.sizeof
+  # remove gcc-isms
+  # change '* const' to '*'
+  # remove spacing before braces
   cmd="
     sed -e 's/[	 ][	 ]*/ /g;# clean up spacing' \
       -e 's,/\*[^\*]*\*/,,;# remove comments' \
@@ -154,6 +161,7 @@ modify_ccode () {
       -e 's/sizeof[	 ]*\(([^)]*)\)/\1.sizeof/g' \
       -e 's/__extension__//g;# gcc-ism' \
       -e 's/__const\([^a-zA-Z0-9_]\)/\1/g;# gcc-ism' \
+      -e 's/\*[	 ]const/*/g; # not handled' \
       -e 's/[	 ]*\([\{\}]\)/ \1/;# spacing before braces' \
       |
     sed ${cchglist} -e 's/a/a/;# could be empty' \
@@ -1052,88 +1060,100 @@ check_cstruct () {
     echo "#### end initial ${ctype}" >&9
     tst=`echo ${st} | sed -e 's/{.*}/ = /' -e 's/[	]/ /g' -e 's/  / /g' \
         -e 's/^ *//' -e 's/[ ;]*\$//'`
-    echo "### ${ctype} basics:${tst}:" >&9
-    # should now be: [typedef] {struct|union|enum} [name] = [name2]
-    if [ "${tst}" != "" ]; then
-      set ${tst}
-      havetypedef=F
-      if [ $1 = typedef ]; then
-        havetypedef=T
-        shift
-      fi
-      shift # the type, which we know already
-      if [ $1 != "=" ]; then
-        stnm=$1
-        shift
-      fi
-      shift # remove the equals sign
-      if [ $# -gt 0 ]; then
-        tdnm=$1
-        shift
-      fi
-      echo "#### stnm=${stnm}" >&9
-      echo "#### tdnm=${tdnm}" >&9
+    if [ "${st}" != "" ]; then
+      echo "### ${ctype} basics:${tst}:" >&9
+      # should now be: [typedef] {struct|union|enum} [name] = [name2]
+      if [ "${tst}" != "" ]; then
+        set ${tst}
+        havetypedef=F
+        if [ $1 = typedef ]; then
+          havetypedef=T
+          shift
+        fi
+        shift # the type, which we know already
+        if [ $1 != "=" ]; then
+          stnm=$1
+          shift
+        fi
+        shift # remove the equals sign
+        if [ $# -gt 0 ]; then
+          tdnm=$1
+          shift
+        fi
+        echo "#### stnm=${stnm}" >&9
+        echo "#### tdnm=${tdnm}" >&9
 
-      trc=1
+        if [ "$stnm" != "" -o "$tdnm" != "" ]; then
+          trc=1
+        fi
 
-      # remove 'typedef' keyword
-      # remove trailing name before ;
-      # remove "struct $stnm"
-      # remove "struct"
-      # remove any empty lines
-      # remove all const
-      st=`echo "${st}" |
-          sed -e 's/[	]/ /g' -e 's/  / /g' \
-            -e 's/typedef *//' \
-            -e "s/${tdnm} *;/;/; # typedef name or named struct" \
-            -e "s/ *${ctype} *${stnm} *{/{/" \
-            -e "s/^ *${ctype} *${stnm} *\$//" \
-            -e 's/\([^a-zA-Z0-9_]\)const\([^a-zA-Z0-9_]\)/\1 \2/g; # not supported' \
-            -e 's/^const\([^a-zA-Z0-9_]\)/\1/g; # not supported' \
-            | grep -v '^ *$' `
-      # change all other struct/union/enum to our tag.
-      if [ "$stnm" != "" ]; then
+        # remove 'typedef' keyword
+        # remove trailing name before ;
+        # remove "struct $stnm"
+        # remove "struct"
+        # remove any empty lines
+        # remove all const
+        # remove blank lines
         st=`echo "${st}" |
-            sed -e "s/${ctype} *${stnm}\\([^a-zA-Z0-9_]\\)/${lab}${stnm}\\1/"`
+            sed -e 's/[	]/ /g' -e 's/  / /g' \
+              -e 's/typedef *//' \
+              -e "s/${tdnm} *;/;/; # typedef name or named struct" \
+              -e "s/ *${ctype} *${stnm} *{/{/" \
+              -e "s/^ *${ctype} *${stnm} *\$//" \
+              -e 's/\([^a-zA-Z0-9_]\)const\([^a-zA-Z0-9_]\)/\1 \2/g; # not supported' \
+              -e 's/^const\([^a-zA-Z0-9_]\)/\1/g; # not supported' \
+              | grep -v '^ *$' `
+        # change all other struct/union/enum to our tag.
+        if [ "$stnm" != "" ]; then
+          st=`echo "${st}" |
+              sed -e "s/${ctype} *${stnm}\\([^a-zA-Z0-9_]\\)/${lab}${stnm}\\1/"`
+        fi
+        echo "#### modified ${ctype} (A)" >&9
+        echo ":${st}:" >&9
+        echo "#### end modified ${ctype} (A)" >&9
+      else
+        trc=0
       fi
-      echo "#### modified ${ctype} (A)" >&9
-      echo "${st}" >&9
-      echo "#### end modified ${ctype} (A)" >&9
     fi
 
-    echo "### check for nested struct/union/enum" >&9
-    # look for any nested structure definitions as changed by
-    # the awk extractor and add them to the cchglist.
-    # remove the struct/union/enum tags from the structure now also
-    # for those definitions that are found.
-    tst=$st
-    echo "${tst}" | egrep '^[ const]*(struct|union|enum) *C_[A-Z]*_[a-zA-Z_][a-zA-Z0-9_]*[ \\{]*$' >&9
-    rc=$?
-    while [ $rc -eq 0 ]; do
-      # make sure we only have the first matching line.
-      tl=`echo "${tst}" | egrep '^[ const]*(struct|union|enum) C_[A-Z]*_*[a-zA-Z_][a-zA-Z0-9_]*[ \\{]*' | sed '2,$d'`
-      ttype=`echo "${tl}" | sed -e 's/^ *[const]* *\([sue][trucniom]*\) *C_[A-Z]*_.*/\1/'`
-      tlab=`echo "${tl}" | sed -e 's/^.*\(C_[A-Z]*_\).*/\1/'`
-      tl=`echo "${tl}" | sed -e 's/^.*C_[A-Z]*_\([a-zA-Z_][a-zA-Z0-9_]*\).*/\1/'`
-      doappend cchglist "-e 's/\([^a-zA-Z0-9_]\)${tl}\([^a-zA-Z0-9_]\)/\1${tlab}${tl}\2/g' "
-      doappend cchglist "-e 's/^${tl}\([^a-zA-Z0-9_]\)/${tlab}${tl}\1/g' "
-      st=`echo "${st}" | sed -e "s/${ttype} *${tl}/${tl}/g"`
-      tst=`echo "${tst}" | sed -e "s/${ttype} *${tl}/${tl}/g"`
-      tst=`echo "${tst}" | sed -e "1,/.*${tlt} *C_ST_${tl}[ {]/d"`
-      echo "${tst}" | egrep '^[ const]*(struct|union|enum) *C_[A-Z]*_[a-zA-Z_][a-zA-Z0-9_]*[ \{]*$' >&9
+    if [ "${st}" != "" ]; then
+      echo "### check for nested struct/union/enum" >&9
+      # look for any nested structure definitions as changed by
+      # the awk extractor and add them to the cchglist.
+      # remove the struct/union/enum tags from the structure now also
+      # for those definitions that are found.
+      tst=$st
+      echo "${tst}" | egrep '^[ const]*(struct|union|enum) *C_[A-Z]*_[a-zA-Z_][a-zA-Z0-9_]*[ \\{]*$' >&9
       rc=$?
-    done
-    st=`(
-        echo "${ctype} ${lab}${s} ";
-        echo "${st}"
-        )`
-    echo "#### modified ${ctype} (B)" >&9
-    echo "${st}" >&9
-    echo "#### end modified ${ctype} (B)" >&9
-    # save this for possible later use (cmembertype, cmemberxdr)
-    cmd="CST_${s}=\${st}"
-    eval $cmd
-    echo "   save: CST_${s}" >&9
+      while [ $rc -eq 0 ]; do
+        # make sure we only have the first matching line.
+        tl=`echo "${tst}" | egrep '^[ const]*(struct|union|enum) C_[A-Z]*_*[a-zA-Z_][a-zA-Z0-9_]*[ \\{]*' | sed '2,$d'`
+        ttype=`echo "${tl}" | sed -e 's/^ *[const]* *\([sue][trucniom]*\) *C_[A-Z]*_.*/\1/'`
+        tlab=`echo "${tl}" | sed -e 's/^.*\(C_[A-Z]*_\).*/\1/'`
+        tl=`echo "${tl}" | sed -e 's/^.*C_[A-Z]*_\([a-zA-Z_][a-zA-Z0-9_]*\).*/\1/'`
+        doappend cchglist "-e 's/\([^a-zA-Z0-9_]\)${tl}\([^a-zA-Z0-9_]\)/\1${tlab}${tl}\2/g' "
+        doappend cchglist "-e 's/^${tl}\([^a-zA-Z0-9_]\)/${tlab}${tl}\1/g' "
+        st=`echo "${st}" | sed -e "s/${ttype} *${tl}/${tl}/g"`
+        tst=`echo "${tst}" | sed -e "s/${ttype} *${tl}/${tl}/g"`
+        tst=`echo "${tst}" | sed -e "1,/.*${tlt} *C_ST_${tl}[ {]/d"`
+        echo "${tst}" | egrep '^[ const]*(struct|union|enum) *C_[A-Z]*_[a-zA-Z_][a-zA-Z0-9_]*[ \{]*$' >&9
+        rc=$?
+      done
+
+      st=`(
+          echo "${ctype} ${lab}${s} ";
+          echo "${st}"
+          )`
+      echo "#### modified ${ctype} (B)" >&9
+      echo "${st}" >&9
+      echo "#### end modified ${ctype} (B)" >&9
+      # save this for possible later use (cmembertype, cmemberxdr)
+      cmd="CST_${s}=\${st}"
+      eval $cmd
+      echo "   save: CST_${s}" >&9
+    else
+      trc=0
+    fi
 
     if [ $trc -eq 1 ]; then
       if [ $ctype != "enum" ]; then
