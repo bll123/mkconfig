@@ -258,7 +258,7 @@ check_ifoption () {
         found=T
         trc=$tval
         tolower trc
-        echo "  found: $oopt $trc" >&9
+        echo "  found option: $oopt $trc" >&9
         if [ "$trc" = t ]; then trc=T; fi
         if [ "$trc" = enable ]; then trc=T; fi
         if [ "$trc" = f ]; then trc=F; fi
@@ -416,7 +416,7 @@ _read_option () {
     eval tval=\$_mkc_opt_${onm}
     if [ "$tval" != "" ]; then
       found=T
-      echo "  found: $onm $tval" >&9
+      echo "  found option: $onm $tval" >&9
       oval="$tval"
     fi
   fi
