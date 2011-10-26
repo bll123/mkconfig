@@ -306,6 +306,8 @@ struct sjj
   } _sjj1;
 } sjj;
 
+struct skk { struct SKKB { int skka; } *skkb; };
+
 union ua
 {
   long double ld;
@@ -431,12 +433,10 @@ union us {
  } us_named ;
 } us_t;
 
-/* doesnt work...(extraction fails)
 typedef union
 {
   double  c;
 } ut;
-*/
 
 typedef union uu
 {
@@ -459,7 +459,8 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
 dorunmkc
 
 for x in sa sb sc sd se sf sg sh si sj sk sl sm sn so sq sr \
-    ss st su sv sw sx sy sz saa ; do
+    ss st su sv sw sx sy sz saa sbb scc sdd see SFF sgg \
+    shh sii sjj ; do
   chkoutd "^enum (: )?bool ({ )?_cstruct_${x} = true( })?;$"
 done
 
@@ -467,7 +468,7 @@ for x in sp; do
   chkoutd "^enum (: )?bool ({ )?_cstruct_${x} = false( })?;$"
 done
 
-for x in ua ub uc ud ue uf ug uh ui uj uk ul um un uo uq ur us uu; do
+for x in ua ub uc ud ue uf ug uh ui uj uk ul um un uo uq ur us ut uu; do
   chkoutd "^enum (: )?bool ({ )?_cunion_${x} = true( })?;$"
 done
 
