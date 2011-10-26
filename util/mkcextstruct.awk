@@ -10,7 +10,7 @@ BEGIN {
   ststruct2 = "typedef[	 ][	 ]*(struct|class|union|enum)[ 	]*[a-zA-Z0-9_]*[ 	]*{?[ 	]*$"
   ststart = "(struct|class|union|enum)[	 ]*" ARGV[2];
   stforward = "(struct|class|union|enum)[	 ]*" ARGV[2] "[	 ]*;";
-  stother = "(struct|class|union|enum)[	 ]*" ARGV[2] "[	 ]*[*a-zA-Z0-9_]";
+  stother = "(struct|class|union|enum)[	 ]*" ARGV[2] "[ 	][	 ]*[*a-zA-Z0-9_]";
   stend = "[	 ]" ARGV[2] "_t[ 	;]";
   stendb = "[	 ]" ARGV[2] "[ 	;]";
   delete ARGV[2];
