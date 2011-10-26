@@ -405,9 +405,8 @@ check_set () {
 }
 
 _read_option () {
-  nm=$1
-  onm=$2
-  def=$3
+  onm=$1
+  def=$2
 
   _loadoptions
 
@@ -420,8 +419,6 @@ _read_option () {
       oval="$tval"
     fi
   fi
-
-  setdata ${_MKCONFIG_PREFIX} ${nm} "${oval}"
 }
 
 check_option () {
@@ -433,9 +430,10 @@ check_option () {
 
   printlabel $name "option: ${onm}"
 
-  _read_option $nm $onm "$def"
+  _read_option $onm "$def"
 
   printyesno_actual $nm "$oval"
+  setdata ${_MKCONFIG_PREFIX} ${nm} "${oval}"
 }
 
 check_echo () {
