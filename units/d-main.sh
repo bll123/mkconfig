@@ -151,10 +151,9 @@ modify_ccode () {
     sed -e 's/[	 ][	 ]*/ /g;# clean up spacing' \
       -e 's,/\*[^\*]*\*/,,;# remove comments' \
       -e 's,//.*$,,;# remove comments' \
-      -e 's/sizeof[	 ]*\(([^)]*)\)/\1.sizeof/g;# gcc-ism' \
+      -e 's/sizeof[	 ]*\(([^)]*)\)/\1.sizeof/g' \
       -e 's/__extension__//g;# gcc-ism' \
-      -e 's/__const//g;# gcc-ism' \
-      -e 's/\*[	 ]const/*/g; # not handled' \
+      -e 's/__const\([^a-zA-Z0-9_]\)/\1/g;# gcc-ism' \
       -e 's/[	 ]*\([\{\}]\)/ \1/;# spacing before braces' \
       |
     sed ${cchglist} -e 's/a/a/;# could be empty' \
@@ -1082,12 +1081,15 @@ check_cstruct () {
       # remove "struct $stnm"
       # remove "struct"
       # remove any empty lines
+      # remove all const
       st=`echo "${st}" |
           sed -e 's/[	]/ /g' -e 's/  / /g' \
             -e 's/typedef *//' \
             -e "s/${tdnm} *;/;/; # typedef name or named struct" \
             -e "s/ *${ctype} *${stnm} *{/{/" \
             -e "s/^ *${ctype} *${stnm} *\$//" \
+            -e 's/\([^a-zA-Z0-9_]\)const\([^a-zA-Z0-9_]\)/\1 \2/g; # not supported' \
+            -e 's/^const\([^a-zA-Z0-9_]\)/\1/g; # not supported' \
             | grep -v '^ *$' `
       # change all other struct/union/enum to our tag.
       if [ "$stnm" != "" ]; then
@@ -1110,15 +1112,15 @@ check_cstruct () {
     while [ $rc -eq 0 ]; do
       # make sure we only have the first matching line.
       tl=`echo "${tst}" | egrep '^[ const]*(struct|union|enum) C_[A-Z]*_*[a-zA-Z_][a-zA-Z0-9_]*[ \\{]*' | sed '2,$d'`
-      ttype=`echo "${tl}" | sed -e 's/^ *[const]* *\\([sue][trucniom]*\\) *C_[A-Z]*_.*/\\1/'`
-      tlab=`echo "${tl}" | sed -e 's/^.*\\(C_[A-Z]*_\\).*/\\1/'`
-      tl=`echo "${tl}" | sed -e 's/^.*C_[A-Z]*_\\([a-zA-Z_][a-zA-Z0-9_]*\\).*/\\1/'`
-      doappend cchglist "-e 's/\\([^a-zA-Z0-9_]\\)${tl}\\([^a-zA-Z0-9_]\\)/\\1${tlab}${tl}\2/g' "
-      doappend cchglist "-e 's/^${tl}\\([^a-zA-Z0-9_]\\)/${tlab}${tl}\\1/g' "
+      ttype=`echo "${tl}" | sed -e 's/^ *[const]* *\([sue][trucniom]*\) *C_[A-Z]*_.*/\1/'`
+      tlab=`echo "${tl}" | sed -e 's/^.*\(C_[A-Z]*_\).*/\1/'`
+      tl=`echo "${tl}" | sed -e 's/^.*C_[A-Z]*_\([a-zA-Z_][a-zA-Z0-9_]*\).*/\1/'`
+      doappend cchglist "-e 's/\([^a-zA-Z0-9_]\)${tl}\([^a-zA-Z0-9_]\)/\1${tlab}${tl}\2/g' "
+      doappend cchglist "-e 's/^${tl}\([^a-zA-Z0-9_]\)/${tlab}${tl}\1/g' "
       st=`echo "${st}" | sed -e "s/${ttype} *${tl}/${tl}/g"`
       tst=`echo "${tst}" | sed -e "s/${ttype} *${tl}/${tl}/g"`
       tst=`echo "${tst}" | sed -e "1,/.*${tlt} *C_ST_${tl}[ {]/d"`
-      echo "${tst}" | egrep '^[ const]*(struct|union|enum) *C_[A-Z]*_[a-zA-Z_][a-zA-Z0-9_]*[ \\{]*$' >&9
+      echo "${tst}" | egrep '^[ const]*(struct|union|enum) *C_[A-Z]*_[a-zA-Z_][a-zA-Z0-9_]*[ \{]*$' >&9
       rc=$?
     done
     st=`(
@@ -1169,11 +1171,6 @@ check_cstruct () {
     doappend cstructs "
 ${st}
 "
-###    # is this needed???
-#    if [ $havetypedef = F -a "$tdnm" != "" ]; then
-#      doappend cstructs "${lab}${s} ${tdnm};
-#"
-#    fi
     if [ $havetypedef = T -a "$tdnm" != "" ]; then
       doappend daliases "alias ${lab}${s} ${tdnm};
 "
