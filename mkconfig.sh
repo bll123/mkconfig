@@ -252,7 +252,7 @@ check_ifoption () {
     trc=F  # if option is not set, it's false
 
     found=F
-    if [ "$optionsloaded" = T ]; then
+    if [ $optionsloaded = T ]; then
       eval tval=\$_mkc_opt_${oopt}
       if [ "$tval" != "" ]; then
         found=T
@@ -274,7 +274,7 @@ check_ifoption () {
     if [ $type = "ifnotoption" ]; then
       if [ $trc -eq 0 ]; then trc=1; else trc=0; fi
     fi
-    if [ "$optionsloaded" = F ]; then
+    if [ $optionsloaded = F ]; then
       trc=0
       printyesno_actual $name "no options file"
     elif [ "$found" = F ]; then
@@ -404,19 +404,15 @@ check_set () {
   fi
 }
 
-check_option () {
+_read_option () {
   nm=$1
   onm=$2
   def=$3
 
-  name=$nm
-
   _loadoptions
 
   oval=$def
-  printlabel $name "option: ${onm}"
-
-  if [ "$optionsloaded" = T ]; then
+  if [ $optionsloaded = T ]; then
     eval tval=\$_mkc_opt_${onm}
     if [ "$tval" != "" ]; then
       found=T
@@ -424,8 +420,22 @@ check_option () {
       oval="$tval"
     fi
   fi
-  printyesno_actual $nm "$oval"
+
   setdata ${_MKCONFIG_PREFIX} ${nm} "${oval}"
+}
+
+check_option () {
+  nm=$1
+  onm=$2
+  def=$3
+
+  name=$nm
+
+  printlabel $name "option: ${onm}"
+
+  _read_option $nm $onm "$def"
+
+  printyesno_actual $nm "$oval"
 }
 
 check_echo () {
