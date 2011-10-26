@@ -20,7 +20,8 @@ require_unit env-main
 require_unit env-systype
 
 check_dc () {
-  DC=${DC:-gdc}
+  _read_option DC DC gdc
+  DC=${DC:-${DC}}   # environment overrides option file.
 
   printlabel DC "D compiler"
 
@@ -110,8 +111,10 @@ check_using_gdc () {
 }
 
 check_dflags () {
-  dflags="${DFLAGS:-}"
-  dincludes="${DINCLUDES:-}"
+  _read_option DFLAGS DFLAGS ""
+  _read_option DINCLUDES DINCLUDES ""
+  dflags="${DFLAGS:-${DFLAGS}}"
+  dincludes="${DINCLUDES:-${DINCLUDES}}"
 
   printlabel DFLAGS "D flags"
 
