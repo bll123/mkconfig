@@ -1,8 +1,6 @@
 output none
 
-command awk
-command nawk
-command gawk
+command awk nawk mawk gawk
 command cat
 command chmod
 command date
@@ -21,13 +19,8 @@ command tail
 command uname
 command wc
 
-setint hasawk 0
-if hasawk _command_awk || _command_nawk || _command_gawk
-  setint hasawk 1
-endif
-
 setint test_commands 0
-if test_cmds _setint_hasawk && _command_cat && _command_chmod && \
+if test_cmds _command_awk && _command_cat && _command_chmod && \
     _command_date && _command_diff && _command_grep && _command_ls && \
     _command_mkdir && _command_mv && _command_perl && _command_pwd && \
     _command_rm && _command_sed && _command_sleep && \
