@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. $_MKCONFIG_DIR/testfuncs.sh
+. $_MKCONFIG_DIR/bin/testfuncs.sh
 
 maindodisplay $1 'create exec with static lib'
 maindoquery $1 $_MKC_SH
@@ -18,7 +18,7 @@ for i in 1 2 3 4; do
 #include <stdlib.h>
 int mkct${i} () { return ${i}; }
 "
-  ${CC} ${CPPFLAGS} ${CFLAGS} -c mkct${i}.c
+  ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e mkct${i}.c >&9
 done
 
 i=5
@@ -40,7 +40,7 @@ int mkct${i} () { int i; i = 0;
     i += mkct1(); i += mkct2(); i += mkct3(); i += mkct4();
     return i; }
 "
-${CC} ${CPPFLAGS} ${CFLAGS} -c mkct${i}.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e mkct${i}.c >&9
 
 i=6
 > mkct${i}.c echo '
@@ -55,21 +55,22 @@ i=6
 extern int mkct5 _((void));
 main () { int i, j; i = mkct5(); j = 1; if (i == 10) { j = 0; } return j; }
 '
-${CC} ${CPPFLAGS} ${CFLAGS} -c mkct${i}.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e mkct${i}.c >&9
 
 grc=0
 set +f
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkstaticlib.sh -d `pwd` -e mkct mkct[51234]${OBJ_EXT}
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -staticlib \
+    -e mkct mkct[51234]${OBJ_EXT} >&9
 set -f
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mklink.sh -d `pwd` -e \
-    -c ${CC} -o mkct6a.exe -- mkct6${OBJ_EXT} -L. -lmkct
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -link -e -c ${CC} \
+    -o mkct6a.exe -- mkct6${OBJ_EXT} -L. -lmkct >&9
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-./mkct6a.exe
+./mkct6a.exe >&9
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
