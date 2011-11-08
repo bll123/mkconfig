@@ -11,20 +11,15 @@
 
 set -f
 
+unset CDPATH
 # this is a workaround for ksh93 on solaris
 if [ "$1" = "-d" ]; then
   cd $2
   shift
   shift
 fi
-unset CDPATH
-mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
-_MKCONFIG_DIR=`(cd $mypath;pwd)`
-export _MKCONFIG_DIR
-. ${_MKCONFIG_DIR}/shellfuncs.sh
-
+. ${_MKCONFIG_DIR}/bin/shellfuncs.sh
 doshelltest $0 $@
-setechovars
 
 OPTFILE=options.dat
 while test $# -gt 1; do

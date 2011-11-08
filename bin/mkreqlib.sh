@@ -7,25 +7,21 @@
 
 set -f
 
+unset CDPATH
 # this is a workaround for ksh93 on solaris
 if [ "$1" = "-d" ]; then
   cd $2
   shift
   shift
 fi
-unset CDPATH
+. ${_MKCONFIG_DIR}/bin/shellfuncs.sh
+doshelltest $0 $@
+
+RUNTOPDIR=`pwd`
+CACHEFILE="mkconfig.cache"
+
 unset GREP_OPTIONS
 unset ENV
-RUNTOPDIR=`pwd`
-mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
-_MKCONFIG_DIR=`(cd $mypath;pwd)`
-export _MKCONFIG_DIR
-. ${_MKCONFIG_DIR}/shellfuncs.sh
-
-doshelltest $0 $@
-setechovars
-
-CACHEFILE="mkconfig.cache"
 
 getlibdata () {
     var=$1
