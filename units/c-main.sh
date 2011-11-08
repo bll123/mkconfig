@@ -376,7 +376,7 @@ check_memberxdr () {
 
   trc=0
   if [ $rc -eq 0 ]; then
-    st=`${awkcmd} -f ${_MKCONFIG_DIR}/mkcextstruct.awk ${name}.out ${struct}`
+    st=`${awkcmd} -f ${_MKCONFIG_DIR}/util/mkcextstruct.awk ${name}.out ${struct}`
     if [ "$st" != "" ]; then
       echo "  ${struct}: ${st}" >&9
       tmem=`echo "$st" | grep "${member} *;\$"`
@@ -474,7 +474,7 @@ check_args () {
 
     # have a declaration
     if [ $trc -eq 1 ]; then
-      dcl=`${awkcmd} -f ${_MKCONFIG_DIR}/mkcextdcl.awk ${name}.out ${funcnm}`
+      dcl=`${awkcmd} -f ${_MKCONFIG_DIR}/util/mkcextdcl.awk ${name}.out ${funcnm}`
       dcl=`echo $dcl` # make single line
       # extern will be replaced
       # ; may or may not be present, so remove it.
@@ -714,12 +714,12 @@ output_item () {
       dosubst tname '_setint_' ''
       echo "#define ${tname} ${val}"
       ;;
-    _setstr_*|_opt_*)
+    _setstr_*|_opt_*|_cmd_loc_*)
       tname=$name
       dosubst tname '_setstr_' '' '_opt_' ''
       echo "#define ${tname} \"${val}\""
       ;;
-    _hdr*|_sys*|_command*)
+    _hdr_*|_sys_*|_command_*)
       echo "#define ${name} ${tval}"
       ;;
     *)      # _c_arg, _c_type go here also
