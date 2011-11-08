@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. $_MKCONFIG_DIR/testfuncs.sh
+. $_MKCONFIG_DIR/bin/testfuncs.sh
 
 maindodisplay $1 'w/multiple libs'
 maindoquery $1 $_MKC_SH_PL
@@ -32,8 +32,9 @@ extern int tst2libc ();
 int tst2libb () { tst2libc(); return 0; }
 '
 
-${CC} -c ${CFLAGS} ${CPPFLAGS} tst2libb.c >&5
-ar cq libtst2libb.a tst2libb${OBJ_EXT}
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e tst2libb.c >&9
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -staticlib -e \
+    libtst2libb tst2libb${OBJ_EXT} >&9
 
 > tst2libc.c echo '
 #include <stdio.h>
@@ -42,8 +43,9 @@ ar cq libtst2libb.a tst2libb${OBJ_EXT}
 int tst2libc () { printf ("hello world\\n"); return 0; }
 '
 
-${CC} -c ${CFLAGS} ${CPPFLAGS} tst2libc.c >&5
-ar cq libtst2libc.a tst2libc${OBJ_EXT}
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e tst2libc.c >&9
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -staticlib -e \
+    libtst2libc tst2libc${OBJ_EXT} >&9
 
 dorunmkc reqlibs out.h
 

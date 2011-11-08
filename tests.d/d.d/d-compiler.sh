@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. $_MKCONFIG_DIR/testfuncs.sh
+. $_MKCONFIG_DIR/bin/testfuncs.sh
 
 maindodisplay $1 'D compiler works'
 maindoquery $1 $_MKC_ONCE
@@ -17,21 +17,14 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
 int main (char[][] args) { return 0; }
 '
 
-${DC} d_compiler.d >&9
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -comp -e -c ${DC} \
+    -o d_compiler.exe d_compiler.d >&9
 rc=$?
 if [ $rc -ne 0 ]; then
   grc=$rc;
   echo "## compilation failed"
 fi
-if [ -x a.out ]; then
-  ./a.out
-  rc=$?
-  if [ $rc -ne 0 ]; then grc=$rc; fi
-elif [ -x d_compiler ]; then
-  ./d_compiler
-  rc=$?
-  if [ $rc -ne 0 ]; then grc=$rc; fi
-elif [ -x d_compiler.exe ]; then
+if [ -x d_compiler.exe ]; then
   ./d_compiler.exe
   rc=$?
   if [ $rc -ne 0 ]; then grc=$rc; fi

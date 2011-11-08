@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. $_MKCONFIG_DIR/testfuncs.sh
+. $_MKCONFIG_DIR/bin/testfuncs.sh
 
 maindodisplay $1 'C compiler works'
 maindoquery $1 $_MKC_ONCE
@@ -13,7 +13,8 @@ dosetup $@
 main () { exit (0); }
 '
 
-${CC} -o c_compiler.exe c_compiler.c > /dev/null 2>&1
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp \
+    -e -o c_compiler.exe c_compiler.c >&9
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 if [ ! -x c_compiler.exe ]; then grc=1; fi

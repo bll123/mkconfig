@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. $_MKCONFIG_DIR/testfuncs.sh
+. $_MKCONFIG_DIR/bin/testfuncs.sh
 
 maindodisplay $1 'w/single lib'
 maindoquery $1 $_MKC_SH_PL
@@ -36,12 +36,13 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
     -C $_MKCONFIG_RUNTESTDIR/c.env.dat
 . ./c.env
 
-${CC} -c ${CFLAGS} ${CPPFLAGS} tst1lib.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e tst1lib.c >&9
 if [ $? -ne 0 ]; then
   echo "compile tst1lib.c failed"
   exit 1
 fi
-ar cq libtst1lib.a tst1lib${OBJ_EXT}
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` \
+    -staticlib libtst1lib tst1lib${OBJ_EXT} >&9
 
 dorunmkc reqlibs out.h
 

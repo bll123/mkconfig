@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. $_MKCONFIG_DIR/testfuncs.sh
+. $_MKCONFIG_DIR/bin/testfuncs.sh
 
 maindodisplay $1 'w/multiple libs'
 maindoquery $1 $_MKC_SH
@@ -22,26 +22,28 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
 int mlib2_f () { return 0; }
 '
 
-${DC} -c ${DFLAGS} mlib2.d
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -c ${DC} mlib2.d >&9
 if [ $? -ne 0 ]; then
   echo "## compile mlib2.d failed"
   exit 1
 fi
 test -f libmlib2.a && rm -f libmlib2.a
-ar cq libmlib2.a mlib2${OBJ_EXT}
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` \
+    -staticlib libmlib2 mlib2${OBJ_EXT} >&9
 
 > mlib1.d echo '
 import mlib2;
 int mlib1_f () { mlib2_f(); return 0; }
 '
 
-${DC} -c ${DFLAGS} mlib1.d
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -c ${DC} mlib1.d >&9
 if [ $? -ne 0 ]; then
   echo "compile mlib1.d failed"
   exit 1
 fi
 test -f libmlib1.a && rm -f libmlib1.a
-ar cq libmlib1.a mlib1${OBJ_EXT}
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` \
+    -staticlib libmlib1 mlib1${OBJ_EXT} >&9
 
 dorunmkc reqlibs out.d
 
@@ -119,7 +121,7 @@ test -f libmlib1.a && rm -f libmlib1.a
 ar cq libmlib1.a mlib1${OBJ_EXT}
 
 ${_MKCONFIG_SHELL} ${script} -d `pwd` -C ${_MKCONFIG_RUNTESTDIR}/d-multlib.dat
-${_MKCONFIG_SHELL} ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh -d `pwd` out.d
+${_MKCONFIG_SHELL} ${_MKCONFIG_RUNTOPDIR}/bin/mkc.sh -d `pwd` -reqlib out.d >&9
 
 echo "## diff 1"
 grep -v SYSTYPE multlib.dtest |

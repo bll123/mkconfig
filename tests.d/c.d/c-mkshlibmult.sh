@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. $_MKCONFIG_DIR/testfuncs.sh
+. $_MKCONFIG_DIR/bin/testfuncs.sh
 
 maindodisplay $1 'create shared libs w/deps'
 maindoquery $1 $_MKC_SH
@@ -39,7 +39,7 @@ i=1
 
 int mkct${i} () { return 1; }
 "
-${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e mkct${i}.c >&9
 
 i=2
 > mkct${i}.c echo "
@@ -57,7 +57,7 @@ int mkct${i} () { int i; i = 0;
     i += mkct1(); i += 2;
     return i; }
 "
-${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e mkct${i}.c >&9
 
 i=3
 > mkct${i}.c echo "
@@ -75,7 +75,7 @@ int mkct${i} () { int i; i = 0;
     i += mkct2(); i += 3;
     return i; }
 "
-${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e mkct${i}.c >&9
 
 i=4
 > mkct${i}.c echo "
@@ -93,7 +93,7 @@ int mkct${i} () { int i; i = 0;
     i += mkct3(); i += 4;
     return i; }
 "
-${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e mkct${i}.c >&9
 
 i=5
 > mkct${i}.c echo "
@@ -111,7 +111,7 @@ int mkct${i} () { int i; i = 0;
     i += mkct4();
     return i; }
 "
-${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e -- mkct${i}.c >&9
 
 i=6
 > mkct${i}.c echo '
@@ -127,31 +127,32 @@ i=6
 extern int mkct5 _((void));
 main () { int i, j; i = mkct5(); j = 1; if (i == 10) { j = 0; } return j; }
 '
-${CC} ${CPPFLAGS} ${CFLAGS} ${SHCFLAGS} -c mkct${i}.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e mkct${i}.c >&9
 
 grc=0
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mksharedlib.sh -d `pwd` -e mkct1 mkct1${OBJ_EXT}
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -sharedlib \
+    -e mkct1 mkct1${OBJ_EXT} >&9
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mksharedlib.sh -d `pwd` \
-    -e mkct2 mkct2${OBJ_EXT} -L. -lmkct1
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -sharedlib \
+    -e mkct2 mkct2${OBJ_EXT} -L. -lmkct1 >&9
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mksharedlib.sh -d `pwd` \
-    -e mkct3 mkct3${OBJ_EXT} -L. -lmkct2
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -sharedlib \
+    -e mkct3 mkct3${OBJ_EXT} -L. -lmkct2 >&9
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mksharedlib.sh -d `pwd` \
-    -e mkct4 mkct4${OBJ_EXT} -L. -lmkct3
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -sharedlib \
+    -e mkct4 mkct4${OBJ_EXT} -L. -lmkct3 >&9
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mksharedlib.sh -d `pwd` \
-    -e mkct5 mkct5${OBJ_EXT} -L. -lmkct4
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -sharedlib \
+    -e mkct5 mkct5${OBJ_EXT} -L. -lmkct4 >&9
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
@@ -159,9 +160,8 @@ shrunpath=""
 if [ "${SHRUNPATH}" != "" ]; then
   shrunpath="${SHRUNPATH}."
 fi
-cmd="${CC} ${LDFLAGS} ${SHEXECLINK} -o mkct6a${EXE_EXT} mkct6${OBJ_EXT} \
-    ${shrunpath} -L. -lmkct5"
-echo $cmd
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -link -e -c ${CC} \
+    -o mkct6a${EXE_EXT} -- mkct6${OBJ_EXT} ${shrunpath} -L. -lmkct5 >&9
 eval $cmd
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
