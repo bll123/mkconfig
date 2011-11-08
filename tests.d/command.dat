@@ -1,5 +1,7 @@
 output out.h
 loadunit c-main
 
+command xblah
 command sed
 command grep
+command awk nawk mawk gawk
