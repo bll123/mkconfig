@@ -66,7 +66,7 @@ dorunmkc () {
   if [ "$1" = "reqlibs" ]; then
     case $script in
       *mkconfig.sh)
-        ${_MKCONFIG_SHELL} ${_MKCONFIG_RUNTOPDIR}/mkreqlib.sh -d `pwd` $2
+        ${_MKCONFIG_SHELL} ${_MKCONFIG_RUNTOPDIR}/mkc.sh -d `pwd` -reqlib $2
         ;;
     esac
   fi
