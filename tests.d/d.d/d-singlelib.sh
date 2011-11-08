@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. $_MKCONFIG_DIR/testfuncs.sh
+. $_MKCONFIG_DIR/bin/testfuncs.sh
 
 maindodisplay $1 'w/single lib'
 maindoquery $1 $_MKC_SH
@@ -22,13 +22,14 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
 int slib1_f () { return 0; }
 '
 
-${DC} -c ${DFLAGS} slib1.d
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -c ${DC} slib1.d >&9
 if [ $? -ne 0 ]; then
   echo "## compile slib1.d failed"
   exit 1
 fi
 test -f libslib1.a && rm -f libslib1.a
-ar cq libslib1.a slib1${OBJ_EXT}
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` \
+    -staticlib libslib1 slib1${OBJ_EXT} >&9
 
 dorunmkc reqlibs out.d
 
