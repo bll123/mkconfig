@@ -142,7 +142,7 @@ _d_chk_link () {
   fi
   echo "##      _link compile: $rc" >&9
 
-  cmd="${_MKCONFIG_DIR}/mklink.sh -e -c ${DC} -o ${clname}.exe -- "
+  cmd="${_MKCONFIG_DIR}/mkc.sh -d `pwd` -link -e -c ${DC} -o ${clname}.exe -- "
   cmd="${cmd} ${clname}${OBJ_EXT} ${LDFLAGS} ${LIBS} "
 
   _clotherlibs=$otherlibs
