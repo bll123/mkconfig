@@ -5,20 +5,15 @@
 # Copyright 2010 Brad Lanam Walnut Creek, CA USA
 #
 
+unset CDPATH
 # this is a workaround for ksh93 on solaris
 if [ "$1" = "-d" ]; then
   cd $2
   shift
   shift
 fi
-unset CDPATH
-mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
-_MKCONFIG_DIR=`(cd $mypath;pwd)`
-export _MKCONFIG_DIR
-. ${_MKCONFIG_DIR}/shellfuncs.sh
-
+. ${_MKCONFIG_DIR}/bin/shellfuncs.sh
 doshelltest $0 $@
-setechovars
 
 doecho=F
 comp=""
@@ -52,8 +47,14 @@ OUTFLAG="-o "
 DC_LINK=
 case ${comp} in
   *dmd|*dmd2|*ldc|*ldc2)   # catches ldmd, ldmd2 also
-    OUTFLAG="-of"
+    OUTFLAG=${DC_OF:-"-of"}
     DC_LINK=-L
+    ;;
+  *gdc)
+    OUTFLAG=${DC_OF:-"-o "}
+    ;;
+  *gcc|*cc)
+    DC_LINK=
     ;;
 esac
 
@@ -84,8 +85,10 @@ for f in $@; do
       ;;
     "-l"*)
       tf=$f
-      dosubst tf '-l' ''
-      doappend libs " ${DC_LINK}-l$tf"
+      doappend libs " ${DC_LINK}${tf}"
+      ;;
+    lib*)
+      doappend libs " ${f}"
       ;;
     *${OBJ_EXT})
       if [ ! -f "$f" ]; then
