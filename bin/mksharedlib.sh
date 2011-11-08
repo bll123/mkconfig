@@ -5,20 +5,15 @@
 # Copyright 2010 Brad Lanam Walnut Creek, CA USA
 #
 
+unset CDPATH
 # this is a workaround for ksh93 on solaris
 if [ "$1" = "-d" ]; then
   cd $2
   shift
   shift
 fi
-unset CDPATH
-mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
-_MKCONFIG_DIR=`(cd $mypath;pwd)`
-export _MKCONFIG_DIR
-. ${_MKCONFIG_DIR}/shellfuncs.sh
-
+. ${_MKCONFIG_DIR}/bin/shellfuncs.sh
 doshelltest $0 $@
-setechovars
 
 libnm=""
 objects=""
@@ -28,11 +23,19 @@ islib=0
 ispath=0
 grc=0
 doecho=F
+comp=${CC}
 
 for f in $@; do
   case $f in
     "-e")
       doecho=T
+      ;;
+    "-c")
+      shift
+      comp=$1
+      shift
+      ;;
+    "--")
       ;;
     "-L")
       ispath=1
@@ -102,7 +105,7 @@ if [ $grc -eq 0 ]; then
     shlibpath=${libpath}
     dosubst shlibpath '^:' '-L'
   fi
-  cmd="${CC} ${LDFLAGS} ${SHLDFLAGS} -o $libfnm ${shrunpath} ${shlibpath} ${objects} ${libs}"
+  cmd="${comp} ${LDFLAGS} ${SHLDFLAGS} -o $libfnm ${shrunpath} ${shlibpath} ${objects} ${libs}"
   if [ "$doecho" = "T" ]; then
     echo $cmd
   fi
