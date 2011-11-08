@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. $_MKCONFIG_DIR/testfuncs.sh
+. $_MKCONFIG_DIR/bin/testfuncs.sh
 
 maindodisplay $1 'c-member'
 maindoquery $1 $_MKC_SH

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. $_MKCONFIG_DIR/testfuncs.sh
+. $_MKCONFIG_DIR/bin/testfuncs.sh
 
 maindodisplay $1 'compile perl scripts'
 maindoquery $1 $_MKC_ONCE

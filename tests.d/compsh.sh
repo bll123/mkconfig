@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. $_MKCONFIG_DIR/testfuncs.sh
+. $_MKCONFIG_DIR/bin/testfuncs.sh
 
 maindodisplay $1 'compile shell scripts'
 maindoquery $1 $_MKC_SH
@@ -24,7 +24,19 @@ for f in *.sh; do
   rc=$?
   if [ $rc -ne 0 ];then grc=$rc; fi
 done
-cd $_MKCONFIG_DIR/mkconfig.units
+cd $_MKCONFIG_DIR/bin
+for f in *.sh; do
+  $_MKCONFIG_SHELL -n $f
+  rc=$?
+  if [ $rc -ne 0 ];then grc=$rc; fi
+done
+cd $_MKCONFIG_DIR/units
+for f in *.sh; do
+  $_MKCONFIG_SHELL -n $f
+  rc=$?
+  if [ $rc -ne 0 ];then grc=$rc; fi
+done
+cd $_MKCONFIG_DIR/util
 for f in *.sh; do
   $_MKCONFIG_SHELL -n $f
   rc=$?

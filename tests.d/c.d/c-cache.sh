@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. $_MKCONFIG_DIR/testfuncs.sh
+. $_MKCONFIG_DIR/bin/testfuncs.sh
 
 maindodisplay $1 'build from cache'
 maindoquery $1 $_MKC_SH_PL
@@ -9,7 +9,7 @@ chkccompiler
 getsname $0
 dosetup $@
 
-. $_MKCONFIG_DIR/shellfuncs.sh
+. $_MKCONFIG_DIR/bin/shellfuncs.sh
 testshcapability
 
 ccclear="-nc"

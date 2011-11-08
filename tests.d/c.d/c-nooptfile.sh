@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. $_MKCONFIG_DIR/testfuncs.sh
+. $_MKCONFIG_DIR/bin/testfuncs.sh
 
 maindodisplay $1 'ifoption - no options file'
 maindoquery $1 $_MKC_SH_PL

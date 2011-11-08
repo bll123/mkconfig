@@ -937,7 +937,7 @@ check_cmacro () {
     esac
 
     if [ $trc -eq 1 ]; then
-      macro=`${awkcmd} -f ${_MKCONFIG_DIR}/mkcextmacro.awk $fhdr ${mname}`
+      macro=`${awkcmd} -f ${_MKCONFIG_DIR}/util/mkcextmacro.awk $fhdr ${mname}`
       echo "  extracted macro: $macro" >&9
       macro=`echo ${macro} |
           sed -e 's/	/ /g;# tab to space' \
@@ -1054,7 +1054,7 @@ check_cstruct () {
   tdnm=""
 
   if [ $rc -eq 0 ]; then
-    st=`${awkcmd} -f ${_MKCONFIG_DIR}/mkcextstruct.awk ${name}.out ${s} d`
+    st=`${awkcmd} -f ${_MKCONFIG_DIR}/util/mkcextstruct.awk ${name}.out ${s} d`
     echo "#### initial ${ctype}" >&9
     echo "${st}" >&9
     echo "#### end initial ${ctype}" >&9
@@ -1356,7 +1356,7 @@ check_cdcl () {
     fi
 
     if [ $trc -eq 1 ]; then
-      dcl=`${awkcmd} -f ${_MKCONFIG_DIR}/mkcextdcl.awk ${name}.out ${dname}`
+      dcl=`${awkcmd} -f ${_MKCONFIG_DIR}/util/mkcextdcl.awk ${name}.out ${dname}`
       dcl=`echo $dcl`  # make single line.
       echo "## dcl(0): ${dcl}" >&9
       # extern will be replaced
