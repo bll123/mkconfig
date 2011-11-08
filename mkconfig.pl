@@ -585,7 +585,12 @@ _HERE_
 sub
 check_command
 {
-    my ($name, $cmd, $r_clist, $r_config) = @_;
+    my ($name, $cmds, $r_clist, $r_config) = @_;
+
+    my @cmdlist = split (/ +/o, $cmds);
+    my $cmd = $cmdlist[0];
+    $name = "_command_${cmd}";
+    my $locnm = "_cmd_loc_${cmd}";
 
     printlabel $name, "command: $cmd";
     if (checkcache ($name, $r_clist, $r_config) == 0)
@@ -595,15 +600,23 @@ check_command
 
     setlist $r_clist, $name;
     $r_config->{$name} = 0;
-    foreach my $p (split /[;:]/o, $ENV{'PATH'})
+    foreach my $cmd (@cmdlist)
     {
+      foreach my $p (split /[;:]/o, $ENV{'PATH'})
+      {
         if (-x "$p/$cmd")
         {
-            $r_config->{$name} = "$p/$cmd";
-            last;
+          if ($r_config->{$name} == 0) {
+            setlist $r_clist, $locnm;
+          }
+          $r_config->{$locnm} = "$p/$cmd";
+          $r_config->{$name} = 1;
+          last;
         }
+      }
     }
-    printyesno $name, $r_config->{$name};
+
+    printyesno_val $name, $r_config->{$name};
 }
 
 sub
@@ -1033,7 +1046,7 @@ check_args
 
     if ($ENV{'_MKCONFIG_USING_GCC'} == 'N' &&
         $ENV{'_MKCONFIG_SYSTYPE'} == 'HP-UX' ) {
-      my $tcc = `${CC} -v 2>&1`;
+      my $tcc = `$ENV{'CC'} -v 2>&1`;
       if ($tcc =~ /Bundled/o) {
         print " bundled cc; skipped";
         return;
@@ -1060,7 +1073,7 @@ check_args
      $rc = system ($cmd);
      print LOGFH "##  args: $cmd $rc\n";
      if ($rc == 0) {
-       my $dcl = `${awkcmd} -f ${MKC_DIR}/mkcextdcl.awk ${name}.out ${funcnm}`;
+       my $dcl = `${awkcmd} -f ${MKC_DIR}/util/mkcextdcl.awk ${name}.out ${funcnm}`;
        # $dcl may be multi-line...fix this now.
        $dcl =~ s/[ 	\n]/ /gos;
        $dcl =~ s/extern *//o;
@@ -1191,8 +1204,8 @@ check_memberxdr
         { 'incheaders' => 'all', });
     if ($rc == 0) {
       print LOGFH `pwd` . "\n";
-      print LOGFH "## ${awkcmd} -f ${MKC_DIR}/mkcextstruct.awk ${name}.out ${struct}\n";
-      my $st = `${awkcmd} -f ${MKC_DIR}/mkcextstruct.awk ${name}.out ${struct}`;
+      print LOGFH "## ${awkcmd} -f ${MKC_DIR}/util/mkcextstruct.awk ${name}.out ${struct}\n";
+      my $st = `${awkcmd} -f ${MKC_DIR}/util/mkcextstruct.awk ${name}.out ${struct}`;
       print LOGFH "##  xdr(A): $st\n";
       if ($st =~ m/${member}\s*;/s) {
         my $mtype = $st;
@@ -1310,7 +1323,7 @@ _HERE_
       $tnm = $val;
       $tnm =~ s/^_setint_//;
       print CCOFH "#define $tnm " . $r_config->{$val} . "\n";
-    } elsif ($val =~ m#^(_setstr_|_opt_)#o) {
+    } elsif ($val =~ m#^(_setstr_|_opt_|_cmd_loc_)#o) {
       $tnm = $val;
       $tnm =~ s/^_setstr_//;
       $tnm =~ s/^_opt_//;
@@ -1577,9 +1590,8 @@ main_process
         }
         elsif ($line =~ m#^\s*command\s+(.*)#o)
         {
-            my $cmd = $1;
-            my $nm = "_command_" . $cmd;
-            check_command ($nm, $cmd, \%clist, \%config);
+            my $cmds = $1;
+            check_command ('', $cmds, \%clist, \%config);
         }
         elsif ($line =~ m#^\s*(if(not)?option)\s+([^\s]+)#o)
         {

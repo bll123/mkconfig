@@ -17,17 +17,17 @@
 
 set -f  # set this globally.
 
+unset CDPATH
 # this is a workaround for ksh93 on solaris
 if [ "$1" = "-d" ]; then
   cd $2
   shift
   shift
 fi
-unset CDPATH
 mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
 _MKCONFIG_DIR=`(cd $mypath;pwd)`
 export _MKCONFIG_DIR
-. ${_MKCONFIG_DIR}/shellfuncs.sh
+. ${_MKCONFIG_DIR}/bin/shellfuncs.sh
 
 doshelltest $0 $@
 setechovars
@@ -228,16 +228,32 @@ _loadoptions () {
 
 check_command () {
     name=$1
-    ccmd=$2
+    shift
+    ccmd=$1
+
+    locnm=_cmd_loc_${ccmd}
 
     printlabel $name "command: ${ccmd}"
     checkcache ${_MKCONFIG_PREFIX} $name
     if [ $rc -eq 0 ]; then return; fi
 
-    locatecmd trc $ccmd
-    if [ "$trc" = "" ]; then trc=0; fi
-    printyesno $name $trc
+    trc=0
+    val=""
+    while test $# -gt 0; do
+      ccmd=$1
+      shift
+      locatecmd tval $ccmd
+      if [ "$tval" != "" ]; then
+        val=$tval
+        trc=1
+      fi
+    done
+
+    printyesno_val $name $val
     setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
+    if [ $trc -eq 1 ]; then
+      setdata ${_MKCONFIG_PREFIX} ${locnm} ${val}
+    fi
 }
 
 check_ifoption () {
@@ -455,10 +471,10 @@ _doloadunit () {
    slu=${lu}
    tag=" (dependency)"
   fi
-  if [ -f ${_MKCONFIG_DIR}/mkconfig.units/${lu}.sh ]; then
+  if [ -f ${_MKCONFIG_DIR}/units/${lu}.sh ]; then
     echo "load-unit: ${lu} ${tag}" >&1
     echo "   found ${lu} ${tag}" >&9
-    . ${_MKCONFIG_DIR}/mkconfig.units/${lu}.sh
+    . ${_MKCONFIG_DIR}/units/${lu}.sh
     tlu=$lu
     dosubst tlu '-' '_'
     eval "_MKCONFIG_UNIT_${tlu}=Y"
