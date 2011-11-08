@@ -116,7 +116,7 @@ getlistofshells () {
         fi
 
         if [ -x $rs ]; then
-          cmd="$rs -c \". $_MKCONFIG_DIR/shellfuncs.sh;getshelltype $rs echo\""
+          cmd="$rs -c \". $_MKCONFIG_DIR/bin/shellfuncs.sh;getshelltype $rs echo\""
           set `eval $cmd`
           dispshell=$1
           echo "  found: $rs ($dispshell)" >&8
@@ -141,10 +141,10 @@ ${inode}"
   for s in $tshelllist; do
     echo ${EN} "  check $s${EC}" >&8
     echo ${EN} "   $s${EC}"
-    cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;TSHELL=$s;chkshell echo\""
+    cmd="$s -c \". $_MKCONFIG_DIR/bin/shellfuncs.sh;TSHELL=$s;chkshell echo\""
     eval $cmd >&8 2>&1
     rc=$?
-    cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;TSHELL=$s;getshelltype $s echo\""
+    cmd="$s -c \". $_MKCONFIG_DIR/bin/shellfuncs.sh;TSHELL=$s;getshelltype $s echo\""
     set `eval $cmd`
     dispshell=$1
     shift
@@ -215,7 +215,7 @@ if [ "$mypath" = "runtests.sh" ]; then
 fi
 _MKCONFIG_DIR=`(cd $mypath;pwd)`
 export _MKCONFIG_DIR
-. ${_MKCONFIG_DIR}/shellfuncs.sh
+. ${_MKCONFIG_DIR}/bin/shellfuncs.sh
 
 _MKC_ONCE=0
 export _MKC_ONCE
@@ -411,7 +411,7 @@ while read tline; do
     for s in $shelllist; do
       unset _shell
       unset dispshell
-      cmd="$s -c \". $_MKCONFIG_DIR/shellfuncs.sh;getshelltype $s echo\""
+      cmd="$s -c \". $_MKCONFIG_DIR/bin/shellfuncs.sh;getshelltype $s echo\""
       set `eval $cmd`
       dispshell=$1
       _MKCONFIG_SHELL=$s

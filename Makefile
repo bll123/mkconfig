@@ -42,4 +42,4 @@ tests.done: runtests.sh
 
 .PHONY: tar
 tar:
-	./mktar.sh
+	./util/mktar.sh

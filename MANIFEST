@@ -1,50 +1,28 @@
 LICENSE			LICENSE
-Makefile
 MANIFEST		MANIFEST
+Makefile
+README          	README
 VERSION			version
+bin/mkcomp.sh		compile a source file
+bin/mkcsetopt.sh	set options in options file
+bin/mklink.sh		link an executable
+bin/mkreqlib.sh		required link libraries
+bin/mksharedlib.sh	create a shared library
+bin/mkstaticlib.sh	create a static library
+bin/shellfuncs.sh	mkconfig functions
+bin/testfuncs.sh	test suite functions
 features/
 features/checktests.dat
-mkcextdcl.awk		script to extract C language declarations
-mkcextmacro.awk		script to extract C language macros
-mkcextstruct.awk	script to extract C language structures
-mkconfig.7		manual page
-mkconfig_c.7		manual page
-mkconfig_d.7		manual page
-mkconfig_env.7		manual page
+man/mkconfig.7		manual page
+man/mkconfig_c.7	manual page
+man/mkconfig_d.7	manual page
+man/mkconfig_env.7	manual page
+mkc.sh			compile/link/library/other tool
 mkconfig.pl		perl config program
 mkconfig.sh		shell config program
-mkconfig.units/		units for mkconfig.sh
-mkconfig.units/c-include-conflict.sh
-mkconfig.units/c-main.sh
-mkconfig.units/c-support.sh
-mkconfig.units/d-main.sh
-mkconfig.units/d-support.sh
-mkconfig.units/env-cc.sh
-mkconfig.units/env-dc.sh
-mkconfig.units/env-extension.sh
-mkconfig.units/env-main.sh
-mkconfig.units/env-msgfmt.sh
-mkconfig.units/env-systype.sh
-mkcsetopt.sh		set options in options file
-mklink.sh		link an executable [preliminary]
-mkreqlib.sh		required link libraries
-mksharedlib.sh		create a shared library [preliminary]
-mkstaticlib.sh		create a static library
-mktar.sh		creates tar file
-README          	README
 runtests.sh		runs regression tests
-shellfuncs.sh		mkconfig functions
-testfuncs.sh		test suite functions
 tests.d/                regression tests
-tests.d/command.dat
-tests.d/command.sh
-tests.d/compperl.sh
-tests.d/compsh.sh
-tests.d/multword.dat
-tests.d/multword.sh
 tests.d/c.d/            regression tests for C language
-tests.d/test_order
-tests.d/c.d/c.env.dat
 tests.d/c.d/c-args.dat
 tests.d/c.d/c-args.sh
 tests.d/c.d/c-cache.dat
@@ -105,9 +83,13 @@ tests.d/c.d/c-syshdr.dat
 tests.d/c.d/c-syshdr.sh
 tests.d/c.d/c-type.dat
 tests.d/c.d/c-type.sh
+tests.d/c.d/c.env.dat
 tests.d/c.d/test_order
+tests.d/command.dat
+tests.d/command.sh
+tests.d/compperl.sh
+tests.d/compsh.sh
 tests.d/d.d/		regression tests for D language
-tests.d/d.d/d.env.dat
 tests.d/d.d/d-cdcl.dat
 tests.d/d.d/d-cdcl.sh
 tests.d/d.d/d-cdefine.dat
@@ -154,12 +136,32 @@ tests.d/d.d/d-singlelib.reqlibs
 tests.d/d.d/d-singlelib.sh
 tests.d/d.d/d-size.dat
 tests.d/d.d/d-size.sh
+tests.d/d.d/d.env.dat
 tests.d/d.d/test_order
 tests.d/env.d/			regression tests for shell
-tests.d/env.d/env-outfile.dat
-tests.d/env.d/env-outfile.sh
 tests.d/env.d/env-option.dat
 tests.d/env.d/env-option.sh
+tests.d/env.d/env-outfile.dat
+tests.d/env.d/env-outfile.sh
 tests.d/env.d/env-set.dat
 tests.d/env.d/env-set.sh
 tests.d/env.d/test_order
+tests.d/multword.dat
+tests.d/multword.sh
+tests.d/test_order
+units/			units for mkconfig.sh
+units/c-include-conflict.sh
+units/c-main.sh
+units/c-support.sh
+units/d-main.sh
+units/d-support.sh
+units/env-cc.sh
+units/env-dc.sh
+units/env-extension.sh
+units/env-main.sh
+units/env-msgfmt.sh
+units/env-systype.sh
+util/mkcextdcl.awk	script to extract C language declarations
+util/mkcextmacro.awk	script to extract C language macros
+util/mkcextstruct.awk	script to extract C language structures
+util/mktar.sh		creates tar file
