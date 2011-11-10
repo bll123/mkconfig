@@ -22,6 +22,12 @@ dosetup $@
 #define g 255
 #define h 1024
 
+#define i 0x255
+#define j 0xa1bc
+
+#define k 00100
+#define l 00200
+
 #define pi 3.14159
 
 #endif
@@ -51,6 +57,14 @@ chkoutd "^enum (: )?bool ({ )?_cdefine_g = true( })?;$"
 chkoutd "^enum (: )?int ({ )?g = 0xff( })?;$"
 chkoutd "^enum (: )?bool ({ )?_cdefine_h = true( })?;$"
 chkoutd "^enum (: )?int ({ )?h = 0x400( })?;$"
+chkoutd "^enum (: )?bool ({ )?_cdefine_i = true( })?;$"
+chkoutd "^enum (: )?int ({ )?i = 0x255( })?;$"
+chkoutd "^enum (: )?bool ({ )?_cdefine_j = true( })?;$"
+chkoutd "^enum (: )?int ({ )?j = 0xa1bc( })?;$"
+chkoutd "^enum (: )?bool ({ )?_cdefine_k = true( })?;$"
+chkoutd "^enum (: )?int ({ )?k = 64( })?;$"
+chkoutd "^enum (: )?bool ({ )?_cdefine_l = true( })?;$"
+chkoutd "^enum (: )?int ({ )?l = 128( })?;$"
 chkoutd "^enum (: )?bool ({ )?_cdefine_pi = true( })?;$"
 if [ "$DVERSION" = 1 ]; then
   chkoutd "^double pi = 3.14159;$"
