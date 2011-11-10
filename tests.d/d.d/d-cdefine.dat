@@ -16,4 +16,10 @@ cdefine string e
 cdefine hex g
 cdefine hex h
 
+cdefine hex i
+cdefine hex j
+
+cdefine int k
+cdefine int l
+
 cdefine float pi
