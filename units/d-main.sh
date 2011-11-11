@@ -527,6 +527,8 @@ _map_int_csize () {
   if [ $tval -eq 8 ]; then mval=long; fi
   if [ "$mval" = "" ]; then mval=long; fi
 
+  doappend daliases "alias ${mval} C_TYP_${nm};
+"
   eval "_c_${nm}=${mval}"
 }
 
@@ -541,6 +543,8 @@ _map_float_csize () {
   if [ $tval -eq 12 ]; then mval=real; fi
   if [ "$mval" = "" ]; then mval=real; fi
 
+  doappend daliases "alias ${mval} C_TYP_${nm};
+"
   eval "_c_${nm}=${mval}"
 }
 
