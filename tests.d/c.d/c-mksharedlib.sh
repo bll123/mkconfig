@@ -32,7 +32,7 @@ for i in 1 2 3 4; do
 #include <stdlib.h>
 int mkct${i} () { return ${i}; }
 "
-  ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e mkct${i}.c >&9
+  ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e mkct${i}.c
 done
 
 i=5
@@ -54,7 +54,7 @@ int mkct${i} () { int i; i = 0;
     i += mkct1(); i += mkct2(); i += mkct3(); i += mkct4();
     return i; }
 "
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e mkct${i}.c >&9
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e mkct${i}.c
 
 i=6
 > mkct${i}.c echo '
@@ -70,12 +70,12 @@ i=6
 extern int mkct5 _((void));
 main () { int i, j; i = mkct5(); j = 1; if (i == 10) { j = 0; } return j; }
 '
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e mkct${i}.c >&9
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e mkct${i}.c
 
 grc=0
 set +f
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -sharedlib \
-    -e mkct mkct[51234]${OBJ_EXT} >&9
+    -e mkct mkct[51234]${OBJ_EXT}
 set -f
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
@@ -85,7 +85,7 @@ if [ "${SHRUNPATH}" != "" ]; then
   shrunpath="${SHRUNPATH}."
 fi
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -link -c ${CC} \
-    -o mkct6a${EXE_EXT} mkct6${OBJ_EXT} ${shrunpath} -L. -lmkct >&9
+    -o mkct6a${EXE_EXT} mkct6${OBJ_EXT} ${shrunpath} -L. -lmkct
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 

@@ -36,13 +36,13 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
     -C $_MKCONFIG_RUNTESTDIR/c.env.dat
 . ./c.env
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e tst1lib.c >&9
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e tst1lib.c
 if [ $? -ne 0 ]; then
   echo "compile tst1lib.c failed"
   exit 1
 fi
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` \
-    -staticlib libtst1lib tst1lib${OBJ_EXT} >&9
+    -staticlib libtst1lib tst1lib${OBJ_EXT}
 
 dorunmkc reqlibs out.h
 

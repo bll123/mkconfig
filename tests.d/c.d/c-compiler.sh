@@ -14,7 +14,7 @@ main () { exit (0); }
 '
 
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp \
-    -e -o c_compiler.exe c_compiler.c >&9
+    -e -o c_compiler.exe c_compiler.c
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 if [ ! -x c_compiler.exe ]; then grc=1; fi

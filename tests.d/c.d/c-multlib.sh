@@ -32,9 +32,9 @@ extern int tst2libc ();
 int tst2libb () { tst2libc(); return 0; }
 '
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e tst2libb.c >&9
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e tst2libb.c
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -staticlib -e \
-    libtst2libb tst2libb${OBJ_EXT} >&9
+    libtst2libb tst2libb${OBJ_EXT}
 
 > tst2libc.c echo '
 #include <stdio.h>
@@ -43,9 +43,9 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -staticlib -e \
 int tst2libc () { printf ("hello world\\n"); return 0; }
 '
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e tst2libc.c >&9
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e tst2libc.c
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -staticlib -e \
-    libtst2libc tst2libc${OBJ_EXT} >&9
+    libtst2libc tst2libc${OBJ_EXT}
 
 dorunmkc reqlibs out.h
 
