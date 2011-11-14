@@ -29,24 +29,6 @@ check_dc () {
 
   case ${DC} in
     *dmd|dmd2|*/dmd2)
-      dver=`${DC} --help | head -1 | sed 's/.*v//;s/\..*//'`
-      ;;
-    *ldc|*ldc2|*ldmd|*ldmd2)
-      dver=`${DC} -version | head -2 | tail -1 | sed 's/.*DMD v//;s/\..*//'`
-      ;;
-    *gdc|*gdc2)
-      # not very good.
-      dver=`${DC} --version | grep '[12]\.[0-9]' |
-            sed 's/.*[: ]\([12]\)\..*/\1/'`
-      ;;
-  esac
-  setdata ${_MKCONFIG_PREFIX} DVERSION $dver
-
-  printyesno_val DC "${DC}" "v${dver}"
-  setdata ${_MKCONFIG_PREFIX} DC "${DC}"
-
-  case ${DC} in
-    *dmd|dmd2|*/dmd2)
       setdata ${_MKCONFIG_PREFIX} DC_OPT "-O"
       setdata ${_MKCONFIG_PREFIX} DC_OF "-of"
       setdata ${_MKCONFIG_PREFIX} DC_RELEASE "-release"
@@ -84,6 +66,26 @@ check_dc () {
       setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_GDC "Y"
       ;;
   esac
+
+  cat > tv.d << _HERE_
+int main (char[][] args) { version (D_Version2) { return 2; } return 1; }
+_HERE_
+  ${DC} ${DC_OF}tv.exe tv.d
+  ./tv.exe
+  rc=$?
+  case $rc in
+    1|2|3)
+      ;;
+    *)
+      echo "## Failure to determine D version"
+      exit 1
+      ;;
+  esac
+  dver=$rc
+  setdata ${_MKCONFIG_PREFIX} DVERSION $dver
+
+  printyesno_val DC "${DC}" "v${dver}"
+  setdata ${_MKCONFIG_PREFIX} DC "${DC}"
 }
 
 check_using_gdc () {
