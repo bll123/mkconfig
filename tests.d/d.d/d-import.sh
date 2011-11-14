@@ -21,7 +21,7 @@ tangolib=`egrep "^enum (: )?bool ({ )?_d_tango_lib = " out.d |
 if [ "$tangolib" = "false" ]; then
   chkoutd "^enum (: )?bool ({ )?_import_std_conv = true( })?;$"
 else
-  chkoutd "^enum (: )?bool ({ )?_import_io_Stdout = true( })?;$"
+  chkoutd "^enum (: )?bool ({ )?_import_tango_io_Stdout = true( })?;$"
 fi
 
 if [ $grc -eq 0 ]; then

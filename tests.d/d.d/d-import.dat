@@ -3,7 +3,7 @@ loadunit d-main
 standard
 
 if hastangolib _d_tango_lib
- import io.Stdout
+ import tango.io.Stdout
 else
  import std.conv
 endif
