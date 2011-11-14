@@ -15,7 +15,7 @@ chkouth '^#define _cmd_loc_sed "/.*/sed"$'
 chkouth '^#define _command_grep 1$'
 chkouth '^#define _cmd_loc_grep "/.*/grep"$'
 chkouth '^#define _command_awk 1$'
-chkouth '^#define _cmd_loc_awk "/.*/[nmg]?awk"$'
+chkouth '^#define _cmd_loc_awk "/.*/grep"$'
 
 testcleanup
 
