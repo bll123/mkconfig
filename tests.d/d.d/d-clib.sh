@@ -19,6 +19,7 @@ grep -v SYSTYPE out.d |
     grep -v 'D_VERSION' |
     grep -v '_d_tango_lib' |
     grep -v '_csiz_' |
+    grep -v 'alias [a-z]* C_TYP_[a-z_]*;' |
     grep -v 'alias char.. string;' |
     grep -v '_type_string' |
     grep -v '^import std.*string' |
