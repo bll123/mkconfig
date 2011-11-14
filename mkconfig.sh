@@ -634,8 +634,9 @@ main_process () {
             _chkconfigfname
             set $tdatline
             cmd=$2
+            shift
             nm="_command_${cmd}"
-            check_command ${nm} ${cmd}
+            check_command ${nm} $@
             ;;
           "echo"*)
             _chkconfigfname
