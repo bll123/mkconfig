@@ -68,7 +68,11 @@ check_dc () {
   esac
 
   cat > tv.d << _HERE_
-int main (char[][] args) { version (D_Version2) { return 2; } return 1; }
+int main (char[][] args) { 
+  version (D_Version2) { return 2; } 
+  version (D_Version3) { return 3; } 
+  version (D_Version4) { return 4; } 
+  return 1; }
 _HERE_
   ${DC} ${DC_OF}tv.exe tv.d
   ./tv.exe
