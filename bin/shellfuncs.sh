@@ -273,33 +273,6 @@ chkshell () {
   'set -f' not supported"
   fi
 
-  if [ "$TSHELL" != "" ]; then
-    # test for -n not supported.
-    (
-      rm -f $TMP $TMP.out > /dev/null 2>&1
-      echo 'while test $# -gt 1; do echo $1; shift; done; exit 1' > $TMP
-      chmod a+rx $TMP
-      cmd="$TSHELL -n $TMP;echo \$? > $TMP.out"
-      eval $cmd &
-      job=$!
-      sleep 1
-      rc=1
-      if [ ! -f $TMP.out ]; then
-        kill $job
-      else
-        rc=`cat $TMP.out`
-      fi
-      rm -f $TMP $TMP.out > /dev/null 2>&1
-      exit $rc
-    )
-    rc=$?
-    if [ $rc -ne 0 ]; then
-      grc=$rc
-      chkmsg="${chkmsg}
-  Does not support -n."
-    fi
-  fi
-
   if [ $doecho = "T" ]; then
     echo $chkmsg
   fi
