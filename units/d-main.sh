@@ -331,7 +331,7 @@ check_tangolib () {
   if [ $rc -eq 0 ]; then return; fi
 
   code="
-import io.Stdout;
+import tango.io.Stdout;
 int main () { Stdout (\"hello world\"); return (0); }
 "
 
@@ -419,7 +419,7 @@ check_size () {
     code="import std.stdio;
         void main (char[][] args) { writef(\"%d\", (${type}).sizeof); }"
   else
-    code="import io.Stdout;
+    code="import tango.io.Stdout;
         void main (char[][] args) { Stdout ((${type}).sizeof); }"
   fi
   _d_chk_run ${name} "${code}" all
