@@ -15,6 +15,36 @@ if [ "$_MKCONFIG_SHELL" = "" ]; then
   _MKCONFIG_SHELL=/bin/sh
 fi
 
+DASH_N_SUPPORTED=T
+# test for -n not supported.
+(
+  TMP=chkdashn$$
+  rm -f $TMP $TMP.out > /dev/null 2>&1
+  echo 'while test $# -gt 1; do echo $1; shift; done; exit 1' > $TMP
+  chmod a+rx $TMP
+  cmd="$_MKCONFIG_SHELL -n $TMP;echo \$? > $TMP.out"
+  eval $cmd &
+  job=$!
+  sleep 1
+  rc=1
+  if [ ! -f $TMP.out ]; then
+    kill $job
+  else
+    rc=`cat $TMP.out`
+  fi
+  rm -f $TMP $TMP.out > /dev/null 2>&1
+  exit $rc
+)
+rc=$?
+if [ $rc -ne 0 ]; then
+  DASH_N_SUPPORTED=F
+fi
+
+if [ "$DASH_N_SUPPORTED" = F ]; then
+  echo ${EN} "(skip)${EC}" >&5
+  exit 0
+fi
+
 # need globbing on.
 set +f
 
