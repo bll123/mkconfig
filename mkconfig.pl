@@ -606,9 +606,7 @@ check_command
       {
         if (-x "$p/$cmd")
         {
-          if ($r_config->{$name} == 0) {
-            setlist $r_clist, $locnm;
-          }
+          setlist $r_clist, $locnm;
           $r_config->{$locnm} = "$p/$cmd";
           $r_config->{$name} = 1;
           last;
