@@ -16,7 +16,8 @@ fi
 doshelltest $0 $@
 
 doecho=F
-comp=""
+comp=
+reqlibfile=
 while test $# -gt 0; do
   case $1 in
     -e)
@@ -33,6 +34,11 @@ while test $# -gt 0; do
       outfile=$1
       shift
       ;;
+    -r)
+      shift
+      reqlibfile=$1
+      shift
+      ;;
     --)
       shift
       break
@@ -43,6 +49,7 @@ while test $# -gt 0; do
   esac
 done
 
+# DC_LINK should be in environment already.
 OUTFLAG="-o "
 DC_LINK=
 case ${comp} in
@@ -58,14 +65,19 @@ case ${comp} in
     ;;
 esac
 
-objects=""
-libs=""
-libpath=""
+objects=
+libs=
+libpath=
 islib=0
 ispath=0
+olibs=
+
+if [ "$reqlibfile" != "" ]; then
+  olibs=`cat $reqlibfile`
+fi
 
 grc=0
-for f in $@; do
+for f in $@ $olibs; do
   case $f in
     "-L")
       ispath=1
