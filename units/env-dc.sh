@@ -68,24 +68,37 @@ check_dc () {
   esac
 
   cat > tv.d << _HERE_
-int main (char[][] args) { 
-  version (D_Version2) { return 2; } 
-  version (D_Version3) { return 3; } 
-  version (D_Version4) { return 4; } 
+int main (char[][] args) {
+  version (D_Version2) { return 2; }
+  version (D_Version3) { return 3; }
+  version (D_Version4) { return 4; }
   return 1; }
 _HERE_
+
+  dver=
+  grc=1
   ${DC} ${DC_OF}tv.exe tv.d
-  ./tv.exe
   rc=$?
-  case $rc in
-    1|2|3)
-      ;;
-    *)
-      echo "## Failure to determine D version"
-      exit 1
-      ;;
-  esac
-  dver=$rc
+  if [ $rc -eq 0 ]; then
+    if [ ! -x ./tv.exe ]; then
+      rc=127
+    else
+      ./tv.exe
+      rc=$?
+    fi
+    case $rc in
+      1|2|3|4)
+        dver=$rc
+        grc=0
+        ;;
+      *)
+        ;;
+    esac
+  fi
+  if [ $grc -ne 0 ]; then
+    echo "## Failure to determine D version"
+    exit 1
+  fi
   setdata ${_MKCONFIG_PREFIX} DVERSION $dver
 
   printyesno_val DC "${DC}" "v${dver}"
