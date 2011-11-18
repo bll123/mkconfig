@@ -265,6 +265,12 @@ preconfigfile () {
   echo "LIBS: ${LIBS}" >&9
   echo "DC_OF: ${DC_OF}" >&9
 
+  if [ $DVERSION -eq 2 ]; then
+    getdata tval ${_MKCONFIG_PREFIX} '_import_std_string'
+    if [ "$tval" = "0" ]; then
+      echo "import std.string;"
+    fi
+  fi
   _create_enum -o int D_VERSION "${DVERSION}"
   getdata tval ${_MKCONFIG_PREFIX} '_type_string'
   if [ "$tval" = "0" ]; then
@@ -296,6 +302,7 @@ standard_checks () {
     return
   fi
 
+  check_import import std.string
   check_type type string
   check_tangolib
 }
