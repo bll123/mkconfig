@@ -1,10 +1,29 @@
-mkconfig - configuration tool (version 1.18)
+mkconfig - configuration tool (version 1.19)
 
 Please e-mail any configuration units and the corresponding
 manual page entry to brad.lanam.di_at_gmail.com.  They will be
 included in the next release.
 
 CHANGES
+
+    1.19                                    [20 Nov 2011]
+        Created mkc.sh as a single entry point for compiling, linking,
+           creating libraries, setting options and finding required libraries.
+        Solaris 2.6 /bin/sh is no longer excluded.
+        Fixed problem with .vars file not being cleaned on remake.
+        D: Rework c-structure extraction.
+        D: Better handling of nested structures and typedef'd structures.
+        D: Add aliases for c argument types.
+        D: revert cache check where it shouldn't be cached.
+        D: Add aliases for c basic types (csizes directive).
+        Fixed mkreqlib.sh to handle clibs for D.
+        Fixed c-declaration test for freebsd.
+        Change support for tango library and Dv1.
+        Changed env-dc to compile to get D version.
+        Changed env-cc and env-dc to pick up standard env variables
+           from the options file.  This allows the options file to
+           keep all configuration data.
+        Rearranged directory structure.
 
     1.18                                    [8 Oct 2011]
         D: C structures are wrapped in extern (C) {}
