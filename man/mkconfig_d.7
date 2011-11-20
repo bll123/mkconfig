@@ -31,7 +31,7 @@
 .fi
 ..
 .\"
-.TH mkconfig_d 7 "20 Sep 2011"
+.TH mkconfig_d 7 "10 Nov 2011"
 .SH Name
 mkconfig_d \- mkconfig D language units
 .\" .SH Synopsis
@@ -47,8 +47,9 @@ The d\-main unit creates a configuration file for D programs.
 \fBstandard\fP
 .br
 Executes any \fIStandard\fP checks for the D language.
-Currently there are checks to see if the 'string' type is valid and
-to see if the tango library is in use.  If 'string' is not valid, an
+Currently there are checks for: (a) import of std.string for D version 2; 
+(b) see if the 'string' type is valid; and
+(c) to see if the tango library is in use.  If 'string' is not valid, an
 alias is added to the configuration file.  The tango library check
 creates a check variable named '_d_tango_lib'.
 .RS
@@ -158,6 +159,14 @@ Operating system, architecture and compiler dependent.
 .PP
 .Vb
 .B Output:
+alias char C_TYP_char;
+alias short C_TYP_short;
+alias int C_TYP_int;
+alias long C_TYP_long;
+alias long C_TYP_long_long;
+alias float C_TYP_float;
+alias double C_TYP_double;
+alias real C_TYP_long_double;
 enum int _csiz_char = 1;
 enum int _csiz_short = 2;
 enum int _csiz_int = 4;
@@ -177,6 +186,19 @@ the test will try first without the libraries, then with
 the first set of libraries specified linked in, then the next set, etc.
 Sets of libraries to be tested are separated by commas.
 .PP
+Execute \fImkc.sh \-reqlib\fP after creating the output file
+to output the libraries required for linking.
+.PP
+\fImkc.sh \-reqlib\fP creates the list of libraries required for linking
+based on the output file.  This allows the user to modify
+the output file and only the necessary libraries will be
+linked in.
+.PP
+\fImkc.sh -reqlib\fP is executed with a command line argument of the
+output file name created by \fImkconfig.sh\fP.
+The output library file defaults to 'mkconfig.reqlibs',
+but may be changed with the \-o command line option.
+.PP
 .B e.g.
 .br
 clib quotactl
@@ -192,6 +214,9 @@ clib bindtextdomain -lintl, -lintl -liconv
 .RS
 Checks if a C #define of \fIdef\fP exists.
 A D language 'enum' will be output to the output file.
+The type specifies the output type for the D enum,
+though of course this must match for float and string values.
+For octal values, use the 'int' type.
 .PP
 .B e.g.
 .br
