@@ -11,7 +11,7 @@
 .\"
 .\"  Notes on terminology:
 .\"    check variable - the variable name for the check.
-.\"    check command - a command from the mkconfig config file.
+.\"    directive - a command from the mkconfig config file.
 .\"    mkconfig config file - file where mkconfig check commands are read from
 .\"       not to be confused with "config.h".
 .\"    output file - file to which language units output is written
@@ -30,18 +30,19 @@
 .fi
 ..
 .\"
-.TH mkconfig 7 "19 Sep 2011"
+.TH mkconfig 7 "8 Nov 2011"
 .SH Name
 mkconfig \- build configuration utilities
 .SH Synopsis
 .\" mkconfig.sh [-C] [-c <cache-file>]
 .\"       [-o <option-file>] [-L <log-file>] config-file
-.\" mkreqlib.sh [-c <cache-file>] [-l <lib-file>] input-file
-.\" mkcsetopt.sh [-o <option-file>] option value
 .\" runtests.sh <tests-dir> [test1, ...]
-.\" mkstaticlib.sh [-e] libname objectfile ...
-.\" mksharedlib.sh [-e] libname objectfile ... [-L <lib-path>] [-l <lib>]
-.\" mklink.sh [-e] -o execname objectfile ... [-L <lib-path>] [-l <lib>]
+.\" mkc.sh -comp [-e] [-o execname|-o objname] sourcefile ...
+.\" mkc.sh -link [-e] -o execname objectfile ... [-L <lib-path>] [-l <lib>]
+.\" mkc.sh -reqlib [-c <cache-file>] [-o <lib-file>] input-file
+.\" mkc.sh -setopt [-o <option-file>] option value
+.\" mkc.sh -staticlib [-e] libname objectfile ...
+.\" mkc.sh -sharedlib [-e] libname objectfile ... [-L <lib-path>] [-l <lib>]
 .B mkconfig.sh
 [\fB\-C\fP]
 [\fB\-c\fP <cache\-file>]
@@ -57,24 +58,7 @@ log\-file defaults to 'mkconfig.log'.
 .PP
 option\-file defaults to 'options.dat'.
 .PP
-config\-file is a file containing a list of mkconfig check commands.
-.PP
-.B mkreqlib.sh
-[\fB\-c\fP <cache\-file>]
-[\fB\-l\fP <lib\-file>]
-input\-file
-.PP
-cache\-file defaults to 'mkconfig.cache'.
-.PP
-output\-file defaults to 'mkconfig.reqlibs'.
-.PP
-input\-file is the C/C++ output\-file created by mkconfig.sh.
-.PP
-.B mkcsetopt.sh
-[\fB\-o\fP <option\-file>]
-option value
-.PP
-option\-file defaults to 'options.dat'.
+config\-file is a file containing a list of mkconfig directives.
 .PP
 .B runtests.sh
 tests\-dir
@@ -84,19 +68,41 @@ tests\-dir is a directory containing test scripts.
 .PP
 The tests to be run may be specified on the command line.
 .PP
-.B mkstaticlib.sh
+.B mkc.sh \-reqlib
+[\fB\-c\fP <cache\-file>]
+[\fB\-o\fP <lib\-file>]
+input\-file
+.PP
+cache\-file defaults to 'mkconfig.cache'.
+.PP
+output\-file defaults to 'mkconfig.reqlibs'.
+.PP
+input\-file is the C/C++ output\-file created by mkconfig.sh.
+.PP
+.B mkc.sh \-setopt
+[\fB\-o\fP <option\-file>]
+option value
+.PP
+option\-file defaults to 'options.dat'.
+.PP
+.B mkc.sh \-staticlib
 [-e] lib\-name object\-file [...]
 .PP
 The -e option echos the command line.
 .PP
-.B mksharedlib.sh
+.B mkc.sh \-sharedlib
 [-e] lib\-name object\-file [...] [-L lib\-path ...] [-l lib ...]
 .PP
 The -e option echos the command line.
 .PP
-.B mklink.sh
+.B mkc.sh \-link
 [\-e] \-o exec\-name object\-file [obj\-file2 ...]
 [-L lib\-path ...] [-l lib ...]
+.PP
+The -e option echos the command line.
+.PP
+.B mkc.sh \-comp
+[\-e] [\-o exec\-name|\-o obj\-name| source\-file [source\-file2 ...]
 .PP
 The -e option echos the command line.
 .SH Description
@@ -112,30 +118,33 @@ a shell script, a configuration file, or any other use.  If the
 _MKCONFIG_SHELL environment variable is set to a particular shell,
 \fImkconfig.sh\fP will restart itself using that shell.
 .PP
-\fImkreqlib.sh\fP
+\fIruntests.sh\fP
+is a simple test harness for mkconfig.  It is intended as a simple,
+portable test harness.  There are better test harnesses available.
+.PP
+\fImkc.sh \-setopt\fP
+is used to change the value of the options in the option file.
+.PP
+\fImkc.sh \-comp\fP
+compiles to an executable or object file given a source file.
+.PP
+\fImkc.sh \-reqlib\fP
 is used in conjunction with the c\-main language unit or
 d\-main language unit to output the
 libraries required for linking.  See the description for the 'lib'
 check routine for the c\-main language unit.
 .PP
-\fImkcsetopt.sh\fP
-is a utility used to change the value of the options in the option file.
-.PP
-\fIruntests.sh\fP
-is a simple test harness for mkconfig.  It is intended as a simple,
-portable test harness.  There are better test harnesses available.
-.PP
-\fImkstaticlib.sh\fP
-creates a static library given a library name and a list of object files.
-.PP
-\fImksharedlib.sh\fP
-creates a shared library given a library name, a list of object files,
-a list of library paths and libraries.
-.PP
-\fImklink.sh\fP
+\fImkc.sh \-link\fP
 creates an executable given an executable name, a list of object files,
 a list of library paths and libraries.
-.SH Basic Check Commands (mkconfig.sh)
+.PP
+\fImkc.sh \-staticlib\fP
+creates a static library given a library name and a list of object files.
+.PP
+\fImkc.sh \-sharedlib\fP
+creates a shared library given a library name, a list of object files,
+a list of library paths and libraries.
+.SH Basic Directives (mkconfig.sh)
 .TP
 \fB#\fP comment
 .RS
@@ -161,16 +170,21 @@ Include a mkconfig unit for testing.
 Units include specific check routines that may be performed.
 .RE
 .TP
-\fBcommand\fP name\-of\-command
+\fBcommand\fP name\-of\-command [alternate\-cmd...]
 .RS
-Check if command exists in the path.
+Check if command exists in the path.  When listing alternate commands,
+specify the list from least wanted to best.
 .PP
 .Vb
 .B e.g.
+command awk nawk gawk
+.br
 command sed
 .B Output:
 #define _command_sed 1 /* C */
+#define _cmd_loc_sed "/bin/sed" /* C */
 enum bool _command_sed = true; /* D */
+enum string _cmd_loc_sed = "/bin/sed"; /* D */
 .Ve
 .RE
 .TP
@@ -223,7 +237,7 @@ Include all of the code between these two tags
 in the output file.  Backslashes must
 be escaped with a backslash.  Note that the included text
 is only output at the end of the output\-file, not inline
-with the check command output.
+with the directive output.
 .RE
 .TP
 \fBoption\fP option\-name default\-value
@@ -334,7 +348,7 @@ set the output\-file name.
 load any units as specified by the loadunit commands from the
 mkconfig.units directory.
 .br
-execute the check commands as specified by the mkconfig configuration file.
+execute the directives as specified by the mkconfig configuration file.
 .br
 .RE
 save the cache file.
@@ -372,7 +386,7 @@ Language units may need other functions as defined in other units.
 The \fIrequire_unit\fP function makes sure that the a particular
 language unit is loaded for use by the calling unit.
 .PP
-A typical check command in a language unit will be structured as
+A typical directive in a language unit will be structured as
 follows:
 .RS 3
 .Vb

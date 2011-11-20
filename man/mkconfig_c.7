@@ -30,7 +30,7 @@
 .fi
 ..
 .\"
-.TH mkconfig_c 7 "19 Sep 2011"
+.TH mkconfig_c 7 "8 Nov 2011"
 .SH Name
 mkconfig_c \- mkconfig C language units
 .\" .SH Synopsis
@@ -134,9 +134,9 @@ class os::Volumes
 #define _class_os__Volumes 0
 .Ve
 .PP
-Execute \fImkreqlib.sh\fP after creating the output file
+Execute \fImkc.sh \-reqlib\fP after creating the output file
 to output the libraries required for linking.  See the usage for
-\fImkreqlib.sh\fP in the lib check below.
+\fImkc.sh \-reqlib\fP in the lib check below.
 .RE
 .TP
 \fBconst\fP constant\-name [required\-headers]
@@ -213,18 +213,18 @@ lib gettext -lintl, -lintl -liconv
 #define _lib_gettext 1
 .Ve
 .PP
-Execute \fImkreqlib.sh\fP after creating the output file
+Execute \fImkc.sh \-reqlib\fP after creating the output file
 to output the libraries required for linking.
 .PP
-\fImkreqlib.sh\fP creates the list of libraries required for linking
+\fImkc.sh \-reqlib\fP creates the list of libraries required for linking
 based on the output file.  This allows the user to modify
 the output file and only the necessary libraries will be
 linked in.
 .PP
-\fImkreqlib.sh\fP is executed with a command line argument of the
+\fImkc.sh -reqlib\fP is executed with a command line argument of the
 output file name created by \fImkconfig.sh\fP.
 The output library file defaults to 'mkconfig.reqlibs',
-but may be changed with the \-l command line option.
+but may be changed with the \-o command line option.
 .PP
 The string '_dollar_', if included in the library function name
 will be replaced with the '$' symbol.
