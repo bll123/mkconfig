@@ -3,6 +3,7 @@ MANIFEST		MANIFEST
 Makefile
 README          	README
 VERSION			version
+bin/
 bin/mkcomp.sh		compile a source file
 bin/mkcsetopt.sh	set options in options file
 bin/mklink.sh		link an executable
@@ -13,6 +14,7 @@ bin/shellfuncs.sh	mkconfig functions
 bin/testfuncs.sh	test suite functions
 features/
 features/checktests.dat
+man/
 man/mkconfig.7		manual page
 man/mkconfig_c.7	manual page
 man/mkconfig_d.7	manual page
@@ -161,6 +163,7 @@ units/env-extension.sh
 units/env-main.sh
 units/env-msgfmt.sh
 units/env-systype.sh
+util/
 util/mkcextdcl.awk	script to extract C language declarations
 util/mkcextmacro.awk	script to extract C language macros
 util/mkcextstruct.awk	script to extract C language structures
