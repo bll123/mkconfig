@@ -61,7 +61,10 @@ does not correspond to the marketing version.
 The cc environment unit determines basic flags needed to run the
 C compiler.  Since these units are interdependent on each other, they
 should be configured in the order: 32bitflags, cc, using_gcc,
-cflags, ldflags, and libs.
+cflags, ldflags, and libs.  The CC, CFLAGS, LDFLAGS, LIBS, SHCFLAGS,
+and SHLDFLAGS
+environment variables may be set in the options file.  Any value set
+in the environment will override the settings in the options file.
 .RS
 .TP
 \fB32bitflags\fP
@@ -141,6 +144,9 @@ The dc environment unit determines basic flags needed to run the
 D compiler.  The D compiler may also be dependent on the C compiler,
 so the env-cc unit should also be loaded and the C compiler environment
 should be set up.
+The DC and DFLAGS
+environment variables may be set in the options file.  Any value set
+in the environment will override the settings in the options file.
 .RS
 .TP
 \fBdc\fP
