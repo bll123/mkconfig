@@ -31,8 +31,18 @@ typedef void *m;
 struct ns { int n; };
 typedef struct ns n;
 typedef struct { int o; } o_t;
-typedef o_t o;
-typedef o p; // typedef of typedef
+typedef o_t o;  // typedef of typedef
+typedef o p;    // typedef of typedef
+typedef void *q;  // with semi ; in comment
+typedef int *r;   /* semi ; in comment */
+typedef int * (s) (int s1);
+typedef struct ns *t;
+typedef void (u)(int u1);
+typedef int*(v) (int v1);
+// multiline
+typedef int (w) (int w1,
+	int *w2, int w3);
+typedef int (*x) (int *, void *,...);
 
 #endif
 '
@@ -55,7 +65,7 @@ if [ "${_MKCONFIG_USING_GCC}" = "Y" ]; then
   done
 fi
 
-for x in a b c d e f g h i m n o p; do
+for x in a b c d e f g h i m n o p q r t u v; do
   chkoutd "^enum (: )?bool ({ )?_ctypedef_${x} = true( })?;$"
   chkoutd "alias.*[ \*]${x};$"
 done
