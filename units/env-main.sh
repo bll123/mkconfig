@@ -20,6 +20,11 @@ _MKCONFIG_EXPORT=T
 
 preconfigfile () {
   pc_configfile=$1
+  configfile=$2
+
+  echo "# Created on: `date`"
+  echo "#  From: ${configfile}"
+  echo "#  Using: mkconfig-${_MKCONFIG_VERSION}"
   return
 }
 
@@ -37,18 +42,38 @@ standard_checks () {
   return
 }
 
+check_source () {
+  nm=$1
+  fn=$2
+  name=_${1}_${2}
+  dosubst name '/' '' '\.' ''
+
+  printlabel $nm "source: $fn"
+
+  trc=0
+  if [ -f $fn ]; then
+    trc=1
+  fi
+  printyesno $name $trc
+  setdata ${_MKCONFIG_PREFIX} ${name} $fn
+}
+
 output_item () {
   out=$1
   name=$2
   val=$3
 
   case $name in
+    _source_*)
+      echo ". ${val}"
+      ;;
     _setint*|_setstr*|_opt_*)
       tname=$name
       dosubst tname '_setint_' '' '_setstr_' '' '_opt_' ''
       echo "${tname}=\"${val}\""
       echo "export ${tname}"
       ;;
+
     *)
       echo "${name}=\"${val}\""
       echo "export ${name}"
@@ -69,4 +94,8 @@ check_test_multword () {
   val="word1 word2"
   printyesno_val $name "$val"
   setdata ${_MKCONFIG_PREFIX} $name "$val"
+}
+
+new_output_file () {
+  return 0
 }
