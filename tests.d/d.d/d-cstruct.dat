@@ -45,6 +45,8 @@ cstruct sii
 cstruct sjj
 # inline nested structure isn't handled
 #cstruct skk
+cstruct sll
+cstruct smm
 
 cunion ua
 cunion ub

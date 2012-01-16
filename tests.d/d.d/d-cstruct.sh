@@ -308,6 +308,18 @@ struct sjj
 
 struct skk { struct SKKB { int skka; } *skkb; };
 
+typedef struct sllstuff_ *sllstuff;
+struct sll {
+  int sll_a;
+  int sll_b;
+};
+
+struct smm {
+  int smm_b;
+  int *(*smm_a) (int *tablePtr,
+	    char *key);
+};
+
 union ua
 {
   long double ld;
@@ -460,7 +472,7 @@ dorunmkc
 
 for x in sa sb sc sd se sf sg sh si sj sk sl sm sn so sq sr \
     ss st su sv sw sx sy sz saa sbb scc sdd see SFF sgg \
-    shh sii sjj ; do
+    shh sii sjj sll; do
   chkoutd "^enum (: )?bool ({ )?_cstruct_${x} = true( })?;$"
 done
 

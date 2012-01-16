@@ -24,6 +24,11 @@ struct CL {
    } *cl_ops;
 };
 
+typedef struct DP DP;
+struct DP {
+  int length;
+};
+
 #define T0 2
 #define T1(a) ((a)+1)
 #define T2(a, b) ((a)+(b)+1)
@@ -39,7 +44,8 @@ struct CL {
 #define T10(rh, proc, xargs, argsp, xres, resp, secs) \
         ((*(rh)->cl_ops->cl_call)(rh, proc, xargs, \
             argsp, xres, resp, secs))
-
+#define T_11(dp) ((dp)->length)
+#define T12 ((DP *) 1)  // test with cast of non basic type
 
 #endif
 '
@@ -55,11 +61,11 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
 
 dorunmkc
 
-for x in T0 T1 T2 T3 T4 T5 T6 T7 T8 T9 ; do
+for x in T0 T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T_11 T12; do
   chkoutd "^enum (: )?bool ({ )?_cmacro_${x} = true( })?;$"
 done
 
-for x in T0 T1 T2 T3 T5 T7 T9 ; do
+for x in T0 T1 T2 T3 T5 T7 T9 T10 T_11; do
   chkoutd "^(auto|int) C_MACRO_${x}"
 done
 
@@ -69,6 +75,10 @@ done
 
 for x in T6 T8 ; do
   chkoutd "^(auto|uint) C_MACRO_${x}"
+done
+
+for x in T12 ; do
+  chkoutd "^(auto|DP [*]) C_MACRO_${x}"
 done
 
 if [ $grc -eq 0 ]; then
