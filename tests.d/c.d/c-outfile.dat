@@ -1,6 +1,6 @@
 loadunit c-main
 
-output out.h
+output out1.h
 
 standard
 setint _test1 0
@@ -10,6 +10,21 @@ setstr _test2 a b c
 output out2.h
 
 standard
+setint _test3 0
+setint _test3 2
+setstr _test4 d e f
+
+output out3.h
+
+standard
 setint _test1 0
 setint _test1 1
 setstr _test2 a b c
+
+output out4.h
+
+standard
+setint _test3 0
+setint _test3 2
+setstr _test4 d e f
+
