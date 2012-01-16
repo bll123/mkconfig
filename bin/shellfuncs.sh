@@ -73,9 +73,9 @@ test_math () {
   (eval 'x=1;y=$(($x+1)); test z$y = z2') 2>/dev/null
   if [ $? -eq 0 ]; then
     shhasmath=1
-    eval 'domath () { mthvar=$1; val=$(($2)); eval $mthvar=$val; }'
+    eval 'domath () { mthvar=$1; mthval=$(($2)); eval $mthvar=$mthval; }'
   else
-    eval 'domath () { mthvar=$1; val=`expr $2`; eval $mthvar=$val; }'
+    eval 'domath () { mthvar=$1; mthval=`expr $2`; eval $mthvar=$mthval; }'
   fi
 }
 
@@ -84,7 +84,7 @@ test_upper () {
   (eval 'typeset -u xuvar;xuvar=x;test z$xuvar = zX') 2>/dev/null
   if [ $? -eq 0 ]; then
     shhasupper=1
-    eval 'toupper () { ucvar=$1; typeset -u uval; eval "uval=\${$ucvar};$ucvar=\$uval"; }'
+    eval 'toupper () { ucvar=$1; typeset -u ucval; eval "ucval=\${$ucvar};$ucvar=\$ucval"; }'
   else
     eval 'toupper () { ucvar=$1; cmd="$ucvar=\`echo \${$ucvar} | tr \"[a-z]\" \"[A-Z]\"\`"; eval "$cmd"; }'
   fi
@@ -95,7 +95,7 @@ test_lower () {
   (eval 'typeset -l xuvar;xuvar=X;test z$xuvar = zx') 2>/dev/null
   if [ $? -eq 0 ]; then
     shhaslower=1
-    eval 'tolower () { lcvar=$1; typeset -l lval; eval "lval=\${$lcvar};$lcvar=\$lval"; }'
+    eval 'tolower () { lcvar=$1; typeset -l lcval; eval "lcval=\${$lcvar};$lcvar=\$lcval"; }'
   else
     eval 'tolower () { lcvar=$1; cmd="$lcvar=\`echo \${$lcvar} | tr \"[A-Z]\" \"[a-z]\"\`"; eval "$cmd"; }'
   fi
