@@ -16,6 +16,7 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
 dorunmkc
 
 grep -v SYSTYPE out.d |
+    grep -v '^//' |
     grep -v 'D_VERSION' |
     grep -v '_d_tango_lib' |
     grep -v '_csiz_' |
