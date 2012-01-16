@@ -14,6 +14,10 @@ BEGIN {
     ins = 1;
     macro = $0;
 #print "macroA:" macro;
+    gsub (/\/\/.*$/, "", macro);
+    gsub (/\/\*.*\*\//, "", macro);
+    gsub (/[ 	]*$/, "", macro);
+#print "macroAA:" macro;
     doend = 1;
     if ($0 ~ /\\$/) {
       doend = 0;
