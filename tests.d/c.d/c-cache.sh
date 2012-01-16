@@ -27,7 +27,7 @@ dorunmkc ${ccclear}
 # cache creation
 if [ ${ccache_count} -eq 1 ]; then
   ccclear=""
-  mv -f out.h ${_MKCONFIG_RUNTMPDIR}/c-cache.out.h
+  sed -e '/Created on:/d' out.h > ${_MKCONFIG_RUNTMPDIR}/c-cache.out.h
   cp -f mkconfig.cache ${_MKCONFIG_RUNTMPDIR}/c-cache.mkconfig_c.cache
   mv -f mkc_out_c.vars ${_MKCONFIG_RUNTMPDIR}/c-cache.mkc_out_c.vars
   # keep mkconfig.cache
@@ -35,21 +35,13 @@ if [ ${ccache_count} -eq 1 ]; then
   exit $?
 fi
 
-mv -f out.h out.h.${ccache_count}
+sed -e '/Created on:/d' out.h > out.h.${ccache_count}
 mv -f mkc_out_c.vars mkc_out_c.vars.${ccache_count}
 
 c=2
 while test $c -lt $ccache_count; do
-  echo "## diff c-cache.out.h out.h.${c}"
-  diff -b ${_MKCONFIG_RUNTMPDIR}/c-cache.out.h out.h.${c}
-  rc=$?
-  if [ $rc -ne 0 ]; then grc=$rc; fi
-
-  echo "## diff c-cache.mkc_out_c.vars mkc_out_c.vars.${c}"
-  diff -b ${_MKCONFIG_RUNTMPDIR}/c-cache.mkc_out_c.vars mkc_out_c.vars.${c}
-  rc=$?
-  if [ $rc -ne 0 ]; then grc=$rc; fi
-
+  chkdiff ${_MKCONFIG_RUNTMPDIR}/c-cache.out.h out.h.${c}
+  chkdiff ${_MKCONFIG_RUNTMPDIR}/c-cache.mkc_out_c.vars mkc_out_c.vars.${c}
   domath c "$c + 1"
 done
 
