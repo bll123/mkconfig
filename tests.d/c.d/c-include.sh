@@ -11,8 +11,11 @@ dosetup $@
 
 dorunmkc
 
-sed -e '/^#define _key_/d' -e '/^#define _proto_/d' \
-    -e '/^#define _param_/d' out.h > out.h.n
+sed -e '/^#define _key_/d' \
+    -e '/^#define _proto_/d' \
+    -e '/^#define _param_/d' \
+    -e '/Created on:/,/Using:/ d' \
+    out.h > out.h.n
 chkdiff c-include.ctmp out.h.n
 
 testcleanup out.h.n
