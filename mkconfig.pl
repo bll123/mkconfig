@@ -1297,12 +1297,17 @@ check_standard
 sub
 create_output
 {
-  my ($r_clist, $r_config, $include) = @_;
+  my ($r_clist, $r_config, $include, $configfile) = @_;
 
   if ($CONFH eq 'none') { return; }
 
+  my $dt=`date`;
   open (CCOFH, ">$CONFH");
   print CCOFH <<"_HERE_";
+/* Created on: ${dt}
+    From: ${configfile}
+    Using: mkconfig-${_MKCONFIG_VERSION} (perl) */
+
 #ifndef __INC_${CONFHTAGUC}_H
 #define __INC_${CONFHTAGUC}_H 1
 
@@ -1479,7 +1484,7 @@ main_process
         {
             if ($inproc == 1) {
               savevars (\%clist);
-              create_output (\%clist, \%config, $include);
+              create_output (\%clist, \%config, $include, $configfile);
               $CONFH = 'none';
               $CONFHTAG = 'none';
               $CONFHTAGUC = 'NONE';
@@ -1773,7 +1778,7 @@ main_process
 
     savevars (\%clist);
     savecache (\%clist, \%config);
-    create_output (\%clist, \%config, $include);
+    create_output (\%clist, \%config, $include, $configfile);
 
     # This is here for os/2 and other systems w/no usable bourne shell.
     # it is not up to date, as it will output libraries that are not
