@@ -4,6 +4,8 @@
 #
 #
 
+CPPCOUNTER=1
+
 _c_print_headers () {
   incheaders=$1
 
@@ -155,6 +157,21 @@ _c_chk_cpp () {
   inc=$3
 
   tcppfile=${cppname}.c
+  tcppout=${cppname}.out
+  tcppreuse=F
+  if [ "$code" = "" -a $inc = all ]; then
+    tcppreuse=T
+    tcppfile=chkcpp_${CPPCOUNTER}.c
+    tcppout=chkcpp_${CPPCOUNTER}.out
+
+    if [ -f $tcppfile -a -f $tcppout ]; then
+      test -f ${cppname}.out && rm -f ${cppname}.out
+      ln -s ${tcppout} ${cppname}.out
+      echo "##  _cpp test: reusing $tcppout" >&9
+      rc=0
+      return $rc
+    fi
+  fi
   # $cppname should be unique
   exec 4>>${tcppfile}
   echo "${precc}" >&4
@@ -162,13 +179,18 @@ _c_chk_cpp () {
   echo "${code}" | sed 's/_dollar_/$/g' >&4
   exec 4>&-
 
-  cmd="${CC} ${CFLAGS} ${CPPFLAGS} -E ${cppname}.c > ${cppname}.out "
+  cmd="${CC} ${CFLAGS} ${CPPFLAGS} -E ${tcppfile} > ${tcppout} "
   echo "##  _cpp test: $cmd" >&9
-  cat ${cppname}.c >&9
+  cat ${tcppfile} >&9
   eval $cmd >&9 2>&9
   rc=$?
   if [ $rc -lt 0 ]; then
     _exitmkconfig $rc
+  fi
+
+  if [ $tcppreuse = T ]; then
+    test -f ${cppname}.out && rm -f ${cppname}.out
+    ln -s ${tcppout} ${cppname}.out
   fi
   echo "##      _cpp test: $rc" >&9
   return $rc
