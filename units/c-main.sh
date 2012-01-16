@@ -74,6 +74,7 @@ CPP_EXTERNS_END
 
 preconfigfile () {
   pc_configfile=$1
+  configfile=$2
 
   echo "CC: ${CC}" >&9
   echo "CFLAGS: ${CFLAGS}" >&9
@@ -86,6 +87,10 @@ preconfigfile () {
     return
   fi
 
+  echo "/* Created on: `date`"
+  echo "    From: ${configfile}"
+  echo "    Using: mkconfig-${_MKCONFIG_VERSION} */"
+  echo ''
   echo "#ifndef __INC_${CONFHTAGUC}_H
 #define __INC_${CONFHTAGUC}_H 1
 "
@@ -144,6 +149,7 @@ check_hdr () {
   type=$1
   hdr=$2
   shift;shift
+
   reqhdr=$*
   # input may be:  ctype.h kernel/fs_info.h
   #    storage/Directory.h
@@ -187,6 +193,10 @@ main () { return (0); }
   val=0
   if [ $rc -eq 0 ]; then
       val=${file}
+  fi
+
+  if [ "$CPPCOUNTER" != "" ]; then
+    domath CPPCOUNTER "$CPPCOUNTER + 1"
   fi
   printyesno $name $val
   setdata ${_MKCONFIG_PREFIX} ${name} ${val}
@@ -730,4 +740,8 @@ output_item () {
 
 output_other () {
   return
+}
+
+new_output_file () {
+  return 0
 }
