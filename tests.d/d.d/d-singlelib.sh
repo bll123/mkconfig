@@ -34,6 +34,7 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` \
 dorunmkc reqlibs out.d
 
 grep -v 'SYSTYPE' out.d |
+    grep -v '^//' |
     grep -v 'D_VERSION' |
     grep -v '_d_tango_lib' |
     grep -v 'alias char.. string;' |
