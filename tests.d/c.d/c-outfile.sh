@@ -11,10 +11,17 @@ dosetup $@
 
 dorunmkc
 
-sed -e 's/OUT2/OUT/' out2.h > out2.h.n
-chkdiff out.h out2.h.n
-chkdiff mkc_out_c.vars mkc_out2_c.vars
+for i in 1 2 3 4; do
+  sed -e '/Created on:/d' -e "s/OUT${i}/OUT/" out${i}.h > out${i}.h.n
+done
+chkdiff out1.h.n out3.h.n
+chkdiff out2.h.n out4.h.n
+chkdiff mkc_out1_c.vars mkc_out3_c.vars
+chkdiff mkc_out2_c.vars mkc_out4_c.vars
 
-testcleanup out2.h mkc_out2_c.vars out2.h.n
+#testcleanup out1.h out2.h out3.h out4.h \
+#    out1.h.n out2.h.n out3.h.n out4.h.n \
+#    mkc_out1_c.vars mkc_out2_c.vars mkc_out3_c.vars mkc_out4_c.vars
+testcleanup
 
 exit $grc
