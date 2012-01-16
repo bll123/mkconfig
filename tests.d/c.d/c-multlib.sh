@@ -49,8 +49,11 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -staticlib -e \
 
 dorunmkc reqlibs out.h
 
-sed -e '/^#define _key_/d' -e '/^#define _proto_/d' \
-    -e '/^#define _param_/d' out.h > out.h.n
+sed -e '/^#define _key_/d' \
+    -e '/^#define _proto_/d' \
+    -e '/^#define _param_/d' \
+    -e '/Created on:/,/Using:/ d' \
+    out.h > out.h.n
 chkdiff c-multlib.ctmp out.h.n
 chkdiff ${_MKCONFIG_RUNTESTDIR}/c-multlib.reqlibs mkconfig.reqlibs
 
