@@ -8,11 +8,12 @@ BEGIN {
   }
   ststruct1 = "(struct|class|union|enum)[	 ]*\\{"
   ststruct2 = "typedef[	 ][	 ]*(struct|class|union|enum)[ 	]*[a-zA-Z0-9_]*[ 	]*{?[ 	]*$"
-  ststart = "(struct|class|union|enum)[	 ]*" ARGV[2];
+  ststart1 = "(struct|class|union|enum)[	 ]*" ARGV[2] "$";
+  ststart2 = "(struct|class|union|enum)[	 ]*" ARGV[2] "[^a-zA-Z0-9_]";
   stforward = "(struct|class|union|enum)[	 ]*" ARGV[2] "[	 ]*;";
   stother = "(struct|class|union|enum)[	 ]*" ARGV[2] "[ 	][	 ]*[*a-zA-Z0-9_]";
-  stend = "[	 ]" ARGV[2] "_t[ 	;]";
-  stendb = "[	 ]" ARGV[2] "[ 	;]";
+  stend = "[	 ]" ARGV[2] "_t[ 	]*;";
+  stendb = "[	 ]" ARGV[2] "[ 	]*;";
   delete ARGV[2];
   bcount = 0;
   acount = 0;
@@ -27,7 +28,8 @@ BEGIN {
 #print "dcode:" dcode;
 #print "ststruct1:" ststruct1;
 #print "ststruct2:" ststruct2;
-#print "ststart:" ststart;
+#print "ststart1:" ststart1;
+#print "ststart2:" ststart2;
 #print "stforward:" stforward;
 #print "stother:" stother;
 #print "stend:" stend;
@@ -39,14 +41,15 @@ BEGIN {
 #print lineno ": " $0
 #if ($0 ~ ststruct1) { print "  " lineno ":   matches ststruct1"; }
 #if ($0 ~ ststruct2) { print "  " lineno ":   matches ststruct2"; }
-#if ($0 ~ ststart) { print "  " lineno ":   matches ststart"; }
+#if ($0 ~ ststart1) { print "  " lineno ":   matches ststart"; }
+#if ($0 ~ ststart2) { print "  " lineno ":   matches ststart"; }
 #if ($0 ~ stforward) { print "  " lineno ":   matches stforward"; }
 #if ($0 ~ stother) { print "  " lineno ":   matches stother: " $0; }
 #if ($0 ~ stend) { print "  " lineno ":   matches stend: " $0; }
 #if ($0 ~ stendb) { print "  " lineno ":   matches stendb: " $0; }
   if ($0 ~ /^#/) {
     next;
-  } else if (ins == 0 && $0 ~ ststart && $0 !~ stforward && $0 !~ stother) {
+  } else if (ins == 0 && ($0 ~ ststart1 || $0 ~ ststart2) && $0 !~ stforward && $0 !~ stother) {
 #print lineno ":   start: ";
     hadend = 0;
     for (val in nsarr) { delete nsarr[val]; }
@@ -103,9 +106,9 @@ BEGIN {
     sarr[acount] = $0;
     acount = acount + 1;
     doend = 1;
-  } else if (ins == 1 && 
+  } else if (ins == 1 &&
       $0 !~ /(struct|class|union|enum)[	 ]*\{/ &&
-      $0 ~ /(const *)?(struct|class|union|enum)[	 ]*[a-zA-Z_][a-zA-Z0-9_]*[ 	\{]*$/ && 
+      $0 ~ /(const *)?(struct|class|union|enum)[	 ]*[a-zA-Z_][a-zA-Z0-9_]*[ 	\{]*$/ &&
       $0 !~ /(const *)?(struct|class|union|enum)[	 ].*;/) {
 # nested structure, not an unnamed structure
 # is named, but not followed by anything else
@@ -115,22 +118,22 @@ BEGIN {
     gsub (/[	 ]*$/, "", $0);
     tstr = $0;
     if (dcode) {
-      if ($0 ~ /struct/) { 
+      if ($0 ~ /struct/) {
         ttype = "struct";
         tlab = "C_ST_";
 #print lineno ":  found struct"
       }
-      if ($0 ~ /class/) { 
+      if ($0 ~ /class/) {
         ttype = "class";
         tlab = "C_CLASS_";
 #print lineno ":  found class"
       }
-      if ($0 ~ /union/) { 
+      if ($0 ~ /union/) {
         ttype = "union";
         tlab = "C_UN_";
 #print lineno ":  found union"
       }
-      if ($0 ~ /enum/) { 
+      if ($0 ~ /enum/) {
         ttype = "enum";
         tlab = "C_ENUM_";
 #print lineno ":  found enum"
@@ -215,8 +218,14 @@ BEGIN {
 #print lineno ":   end struct dcl: " $0;
       if (dcode) {
         tstr = $0;
-        sub (/}.*/, "};", tstr);
-        sarr [acount - 1] = tstr;
+# if there's a declaration of a pointer to the nested structure
+# we'll be adding the declaration.
+# if so, remove the name now.
+# otherwise, keep the name for processing by d-main.sh
+        if (nsarr[bcount + 1] != "") {
+          sub (/}.*/, "};", tstr);
+          sarr [acount - 1] = tstr;
+        }
 #print lineno ":   nsarr1: " nsarr[bcount + 1];
         if (nsarr[bcount + 1] != "") {
           tstr = $0;
