@@ -1,7 +1,7 @@
 #!/usr/bin/awk
 
 BEGIN {
-  macrostart = "^#[ 	]*define[ 	]*" ARGV[2]
+  macrostart = "^#[ 	]*define[ 	]*" ARGV[2] "[ 	(]"
   delete ARGV[2];
   ins = 0;
   doend = 0;
