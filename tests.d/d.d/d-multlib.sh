@@ -22,7 +22,7 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
 int mlib2_f () { return 0; }
 '
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -c ${DC} mlib2.d >&9
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -c ${DC} -o mlib2${OBJ_EXT} mlib2.d >&9
 if [ $? -ne 0 ]; then
   echo "## compile mlib2.d failed"
   exit 1
@@ -36,7 +36,7 @@ import mlib2;
 int mlib1_f () { mlib2_f(); return 0; }
 '
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -c ${DC} mlib1.d >&9
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -o mlib1${OBJ_EXT} -c ${DC} mlib1.d >&9
 if [ $? -ne 0 ]; then
   echo "compile mlib1.d failed"
   exit 1

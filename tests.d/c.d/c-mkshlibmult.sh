@@ -39,7 +39,7 @@ i=1
 
 int mkct${i} () { return 1; }
 "
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e mkct${i}.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e -o mkct${i}${OBJ_EXT} mkct${i}.c
 
 i=2
 > mkct${i}.c echo "
@@ -57,7 +57,7 @@ int mkct${i} () { int i; i = 0;
     i += mkct1(); i += 2;
     return i; }
 "
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e mkct${i}.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e -o mkct${i}${OBJ_EXT} mkct${i}.c
 
 i=3
 > mkct${i}.c echo "
@@ -75,7 +75,7 @@ int mkct${i} () { int i; i = 0;
     i += mkct2(); i += 3;
     return i; }
 "
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e mkct${i}.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e -o mkct${i}${OBJ_EXT} mkct${i}.c
 
 i=4
 > mkct${i}.c echo "
@@ -93,7 +93,7 @@ int mkct${i} () { int i; i = 0;
     i += mkct3(); i += 4;
     return i; }
 "
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e mkct${i}.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e -o mkct${i}${OBJ_EXT} mkct${i}.c
 
 i=5
 > mkct${i}.c echo "
@@ -111,7 +111,7 @@ int mkct${i} () { int i; i = 0;
     i += mkct4();
     return i; }
 "
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e -- mkct${i}.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e -o mkct${i}${OBJ_EXT} -- mkct${i}.c
 
 i=6
 > mkct${i}.c echo '
@@ -127,7 +127,7 @@ i=6
 extern int mkct5 _((void));
 main () { int i, j; i = mkct5(); j = 1; if (i == 10) { j = 0; } return j; }
 '
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e mkct${i}.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e -o mkct${i}${OBJ_EXT} mkct${i}.c
 
 grc=0
 
