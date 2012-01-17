@@ -3,7 +3,7 @@
 BEGIN {
   typname = "[ 	(*]" ARGV[2] "[ 	);]";
   tdstart = "[ 	]*typedef";
-  isfuncpat = "[(][ 	*]*" ARGV[2] "[ 	]*[)]";
+  isfuncpat = "typedef.*[ 	*]*" ARGV[2] "[ 	)]*[(]";
   semipat = "[ 	*]" ARGV[2] "[ 	]*;$";
   delete ARGV[2];
   ins = 0;
