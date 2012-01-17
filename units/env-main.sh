@@ -81,10 +81,6 @@ output_item () {
   esac
 }
 
-output_other () {
-  return
-}
-
 check_test_multword () {
   name=$1
 
