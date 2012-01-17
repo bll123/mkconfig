@@ -28,19 +28,7 @@ check_dc () {
   echo "dc:${DC}" >&9
 
   case ${DC} in
-    *dmd|dmd2|*/dmd2)
-      setdata ${_MKCONFIG_PREFIX} DC_OPT "-O"
-      setdata ${_MKCONFIG_PREFIX} DC_OF "-of"
-      setdata ${_MKCONFIG_PREFIX} DC_RELEASE "-release"
-      setdata ${_MKCONFIG_PREFIX} DC_INLINE "-inline"
-      setdata ${_MKCONFIG_PREFIX} DC_UNITTEST "-unittest"
-      setdata ${_MKCONFIG_PREFIX} DC_DEBUG "-debug"
-      setdata ${_MKCONFIG_PREFIX} DC_VERSION "-version"
-      setdata ${_MKCONFIG_PREFIX} DC_COV "-cov"
-      setdata ${_MKCONFIG_PREFIX} DC_LINK "-L"
-      setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_GDC "N"
-      ;;
-    *ldc|*ldc2|*ldmd|*ldmd2)
+    *ldc*|*ldmd*)
       setdata ${_MKCONFIG_PREFIX} DC_OPT "-O3"
       setdata ${_MKCONFIG_PREFIX} DC_OF "-of"
       setdata ${_MKCONFIG_PREFIX} DC_RELEASE "-release"
@@ -48,18 +36,36 @@ check_dc () {
       setdata ${_MKCONFIG_PREFIX} DC_UNITTEST "-unittest"
       setdata ${_MKCONFIG_PREFIX} DC_DEBUG "-d-debug"
       setdata ${_MKCONFIG_PREFIX} DC_VERSION "-d-version"
+      setdata ${_MKCONFIG_PREFIX} DC_INTFC "-d-intfc"
+      setdata ${_MKCONFIG_PREFIX} DC_DEPRECATED "-d-deprecated"
       setdata ${_MKCONFIG_PREFIX} DC_COV ""
       setdata ${_MKCONFIG_PREFIX} DC_LINK "-L"
       setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_GDC "N"
       ;;
-    *gdc|*gdc2)
+    *dmd*)
+      setdata ${_MKCONFIG_PREFIX} DC_OPT "-O"
+      setdata ${_MKCONFIG_PREFIX} DC_OF "-of"
+      setdata ${_MKCONFIG_PREFIX} DC_RELEASE "-release"
+      setdata ${_MKCONFIG_PREFIX} DC_INLINE "-inline"
+      setdata ${_MKCONFIG_PREFIX} DC_UNITTEST "-unittest"
+      setdata ${_MKCONFIG_PREFIX} DC_DEBUG "-debug"
+      setdata ${_MKCONFIG_PREFIX} DC_VERSION "-version"
+      setdata ${_MKCONFIG_PREFIX} DC_INTFC "-H"
+      setdata ${_MKCONFIG_PREFIX} DC_DEPRECATED "-d"
+      setdata ${_MKCONFIG_PREFIX} DC_COV "-cov"
+      setdata ${_MKCONFIG_PREFIX} DC_LINK "-L"
+      setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_GDC "N"
+      ;;
+    *gdc*)
       setdata ${_MKCONFIG_PREFIX} DC_OPT "-O2"
       setdata ${_MKCONFIG_PREFIX} DC_OF "-o"
-      setdata ${_MKCONFIG_PREFIX} DC_RELEASE "--release"
+      setdata ${_MKCONFIG_PREFIX} DC_RELEASE "-frelease"
       setdata ${_MKCONFIG_PREFIX} DC_INLINE "--inline"
-      setdata ${_MKCONFIG_PREFIX} DC_UNITTEST "--unittest"
+      setdata ${_MKCONFIG_PREFIX} DC_UNITTEST "-funittest"
       setdata ${_MKCONFIG_PREFIX} DC_DEBUG "--debug"
-      setdata ${_MKCONFIG_PREFIX} DC_VERSION "--version"
+      setdata ${_MKCONFIG_PREFIX} DC_VERSION "-fversion"
+      setdata ${_MKCONFIG_PREFIX} DC_INTFC "-fintfc"
+      setdata ${_MKCONFIG_PREFIX} DC_DEPRECATED "-fdeprecated"
       setdata ${_MKCONFIG_PREFIX} DC_COV "--cov"
       setdata ${_MKCONFIG_PREFIX} DC_LIBS "-lgcov"
       setdata ${_MKCONFIG_PREFIX} DC_LINK ""
@@ -72,6 +78,8 @@ int main (char[][] args) {
   version (D_Version2) { return 2; }
   version (D_Version3) { return 3; }
   version (D_Version4) { return 4; }
+  version (D_Version5) { return 5; }
+  version (D_Version6) { return 6; }
   return 1; }
 _HERE_
 
@@ -87,7 +95,7 @@ _HERE_
       rc=$?
     fi
     case $rc in
-      1|2|3|4)
+      [1-9])
         dver=$rc
         grc=0
         ;;
