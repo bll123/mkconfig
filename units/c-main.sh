@@ -738,10 +738,6 @@ output_item () {
   esac
 }
 
-output_other () {
-  return
-}
-
 new_output_file () {
   return 0
 }
