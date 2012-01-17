@@ -153,7 +153,7 @@ cmacro ckfree tcl.h void 'char *'
 cmacro ckrealloc tcl.h 'char *' 'char *' uint
 cmacro attemptckalloc tcl.h 'char *' uint
 cmacro attemptckrealloc tcl.h 'char *' 'char *' uint
-cmacro Tcl_InitMemory tcl.h int 'Tcl_Interp *'
+cmacro Tcl_InitMemory tcl.h void 'Tcl_Interp *'
 cmacro Tcl_DumpActiveMemory tcl.h void 'char *'
 cmacro Tcl_ValidateAllMemory tcl.h void 'char *' int
 
@@ -179,7 +179,7 @@ cstruct Tcl_CallFrame
 cstruct Tcl_CmdInfo
 cdefine int TCL_DSTRING_STATIC_SIZE
 cmacro Tcl_DStringLength tcl.h int 'Tcl_DString *'
-cmacro Tcl_DStringValue tcl.h int 'Tcl_DString *'
+cmacro Tcl_DStringValue tcl.h 'char *' 'Tcl_DString *'
 
 cdefine int TCL_MAX_PREC
 cdefine int TCL_DOUBLE_SPACE
@@ -1674,9 +1674,17 @@ alias void * TclPlatStubHooks;
 alias void * TclIntStubs;
 alias void * TclIntPlatStubs;
 
-import core.vararg;
-
 endinclude
+
+if dversion == _setint_D_VERSION 1
+include
+import std.stdarg;
+endinclude
+else
+include
+import core.vararg;
+endinclude
+endif
 
 ctypedef TCHAR
 cdcl Tcl_WinUtfToTChar
@@ -1748,10 +1756,10 @@ if tom_math_decls _chdr_tclTomMathDecls
 
 cdefine int TCLTOMMATH_EPOCH
 cdefine int TCLTOMMATH_REVISION
-cmacro Tcl_TomMath_InitStubs tclTomMathDecls.h int 'Tcl_Interp *' 'char *'
+cmacro Tcl_TomMath_InitStubs tclTomMathDecls.h 'char *' 'Tcl_Interp *' 'char *'
 cmacro TclBNAlloc tclTomMathDecls.h 'char *' uint
 cmacro TclBNRealloc tclTomMathDecls.h 'char *' 'char *' uint
-cmacro TclBNFree tclTomMathDecls.h int 'char *'
+cmacro TclBNFree tclTomMathDecls.h void 'char *'
 
 cdcl TclBN_epoch
 clib TclBN_epoch
@@ -1886,6 +1894,8 @@ cstruct TclTomMathStubs
 ctypedef tclTomMathStubsPtr
 
 substitute 'struct TclTomMathStubHooks' TclTomMathStubHooks
+# fix decls in tclTomMathDecls.h to match allocs elsewhere
+substitute 'cast(void.)' 'cast(char*)'
 
 include
 
