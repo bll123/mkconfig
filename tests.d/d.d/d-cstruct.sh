@@ -320,6 +320,14 @@ struct smm {
 	    char *key);
 };
 
+typedef struct snn {
+  int snn_a;
+  int (*private15)(
+    struct snn*
+  );
+  int snn_b;
+} snn;
+
 union ua
 {
   long double ld;
