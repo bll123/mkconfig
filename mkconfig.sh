@@ -38,6 +38,7 @@ CACHEFILE="mkconfig.cache"
 OPTIONFILE="options.dat"
 _MKCONFIG_PREFIX=mkc    # need a default in case no units loaded
 optionsloaded=F
+allchglist=""
 
 INC="mkcinclude.txt"                   # temporary
 
@@ -464,6 +465,16 @@ check_exit () {
   _exitmkconfig 5
 }
 
+check_substitute () {
+  nm=$1
+  sub1=$2
+  sub2=$3
+
+  printlabel $nm "substitute: ${sub1} ${sub2}"
+  doappend allchglist " -e 's~${sub1}~${sub2}~g'"
+  printyesno $nm 1
+}
+
 _doloadunit () {
   lu=$1
   dep=$2
@@ -504,9 +515,12 @@ require_unit () {
 _create_output () {
 
   if [ ${CONFH} != "none" ]; then
+    confdir=`echo ${CONFH} | sed -e 's,/[^/]*$,,'`
+    test -d $confdir || mkdir -p $confdir
+
     > ${CONFH}
     exec 8>>${CONFH}
-    preconfigfile ${CONFH} >&8
+    preconfigfile ${CONFH} ${configfile} >&8
 
     if [ -f $VARSFILE ]; then
       exec 6<&0 < $VARSFILE
@@ -521,8 +535,10 @@ _create_output () {
     cat $INC >&8
     postconfigfile ${CONFH} >&8
     exec 8>&-
-
-    output_other ${CONFH}
+    if [ "$allchglist" != "" ]; then
+      cmd="sed ${allchglist} ${CONFH} > ${CONFH}.tmp;mv ${CONFH}.tmp ${CONFH}"
+      eval $cmd
+    fi
   fi
 }
 
@@ -648,6 +664,9 @@ main_process () {
           "exit")
             check_exit
             ;;
+          substitute)
+            check_substitute $@
+            ;;
           endinclude)
             ;;
           ifoption*|ifnotoption*)
@@ -729,15 +748,21 @@ main_process () {
             check_option ${nm} $optnm "${tval}"
             ;;
           output*)
+            newout=F
             if [ $varsfileopen = T ]; then
               exec 8>&-
               varsfileopen=F
+              newout=T
             fi
             if [ $inproc -eq 1 ]; then
               _create_output
               CONFH=none
               CONFHTAG=none
               CONFHTAGUC=NONE
+            fi
+            if [ $newout = T ]; then
+              new_output_file
+              > $INC  # restart include
             fi
             set $tdatline
             type=$1
