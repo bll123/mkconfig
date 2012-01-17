@@ -470,7 +470,7 @@ check_args () {
 "
 
   code=""
-  _c_chk_cpp ${name} "" all
+  _c_chk_cpp ${name} "/**/" all   # force no-reuse due to precc.
   rc=$?
 
   precc="${oldprecc}"
