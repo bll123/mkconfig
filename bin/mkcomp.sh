@@ -103,7 +103,13 @@ fi
 if [ "$outfile" = "" ]; then
   cmd="${comp} ${allflags} ${flags} -c ${files}"
 else
-  cmd="${comp} ${allflags} ${flags} ${OUTFLAG}$outfile ${files}"
+  copt=""
+  case ${outfile} in
+    *.o|*.obj)
+      copt=-c
+      ;;
+  esac
+  cmd="${comp} ${allflags} ${flags} ${copt} ${OUTFLAG}$outfile ${files}"
 fi
 
 if [ $doecho = "T" ]; then
