@@ -12,12 +12,12 @@ require 5.005;
 
 my $CONFH;
 my $LOG = "mkconfig.log";
-my $TMP = "_tmp_mkconfig";
+my $_MKCONFIG_TMP = "_tmp_mkconfig";
 my $OPTIONFILE = "options.dat";
 my $VARSFILE = "mkc_none_c.vars";
 my $CACHEFILE = "mkconfig.cache";
 my $REQLIB = "mkconfig.reqlibs";
-my $MKC_DIR = "invalid";
+my $_MKCONFIG_DIR = "invalid";
 
 my $precc = <<'_HERE_';
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
@@ -1071,7 +1071,7 @@ check_args
      $rc = system ($cmd);
      print LOGFH "##  args: $cmd $rc\n";
      if ($rc == 0) {
-       my $dcl = `${awkcmd} -f ${MKC_DIR}/util/mkcextdcl.awk ${name}.out ${funcnm}`;
+       my $dcl = `${awkcmd} -f ${_MKCONFIG_DIR}/util/mkcextdcl.awk ${name}.out ${funcnm}`;
        # $dcl may be multi-line...fix this now.
        $dcl =~ s/[ 	\n]/ /gos;
        $dcl =~ s/extern *//o;
@@ -1202,8 +1202,8 @@ check_memberxdr
         { 'incheaders' => 'all', });
     if ($rc == 0) {
       print LOGFH `pwd` . "\n";
-      print LOGFH "## ${awkcmd} -f ${MKC_DIR}/util/mkcextstruct.awk ${name}.out ${struct}\n";
-      my $st = `${awkcmd} -f ${MKC_DIR}/util/mkcextstruct.awk ${name}.out ${struct}`;
+      print LOGFH "## ${awkcmd} -f ${_MKCONFIG_DIR}/util/mkcextstruct.awk ${name}.out ${struct}\n";
+      my $st = `${awkcmd} -f ${_MKCONFIG_DIR}/util/mkcextstruct.awk ${name}.out ${struct}`;
       print LOGFH "##  xdr(A): $st\n";
       if ($st =~ m/${member}\s*;/s) {
         my $mtype = $st;
@@ -1837,7 +1837,7 @@ if (! defined ($configfile) || ! -f $configfile)
   usage;
   exit 1;
 }
-if (-d $TMP && $TMP ne "_tmp_mkconfig")
+if (-d $_MKCONFIG_TMP && $_MKCONFIG_TMP ne "_tmp_mkconfig")
 {
   usage;
   exit 1;
@@ -1861,15 +1861,17 @@ chomp $currdir;
 if (! chdir $tpath) {
   die ("Unable to cd to $tpath. $!\n");
 }
-$MKC_DIR = `pwd`;
-chomp $MKC_DIR;
+$_MKCONFIG_VERSION=`cat $tpath/VERSION`;
+chomp $_MKCONFIG_VERSION;
+$_MKCONFIG_DIR = `pwd`;
+chomp $_MKCONFIG_DIR;
 if (! chdir $currdir) {
   die ("Unable to cd to $currdir. $!\n");
 }
 
-if (-d $TMP) { system ("rm -rf $TMP"); }
-mkdir $TMP, 0777;
-chdir $TMP;
+if (-d $_MKCONFIG_TMP) { system ("rm -rf $_MKCONFIG_TMP"); }
+mkdir $_MKCONFIG_TMP, 0777;
+chdir $_MKCONFIG_TMP;
 
 if ($clearcache)
 {
@@ -1894,6 +1896,6 @@ close LOGFH;
 
 chdir "..";
 if ($ENV{'MKC_KEEP_TMP'} eq "") {
-  if (-d $TMP) { system ("rm -rf $TMP"); }
+  if (-d $_MKCONFIG_TMP) { system ("rm -rf $_MKCONFIG_TMP"); }
 }
 exit 0;
