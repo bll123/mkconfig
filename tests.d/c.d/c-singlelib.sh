@@ -36,7 +36,7 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
     -C $_MKCONFIG_RUNTESTDIR/c.env.dat
 . ./c.env
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e tst1lib.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e -o tst1lib${OBJ_EXT} tst1lib.c
 if [ $? -ne 0 ]; then
   echo "compile tst1lib.c failed"
   exit 1
@@ -50,7 +50,7 @@ chkouthcompile
 sed -e '/^#define _key_/d' \
     -e '/^#define _proto_/d' \
     -e '/^#define _param_/d' \
-    -e '/Created on:/,/Using:/ d' \
+    -e '/Created on: /,/Using: mkc/ d' \
     out.h > out.h.n
 chkdiff c-singlelib.ctmp out.h.n
 chkdiff ${_MKCONFIG_RUNTESTDIR}/c-singlelib.reqlibs mkconfig.reqlibs

@@ -32,7 +32,7 @@ extern int tst2libc ();
 int tst2libb () { tst2libc(); return 0; }
 '
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e tst2libb.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e -o tst2libb${OBJ_EXT} tst2libb.c
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -staticlib -e \
     libtst2libb tst2libb${OBJ_EXT}
 
@@ -43,7 +43,7 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -staticlib -e \
 int tst2libc () { printf ("hello world\\n"); return 0; }
 '
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e tst2libc.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e -o tst2libc${OBJ_EXT} tst2libc.c
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -staticlib -e \
     libtst2libc tst2libc${OBJ_EXT}
 
@@ -52,7 +52,7 @@ dorunmkc reqlibs out.h
 sed -e '/^#define _key_/d' \
     -e '/^#define _proto_/d' \
     -e '/^#define _param_/d' \
-    -e '/Created on:/,/Using:/ d' \
+    -e '/Created on: /,/Using: mkc/ d' \
     out.h > out.h.n
 chkdiff c-multlib.ctmp out.h.n
 chkdiff ${_MKCONFIG_RUNTESTDIR}/c-multlib.reqlibs mkconfig.reqlibs
