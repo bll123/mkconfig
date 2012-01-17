@@ -7,15 +7,17 @@ module tcl.tcl
 
 standard
 
-csizes
-
+chdr tcl.h
+chdr tclDecls.h
+chdr tclPlatDecls.h
 chdr tclTomMath.h
 chdr tclTomMathDecls.h
-# tcl.h includes tclDecls.h and tclPlatDecls.h
-chdr tcl.h
 chdr utime.h
 chdr stdarg.h
 csys stat.h
+chdr tchar.h
+
+csizes
 
 cstruct timespec
 ctype   int __dev_t
@@ -145,6 +147,15 @@ ctypedef Tcl_MainLoopProc
 
 cstruct Tcl_ObjType
 cstruct Tcl_Obj
+
+cmacro ckalloc tcl.h 'char *' uint
+cmacro ckfree tcl.h void 'char *'
+cmacro ckrealloc tcl.h 'char *' 'char *' uint
+cmacro attemptckalloc tcl.h 'char *' uint
+cmacro attemptckrealloc tcl.h 'char *' 'char *' uint
+cmacro Tcl_InitMemory tcl.h int 'Tcl_Interp *'
+cmacro Tcl_DumpActiveMemory tcl.h void 'char *'
+cmacro Tcl_ValidateAllMemory tcl.h void 'char *' int
 
 cdcl Tcl_IncrRefCount
 clib Tcl_IncrRefCount
@@ -486,9 +497,6 @@ alias void * Tcl_FSVersion;
 alias Tcl_DStringSetLength Tcl_DStringTrunc;
 
 endinclude
-
-output  tcl/tclDecls.d
-module tcl.tclDecls
 
 cdcl    Tcl_PkgProvideEx
 clib    Tcl_PkgProvideEx
@@ -1649,17 +1657,27 @@ clib    Tcl_ObjPrintf
 cdcl    Tcl_AppendPrintfToObj
 clib    Tcl_AppendPrintfToObj
 
+cstruct TclStubHooks
+cstruct TclStubs
+
+# from tclPlatDecls...
+cstruct TclPlatStubs
+
+# these structures are not declared...
+substitute 'struct TclPlatStubHooks' TclPlatStubHooks
+substitute 'struct TclIntStubs' TclIntStubs
+substitute 'struct TclIntPlatStubs' TclIntPlatStubs
+
 include
 
-import tcl.tcl;
+alias void * TclPlatStubHooks;
+alias void * TclIntStubs;
+alias void * TclIntPlatStubs;
+
 import core.vararg;
 
 endinclude
 
-output  tcl/tclPlatDecls.d
-module tcl.tclPlatDecls
-
-cstruct TclPlatStubHooks
 ctypedef TCHAR
 cdcl Tcl_WinUtfToTChar
 clib Tcl_WinUtfToTChar
@@ -1669,27 +1687,19 @@ cdcl Tcl_MacOSXOpenBundleResources
 clib Tcl_MacOSXOpenBundleResources
 cdcl Tcl_MacOSXOpenVersionedBundleResources
 clib Tcl_MacOSXOpenVersionedBundleResources
-cstruct TclPlatStubs
-cstruct TclIntStubs
-cstruct TclIntPlatStubs
-cstruct TclStubHooks
-cstruct TclStubs
-ctypedef tclPlatStubsPtr
 
 include
 
-import tcl.tcl;
+alias TclPlatStubs *tclPlatStubsPtr;
 
-alias void * TclPlatStubHooks;
-alias (tclPlatStubsPtr->tcl_WinUtfToTChar) Tcl_WinUtfToTChar;
-alias (tclPlatStubsPtr->tcl_WinTCharToUtf) Tcl_WinTCharToUtf;
-alias (tclPlatStubsPtr->tcl_MacOSXOpenBundleResources) Tcl_MacOSXOpenBundleResources;
-alias (tclPlatStubsPtr->tcl_MacOSXOpenVersionedBundleResources) Tcl_MacOSXOpenVersionedBundleResources;
+/*
+alias tclPlatStubsPtr.tcl_WinUtfToTChar Tcl_WinUtfToTChar;
+alias tclPlatStubsPtr.tcl_WinTCharToUtf Tcl_WinTCharToUtf;
+alias tclPlatStubsPtr.tcl_MacOSXOpenBundleResources Tcl_MacOSXOpenBundleResources;
+alias tclPlatStubsPtr.tcl_MacOSXOpenVersionedBundleResources Tcl_MacOSXOpenVersionedBundleResources;
+*/
 
 endinclude
-
-output tcl/tclTomMath.d
-module tcl.tclTomMath
 
 if tom_math _chdr_tclTomMath
  cstruct mp_int
@@ -1728,25 +1738,20 @@ if tom_math _chdr_tclTomMath
 
 include
 
-import tcl.tcl;
-
 alias MP_MASK MP_DIGIT_MASK;
 
 endinclude
 
 endif
 
-output tcl/tclTomMathDecls.d
-module tcl.tclTomMathDecls
-
-if tom_math _chdr_tclTomMathDecls
+if tom_math_decls _chdr_tclTomMathDecls
 
 cdefine int TCLTOMMATH_EPOCH
 cdefine int TCLTOMMATH_REVISION
 cmacro Tcl_TomMath_InitStubs tclTomMathDecls.h int 'Tcl_Interp *' 'char *'
-cmacro TclBNAlloc tclTomMathDecls.h 'void *' size_t
-cmacro TclBNRealloc tclTomMathDecls.h 'void *' 'void *' size_t
-cmacro TclBNFree tclTomMathDecls.h int 'void *'
+cmacro TclBNAlloc tclTomMathDecls.h 'char *' uint
+cmacro TclBNRealloc tclTomMathDecls.h 'char *' 'char *' uint
+cmacro TclBNFree tclTomMathDecls.h int 'char *'
 
 cdcl TclBN_epoch
 clib TclBN_epoch
@@ -1880,20 +1885,24 @@ clib TclBN_mp_cnt_lsb
 cstruct TclTomMathStubs
 ctypedef tclTomMathStubsPtr
 
+substitute 'struct TclTomMathStubHooks' TclTomMathStubHooks
+
 include
 
-import tcl.tcl;
+alias void * TclTomMathStubHooks;
 
 alias TclBNAlloc XMALLOC;
 alias TclBNFree XFREE;
 alias TclBNRealloc XREALLOC;
 
+/*
 alias TclBNKaratsubaMulCutoff KARATSUBA_MUL_CUTOFF;
 alias TclBNKaratsubaSqrCutoff KARATSUBA_SQR_CUTOFF;
 alias TclBNToomMulCutoff TOOM_MUL_CUTOFF;
 alias TclBNToomSqrCutoff TOOM_SQR_CUTOFF;
+*/
 
-alias bn_reverse TclBN_reverse #define;
+alias TclBN_reverse bn_reverse;
 alias TclBN_fast_s_mp_mul_digs fast_s_mp_mul_digs;
 alias TclBN_fast_s_mp_sqr fast_s_mp_sqr;
 alias TclBN_mp_add mp_add;
@@ -1936,7 +1945,7 @@ alias TclBN_mp_or mp_or;
 alias TclBN_mp_radix_size mp_radix_size;
 alias TclBN_mp_read_radix mp_read_radix;
 alias TclBN_mp_rshd mp_rshd;
-alias TclBNMpSRmap mp_s_rmap;
+/* alias TclBNMpSRmap mp_s_rmap; */
 alias TclBN_mp_set mp_set;
 alias TclBN_mp_set_int mp_set_int;
 alias TclBN_mp_shrink mp_shrink;
@@ -1957,69 +1966,71 @@ alias TclBN_s_mp_mul_digs s_mp_mul_digs;
 alias TclBN_s_mp_sqr s_mp_sqr;
 alias TclBN_s_mp_sub s_mp_sub;
 
-alias (tclTomMathStubsPtr->tclBN_epoch) TclBN_epoch;
-alias (tclTomMathStubsPtr->tclBN_revision) TclBN_revision;
-alias (tclTomMathStubsPtr->tclBN_mp_add) TclBN_mp_add;
-alias (tclTomMathStubsPtr->tclBN_mp_add_d) TclBN_mp_add_d;
-alias (tclTomMathStubsPtr->tclBN_mp_and) TclBN_mp_and;
-alias (tclTomMathStubsPtr->tclBN_mp_clamp) TclBN_mp_clamp;
-alias (tclTomMathStubsPtr->tclBN_mp_clear) TclBN_mp_clear;
-alias (tclTomMathStubsPtr->tclBN_mp_clear_multi) TclBN_mp_clear_multi;
-alias (tclTomMathStubsPtr->tclBN_mp_cmp) TclBN_mp_cmp;
-alias (tclTomMathStubsPtr->tclBN_mp_cmp_d) TclBN_mp_cmp_d;
-alias (tclTomMathStubsPtr->tclBN_mp_cmp_mag) TclBN_mp_cmp_mag;
-alias (tclTomMathStubsPtr->tclBN_mp_copy) TclBN_mp_copy;
-alias (tclTomMathStubsPtr->tclBN_mp_count_bits) TclBN_mp_count_bits;
-alias (tclTomMathStubsPtr->tclBN_mp_div) TclBN_mp_div;
-alias (tclTomMathStubsPtr->tclBN_mp_div_d) TclBN_mp_div_d;
-alias (tclTomMathStubsPtr->tclBN_mp_div_2) TclBN_mp_div_2;
-alias (tclTomMathStubsPtr->tclBN_mp_div_2d) TclBN_mp_div_2d;
-alias (tclTomMathStubsPtr->tclBN_mp_div_3) TclBN_mp_div_3;
-alias (tclTomMathStubsPtr->tclBN_mp_exch) TclBN_mp_exch;
-alias (tclTomMathStubsPtr->tclBN_mp_expt_d) TclBN_mp_expt_d;
-alias (tclTomMathStubsPtr->tclBN_mp_grow) TclBN_mp_grow;
-alias (tclTomMathStubsPtr->tclBN_mp_init) TclBN_mp_init;
-alias (tclTomMathStubsPtr->tclBN_mp_init_copy) TclBN_mp_init_copy;
-alias (tclTomMathStubsPtr->tclBN_mp_init_multi) TclBN_mp_init_multi;
-alias (tclTomMathStubsPtr->tclBN_mp_init_set) TclBN_mp_init_set;
-alias (tclTomMathStubsPtr->tclBN_mp_init_size) TclBN_mp_init_size;
-alias (tclTomMathStubsPtr->tclBN_mp_lshd) TclBN_mp_lshd;
-alias (tclTomMathStubsPtr->tclBN_mp_mod) TclBN_mp_mod;
-alias (tclTomMathStubsPtr->tclBN_mp_mod_2d) TclBN_mp_mod_2d;
-alias (tclTomMathStubsPtr->tclBN_mp_mul) TclBN_mp_mul;
-alias (tclTomMathStubsPtr->tclBN_mp_mul_d) TclBN_mp_mul_d;
-alias (tclTomMathStubsPtr->tclBN_mp_mul_2) TclBN_mp_mul_2;
-alias (tclTomMathStubsPtr->tclBN_mp_mul_2d) TclBN_mp_mul_2d;
-alias (tclTomMathStubsPtr->tclBN_mp_neg) TclBN_mp_neg;
-alias (tclTomMathStubsPtr->tclBN_mp_or) TclBN_mp_or;
-alias (tclTomMathStubsPtr->tclBN_mp_radix_size) TclBN_mp_radix_size;
-alias (tclTomMathStubsPtr->tclBN_mp_read_radix) TclBN_mp_read_radix;
-alias (tclTomMathStubsPtr->tclBN_mp_rshd) TclBN_mp_rshd;
-alias (tclTomMathStubsPtr->tclBN_mp_shrink) TclBN_mp_shrink;
-alias (tclTomMathStubsPtr->tclBN_mp_set) TclBN_mp_set;
-alias (tclTomMathStubsPtr->tclBN_mp_sqr) TclBN_mp_sqr;
-alias (tclTomMathStubsPtr->tclBN_mp_sqrt) TclBN_mp_sqrt;
-alias (tclTomMathStubsPtr->tclBN_mp_sub) TclBN_mp_sub;
-alias (tclTomMathStubsPtr->tclBN_mp_sub_d) TclBN_mp_sub_d;
-alias (tclTomMathStubsPtr->tclBN_mp_to_unsigned_bin) TclBN_mp_to_unsigned_bin;
-alias (tclTomMathStubsPtr->tclBN_mp_to_unsigned_bin_n) TclBN_mp_to_unsigned_bin_n;
-alias (tclTomMathStubsPtr->tclBN_mp_toradix_n) TclBN_mp_toradix_n;
-alias (tclTomMathStubsPtr->tclBN_mp_unsigned_bin_size) TclBN_mp_unsigned_bin_size;
-alias (tclTomMathStubsPtr->tclBN_mp_xor) TclBN_mp_xor;
-alias (tclTomMathStubsPtr->tclBN_mp_zero) TclBN_mp_zero;
-alias (tclTomMathStubsPtr->tclBN_reverse) TclBN_reverse;
-alias (tclTomMathStubsPtr->tclBN_fast_s_mp_mul_digs) TclBN_fast_s_mp_mul_digs;
-alias (tclTomMathStubsPtr->tclBN_fast_s_mp_sqr) TclBN_fast_s_mp_sqr;
-alias (tclTomMathStubsPtr->tclBN_mp_karatsuba_mul) TclBN_mp_karatsuba_mul;
-alias (tclTomMathStubsPtr->tclBN_mp_karatsuba_sqr) TclBN_mp_karatsuba_sqr;
-alias (tclTomMathStubsPtr->tclBN_mp_toom_mul) TclBN_mp_toom_mul;
-alias (tclTomMathStubsPtr->tclBN_mp_toom_sqr) TclBN_mp_toom_sqr;
-alias (tclTomMathStubsPtr->tclBN_s_mp_add) TclBN_s_mp_add;
-alias (tclTomMathStubsPtr->tclBN_s_mp_mul_digs) TclBN_s_mp_mul_digs;
-alias (tclTomMathStubsPtr->tclBN_s_mp_sqr) TclBN_s_mp_sqr;
-alias (tclTomMathStubsPtr->tclBN_s_mp_sub) TclBN_s_mp_sub;
-alias (tclTomMathStubsPtr->tclBN_mp_init_set_int) TclBN_mp_init_set_int;
-alias (tclTomMathStubsPtr->tclBN_mp_set_int) TclBN_mp_set_int;
-alias (tclTomMathStubsPtr->tclBN_mp_cnt_lsb) TclBN_mp_cnt_lsb;
+/*
+alias tclTomMathStubsPtr.tclBN_epoch TclBN_epoch;
+alias tclTomMathStubsPtr.tclBN_revision TclBN_revision;
+alias tclTomMathStubsPtr.tclBN_mp_add TclBN_mp_add;
+alias tclTomMathStubsPtr.tclBN_mp_add_d TclBN_mp_add_d;
+alias tclTomMathStubsPtr.tclBN_mp_and TclBN_mp_and;
+alias tclTomMathStubsPtr.tclBN_mp_clamp TclBN_mp_clamp;
+alias tclTomMathStubsPtr.tclBN_mp_clear TclBN_mp_clear;
+alias tclTomMathStubsPtr.tclBN_mp_clear_multi TclBN_mp_clear_multi;
+alias tclTomMathStubsPtr.tclBN_mp_cmp TclBN_mp_cmp;
+alias tclTomMathStubsPtr.tclBN_mp_cmp_d TclBN_mp_cmp_d;
+alias tclTomMathStubsPtr.tclBN_mp_cmp_mag TclBN_mp_cmp_mag;
+alias tclTomMathStubsPtr.tclBN_mp_copy TclBN_mp_copy;
+alias tclTomMathStubsPtr.tclBN_mp_count_bits TclBN_mp_count_bits;
+alias tclTomMathStubsPtr.tclBN_mp_div TclBN_mp_div;
+alias tclTomMathStubsPtr.tclBN_mp_div_d TclBN_mp_div_d;
+alias tclTomMathStubsPtr.tclBN_mp_div_2 TclBN_mp_div_2;
+alias tclTomMathStubsPtr.tclBN_mp_div_2d TclBN_mp_div_2d;
+alias tclTomMathStubsPtr.tclBN_mp_div_3 TclBN_mp_div_3;
+alias tclTomMathStubsPtr.tclBN_mp_exch TclBN_mp_exch;
+alias tclTomMathStubsPtr.tclBN_mp_expt_d TclBN_mp_expt_d;
+alias tclTomMathStubsPtr.tclBN_mp_grow TclBN_mp_grow;
+alias tclTomMathStubsPtr.tclBN_mp_init TclBN_mp_init;
+alias tclTomMathStubsPtr.tclBN_mp_init_copy TclBN_mp_init_copy;
+alias tclTomMathStubsPtr.tclBN_mp_init_multi TclBN_mp_init_multi;
+alias tclTomMathStubsPtr.tclBN_mp_init_set TclBN_mp_init_set;
+alias tclTomMathStubsPtr.tclBN_mp_init_size TclBN_mp_init_size;
+alias tclTomMathStubsPtr.tclBN_mp_lshd TclBN_mp_lshd;
+alias tclTomMathStubsPtr.tclBN_mp_mod TclBN_mp_mod;
+alias tclTomMathStubsPtr.tclBN_mp_mod_2d TclBN_mp_mod_2d;
+alias tclTomMathStubsPtr.tclBN_mp_mul TclBN_mp_mul;
+alias tclTomMathStubsPtr.tclBN_mp_mul_d TclBN_mp_mul_d;
+alias tclTomMathStubsPtr.tclBN_mp_mul_2 TclBN_mp_mul_2;
+alias tclTomMathStubsPtr.tclBN_mp_mul_2d TclBN_mp_mul_2d;
+alias tclTomMathStubsPtr.tclBN_mp_neg TclBN_mp_neg;
+alias tclTomMathStubsPtr.tclBN_mp_or TclBN_mp_or;
+alias tclTomMathStubsPtr.tclBN_mp_radix_size TclBN_mp_radix_size;
+alias tclTomMathStubsPtr.tclBN_mp_read_radix TclBN_mp_read_radix;
+alias tclTomMathStubsPtr.tclBN_mp_rshd TclBN_mp_rshd;
+alias tclTomMathStubsPtr.tclBN_mp_shrink TclBN_mp_shrink;
+alias tclTomMathStubsPtr.tclBN_mp_set TclBN_mp_set;
+alias tclTomMathStubsPtr.tclBN_mp_sqr TclBN_mp_sqr;
+alias tclTomMathStubsPtr.tclBN_mp_sqrt TclBN_mp_sqrt;
+alias tclTomMathStubsPtr.tclBN_mp_sub TclBN_mp_sub;
+alias tclTomMathStubsPtr.tclBN_mp_sub_d TclBN_mp_sub_d;
+alias tclTomMathStubsPtr.tclBN_mp_to_unsigned_bin TclBN_mp_to_unsigned_bin;
+alias tclTomMathStubsPtr.tclBN_mp_to_unsigned_bin_n TclBN_mp_to_unsigned_bin_n;
+alias tclTomMathStubsPtr.tclBN_mp_toradix_n TclBN_mp_toradix_n;
+alias tclTomMathStubsPtr.tclBN_mp_unsigned_bin_size TclBN_mp_unsigned_bin_size;
+alias tclTomMathStubsPtr.tclBN_mp_xor TclBN_mp_xor;
+alias tclTomMathStubsPtr.tclBN_mp_zero TclBN_mp_zero;
+alias tclTomMathStubsPtr.tclBN_reverse TclBN_reverse;
+alias tclTomMathStubsPtr.tclBN_fast_s_mp_mul_digs TclBN_fast_s_mp_mul_digs;
+alias tclTomMathStubsPtr.tclBN_fast_s_mp_sqr TclBN_fast_s_mp_sqr;
+alias tclTomMathStubsPtr.tclBN_mp_karatsuba_mul TclBN_mp_karatsuba_mul;
+alias tclTomMathStubsPtr.tclBN_mp_karatsuba_sqr TclBN_mp_karatsuba_sqr;
+alias tclTomMathStubsPtr.tclBN_mp_toom_mul TclBN_mp_toom_mul;
+alias tclTomMathStubsPtr.tclBN_mp_toom_sqr TclBN_mp_toom_sqr;
+alias tclTomMathStubsPtr.tclBN_s_mp_add TclBN_s_mp_add;
+alias tclTomMathStubsPtr.tclBN_s_mp_mul_digs TclBN_s_mp_mul_digs;
+alias tclTomMathStubsPtr.tclBN_s_mp_sqr TclBN_s_mp_sqr;
+alias tclTomMathStubsPtr.tclBN_s_mp_sub TclBN_s_mp_sub;
+alias tclTomMathStubsPtr.tclBN_mp_init_set_int TclBN_mp_init_set_int;
+alias tclTomMathStubsPtr.tclBN_mp_set_int TclBN_mp_set_int;
+alias tclTomMathStubsPtr.tclBN_mp_cnt_lsb TclBN_mp_cnt_lsb;
+*/
 
 endinclude
