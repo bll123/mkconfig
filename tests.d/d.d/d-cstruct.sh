@@ -328,6 +328,19 @@ typedef struct snn {
   int snn_b;
 } snn;
 
+typedef struct
+
+{
+ int *ext_data;
+ int *private1;
+ int fd;
+ int private19;
+ char *xdefaults;
+}
+
+*_soo;
+
+
 union ua
 {
   long double ld;
@@ -480,7 +493,7 @@ dorunmkc
 
 for x in sa sb sc sd se sf sg sh si sj sk sl sm sn so sq sr \
     ss st su sv sw sx sy sz saa sbb scc sdd see SFF sgg \
-    shh sii sjj sll; do
+    shh sii sjj sll smm snn _soo; do
   chkoutd "^enum (: )?bool ({ )?_cstruct_${x} = true( })?;$"
 done
 
