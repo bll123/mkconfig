@@ -1,0 +1,15 @@
+# test set
+
+output out.h
+loadunit c-main
+standard
+
+define EOF
+set _define_EOF 0
+set _lib_something 1
+setint _test1 0
+setint _test1 1
+setstr _test2 a b c
+
+substitute 'a b c' 'd e f'
+substitute _test1 _testA
