@@ -47,6 +47,10 @@ typedef int (*x) (int *, void *,...);
 typedef int yyy (int *a, int b, int *c, int d, int *const e[])
 
                              ;
+// multiline
+typedef int (zz)
+              (int clientData);
+
 
 #endif
 '
@@ -69,7 +73,7 @@ if [ "${_MKCONFIG_USING_GCC}" = "Y" ]; then
   done
 fi
 
-for x in a b c d e f g h i m n o p q r t u v w x yyy; do
+for x in a b c d e f g h i m n o p q r t u v w x yyy zz; do
   chkoutd "^enum (: )?bool ({ )?_ctypedef_${x} = true( })?;$"
   chkoutd "alias.*[ \*]${x};$"
 done
