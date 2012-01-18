@@ -13,6 +13,8 @@ setint _test_b1_ok 0
 setint _test_b2_ok 0
 setint _test_b3_ok 0
 setint _test_b4_ok 0
+setint _test_b5_ok 0
+setint _test_b6_ok 0
 
 # basic
 if vara _setint__var_a
@@ -26,6 +28,12 @@ if pvara ( _setint__var_a )
 endif
 if p2vara ((_setint__var_a))
   setint _test_b4_ok 1
+endif
+if unkvar ! (_setint__var_unk)
+  setint _test_b5_ok 1
+endif
+if unkvar2 (_setint__var_unk)
+  setint _test_b6_ok 1
 endif
 
 setint _test_a1_ok 0
