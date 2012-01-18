@@ -368,7 +368,7 @@ check_if () {
             ;;
           *)
             getdata tvar ${_MKCONFIG_PREFIX} $token
-            if [ "$tvar" != 0 ]; then tvar=1; fi
+            if [ "$tvar" != 0 -a "$tvar" != "" ]; then tvar=1; else tvar=0; fi
             tvar="( $tvar = 1 )"
             doappend nline " $tvar"
           ;;

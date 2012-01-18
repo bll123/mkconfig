@@ -727,7 +727,8 @@ check_if
         $nline .= $token . ' ';
       } else {
         print LOGFH "## value of $token: " . $r_config->{$token} . "\n";
-        $nline .= $r_config->{$token} ne '0' ? 1 : 0;
+        $nline .= $r_config->{$token} ne '0' &&
+              $r_config->{$token} ne '' ? 1 : 0;
         $nline .= ' ';
       }
     }
