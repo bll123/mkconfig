@@ -22,6 +22,7 @@ preconfigfile () {
   pc_configfile=$1
   configfile=$2
 
+  echo "#!/bin/sh"
   echo "# Created on: `date`"
   echo "#  From: ${configfile}"
   echo "#  Using: mkconfig-${_MKCONFIG_VERSION}"
