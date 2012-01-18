@@ -2,7 +2,7 @@
 
 . $_MKCONFIG_DIR/bin/testfuncs.sh
 
-maindodisplay $1 set
+maindodisplay $1 substitute
 maindoquery $1 $_MKC_SH_PL
 
 chkccompiler
