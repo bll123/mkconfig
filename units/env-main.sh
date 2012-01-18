@@ -46,8 +46,10 @@ standard_checks () {
 check_source () {
   nm=$1
   fn=$2
-  name=_${1}_${2}
-  dosubst name '/' '' '\.' ''
+
+  tfn=$fn
+  dosubst tfn '.*/' '' '\.' '' '-' ''
+  name=_${nm}_${tfn}
 
   printlabel $nm "source: $fn"
 
