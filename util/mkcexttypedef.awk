@@ -4,6 +4,7 @@ BEGIN {
   typname = "[ 	(*]" ARGV[2] "[ 	);]";
   tdstart = "[ 	]*typedef";
   isfuncpat = "typedef.*[ 	*]*" ARGV[2] "[ 	)]*[(]";
+  isfuncpat2 = "typedef.*[ 	*]*" ARGV[2] "[ 	)]*$";
   semipat = "[ 	*]" ARGV[2] "[ 	]*;$";
   delete ARGV[2];
   ins = 0;
@@ -34,7 +35,7 @@ BEGIN {
     if ($0 ~ typname) {
 #print "found name";
       havename = 1;
-      if ($0 ~ isfuncpat) {
+      if ($0 ~ isfuncpat || $0 ~ isfuncpat2) {
 #print "is func";
         isfunc = 1;
       }
