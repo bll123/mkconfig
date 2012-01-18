@@ -73,7 +73,7 @@ check_dc () {
       ;;
   esac
 
-  cat > tv.d << _HERE_
+  > tv.d echo '
 int main (char[][] args) {
   version (D_Version2) { return 2; }
   version (D_Version3) { return 3; }
@@ -81,7 +81,7 @@ int main (char[][] args) {
   version (D_Version5) { return 5; }
   version (D_Version6) { return 6; }
   return 1; }
-_HERE_
+'
 
   dver=
   grc=1
