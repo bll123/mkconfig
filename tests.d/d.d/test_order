@@ -1,5 +1,6 @@
 1 d-compiler
 2 d-outfile
+3 d-module
 3 d-set
 3 d-option
 4 d-import
@@ -18,5 +19,6 @@
 8 d-cdcl
 9 d-cmacro
 9 d-cmemberxdr
-10 d-singlelib
-11 d-multlib
+10 d-noprefix
+11 d-singlelib
+12 d-multlib
