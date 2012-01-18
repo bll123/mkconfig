@@ -4,7 +4,7 @@
 .\"
 .\" mkconfig.7
 .\"
-.\" Copyright 2011 Brad Lanam  Walnut Creek CA USA
+.\" Copyright 2011-2012 Brad Lanam  Walnut Creek CA USA
 .\"
 .\" brad.lanam.di_at_gmail.com
 .\"
@@ -30,15 +30,17 @@
 .fi
 ..
 .\"
-.TH mkconfig 7 "8 Nov 2011"
+.TH mkconfig 7 "18 Jan 2012"
 .SH Name
 mkconfig \- build configuration utilities
 .SH Synopsis
 .\" mkconfig.sh [-C] [-c <cache-file>]
 .\"       [-o <option-file>] [-L <log-file>] config-file
 .\" runtests.sh <tests-dir> [test1, ...]
-.\" mkc.sh -comp [-e] [-o execname|-o objname] sourcefile ...
-.\" mkc.sh -link [-e] -o execname objectfile ... [-L <lib-path>] [-l <lib>]
+.\" mkc.sh -complink -c <compiler> [-e] [-o execname|-o objname]
+.\"   [-r required-lib-file] --
+.\"   [sourcefile ...] [objectfile ...] [compile-or-link-flags ...]
+.\"   [-L <lib-path>] [-l <lib>]
 .\" mkc.sh -reqlib [-c <cache-file>] [-o <lib-file>] input-file
 .\" mkc.sh -setopt [-o <option-file>] option value
 .\" mkc.sh -staticlib [-e] libname objectfile ...
@@ -95,14 +97,11 @@ The -e option echos the command line.
 .PP
 The -e option echos the command line.
 .PP
-.B mkc.sh \-link
-[\-e] \-o exec\-name object\-file [obj\-file2 ...]
-[-L lib\-path ...] [-l lib ...]
-.PP
-The -e option echos the command line.
-.PP
-.B mkc.sh \-comp
-[\-e] [\-o exec\-name|\-o obj\-name| source\-file [source\-file2 ...]
+.B mkc.sh
+\-complink \-c <compiler> [\-e] [\-o <execname>|\-o <objname>]
+[\-r required\-lib\-file] \-\-
+[<sourcefile> ...] [<objectfile> ...] [<compile\-or\-link\-flags> ...]
+[\-L <lib\-path>] [\-l <lib>]
 .PP
 The -e option echos the command line.
 .SH Description
@@ -125,8 +124,9 @@ portable test harness.  There are better test harnesses available.
 \fImkc.sh \-setopt\fP
 is used to change the value of the options in the option file.
 .PP
-\fImkc.sh \-comp\fP
-compiles to an executable or object file given a source file.
+\fImkc.sh \-complink\fP
+compiles to an executable or object file given source or object files,
+compiler options, link options and a list of library paths and libraries.
 .PP
 \fImkc.sh \-reqlib\fP
 is used in conjunction with the c\-main language unit or
@@ -135,8 +135,6 @@ libraries required for linking.  See the description for the 'lib'
 check routine for the c\-main language unit.
 .PP
 \fImkc.sh \-link\fP
-creates an executable given an executable name, a list of object files,
-a list of library paths and libraries.
 .PP
 \fImkc.sh \-staticlib\fP
 creates a static library given a library name and a list of object files.
@@ -289,6 +287,13 @@ setstr _my_lib_path /lib
 .RS
 Perform any standard checks for the unit that was loaded.  See the
 description of the other units to see what the standard check does.
+.RE
+.TP
+\fBsubstitute\fP pattern1 pattern2
+.RS
+Substitute pattern2 for pattern1.  pattern1 and pattern2 are passed
+to 'sed' and may be regular expressions.  Using backslashes in the
+patterns may be problematical due to quoting by the executing shell.
 .RE
 .SH Environment Units
 The environment units create an output file that can be used
@@ -549,6 +554,6 @@ Send bug reports to: brad.lanam.di_at_gmail.com
 .SH Website
 http://www.gentoo.com/di/mkconfig.html
 .SH Author
-This program is Copyright 2011 by Brad Lanam, Walnut Creek CA
+This program is Copyright 2011-2012 by Brad Lanam, Walnut Creek CA
 .PP
 Brad Lanam, Walnut Creek, CA (brad.lanam.di_at_gmail.com)

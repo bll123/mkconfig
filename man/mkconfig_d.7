@@ -4,7 +4,7 @@
 .\"
 .\" mkconfig_d.7
 .\"
-.\" Copyright 2011 Brad Lanam  Walnut Creek CA USA
+.\" Copyright 2011-2012 Brad Lanam  Walnut Creek CA USA
 .\"
 .\" brad.lanam.di_at_gmail.com
 .\"
@@ -31,7 +31,7 @@
 .fi
 ..
 .\"
-.TH mkconfig_d 7 "10 Nov 2011"
+.TH mkconfig_d 7 "18 Jan 2012"
 .SH Name
 mkconfig_d \- mkconfig D language units
 .\" .SH Synopsis
@@ -42,17 +42,6 @@ The D language units create an import file for use by D programs.
 .B d\-main
 .br
 The d\-main unit creates a configuration file for D programs.
-.RS
-.TP
-\fBstandard\fP
-.br
-Executes any \fIStandard\fP checks for the D language.
-Currently there are checks for: (a) import of std.string for D version 2; 
-(b) see if the 'string' type is valid; and
-(c) to see if the tango library is in use.  If 'string' is not valid, an
-alias is added to the configuration file.  The tango library check
-creates a check variable named '_d_tango_lib'.
-.RS
 .PP
 Check variables are output as type enum where possible.  Other variables
 are also output as enums where possible.
@@ -69,6 +58,26 @@ enum : int { _csiz_long_double = 16 };
 enum : int { D_VERSION = 1 };
 string SYSTYPE = "Linux";
 .Ve
+.TP
+\fBmodule\fP module\-name
+.RS
+Sets the module name to be output to the output file.
+.RE
+.TP
+\fBnoprefix\fP
+.RS
+Turns off prefix (C_TYP_, C_ST_, C_ENUM_, C_UN_, C_MACRO_)
+generation in the converted C code.
+.RE
+.TP
+\fBstandard\fP
+.RS
+Executes any \fIStandard\fP checks for the D language.
+Currently there are checks for: (a) import of std.string for D version 2;
+(b) see if the 'string' type is valid; and
+(c) to see if the tango library is in use.  If 'string' is not valid, an
+alias is added to the configuration file.  The tango library check
+creates a check variable named '_d_tango_lib'.
 .RE
 .TP
 \fBimport\fP name\-\of\-module
@@ -210,13 +219,13 @@ clib bindtextdomain -lintl, -lintl -liconv
 [will test w/o any library, then with -lintl, then with both -lintl and -liconv]
 .RE
 .TP
-\fBcdefine {int|hex|float|string}\fP def
+\fBcdefine {short|int|long|longlong|hex|hexlong|hexlonglong|float|string}\fP def
 .RS
 Checks if a C #define of \fIdef\fP exists.
 A D language 'enum' will be output to the output file.
-The type specifies the output type for the D enum,
-though of course this must match for float and string values.
-For octal values, use the 'int' type.
+The type is used to properly convert the C definition.  The type output
+as the D enum will be the appropriate type that has the same size.
+All floats are output as double enums.
 .PP
 .B e.g.
 .br
@@ -413,6 +422,6 @@ Send bug reports to: brad.lanam.di_at_gmail.com
 .SH Website
 http://www.gentoo.com/di/mkconfig.html
 .SH Author
-This program is Copyright 2011 by Brad Lanam, Walnut Creek CA
+This program is Copyright 2011-2012 by Brad Lanam, Walnut Creek CA
 .PP
 Brad Lanam, Walnut Creek, CA (brad.lanam.di_at_gmail.com)

@@ -4,7 +4,7 @@
 .\"
 .\" mkconfig_env.7
 .\"
-.\" Copyright 2011 Brad Lanam  Walnut Creek CA USA
+.\" Copyright 2011-2012 Brad Lanam  Walnut Creek CA USA
 .\"
 .\" brad.lanam.di_at_gmail.com
 .\"
@@ -30,7 +30,7 @@
 .fi
 ..
 .\"
-.TH mkconfig_env 7 "19 Sep 2011"
+.TH mkconfig_env 7 "18 Jan 2012"
 .SH Name
 mkconfig_env \- mkconfig environment units
 .\" .SH Synopsis
@@ -39,6 +39,18 @@ The environment units create an output file that can be used
 as shell script input to set your environment.
 .SH Environment Units
 .TP
+.B env\-main
+The env\-main unit creates a shell script with the exported shell variables.
+.RS
+.TP
+\fBsource\fP <source\-file>
+.RS
+The source directive will source another shell script.  This is useful to
+make other variables accessible when the the created shell script is
+executed.
+.RE
+.RE
+.TP
 .B env-systype
 The systype environment unit determines what type, revision and
 architecture of the system you are running on.
@@ -46,7 +58,7 @@ architecture of the system you are running on.
 .TP
 \fBsystem\fP {type|rev|arch}
 .RS
-The type, rev and arch directives will create
+The system directive with the type, rev and arch arguments will create
 the _MKCONFIG_SYSTYPE, _MKCONFIG_SYSREV, and _MKCONFIG_SYSARCH
 environment variables respectively.  These
 correspond to the output of uname -s, uname -r and uname -m.
@@ -168,6 +180,8 @@ DC_UNITTEST \- Option for unittest code generation.
 .br
 DC_DEBUG \- Option for debug code generation.
 .br
+DC_INTFC \- Option for interface file generation.
+.br
 DC_COV \- Option for code coverage generation.
 .br
 DC_LINK \- Option to prepend to linker commands.  This should be
@@ -209,6 +223,6 @@ Send bug reports to: brad.lanam.di_at_gmail.com
 .SH Website
 http://www.gentoo.com/di/mkconfig.html
 .SH Author
-This program is Copyright 2011 by Brad Lanam, Walnut Creek CA
+This program is Copyright 2011-2012 by Brad Lanam, Walnut Creek CA
 .PP
 Brad Lanam, Walnut Creek, CA (brad.lanam.di_at_gmail.com)
