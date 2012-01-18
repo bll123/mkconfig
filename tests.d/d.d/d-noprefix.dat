@@ -1,0 +1,16 @@
+output out.d
+loadunit d-main
+standard
+
+noprefix
+
+chdr    noprefixhdr.h
+
+csizes
+
+cstruct b
+cmacro T3 noprefixhdr.h int int int int
+cunion ub
+cenum Tcl_ValueType
+cenum Tcl_PathType
+ctype int o
