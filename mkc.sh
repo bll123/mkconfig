@@ -24,14 +24,9 @@ rc=0
 args=$@
 found=T
 case $1 in
-  -compile|-comp)
+  -compile|-comp|-link|-complink)
     shift
-    ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/bin/mkcomp.sh -d `pwd` $@
-    rc=$?
-    ;;
-  -link)
-    shift
-    ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/bin/mklink.sh -d `pwd` $@
+    ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/bin/mkcl.sh -d `pwd` $@
     rc=$?
     ;;
   -staticlib)
