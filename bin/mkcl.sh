@@ -15,18 +15,57 @@ fi
 . ${_MKCONFIG_DIR}/bin/shellfuncs.sh
 doshelltest $0 $@
 
+addlib () {
+  lfn=$1
+
+  found=F
+  nlibnames=
+  for tf in $libnames; do
+    if [ $lfn = $tf ]; then
+      found=T   # a match will be moved to the end of the list
+    else
+      doappend nlibnames " $tf"
+    fi
+  done
+  doappend nlibnames " ${lfn}"
+  libnames=${nlibnames}
+}
+
+addlibpath () {
+  lp=$1
+
+  found=F
+  for tp in $libpathnames; do
+    if [ $lp = $tp ]; then
+      found=T   # a match will be kept.
+      break
+    fi
+  done
+  if [ $found = F ]; then
+    doappend libpathnames " ${lp}"
+  fi
+}
+
 doecho=F
-comp=
+comp=${CC}
 reqlibfile=
+c=T
+d=F
 while test $# -gt 0; do
   case $1 in
-    -e)
-      doecho=T
-      shift
-      ;;
     -c)
       shift
       comp=$1
+      shift
+      case ${comp} in
+        *gdc*|*ldc*|*dmd*)
+          d=T
+          c=F
+          ;;
+      esac
+      ;;
+    -e)
+      doecho=T
       shift
       ;;
     -o)
@@ -53,24 +92,27 @@ done
 OUTFLAG="-o "
 DC_LINK=
 case ${comp} in
-  *dmd|*dmd2|*ldc|*ldc2)   # catches ldmd, ldmd2 also
+  *dmd*|*ldc*)   # catches ldmd, ldmd2 also
     OUTFLAG=${DC_OF:-"-of"}
     DC_LINK=-L
     ;;
-  *gdc)
+  *gdc*)
     OUTFLAG=${DC_OF:-"-o "}
     ;;
-  *gcc|*cc)
+  *gcc*|*cc*)
     DC_LINK=
     ;;
 esac
 
+files=
 objects=
-libs=
-libpath=
+libnames=
+libpathnames=
 islib=0
 ispath=0
 olibs=
+componly=F
+havesource=F
 
 if [ "$reqlibfile" != "" ]; then
   olibs=`cat $reqlibfile`
@@ -89,18 +131,17 @@ for f in $@ $olibs; do
         echo "## unable to locate dir $tf"
         grc=1
       else
-        doappend libpath ":$tf"
+        addlibpath $tf
       fi
       ;;
     "-l")
       islib=1
       ;;
     "-l"*)
-      tf=$f
-      doappend libs " ${DC_LINK}${tf}"
+      addlib $f
       ;;
     lib*)
-      doappend libs " ${f}"
+      addlib $f
       ;;
     *${OBJ_EXT})
       if [ ! -f "$f" ]; then
@@ -110,15 +151,31 @@ for f in $@ $olibs; do
         doappend objects " $f"
       fi
       ;;
+    *.c|*.d)
+      if [ ! -f "$f" ]; then
+        echo "## unable to locate $f"
+        grc=1
+      else
+        doappend files " $f"
+        havesource=T
+      fi
+      ;;
+    "-"*)
+      doappend flags " $f"
+      if [ $f = "-c" ]; then
+        componly=T
+      fi
+      ;;
     *)
       if [ $islib -eq 1 ]; then
-        doappend libs " ${DC_LINK}-l$f"
+        addlib "-l$f"
       elif [ $ispath -eq 1 ]; then
         if [ ! -d "$f" ]; then
           echo "## unable to locate dir $f"
           grc=1
+        else
+          addlibpath $f
         fi
-        doappend libpath ":$f"
       fi
       islib=0
       ispath=0
@@ -126,33 +183,74 @@ for f in $@ $olibs; do
   esac
 done
 
-libpath=`echo $libpath | sed 's/^://'`
-shrunpath=""
-if [ "${libs}" != "" -a "${SHRUNPATH}" != "" ]; then
-  shrunpath="${SHRUNPATH}${libpath}"
-  dosubst shrunpath '^:' ''
-fi
-shlibpath=""
-if [ "${libs}" != "" -a "${libpath}" != "" ]; then
-  shlibpath="${DC_LINK}-L${libpath}"
-  dosubst shlibpath '^:' ''
-fi
-shexeclink=""
-if [ "${SHEXECLINK}" != "" ]; then
-  shexeclink="${SHEXECLINK}"
+libs=
+for lfn in $libnames; do
+  doappend libs " ${DC_LINK}${lfn}"
+done
+
+libpath=
+for lp in $libpathnames; do
+  doappend libpath ":${lp}"
+done
+dosubst libpath '^:' ''
+
+if [ "$outfile" = "" ]; then
+  flags="${flags} -c"
+  componly=T
+else
+  case ${outfile} in
+    *.o|*.obj)
+      flags="${flags} -c"
+      componly=T
+      ;;
+  esac
 fi
 
-if [ "${DC_LINK}" != "" ]; then
-  ldflags=""
-  for flag in ${LDFLAGS}; do
-    ldflags="${ldflags} ${DC_LINK}${flag}"
-  done
-else
-  ldflags="${LDFLAGS}"
+shrunpath=
+shlibpath=
+shexeclink=
+ldflags=
+
+if [ $componly = F ]; then
+  shrunpath=""
+  if [ "${libs}" != "" -a "${SHRUNPATH}" != "" ]; then
+    shrunpath="${SHRUNPATH}:${libpath}"
+    dosubst shrunpath '^:' ''
+  fi
+  shlibpath=""
+  if [ "${libs}" != "" -a "${libpath}" != "" ]; then
+    shlibpath="${DC_LINK}-L${libpath}"
+  fi
+  shexeclink=""
+  if [ "${SHEXECLINK}" != "" ]; then
+    shexeclink="${SHEXECLINK}"
+  fi
+
+  if [ "${DC_LINK}" != "" ]; then
+    ldflags=""
+    for flag in ${LDFLAGS}; do
+      doappend ldflags " ${DC_LINK}${flag}"
+    done
+  else
+    doappend ldflags " ${LDFLAGS}"
+  fi
 fi
-cmd="${comp} ${ldflags} ${shexeclink} ${OUTFLAG}$outfile $objects \
-    ${shrunpath} ${shlibpath} $libs"
-if [ $doecho = "T" ]; then
+
+allflags=
+if [ $havesource = T ]; then
+  if [ $c = T ];then
+    doappend allflags " ${CPPFLAGS}"
+    doappend allflags " ${CFLAGS}"
+    doappend allflags " ${SHCFLAGS}"
+  fi
+  if [ $d = T ];then
+    doappend allflags " ${DFLAGS}"
+  fi
+fi
+
+cmd="${comp} ${allflags} ${flags} ${ldflags} ${shexeclink} ${OUTFLAG}$outfile $objects \
+    ${files} ${shrunpath} ${shlibpath} $libs"
+if [ $doecho = T ]; then
   echo $cmd
 fi
 eval $cmd
