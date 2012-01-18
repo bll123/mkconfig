@@ -2,7 +2,7 @@
 #
 # $Id$
 #
-# Copyright 2009-2010 Brad Lanam Walnut Creek, CA USA
+# Copyright 2009-2012 Brad Lanam Walnut Creek, CA USA
 #
 
 set -f

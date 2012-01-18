@@ -2,7 +2,7 @@
 #
 # $Id$
 #
-# Copyright 2010 Brad Lanam Walnut Creek, CA USA
+# Copyright 2010-2012 Brad Lanam Walnut Creek, CA USA
 #
 
 unset CDPATH

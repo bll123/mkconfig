@@ -1,4 +1,6 @@
 #!/usr/bin/awk
+#
+# Copyright 2010-2012 Brad Lanam Walnut Creek CA
 
 BEGIN {
   dcode = "F";

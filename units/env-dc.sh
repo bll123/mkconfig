@@ -3,7 +3,7 @@
 # $Id$
 # $Source$
 #
-# Copyright 2010 Brad Lanam, Walnut Creek, California USA
+# Copyright 2010-2012 Brad Lanam, Walnut Creek, California USA
 #
 
 #
