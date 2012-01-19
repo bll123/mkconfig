@@ -243,10 +243,10 @@ ${cdcls}
     modify_ctypes ccode "${ccode}"
   fi
   if [ "${cmacros}" != "" ]; then
+    # macros don't get wrapped in extern(C).  They are helper functions,
+    # not replacements.
     doappend ccode "
-extern (C) {
 ${cmacros}
-} // extern (C)
 "
   fi
   if [ "${ccode}" != "" ]; then
