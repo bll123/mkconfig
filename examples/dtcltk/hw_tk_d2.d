@@ -19,7 +19,7 @@ int main(string[] args)
 
   mainWindow = Tk_MainWindow(tcl_interp);
   if (mainWindow == null) {
-    printf ("B:%s\n", tcl_interp.result);
+    printf ("C:%s\n", tcl_interp.result);
     return 1;
   }
 
