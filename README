@@ -1,10 +1,33 @@
-mkconfig - configuration tool (version 1.19)
+mkconfig - configuration tool (version 1.20)
 
 Please e-mail any configuration units and the corresponding
 manual page entry to brad.lanam.di_at_gmail.com.  They will be
 included in the next release.
 
 CHANGES
+
+    1.20                                    [18 Jan 2012]
+        D: rewrite c-typedef extraction.
+        D: changed prefix from C_TYP_ to C_NATIVE_ for native c types.
+        D: Added the noprefix directive to not add C_ST_, C_TYP_, etc.
+            prefixes to the original C language types (but not C_NATIVE_).
+        D: Casts are converted.  May still be some issues.
+        env: Added the source directive.
+        D: several fixes for C structure extraction.
+        D: improved nested structure handling.
+        D: fixed macro extraction with partial name.
+        D: convert the version keyword to version_
+        D: handle multi-line statements better.
+        D: added the module directive.
+        D: added the substitute directive.
+        Minor speed improvements (D:cstruct,ctypedef; C:memberxdr)
+        D: fixed multiple output files.
+        mkc.sh: -comp: fixed to add -c flag when compiling to object w/-o flag.
+        mkc.sh: merge -link and -comp.
+        D: fixed some D1 conversion issues.
+        Fixed if statements with unknown variables.
+        D: wrap ctypes in extern
+        D: fixed type conversions (followed by asterisk, lone unsigned)
 
     1.19                                    [20 Nov 2011]
         Created mkc.sh as a single entry point for compiling, linking,

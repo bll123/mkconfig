@@ -4,9 +4,8 @@ Makefile
 README          	README
 VERSION			version
 bin/
-bin/mkcomp.sh		compile a source file
 bin/mkcsetopt.sh	set options in options file
-bin/mklink.sh		link an executable
+bin/mkcl.sh		compile or link
 bin/mkreqlib.sh		required link libraries
 bin/mksharedlib.sh	create a shared library
 bin/mkstaticlib.sh	create a static library
@@ -81,6 +80,8 @@ tests.d/c.d/c-singlelib.reqlibs
 tests.d/c.d/c-singlelib.sh
 tests.d/c.d/c-size.dat
 tests.d/c.d/c-size.sh
+tests.d/c.d/c-substitute.dat
+tests.d/c.d/c-substitute.sh
 tests.d/c.d/c-syshdr.dat
 tests.d/c.d/c-syshdr.sh
 tests.d/c.d/c-type.dat
@@ -128,8 +129,12 @@ tests.d/d.d/d-multlib.config
 tests.d/d.d/d-multlib.dat
 tests.d/d.d/d-multlib.reqlibs
 tests.d/d.d/d-multlib.sh
+tests.d/d.d/d-noprefix.dat
+tests.d/d.d/d-noprefix.sh
 tests.d/d.d/d-option.dat
 tests.d/d.d/d-option.sh
+tests.d/d.d/d-outfile.dat
+tests.d/d.d/d-outfile.sh
 tests.d/d.d/d-set.dat
 tests.d/d.d/d-set.sh
 tests.d/d.d/d-singlelib.config
@@ -147,6 +152,8 @@ tests.d/env.d/env-outfile.dat
 tests.d/env.d/env-outfile.sh
 tests.d/env.d/env-set.dat
 tests.d/env.d/env-set.sh
+tests.d/env.d/env-source.dat
+tests.d/env.d/env-source.sh
 tests.d/env.d/test_order
 tests.d/multword.dat
 tests.d/multword.sh
@@ -167,4 +174,5 @@ util/
 util/mkcextdcl.awk	script to extract C language declarations
 util/mkcextmacro.awk	script to extract C language macros
 util/mkcextstruct.awk	script to extract C language structures
+util/mkcexttypedef.awk	script to extract C language typedefs
 util/mktar.sh		creates tar file
