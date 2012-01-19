@@ -10,6 +10,8 @@ csizes
 module tk.tk
 
 chdr tk.h
+chdr tkDecls.h tk.h
+chdr tkPlatDecls.h tk.h
 
 cdefine int TK_MAJOR_VERSION
 cdefine int TK_MINOR_VERSION
@@ -900,3 +902,55 @@ alias XID XIC;
 endinclude
 
 substitute 'struct TkOption' TkOption
+
+# tkPlatDecls.h
+
+cdcl Tk_AttachHWND
+clib Tk_AttachHWND
+cdcl Tk_GetHINSTANCE
+clib Tk_GetHINSTANCE
+cdcl Tk_GetHWND
+clib Tk_GetHWND
+cdcl Tk_HWNDToWindow
+clib Tk_HWNDToWindow
+cdcl Tk_PointerEvent
+clib Tk_PointerEvent
+cdcl Tk_TranslateWinEvent
+clib Tk_TranslateWinEvent
+cdcl Tk_MacOSXSetEmbedHandler
+clib Tk_MacOSXSetEmbedHandler
+cdcl Tk_MacOSXTurnOffMenus
+clib Tk_MacOSXTurnOffMenus
+cdcl Tk_MacOSXTkOwnsCursor
+clib Tk_MacOSXTkOwnsCursor
+cdcl TkMacOSXInitMenus
+clib TkMacOSXInitMenus
+cdcl TkMacOSXInitAppleEvents
+clib TkMacOSXInitAppleEvents
+cdcl TkGenWMConfigureEvent
+clib TkGenWMConfigureEvent
+cdcl TkMacOSXInvalClipRgns
+clib TkMacOSXInvalClipRgns
+cdcl TkMacOSXGetDrawablePort
+clib TkMacOSXGetDrawablePort
+cdcl TkMacOSXGetRootControl
+clib TkMacOSXGetRootControl
+cdcl Tk_MacOSXSetupTkNotifier
+clib Tk_MacOSXSetupTkNotifier
+cdcl Tk_MacOSXIsAppInFront
+clib Tk_MacOSXIsAppInFront
+
+if tk_attachhwnd _cdcl_Tk_AttachHWND
+cmacro Tk_AttachHWND tkPlatDecls.h Window Tk_Window HWND
+endif
+
+cstruct TkPlatStubs
+ctypedef tkPlatStubsPtr
+
+substitute 'struct TkPlatStubHooks' TkPlatStubHooks
+
+include
+
+alias void * TkPlatStubHooks;
+
+endinclude
