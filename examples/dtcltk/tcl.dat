@@ -148,6 +148,7 @@ ctypedef Tcl_MainLoopProc
 cstruct Tcl_ObjType
 cstruct Tcl_Obj
 
+# FIX
 #cmacro ckalloc tcl.h 'char *' uint
 #cmacro ckfree tcl.h void 'char *'
 #cmacro ckrealloc tcl.h 'char *' 'char *' uint
@@ -453,10 +454,9 @@ cdcl Tcl_InitStubs
 clib Tcl_InitStubs
 cdcl TclTomMathInitializeStubs
 clib TclTomMathInitializeStubs
-# this messes things up.
-#if lib_TclInitStubs ! _lib_Tcl_InitStubs
-# cmacro Tcl_InitStubs tcl.h 'char *' 'Tcl_Interp *' 'char *' int
-#endif
+if lib_TclInitStubs ! _lib_Tcl_InitStubs
+ cmacro Tcl_InitStubs tcl.h 'char *' 'Tcl_Interp *' 'char *' int
+endif
 if lib_TclTomMathInitializeStubs ! _lib_TclTomMathInitializeStubs
  cmacro TclTomMathInitializeStubs tcl.h 'char *' 'Tcl_Interp *' 'char *' int int
 endif
