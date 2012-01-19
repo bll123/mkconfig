@@ -12,14 +12,14 @@ int main(string[] args)
   tcl_interp = Tcl_CreateInterp();
   if (Tcl_Init(tcl_interp) != TCL_OK || Tk_Init(tcl_interp) != TCL_OK) {
     if(*tcl_interp.result) {
-      printf ("A:%s\n", tcl_interp.result);
+      fprintf(stderr,"%s: Tcl/Tk_Init: %s\n", args[0] ~ "\0", tcl_interp.result);
     }
     return 1;
   }
 
   mainWindow = Tk_MainWindow(tcl_interp);
   if (mainWindow == null) {
-    printf ("C:%s\n", tcl_interp.result);
+    fprintf(stderr, "%s: Tk_MainWindow: %s\n", args[0] ~ "\0", tcl_interp.result);
     return 1;
   }
 
