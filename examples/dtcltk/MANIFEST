@@ -5,7 +5,6 @@ env.dat
 hw_tk_c.c
 hw_tk_d1.d
 hw_tk_d2.d
-hw_tk_d2.o
 mktar.sh
 tcl.dat
 tk.dat
