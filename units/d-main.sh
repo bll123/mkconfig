@@ -29,7 +29,7 @@ chdr_standard_done=F
 ENUM1=""
 ENUM2=""
 ENUM3=""
-if [ $DVERSION -eq 1 ]; then
+if [ "$DVERSION" = 1 ]; then
   ENUM1=": "
   ENUM2="{ "
   ENUM3=" }"
@@ -64,7 +64,7 @@ _create_enum () {
   strq=""
   if [ $type = string ]; then
     strq="\""
-    if [ $DVERSION -eq 1 ]; then
+    if [ "$DVERSION" = 1 ]; then
       estr=""
       e1=""
       e2=""
@@ -72,7 +72,7 @@ _create_enum () {
     fi
   fi
   if [ $type = double ]; then
-    if [ $DVERSION -eq 1 ]; then
+    if [ "$DVERSION" = 1 ]; then
       estr=""
       e1=""
       e2=""
@@ -200,7 +200,7 @@ modify_ccode () {
   echo "$tcode" >&9
   echo "##### modify_ccode: $cmd" >&9
   eval "${tmcnm}=\`echo \"${tcode}\" | ${cmd}\`" >&9 2>&9
-  if [ $DVERSION -eq 1 ]; then
+  if [ "$DVERSION" = 1 ]; then
     cmd="sed -e 's/toStringz(__FILE__)/__FILE__/g; # revert for D1' \
         -e 's/const *//g'
     "
@@ -301,7 +301,7 @@ preconfigfile () {
     echo "module $modname;"
   fi
 
-  if [ $DVERSION -eq 2 ]; then
+  if [ "$DVERSION" = 2 ]; then
     getdata tval ${_MKCONFIG_PREFIX} '_import_std_string'
     if [ "$tval" != "0" -a "$tval" != "" ]; then
       echo ''
@@ -1095,7 +1095,10 @@ check_cmacro () {
   if [ "$type" = "" ]; then
     type=int
   fi
-  if [ $DVERSION -eq 1 -a $rc -eq 0 -a $trc -eq 1 ]; then
+  if [ $type = void ]; then
+    macro=`echo ${macro} | sed -e "s/return//"`
+  fi
+  if [ "$DVERSION" = 1 -a $rc -eq 0 -a $trc -eq 1 ]; then
     macro=`echo ${macro} | sed -e "s/^auto/${type}/"`
     echo "  macroC: $macro" >&9
   fi
@@ -1528,7 +1531,7 @@ check_cdcl () {
       # ; may or may not be present, so remove it.
       cmd="dcl=\`echo \"\$dcl\" | sed -e 's/extern *//' -e 's/;//' \`"
       eval $cmd
-      if [ $DVERSION -eq 1 ]; then
+      if [ "$DVERSION" = 1 ]; then
         dosubst dcl 'const' ''
       fi
       echo "## dcl(A): ${dcl}" >&9
