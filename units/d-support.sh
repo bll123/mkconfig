@@ -99,6 +99,7 @@ _d_chk_link_libs () {
 
   tdfile=${cllname}.d
   # $cllname should be unique
+  >${tdfile}
   exec 4>>${tdfile}
   _d_print_imports $inc >&4
   echo "${code}" | sed 's/_dollar_/$/g' >&4
@@ -172,6 +173,7 @@ _d_chk_compile () {
 
   tdfile=${dfname}.d
   # $dfname should be unique
+  >${tdfile}
   exec 4>>${tdfile}
   _d_print_imports $inc >&4
   echo "${code}" | sed 's/_dollar_/$/g' >&4
