@@ -40,10 +40,11 @@ BEGIN {
   gsub (/\/\*.*\*\//, "");
   gsub (/[ 	]*$/, "");
 
-# change #ifndef to #if !
   if ($0 ~ /^# *ifndef/) {
     gsub (/^# *ifndef/, "#if !");
-#print "ifndef:" $0;
+  }
+  if ($0 ~ /^# *ifdef/) {
+    gsub (/^# *ifdef/, "#if ");
   }
 
 # this is very simplistic.
