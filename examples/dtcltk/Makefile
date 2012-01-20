@@ -1,11 +1,12 @@
 
-TCLPATH=/usr
-TCLVER=8.5
+TCLPATH = /usr
+TCLVER = 8.5
 
-TCLCONFIG=$(TCLPATH)/lib/tcl$(TCLVER)/tclConfig.sh
-TCLINCLUDE=$(TCLPATH)/include/tcl$(TCLVER)
-CC=cc
-DC=dmd
+TCLCONFIG = $(TCLPATH)/lib/tcl$(TCLVER)/tclConfig.sh
+TCLINCLUDE = $(TCLPATH)/include/tcl$(TCLVER)
+CC = cc
+DC = dmd
+MKCONFIGPATH = mkconfig
 
 .PHONY: all
 all:	tcl/tcl.d tk/tk.d x11/x.d x11/xlib.d
