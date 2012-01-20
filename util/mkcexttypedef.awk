@@ -11,16 +11,20 @@ BEGIN {
   acount = 0;
   docheck = 0;
   tarr = "";
+  lineno = 0;
 #print "tdstart:" tdstart ":";
 #print "funcpat:" funcpat ":";
 #print "semipat:" semipat ":";
 }
 
 {
+  lineno = lineno + 1;
+#print lineno ": " $0;
+
   if ($0 ~ /^#/) {
     next;
   } else if (intypedef == 0 && $0 ~ tdstart) {
-#print "start:" $0 ":";
+#print "start:";
     intypedef = 1;
     acount = 0;
     sarr[acount] = $0;
@@ -31,7 +35,7 @@ BEGIN {
       docheck = 1;
     }
   } else if (intypedef == 1) {
-#print "in:" $0 ":";
+#print "in:";
     sarr[acount] = $0;
     acount = acount + 1;
     tarr = tarr $0;
