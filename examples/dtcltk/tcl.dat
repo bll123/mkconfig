@@ -469,10 +469,13 @@ clib Tcl_GetMemoryInfo
 
 cmacro Tcl_GetHashValue tcl.h ClientData 'Tcl_HashEntry *'
 cmacro Tcl_SetHashValue tcl.h ClientData 'Tcl_HashEntry *' ClientData ClientData
-# this is wrong. FIX somehow
-#cmacro Tcl_GetHashKey tcl.h 'char *' 'Tcl_HashTable' 'Tcl_HashEntry *'
+cmacro Tcl_GetHashKey tcl.h 'void *' 'Tcl_HashTable' 'Tcl_HashEntry *'
 cmacro Tcl_FindHashEntry tcl.h 'Tcl_HashEntry *' 'Tcl_HashTable *' 'char *'
 cmacro Tcl_CreateHashEntry tcl.h 'Tcl_HashEntry *' 'Tcl_HashTable *' 'char *' 'int *'
+
+# for Tcl_GetHashKey
+substitute h.string 'cast(void *)h.string'
+substitute h.oneWordValue 'cast(void *)h.oneWordValue'
 
 include
 
