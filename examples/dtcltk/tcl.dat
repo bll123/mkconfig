@@ -148,15 +148,14 @@ ctypedef Tcl_MainLoopProc
 cstruct Tcl_ObjType
 cstruct Tcl_Obj
 
-# FIX
-#cmacro ckalloc tcl.h 'char *' uint
-#cmacro ckfree tcl.h void 'char *'
-#cmacro ckrealloc tcl.h 'char *' 'char *' uint
-#cmacro attemptckalloc tcl.h 'char *' uint
-#cmacro attemptckrealloc tcl.h 'char *' 'char *' uint
-#cmacro Tcl_InitMemory tcl.h void 'Tcl_Interp *'
-#cmacro Tcl_DumpActiveMemory tcl.h void 'char *'
-#cmacro Tcl_ValidateAllMemory tcl.h void 'char *' int
+cmacro ckalloc tcl.h 'char *' uint
+cmacro ckfree tcl.h void 'char *'
+cmacro ckrealloc tcl.h 'char *' 'char *' uint
+cmacro attemptckalloc tcl.h 'char *' uint
+cmacro attemptckrealloc tcl.h 'char *' 'char *' uint
+cmacro Tcl_InitMemory tcl.h void 'Tcl_Interp *'
+cmacro Tcl_DumpActiveMemory tcl.h void 'char *'
+cmacro Tcl_ValidateAllMemory tcl.h void 'char *' int
 
 cdcl Tcl_IncrRefCount
 clib Tcl_IncrRefCount
@@ -171,7 +170,7 @@ endif
 cdcl Tcl_IsShared
 clib Tcl_IsShared
 if lib_Tcl_IsShared ! _clib_Tcl_IsShared
- cmacro Tcl_IsShared tcl.h void 'Tcl_Obj *'
+ cmacro Tcl_IsShared tcl.h int 'Tcl_Obj *'
 endif
 
 cstruct Tcl_SavedResult
@@ -1754,9 +1753,9 @@ if tom_math_decls _hdr_tclTomMathDecls
 cdefine int TCLTOMMATH_EPOCH
 cdefine int TCLTOMMATH_REVISION
 cmacro Tcl_TomMath_InitStubs tclTomMathDecls.h 'char *' 'Tcl_Interp *' 'char *'
-#cmacro TclBNAlloc tclTomMathDecls.h 'char *' uint
-#cmacro TclBNRealloc tclTomMathDecls.h 'char *' 'char *' uint
-#cmacro TclBNFree tclTomMathDecls.h void 'char *'
+cmacro TclBNAlloc tclTomMathDecls.h 'char *' uint
+cmacro TclBNRealloc tclTomMathDecls.h 'char *' 'char *' uint
+cmacro TclBNFree tclTomMathDecls.h void 'char *'
 
 cdcl TclBN_epoch
 clib TclBN_epoch
