@@ -125,6 +125,8 @@ tests.d/d.d/d-import.dat
 tests.d/d.d/d-import.sh
 tests.d/d.d/d-member.dat
 tests.d/d.d/d-member.sh
+tests.d/d.d/d-module.dat
+tests.d/d.d/d-module.sh
 tests.d/d.d/d-multlib.config
 tests.d/d.d/d-multlib.dat
 tests.d/d.d/d-multlib.reqlibs
