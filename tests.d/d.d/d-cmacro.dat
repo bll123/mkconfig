@@ -24,3 +24,20 @@ cmacro T9 macrohdr.h int int int
 cmacro T10 macrohdr.h int 'CL *' int int int int int 'struct b'
 cmacro T_11 macrohdr.h int 'DP *'
 cmacro T12 macrohdr.h 'DP *'
+
+cmacro T13 macrohdr.h int
+cmacro T14 macrohdr.h int
+cmacro T15 macrohdr.h int
+cmacro T16 macrohdr.h int
+cmacro T17 macrohdr.h int
+cmacro T18 macrohdr.h int
+cmacro T19 macrohdr.h int
+cmacro T20 macrohdr.h int
+cmacro T21 macrohdr.h int
+cmacro T22 macrohdr.h int
+cmacro T23 macrohdr.h int
+cmacro T24 macrohdr.h int
+cmacro T25 macrohdr.h int
+cmacro T26 macrohdr.h int
+cmacro T27 macrohdr.h int
+cmacro T28 macrohdr.h int
