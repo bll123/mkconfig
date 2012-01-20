@@ -3,80 +3,49 @@
 # Copyright 2010-2012 Brad Lanam Walnut Creek CA
 
 BEGIN {
-  typname = "[ 	(*]" ARGV[2] "[ 	);]";
   tdstart = "[ 	]*typedef";
-  isfuncpat = "typedef.*[ 	*]*" ARGV[2] "[ 	)]*[(]";
-  isfuncpat2 = "typedef.*[ 	*]*" ARGV[2] "[ 	)]*$";
+  funcpat = "[ 	(*]" ARGV[2] "[ 	)]";
   semipat = "[ 	*]" ARGV[2] "[ 	]*;$";
   delete ARGV[2];
-  ins = 0;
-  havestart = 0;
-  havename = 0;
-  isfunc = 0;
-  doend = 0;
+  intypedef = 0;
   acount = 0;
-  sarr[0] = "";
-#print "tdstart:" tdstart;
-#print "typname:" typname;
-#print "isfuncpat:" isfuncpat;
-#print "semipat:" semipat;
+  docheck = 0;
+  tarr = "";
+#print "tdstart:" tdstart ":";
+#print "funcpat:" funcpat ":";
+#print "semipat:" semipat ":";
 }
 
 {
   if ($0 ~ /^#/) {
     next;
-  } else if (ins == 0 && $0 ~ tdstart) {
-#print "start: " $0;
-    ins = 1;
-    havename = 0;
-    isfunc = 0;
+  } else if (intypedef == 0 && $0 ~ tdstart) {
+#print "start:" $0 ":";
+    intypedef = 1;
     acount = 0;
     sarr[acount] = $0;
     acount = acount + 1;
-    havestart = 1;
-    if ($0 ~ typname) {
-#print "found name";
-      havename = 1;
-      if ($0 ~ isfuncpat || $0 ~ isfuncpat2) {
-#print "is func";
-        isfunc = 1;
-      }
-    }
+    tarr = tarr $0;
     if ($0 ~ /;$/) {
-#print "semi";
-      if ($0 ~ semipat || isfunc) {
-#print "semi ok";
-        if (havename) {
-#print "name";
-          doend = 1;
-        }
-      }
-      ins = 0;
-      havestart = 0;
+#print "have semi";
+      docheck = 1;
     }
-  } else if (ins == 1) {
-#print "1: " $0;
+  } else if (intypedef == 1) {
+#print "in:" $0 ":";
     sarr[acount] = $0;
     acount = acount + 1;
-    if ($0 ~ typname) {
-#print "found name";
-      havename = 1;
-      if ($0 ~ isfuncpat) {
-#print "is func";
-        isfunc = 1;
-      }
-    }
+    tarr = tarr $0;
     if ($0 ~ /;$/) {
-#print "semi";
-      if ($0 ~ semipat || isfunc) {
-#print "semi ok";
-        if (havename) {
-#print "name";
-          doend = 1;
-        }
-      }
-      ins = 0;
-      havestart = 0;
+#print "have semi";
+      docheck = 1;
+    }
+  }
+
+  if (docheck == 1) {
+#print "docheck: tarr:" tarr ":";
+    if (tarr ~ funcpat || tarr ~ semipat) {
+#print "docheck: match";
+      doend = 1;
     }
   }
 
@@ -85,5 +54,13 @@ BEGIN {
       print sarr[i];
     }
     exit;
+  }
+
+  if (docheck == 1) {
+#print "docheck: no match";
+    acount = 0;
+    tarr = "";
+    docheck = 0;
+    intypedef = 0;
   }
 }
