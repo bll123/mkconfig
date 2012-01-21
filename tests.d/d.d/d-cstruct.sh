@@ -32,6 +32,7 @@ struct sa
   int   i;
   signed int   sgi;
   unsigned int   ui;
+  unsigned ui2;
   short s;
   signed short sgs;
   short int si;
