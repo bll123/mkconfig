@@ -1096,7 +1096,7 @@ check_cmacro () {
   if [ "$type" = "" ]; then
     type=int
   fi
-  if [ $type = void ]; then
+  if [ "$type" = void ]; then
     macro=`echo ${macro} | sed -e "s/return//"`
   fi
   if [ "$DVERSION" = 1 -a $rc -eq 0 -a $trc -eq 1 ]; then
