@@ -173,7 +173,6 @@ _c_chk_cpp () {
     fi
   fi
   # $cppname should be unique
-  >${tcppfile}
   exec 4>>${tcppfile}
   echo "${precc}" >&4
   _c_print_headers $inc >&4
