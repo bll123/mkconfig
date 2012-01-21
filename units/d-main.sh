@@ -122,13 +122,13 @@ modify_ctypes () {
       -e 's/xbytex/byte/g'
     "
   echo "#####  modify_ctypes" >&9
-  echo "##### modify_ctypes: before" >&9
-  echo "$tcode" >&9
-  echo "##### modify_ctypes: $cmd" >&9
+#  echo "##### modify_ctypes: before" >&9
+#  echo "$tcode" >&9
+#  echo "##### modify_ctypes: $cmd" >&9
   eval "${tmcnm}=\`echo \"${tcode}\" | ${cmd}\`" >&9 2>&9
-  echo "#### modify_ctypes: $tmcnm after" >&9
-  eval "echo \"\$${tmcnm}\"" >&9
-  echo "#### modify_ctypes: end $tmcnm after" >&9
+#  echo "#### modify_ctypes: $tmcnm after" >&9
+#  eval "echo \"\$${tmcnm}\"" >&9
+#  echo "#### modify_ctypes: end $tmcnm after" >&9
 }
 
 modify_cchglist () {
@@ -138,13 +138,13 @@ modify_cchglist () {
   tcode=`echo "${tcode}" | sed -e 's/"/\\\\"/g'`
   cmd="sed ${cchglist} -e 's/a/a/;# could be empty'"
   echo "#####  modify_cchglist" >&9
-  echo "##### modify_cchglist: before" >&9
-  echo "$tcode" >&9
-  echo "##### modify_cchglist: $cmd" >&9
+#  echo "##### modify_cchglist: before" >&9
+#  echo "$tcode" >&9
+#  echo "##### modify_cchglist: $cmd" >&9
   eval "${tmcnm}=\`echo \"${tcode}\" | ${cmd}\`" >&9 2>&9
-  echo "#### modify_cchglist: $tmcnm after" >&9
-  eval "echo \"\$${tmcnm}\"" >&9
-  echo "#### modify_cchglist: end $tmcnm after" >&9
+#  echo "#### modify_cchglist: $tmcnm after" >&9
+#  eval "echo \"\$${tmcnm}\"" >&9
+#  echo "#### modify_cchglist: end $tmcnm after" >&9
 }
 
 modify_ccode () {
@@ -196,19 +196,19 @@ modify_ccode () {
         -e '/function/! s/\(([ 	]*[a-zA-Z_][a-zA-Z0-9_]*[ 	*]*)[ 	]*[a-zA-Z0-9_(]\)/cast\1/g'
     "
   echo "#####  modify_ccode" >&9
-  echo "##### modify_ccode: before" >&9
-  echo "$tcode" >&9
-  echo "##### modify_ccode: $cmd" >&9
+#  echo "##### modify_ccode: before" >&9
+#  echo "$tcode" >&9
+#  echo "##### modify_ccode: $cmd" >&9
   eval "${tmcnm}=\`echo \"${tcode}\" | ${cmd}\`" >&9 2>&9
   if [ "$DVERSION" = 1 ]; then
     cmd="sed -e 's/toStringz(__FILE__)/__FILE__/g; # revert for D1' \
-        -e 's/const *//g'
+        -e 's/const *//g; # remove all const'
     "
     eval "${tmcnm}=\`echo \"\$${tmcnm}\" | ${cmd}\`" >&9 2>&9
   fi
-  echo "#### modify_ccode: $tmcnm after" >&9
-  eval "echo \"\$${tmcnm}\"" >&9
-  echo "#### modify_ccode: end $tmcnm after" >&9
+#  echo "#### modify_ccode: $tmcnm after" >&9
+#  eval "echo \"\$${tmcnm}\"" >&9
+#  echo "#### modify_ccode: end $tmcnm after" >&9
 }
 
 dump_ccode () {
@@ -421,6 +421,7 @@ check_import () {
 int main (char[][] args) { return 0; }
 "
   rc=1
+  > ${name}.d  # re-init file
   _d_chk_compile ${name} "${code}" std
   rc=$?
   val=0
