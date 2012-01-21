@@ -160,8 +160,12 @@ for x in T0 T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T_11 T12 \
   chkoutd "^enum (: )?bool ({ )?_cmacro_${x} = true( })?;$"
 done
 
-for x in T0 T1 T2 T3 T5 T7 T9 T10 T_11 T12; do
+for x in T0 T1 T2 T3 T5 T7 T9 T10 T_11; do
   chkoutd "^(auto|int) C_MACRO_${x}"
+done
+
+for x in T12; do
+  chkoutd "^.* C_MACRO_${x}"
 done
 
 for x in T14 T15 T17 T18 T20 T22 T23 T25 T26 T27; do
