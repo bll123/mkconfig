@@ -61,16 +61,16 @@ _d_print_imps () {
 }
 
 _d_chk_run () {
-  crname=$1
+  drname=$1
   code=$2
   inc=$3
 
-  _d_chk_link_libs ${crname} "${code}" $inc
+  _d_chk_link_libs ${drname} "${code}" $inc
   rc=$?
   echo "##  run test: link: $rc" >&9
   rval=0
   if [ $rc -eq 0 ]; then
-      rval=`./${crname}.exe`
+      rval=`./${drname}.exe`
       rc=$?
       echo "##  run test: run: $rc retval: $rval" >&9
       if [ $rc -lt 0 ]; then
@@ -82,23 +82,23 @@ _d_chk_run () {
 }
 
 _d_chk_link_libs () {
-  cllname=$1
+  dllname=$1
   code=$2
   inc=$3
   shift;shift;shift
 
   ocounter=0
-  clotherlibs="'$otherlibs'"
-  dosubst clotherlibs ',' "' '"
-  if [ "${clotherlibs}" != "" ]; then
-    eval "set -- $clotherlibs"
+  dlotherlibs="'$otherlibs'"
+  dosubst dlotherlibs ',' "' '"
+  if [ "${dlotherlibs}" != "" ]; then
+    eval "set -- $dlotherlibs"
     ocount=$#
   else
     ocount=0
   fi
 
-  tdfile=${cllname}.d
-  # $cllname should be unique
+  tdfile=${dllname}.d
+  # $dllname should be unique
   exec 4>>${tdfile}
   _d_print_imports $inc >&4
   echo "${code}" | sed 's/_dollar_/$/g' >&4
@@ -106,18 +106,18 @@ _d_chk_link_libs () {
 
   dlibs=""
   otherlibs=""
-  _d_chk_link $cllname
+  _d_chk_link $dllname
   rc=$?
   echo "##      link test (none): $rc" >&9
   if [ $rc -ne 0 ]; then
     while test $ocounter -lt $ocount; do
       domath ocounter "$ocounter + 1"
-      eval "set -- $clotherlibs"
+      eval "set -- $dlotherlibs"
       cmd="olibs=\$${ocounter}"
       eval $cmd
       dlibs=${olibs}
       otherlibs=${olibs}
-      _d_chk_link $cllname
+      _d_chk_link $dllname
       rc=$?
       echo "##      link test (${olibs}): $rc" >&9
       if [ $rc -eq 0 ]; then
@@ -130,11 +130,12 @@ _d_chk_link_libs () {
 }
 
 _d_chk_link () {
-  clname=$1
+  dlname=$1
 
-  cmd="${DC} ${DFLAGS} -c ${tdfile}"
+  cmd="${_MKCONFIG_DIR}/mkc.sh -d `pwd` -complink -e -c ${DC} \
+      -o ${dlname}${OBJ_EXT} -- ${DFLAGS} ${dlname}.d "
   echo "##  _link test (compile): $cmd" >&9
-  cat ${clname}.d >&9
+  cat ${dlname}.d >&9
   eval ${cmd} >&9 2>&9
   rc=$?
   if [ $rc -lt 0 ]; then
@@ -142,15 +143,14 @@ _d_chk_link () {
   fi
   echo "##      _link compile: $rc" >&9
 
-  cmd="${_MKCONFIG_DIR}/mkc.sh -d `pwd` -link -e -c ${DC} -o ${clname}.exe -- "
-  cmd="${cmd} ${clname}${OBJ_EXT} ${LDFLAGS} ${LIBS} "
-
-  _clotherlibs=$otherlibs
-  if [ "${_clotherlibs}" != "" ]; then
-    cmd="${cmd} ${_clotherlibs} "
+  cmd="${_MKCONFIG_DIR}/mkc.sh -d `pwd` -complink -e -c ${DC} -o ${dlname}.exe \
+      -- ${DFLAGS} ${dlname}${OBJ_EXT} ${LDFLAGS} ${LIBS} "
+  _dlotherlibs=$otherlibs
+  if [ "${_dlotherlibs}" != "" ]; then
+    cmd="${cmd} ${_dlotherlibs} "
   fi
   echo "##  _link test (link): $cmd" >&9
-  cat ${clname}.d >&9
+  cat ${dlname}.d >&9
   eval $cmd >&9 2>&9
   rc=$?
   if [ $rc -lt 0 ]; then
@@ -158,7 +158,7 @@ _d_chk_link () {
   fi
   echo "##      _link link: $rc" >&9
   if [ $rc -eq 0 ]; then
-    if [ ! -x "${clname}.exe" ]; then  # not executable
+    if [ ! -x "${dlname}.exe" ]; then  # not executable
       rc=1
     fi
   fi
@@ -177,7 +177,8 @@ _d_chk_compile () {
   echo "${code}" | sed 's/_dollar_/$/g' >&4
   exec 4>&-
 
-  cmd="${DC} ${DFLAGS} -c ${tdfile}"
+  cmd="${_MKCONFIG_DIR}/mkc.sh -d `pwd` -complink -e -c ${DC} \
+      -o ${dfname}${OBJ_EXT} -- ${DFLAGS} ${tdfile} "
   echo "##  compile test: $cmd" >&9
   cat ${dfname}.d >&9
   eval ${cmd} >&9 2>&9
