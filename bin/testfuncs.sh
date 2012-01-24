@@ -94,7 +94,12 @@ int main () { return 0; }
 
 chkdcompile () {
   fn=$1
-  ${DC} -c ${DFLAGS} ${fn}
+
+  bfn=$fn
+  bfn=`echo $fn | sed 's/\.d$//'`
+  cmd="${_MKCONFIG_DIR}/mkc.sh -d `pwd` -complink -e -c ${DC} \
+      -o ${bfn}${OBJ_EXT} -- ${DFLAGS} ${fn} "
+  eval ${cmd}
   if [ $? -ne 0 ]; then
     echo "## compile of ${fn} failed"
     grc=1
