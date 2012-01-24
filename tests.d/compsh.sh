@@ -49,7 +49,7 @@ fi
 set +f
 
 cd $_MKCONFIG_DIR
-for f in *.sh; do
+for f in mkc.sh mkconfig.sh runtests.sh; do
   $_MKCONFIG_SHELL -n $f
   rc=$?
   if [ $rc -ne 0 ];then grc=$rc; fi
