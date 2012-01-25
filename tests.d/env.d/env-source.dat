@@ -4,3 +4,4 @@ output test.env
 loadunit env-main
 standard
 source ${_MKCONFIG_TSTRUNTMPDIR}/stest.sh
+source ${_MKCONFIG_TSTRUNTMPDIR}/stest-unk.sh
