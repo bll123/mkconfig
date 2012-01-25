@@ -154,32 +154,30 @@ modify_ccode () {
   tcode=`echo "${tcode}" | sed -e 's/"/\\\\"/g'`
   cmd="
     sed -e 's/[	 ][	 ]*/ /g;# clean up spacing' \
-      -e '# remove /* comments' \
-      -e 's,/\*[^\*]*\*/,,;# remove comments' \
-      -e '# remove // comments' \
-      -e 's,//.*$,,;# remove comments' \
+      -e 's,/\*[^\*]*\*/,,;# remove /* comments' \
+      -e 's,//.*$,,;# remove // comments' \
       -e '# change sizeof(v) to v.sizeof' \
       -e 's/sizeof[	 ]*\(([^)]*)\)/\1.sizeof/g' \
-      -e 's/__extension__//g;# gcc-ism' \
       -e '# remove gcc-isms' \
+      -e 's/__extension__//g;# gcc-ism' \
       -e 's/__const\([^a-zA-Z0-9_]\)/\1/g;# gcc-ism' \
-      -e '# change *const to *' \
-      -e 's/\*[	 ]*const/*/g; # not handled' \
+      -e 's/\*[	 ]*const/*/g; # not handled: change *const to *' \
       -e '# change version to version_ (reserved keyword)' \
       -e 's/\([^a-zA-Z0-9_]\)version\([^a-zA-Z0-9_]\)/\1version_\2/g' \
       -e '# remove spacing before braces' \
-      -e 's/[	 ]*\([\{\}]\)/ \1/;' \
+      -e 's/[	 ]*\([{}]\)/ \1/;' \
       |
     sed ${cchglist} -e 's/a/a/;# could be empty' \
       |
     sed -e '# handle multi-line statements' \
         -e '# next lines append any line w/o semicolon or open brace' \
         -e '# this is necessary for the function conversion to work.' \
-        -e '/^[^;{]*$/ N' \
-        -e '/^[^;{]*$/ N' \
-        -e '/^[^;{]*$/ N' \
-        -e '/^[^;{]*$/ N' \
-        -e '/^[^;{]*$/ N' \
+        -e '# see section 6.7.5 of sed FAQ for $!N information.' \
+        -e '$! /^[^;{]*$/ N' \
+        -e '$! /^[^;{]*$/ N' \
+        -e '$! /^[^;{]*$/ N' \
+        -e '$! /^[^;{]*$/ N' \
+        -e '$! /^[^;{]*$/ N' \
         -e '# convert functions' \
         -e 's/^\(.*\)([ 	]*\*[ 	]*\([a-zA-Z0-9_][a-zA-Z0-9_]*\)[ 	]*)[ 	]*(\(.*\))[^(),a-zA-Z0-9_*]*;/\1 function(\3) \2;/' \
         -e 's/^\(.*alias.*\)[ 	][ 	*]*\([a-zA-Z0-9_][a-zA-Z0-9_]*\)[ 	][ 	]*(\(.*\))[^(),a-zA-Z0-9_*]*;/\1 function(\3) \2;/' \
@@ -190,22 +188,19 @@ modify_ccode () {
         |
     sed -e '# leading double underscores are not allowed' \
         -e 's/\([ \*]\)__/\1_t_/g' \
-        -e 's/_t_FILE__/toStringz(__FILE__)/g; # revert and make c-ish' \
+        -e 's/_t_FILE__/__FILE__/g; # revert' \
         -e 's/_t_LINE__/__LINE__/g; # revert' \
-        -e '# change casts...these do not have the word "function"...' \
+        -e '# change casts...these do not have the word function...' \
         -e '/function/! s/\(([ 	]*[a-zA-Z_][a-zA-Z0-9_]*[ 	*]*)[ 	]*[a-zA-Z0-9_(]\)/cast\1/g'
     "
+  if [ "$DVERSION" = 1 ]; then
+    doappend cmd " | sed -e 's/const *//g; # remove all const'"
+  fi
   echo "#####  modify_ccode" >&9
 #  echo "##### modify_ccode: before" >&9
 #  echo "$tcode" >&9
 #  echo "##### modify_ccode: $cmd" >&9
-  eval "${tmcnm}=\`echo \"${tcode}\" | ${cmd}\`" >&9 2>&9
-  if [ "$DVERSION" = 1 ]; then
-    cmd="sed -e 's/toStringz(__FILE__)/__FILE__/g; # revert for D1' \
-        -e 's/const *//g; # remove all const'
-    "
-    eval "${tmcnm}=\`echo \"\$${tmcnm}\" | ${cmd}\`" >&9 2>&9
-  fi
+  eval "${tmcnm}=\`echo \"${tcode}\" | ${cmd} \`" >&9 2>&9
 #  echo "#### modify_ccode: $tmcnm after" >&9
 #  eval "echo \"\$${tmcnm}\"" >&9
 #  echo "#### modify_ccode: end $tmcnm after" >&9
@@ -252,8 +247,7 @@ ${cmacros}
   if [ "${ccode}" != "" ]; then
     echo ""
     modify_ccode ccode "${ccode}"
-    echo "${ccode}
-"
+    echo "${ccode}"
   fi
   if [ "${daliases}" != "" ]; then
     echo "${daliases}"
@@ -1275,11 +1269,12 @@ check_cstruct () {
           *"}"*)
             if [ $inst -ge 1 ]; then
               tnname=`echo ${tsline} | sed -e 's/.*}[ *]*\([^; ]*\) *;/\1/'`
-              if [ "$tnname" != "" ]; then
+              # doesn't handle } w/no semi right.
+              if [ "$tnname" != "" -a "$tnname" != "}" ]; then
                 echo "###   tnname:${tnname}:" >&9
                 doappend cchglist "-e 's/->${tnname}\././g' "
                 doappend cchglist "-e 's/\.${tnname}\././g' "
-                st=`echo "${st}" | sed -e "s/\}[ *]*${tnname} *;/};/"`
+                st=`echo "${st}" | sed -e "s/}[ *]*${tnname} *;/};/"`
               fi
             fi
             domath inst "$inst - 1"
