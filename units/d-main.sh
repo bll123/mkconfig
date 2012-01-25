@@ -275,9 +275,7 @@ ${cmacros}
   fi
   if [ "${ccode}" != "" ]; then
     echo ""
-set -x
     modify_ccode ccode "${ccode}"
-set +x
     echo "${ccode}"
   fi
   if [ "${daliases}" != "" ]; then
