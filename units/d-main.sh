@@ -87,11 +87,10 @@ _create_enum () {
 }
 
 modify_ctypes () {
-  tmcnm=$1
-  tcode="$2"
+  tmcnm1=$1
+  tcode1=$2
 
   # modify c types
-  tcode=`echo "${tcode}" | sed -e 's/"/\\\\"/g'`
   cmd="
     sed -e 's/[	 ]long[	 ]*int[	 ]/ long /g;# still C' \
       -e 's/[	 ]short[	 ]*int\([	 *]\)/ short\1/g;# still C' \
@@ -122,36 +121,53 @@ modify_ctypes () {
       -e 's/xbytex/byte/g'
     "
   echo "#####  modify_ctypes" >&9
+
 #  echo "##### modify_ctypes: before" >&9
-#  echo "$tcode" >&9
+#  echo "$tcode1" >&9
+#  echo "##### modify_ctypes: end before" >&9
+
 #  echo "##### modify_ctypes: $cmd" >&9
-  eval "${tmcnm}=\`echo \"${tcode}\" | ${cmd}\`" >&9 2>&9
-#  echo "#### modify_ctypes: $tmcnm after" >&9
-#  eval "echo \"\$${tmcnm}\"" >&9
-#  echo "#### modify_ctypes: end $tmcnm after" >&9
+  eval "${tmcnm1}=\`echo \"\${tcode1}\" | ${cmd}\`" >&9 2>&9
+
+#  echo "#### modify_ctypes: after" >&9
+#  eval "echo \"\$${tmcnm1}\"" >&9
+#  echo "#### modify_ctypes: end after" >&9
 }
 
 modify_cchglist () {
-  tmcnm=$1
-  tcode="$2"
+  tmcnm2=$1
+  tcode2=$2
 
-  tcode=`echo "${tcode}" | sed -e 's/"/\\\\"/g'`
-  cmd="sed ${cchglist} -e 's/a/a/;# could be empty'"
   echo "#####  modify_cchglist" >&9
+
 #  echo "##### modify_cchglist: before" >&9
-#  echo "$tcode" >&9
+#  echo "$tcode2" >&9
+#  echo "##### modify_cchglist: end before" >&9
+
+  cmd="sed ${cchglist1} -e 's/a/a/;# could be empty'"
 #  echo "##### modify_cchglist: $cmd" >&9
-  eval "${tmcnm}=\`echo \"${tcode}\" | ${cmd}\`" >&9 2>&9
-#  echo "#### modify_cchglist: $tmcnm after" >&9
-#  eval "echo \"\$${tmcnm}\"" >&9
-#  echo "#### modify_cchglist: end $tmcnm after" >&9
+  eval "tcode2=\`echo \"\${tcode2}\" | ${cmd}\`" >&9 2>&9
+
+  cmd="sed ${cchglist2} -e 's/a/a/;# could be empty'"
+#  echo "##### modify_cchglist: $cmd" >&9
+  eval "tcode2=\`echo \"\${tcode2}\" | ${cmd}\`" >&9 2>&9
+
+#  echo "#### modify_cchglist: after" >&9
+#  echo "${tcode2}" >&9
+#  echo "#### modify_cchglist: end after" >&9
+
+  eval "${tmcnm2}=\"\${tcode2}\""
 }
 
 modify_ccode () {
-  tmcnm=$1
-  tcode="$2"
+  tmcnm3=$1
+  tcode3=$2
 
-  tcode=`echo "${tcode}" | sed -e 's/"/\\\\"/g'`
+  echo "##### modify_ccode" >&9
+#  echo "##### modify_ccode: before" >&9
+#  echo "$tcode3" >&9
+#  echo "##### modify_ccode: end before" >&9
+
   cmd="
     sed -e 's/[	 ][	 ]*/ /g;# clean up spacing' \
       -e 's,/\*[^\*]*\*/,,;# remove /* comments' \
@@ -166,10 +182,17 @@ modify_ccode () {
       -e 's/\([^a-zA-Z0-9_]\)version\([^a-zA-Z0-9_]\)/\1version_\2/g' \
       -e '# remove spacing before braces' \
       -e 's/[	 ]*\([{}]\)/ \1/;' \
-      |
-    sed ${cchglist} -e 's/a/a/;# could be empty' \
-      |
-    sed -e '# handle multi-line statements' \
+      "
+#  echo "##### modify_ccode: ${cmd}" >&9
+  eval "tcode3=\`echo \"\${tcode3}\" | ${cmd} \`" >&9 2>&9
+
+#  echo "#### modify_ccode: after A" >&9
+#  echo "${tcode3}" >&9
+#  echo "#### modify_ccode: end after A" >&9
+
+  modify_cchglist tcode3 "${tcode3}"
+
+  cmd="sed -e '# handle multi-line statements' \
         -e '# next lines append any line w/o semicolon or open brace' \
         -e '# this is necessary for the function conversion to work.' \
         -e '/^[^;{]*$/ N' \
@@ -194,19 +217,22 @@ modify_ccode () {
         |
     sed -e '/^_END_;$/d; # workaround for sed N above'
     "
-  if [ "$DVERSION" = 1 ]; then
-    doappend cmd " | sed -e 's/const *//g; # remove all const'"
-  fi
-  echo "#####  modify_ccode" >&9
-#  echo "##### modify_ccode: before" >&9
-#  echo "$tcode" >&9
-#  echo "##### modify_ccode: $cmd" >&9
+
+#  echo "##### modify_ccode: ${cmd}" >&9
+
   # add _END_; as workaround for sed N above
-  eval "${tmcnm}=\`echo \"${tcode}
+  eval "tcode3=\`echo \"\${tcode3}
 _END_;\" | ${cmd} \`" >&9 2>&9
-#  echo "#### modify_ccode: $tmcnm after" >&9
-#  eval "echo \"\$${tmcnm}\"" >&9
-#  echo "#### modify_ccode: end $tmcnm after" >&9
+  if [ "$DVERSION" = 1 ]; then
+    cmd="sed -e 's/const *//g; # remove all const'"
+    eval "tcode3=\`echo \"\${tcode3}\" | ${cmd} \`" >&9 2>&9
+  fi
+
+#  echo "#### modify_ccode: after B" >&9
+#  echo "${tcode3}" >&9
+#  echo "#### modify_ccode: end after B" >&9
+
+  eval "${tmcnm3}=\"\${tcode3}\""
 }
 
 dump_ccode () {
@@ -249,7 +275,9 @@ ${cmacros}
   fi
   if [ "${ccode}" != "" ]; then
     echo ""
+set -x
     modify_ccode ccode "${ccode}"
+set +x
     echo "${ccode}"
   fi
   if [ "${daliases}" != "" ]; then
@@ -922,7 +950,7 @@ check_ctype () {
     fi
     doappend dasserts "static assert ((${ntypname}).sizeof == ${val});
 "
-    doappend cchglist "-e 's/\([^a-zA-Z0-9_]\)${typname}\([^a-zA-Z0-9_]\)/\1${ntypname}\2/g' "
+    doappend cchglist1 "-e 's/\([^a-zA-Z0-9_]\)${typname}\([^a-zA-Z0-9_]\)/\1${ntypname}\2/g' "
   fi
 
   printyesno_val $name $val ""
@@ -1130,7 +1158,7 @@ check_cmacro () {
     nmname=C_MACRO_${nmname}
     doappend cmacros "${macro}
 "
-    doappend cchglist "-e 's/\([^a-zA-Z0-9_]\)${mname}\([^a-zA-Z0-9_]\)/\1${nmname}\2/g' "
+    doappend cchglist1 "-e 's/\([^a-zA-Z0-9_]\)${mname}\([^a-zA-Z0-9_]\)/\1${nmname}\2/g' "
   fi
 
   printyesno $name $trc ""
@@ -1208,7 +1236,7 @@ check_cstruct () {
         dosubst otdnm '\*' ''
         ttdnm=$tdnm
         dosubst ttdnm '\*' '\\*'
-        echo "#### tdnm=${tdnm} (${otdnm})" >&9
+        echo "#### tdnm=tdnm:${tdnm}:otdnm:${otdnm}:" >&9
 
         if [ "$stnm" != "" -o "$otdnm" != "" ]; then
           trc=1
@@ -1264,8 +1292,8 @@ check_cstruct () {
             echo "###   tl: ${tl}" >&9
             if [ "$tl" != "" ]; then
               st=`echo "${st}" | sed -e "s/${ttype} *${tl}/${tl}/g"`
-              doappend cchglist "-e 's/\([^a-zA-Z0-9_]\)${tl}\([^a-zA-Z0-9_]\)/\1${tlab}${tl}\2/g' "
-              doappend cchglist "-e 's/^${tl}\([^a-zA-Z0-9_]\)/${tlab}${tl}\1/g' "
+              doappend cchglist2 "-e 's/\([^a-zA-Z0-9_]\)${tl}\([^a-zA-Z0-9_]\)/\1${tlab}${tl}\2/g' "
+              doappend cchglist2 "-e 's/^${tl}\([^a-zA-Z0-9_]\)/${tlab}${tl}\1/g' "
             fi
             domath inst "$inst + 1"
             ;;
@@ -1275,8 +1303,8 @@ check_cstruct () {
               # doesn't handle } w/no semi right.
               if [ "$tnname" != "" -a "$tnname" != "}" ]; then
                 echo "###   tnname:${tnname}:" >&9
-                doappend cchglist "-e 's/->${tnname}\././g' "
-                doappend cchglist "-e 's/\.${tnname}\././g' "
+                doappend cchglist1 "-e 's/->${tnname}\././g' "
+                doappend cchglist1 "-e 's/\.${tnname}\././g' "
                 st=`echo "${st}" | sed -e "s/}[ *]*${tnname} *;/};/"`
               fi
             fi
@@ -1341,12 +1369,16 @@ _HERE_
 
   if [ $trc -eq 1 ]; then
     if [ "$stnm" != "" ]; then
-      doappend cchglist "-e 's/\([^a-zA-Z0-9_]\)${ctype} *${stnm}\([^a-zA-Z0-9_]\)/\1${lab}${s}\2/g' "
-      doappend cchglist "-e 's/^${ctype} *${stnm}\([^a-zA-Z0-9_]\)/${lab}${s}\1/g' "
+      echo "## add to cchglist: -e 's/\([^a-zA-Z0-9_]\)${ctype} *${stnm}\([^a-zA-Z0-9_]\)/\1${lab}${s}\2/g' " >&9
+      doappend cchglist2 "-e 's/\([^a-zA-Z0-9_]\)${ctype} *${stnm}\([^a-zA-Z0-9_]\)/\1${lab}${s}\2/g' "
+      echo "## add to cchglist: -e 's/^${ctype} *${stnm}\([^a-zA-Z0-9_]\)/${lab}${s}\1/g' " >&9
+      doappend cchglist2 "-e 's/^${ctype} *${stnm}\([^a-zA-Z0-9_]\)/${lab}${s}\1/g' "
     fi
     if [ $havetypedef = T -a "$otdnm" != "" ]; then
-      doappend cchglist "-e 's/\([^a-zA-Z0-9_]\)${otdnm}\([^a-zA-Z0-9_]\)/\1${lab}${s}\2/g' "
-      doappend cchglist "-e 's/^${otdnm}\([^a-zA-Z0-9_]\)/${lab}${s}\1/g' "
+      echo "## add to cchglist: -e 's/\([^a-zA-Z0-9_]\)${otdnm}\([^a-zA-Z0-9_]\)/\1${lab}${s}\2/g' " >&9
+      doappend cchglist1 "-e 's/\([^a-zA-Z0-9_]\)${otdnm}\([^a-zA-Z0-9_]\)/\1${lab}${s}\2/g' "
+      echo "## add to cchglist: -e 's/^${otdnm}\([^a-zA-Z0-9_]\)/${lab}${s}\1/g' " >&9
+      doappend cchglist1 "-e 's/^${otdnm}\([^a-zA-Z0-9_]\)/${lab}${s}\1/g' "
     fi
     doappend cstructs "
 ${st}
@@ -1671,7 +1703,8 @@ new_output_file () {
 # initialization
 
 _init_var_lists
-cchglist=""
+cchglist1=""
+cchglist2=""
 cmpaths=""
 noprefix=F
 
