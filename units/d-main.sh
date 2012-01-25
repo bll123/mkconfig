@@ -172,12 +172,11 @@ modify_ccode () {
     sed -e '# handle multi-line statements' \
         -e '# next lines append any line w/o semicolon or open brace' \
         -e '# this is necessary for the function conversion to work.' \
-        -e '# see section 6.7.5 of sed FAQ for $!N information.' \
-        -e '$! /^[^;{]*$/ N' \
-        -e '$! /^[^;{]*$/ N' \
-        -e '$! /^[^;{]*$/ N' \
-        -e '$! /^[^;{]*$/ N' \
-        -e '$! /^[^;{]*$/ N' \
+        -e '/^[^;{]*$/ N' \
+        -e '/^[^;{]*$/ N' \
+        -e '/^[^;{]*$/ N' \
+        -e '/^[^;{]*$/ N' \
+        -e '/^[^;{]*$/ N' \
         -e '# convert functions' \
         -e 's/^\(.*\)([ 	]*\*[ 	]*\([a-zA-Z0-9_][a-zA-Z0-9_]*\)[ 	]*)[ 	]*(\(.*\))[^(),a-zA-Z0-9_*]*;/\1 function(\3) \2;/' \
         -e 's/^\(.*alias.*\)[ 	][ 	*]*\([a-zA-Z0-9_][a-zA-Z0-9_]*\)[ 	][ 	]*(\(.*\))[^(),a-zA-Z0-9_*]*;/\1 function(\3) \2;/' \
@@ -191,7 +190,9 @@ modify_ccode () {
         -e 's/_t_FILE__/__FILE__/g; # revert' \
         -e 's/_t_LINE__/__LINE__/g; # revert' \
         -e '# change casts...these do not have the word function...' \
-        -e '/function/! s/\(([ 	]*[a-zA-Z_][a-zA-Z0-9_]*[ 	*]*)[ 	]*[a-zA-Z0-9_(]\)/cast\1/g'
+        -e '/function/! s/\(([ 	]*[a-zA-Z_][a-zA-Z0-9_]*[ 	*]*)[ 	]*[a-zA-Z0-9_(]\)/cast\1/g' \
+        |
+    sed -e '/^_END_;$/d; # workaround for sed N above'
     "
   if [ "$DVERSION" = 1 ]; then
     doappend cmd " | sed -e 's/const *//g; # remove all const'"
@@ -200,7 +201,9 @@ modify_ccode () {
 #  echo "##### modify_ccode: before" >&9
 #  echo "$tcode" >&9
 #  echo "##### modify_ccode: $cmd" >&9
-  eval "${tmcnm}=\`echo \"${tcode}\" | ${cmd} \`" >&9 2>&9
+  # add _END_; as workaround for sed N above
+  eval "${tmcnm}=\`echo \"${tcode}
+_END_;\" | ${cmd} \`" >&9 2>&9
 #  echo "#### modify_ccode: $tmcnm after" >&9
 #  eval "echo \"\$${tmcnm}\"" >&9
 #  echo "#### modify_ccode: end $tmcnm after" >&9
