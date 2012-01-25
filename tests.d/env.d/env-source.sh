@@ -23,5 +23,8 @@ if [ -f test.env ];then
   fi
 fi
 
+chkenv "^. /.*/stest.sh$"
+chkenv "^. /.*/stest-unk.sh$" neg
+
 testcleanup
 exit $grc
