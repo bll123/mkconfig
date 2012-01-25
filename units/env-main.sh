@@ -54,11 +54,13 @@ check_source () {
   printlabel $nm "source: $fn"
 
   trc=0
+  val=0
   if [ -f $fn ]; then
     trc=1
+    val=$fn
   fi
   printyesno $name $trc
-  setdata ${_MKCONFIG_PREFIX} ${name} $fn
+  setdata ${_MKCONFIG_PREFIX} ${name} $val
 }
 
 output_item () {
@@ -68,7 +70,9 @@ output_item () {
 
   case $name in
     _source_*)
-      echo ". ${val}"
+      if [ $val != "0" ]; then
+        echo ". ${val}"
+      fi
       ;;
     _setint*|_setstr*|_opt_*)
       tname=$name
