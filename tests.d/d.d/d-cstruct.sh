@@ -341,6 +341,32 @@ typedef struct
 
 *_soo;
 
+struct sppX {
+ long sppXa;
+ long sppXb;
+};
+
+// bitfields with sizeof
+struct spp {
+ int sppa;
+ int sppb;
+ int sppc;
+ struct sppX sppd;
+ unsigned int :(8 / 2) * (16 - (int)sizeof(struct sppX));
+ unsigned int :(8 / 2) * (16 - (int)sizeof(struct sppX));
+};
+
+struct sqq {
+  int sqq1;
+  int sqqa : 1;
+  int sqqb : 3;
+  int sqqc : 4;
+  int sqq2;
+  int sqqd : 4;
+  int sqqe : 6;
+  int sqqf : 6;
+  int sqq3;
+};
 
 union ua
 {
@@ -494,8 +520,12 @@ dorunmkc
 
 for x in sa sb sc sd se sf sg sh si sj sk sl sm sn so sq sr \
     ss st su sv sw sx sy sz saa sbb scc sdd see SFF sgg \
-    shh sii sjj sll smm snn _soo; do
+    shh sii sjj sll smm snn _soo sppX spp; do
   chkoutd "^enum (: )?bool ({ )?_cstruct_${x} = true( })?;$"
+done
+for x in sc_t sd_t sk_t sl_t st_t su_t sv tXDR scc SEE SFF sgg shh_t \
+    sii snn _soo uc_t ud_t uk_t ul_t ut uu; do
+  chkoutd "^enum (: )?bool ({ )?_ctypedef_${x} = true( })?;$"
 done
 
 for x in sp; do
