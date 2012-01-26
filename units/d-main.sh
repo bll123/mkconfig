@@ -140,21 +140,21 @@ modify_cchglist () {
 
   echo "#####  modify_cchglist" >&9
 
-#  echo "##### modify_cchglist: before" >&9
-#  echo "$tcode2" >&9
-#  echo "##### modify_cchglist: end before" >&9
-
-  cmd="sed ${cchglist1} -e 's/a/a/;# could be empty'"
-#  echo "##### modify_cchglist: $cmd" >&9
-  eval "tcode2=\`echo \"\${tcode2}\" | ${cmd}\`" >&9 2>&9
+# echo "##### modify_cchglist: before" >&9
+# echo "$tcode2" >&9
+# echo "##### modify_cchglist: end before" >&9
 
   cmd="sed ${cchglist2} -e 's/a/a/;# could be empty'"
-#  echo "##### modify_cchglist: $cmd" >&9
+# echo "##### modify_cchglist: $cmd" >&9
   eval "tcode2=\`echo \"\${tcode2}\" | ${cmd}\`" >&9 2>&9
 
-#  echo "#### modify_cchglist: after" >&9
-#  echo "${tcode2}" >&9
-#  echo "#### modify_cchglist: end after" >&9
+  cmd="sed ${cchglist1} -e 's/a/a/;# could be empty'"
+# echo "##### modify_cchglist: $cmd" >&9
+  eval "tcode2=\`echo \"\${tcode2}\" | ${cmd}\`" >&9 2>&9
+
+# echo "#### modify_cchglist: after" >&9
+# echo "${tcode2}" >&9
+# echo "#### modify_cchglist: end after" >&9
 
   eval "${tmcnm2}=\"\${tcode2}\""
 }
