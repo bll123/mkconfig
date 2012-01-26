@@ -35,3 +35,11 @@ ctypedef w
 ctypedef x
 ctypedef yyy
 ctypedef zz
+cstruct aa1
+ctypedef aa1
+cstruct aa2
+ctypedef aa2
+cstruct aa3
+ctypedef aa3
+cstruct aa4
+ctypedef aa4

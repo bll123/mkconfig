@@ -49,6 +49,9 @@ cstruct sll
 cstruct smm
 cstruct snn
 cstruct _soo
+cstruct sppX
+cstruct spp
+cstruct sqq
 
 cunion ua
 cunion ub
