@@ -44,12 +44,28 @@ typedef int (w) (int w1,
 	int *w2, int w3);
 typedef int (*x) (int *, void *,...);
 // multiline
-typedef int yyy (int *a, int b, int *c, int d, int *const e[])
-
-                             ;
+typedef int yyy (int *a, int b, int *c, int d, int *const e[]);
 // multiline
 typedef int (zz)
               (int clientData);
+
+typedef struct aa1 {
+  int aa1_a;
+} aa1;
+struct aa2 {
+  int aa2_a;
+};
+typedef struct aa2 aa2;
+typedef struct aa3 aa3;
+struct aa3 {
+  int aa3_a;
+};
+typedef struct
+aa4
+{
+  int aa4_a;
+}
+aa4;
 
 
 #endif
@@ -73,7 +89,7 @@ if [ "${_MKCONFIG_USING_GCC}" = "Y" ]; then
   done
 fi
 
-for x in a b c d e f g h i m n o p q r t u v w x yyy zz; do
+for x in a b c d e f g h i m n o p q r t u v w x yyy zz aa1 aa2 aa3; do
   chkoutd "^enum (: )?bool ({ )?_ctypedef_${x} = true( })?;$"
   chkoutd "alias.*[ \*]${x};$"
 done
