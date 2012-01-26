@@ -3,14 +3,12 @@
 # Copyright 2010-2012 Brad Lanam Walnut Creek CA
 
 BEGIN {
-  dcode = "F";
-  if (ARGC == 4 && ARGV[3] == "d") {
-    dcode = "T";
-    delete ARGV[3];
+  if (dcode != "T") {
+    dcode = "F";
   }
-  ststructA = "(struct|class|union|enum)[	 ]*"
-  ststruct1 = "(struct|class|union|enum)[	 ]*\\{"
-  ststruct2 = "typedef[	 ][	 ]*(struct|class|union|enum)[ 	]*[a-zA-Z0-9_]*[ 	]*{?[ 	]*$"
+  ststructA = "(struct|class|union|enum)[	 ]*";
+  ststruct1 = "(struct|class|union|enum)[	 ]*\\{";
+  ststruct2 = "typedef[	 ][	 ]*(struct|class|union|enum)[ 	]*[a-zA-Z0-9_]*[ 	]*{?[ 	]*$";
   ststart1 = "(struct|class|union|enum)[	 ]*" ARGV[2] "$";
   ststart2 = "(struct|class|union|enum)[	 ]*" ARGV[2] "[^a-zA-Z0-9_]";
   stforward = "(struct|class|union|enum)[	 ]*" ARGV[2] "[	 ]*;";
@@ -42,7 +40,7 @@ BEGIN {
 
 {
   lineno = lineno + 1;
-#print lineno ": " $0
+#print lineno ": " $0;
 #if ($0 ~ ststruct1) { print "  " lineno ":   matches ststruct1"; }
 #if ($0 ~ ststruct2) { print "  " lineno ":   matches ststruct2"; }
 #if ($0 ~ ststart1) { print "  " lineno ":   matches ststart"; }
