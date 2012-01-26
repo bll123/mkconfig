@@ -965,6 +965,21 @@ check_ctypedef () {
 
   printlabel $name "c-typedef: ${typname}"
   # no cache
+  # check and see if typedef already done by cstruct.
+  # check and make sure cstruct was executed.
+  getdata tval ${_MKCONFIG_PREFIX} $name
+  echo "## chk:got:$tval: for $name" >&9
+  if [ "$tval" != 0 -a "$tval" != 1 -a "$tval" != "" ]; then
+    getdata ttval ${_MKCONFIG_PREFIX} _cstruct_$tval
+    echo "## chk:got:$ttval: for _cstruct_$tval" >&9
+    if [ "$ttval" = 1 ]; then
+      echo "## already done by cstruct" >&9
+      # reset data to 1.
+      setdata ${_MKCONFIG_PREFIX} ${name} 1
+      printyesno $name "already"
+      return
+    fi
+  fi
 
   trc=0
   code=""
@@ -1201,13 +1216,15 @@ check_cstruct () {
   origstnm=""
   stnm=""
   tdnm=""
+  havest=F
 
   if [ $rc -eq 0 ]; then
-    st=`${awkcmd} -f ${_MKCONFIG_DIR}/util/mkcextstruct.awk ${name}.out ${s} d`
+    st=`${awkcmd} -f ${_MKCONFIG_DIR}/util/mkcextstruct.awk -v dcode=T ${name}.out ${s} `
     echo "#### initial ${ctype}" >&9
     echo "${st}" >&9
     echo "#### end initial ${ctype}" >&9
     if [ "${st}" != "" ]; then
+      havest=T
       tst=`echo ${st} | sed -e 's/{.*}/ = /' -e 's/[	]/ /g' -e 's/  / /g' \
           -e 's/^ *//' -e 's/[ ;]*\$//'`
       echo "### ${ctype} basics:${tst}:" >&9
@@ -1268,7 +1285,7 @@ check_cstruct () {
       fi
     fi
 
-    if [ "${st}" != "" ]; then
+    if [ $havest = T ]; then
       echo "### check for nested struct/union/enum" >&9
 
       # look for any nested structure definitions as changed by
@@ -1277,6 +1294,7 @@ check_cstruct () {
       # for those definitions that are found.
       tst=$st
       inst=0
+      bffound=F
       while read tsline; do
         case $tsline in
           *struct*{|*union*{|*enum*{)
@@ -1308,6 +1326,9 @@ check_cstruct () {
             fi
             domath inst "$inst - 1"
             ;;
+          *":"*)
+            bffound=T
+            ;;
           *)
             ;;
         esac
@@ -1315,6 +1336,69 @@ check_cstruct () {
       done << _HERE_
 ${st}
 _HERE_
+
+      if [ $bffound = T ]; then
+        nst=""
+        inbf=0
+        bftsiz=0
+        bffcnt=1
+        while read tsline; do
+          case $tsline in
+            *":"*)
+              inbf=1
+              tline=`echo $tsline | sed 's/.*://'`
+              echo $tline | grep sizeof > /dev/null 2>&1
+              rc=$?
+              while test $rc -eq 0; do
+                ttval=`echo $tline | sed -e 's/.*sizeof *( *\([^)]*\) *).*/\1/'`
+                tnm="_csiz_${ttval}"
+                dosubst tnm ' ' '_'
+                getdata tval ${_MKCONFIG_PREFIX} $tnm
+                if [ "$tval" = "" ]; then
+                  tval=0
+                fi
+                tline=`echo $tline | sed -e "s/\(.*\)sizeof *([^)]*)\(.*\)/\1 ${tval} \2/"`
+                echo $tline | grep sizeof > /dev/null 2>&1
+                rc=$?
+              done
+              # remove casts
+              tline=`echo $tline | \
+                sed -e 's/([a-z ]*)//g' -e 's/ *;//' -e 's// /g' -e 's/  / /g'`
+              domath tval " $tline "
+              domath bftsiz "$bftsiz + $tval"
+              echo "## bf:$tline:$tval:$bftsiz" >&9
+              ;;
+            *)
+              if [ $inbf -eq 1 ]; then
+                if [ $bftsiz -ne 0 ]; then
+                  domath tval "$bftsiz % 8"
+                  if [ $tval -eq 0 ]; then
+                    domath tval "$bftsiz / 8"
+                    echo "## bf:ubyte[$tval] bitfield_${s}${bffcnt};" >&9
+                    doappend nst "
+ ubyte[$tval] bitfield_${s}${bffcnt};"
+                  else
+                    doappend nst "
+#error: structure has bitfields that do not add to a multiple of 8.
+ ubyte bitfield_${s}${bffcnt} : $bftsiz;"
+                  fi
+                  domath bffcnt "$bffcnt + 1"
+                fi
+                bftsiz=0
+                inbf=0
+              fi
+              doappend nst "
+ $tsline"
+              ;;
+          esac
+        # runs the 'while read' in the local shell, not a subshell.
+        done << _HERE_
+${st}
+_HERE_
+        echo "## old st:$st:" >&9
+        st=$nst
+        echo "## new st:$st:" >&9
+      fi
 
       ts=$s
       if [ "$stnm" = "" -a "$tdnm" != "$otdnm" ]; then
@@ -1384,16 +1468,22 @@ ${st}
     if [ $havetypedef = T -a "$otdnm" != "" ]; then
       # if noprefix is on, don't alias some name to itself.
       if [ $noprefix = F -o ${s} != ${tdnm} ]; then
+        echo "## add alias: ${lab}${ts} ${tdnm}" >&9
+        setdata ${_MKCONFIG_PREFIX} _ctypedef_${otdnm} $s
         doappend daliases "alias ${lab}${ts} ${tdnm};
 "
       fi
     fi
     if [ $havetypedef = T -a "$otdnm" != "" -a \
         "$stnm" != "" -a "$stnm" != "$s" ]; then
+      echo "## add alias: ${lab}${ts} ${lab}${stnm}" >&9
+      setdata ${_MKCONFIG_PREFIX} _ctypedef_${stnm} $s
       doappend daliases "alias ${lab}${ts} ${lab}${stnm};
 "
     fi
     if [ $lab != enum -a $rval -gt 0 ]; then
+      # save the size
+      setdata ${_MKCONFIG_PREFIX} _csiz_${ctype}_${s} ${rval}
       doappend dasserts "static assert ((${lab}${s}).sizeof == ${rval});
 "
     fi
