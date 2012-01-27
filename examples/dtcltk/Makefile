@@ -21,24 +21,25 @@ distclean:
 	-rm -rf tcl.env tcl tk x11
 
 tcl.env:	env.dat
-	CC=$(CC) DC=$(DC) CFLAGS="-I$(TCLINCLUDE)" TCLVER=$(TCLVER) \
+	CC=$(CC) DC=$(DC) CFLAGS="-I$(TCLINCLUDE) -I$(TCLINCLUDE)/generic" \
+		TCLVER=$(TCLVER) TCLPATH=$(TCLPATH) \
 		mkconfig/mkconfig.sh env.dat
 
 tcl/tcl.d:	tcl.dat tcl.env
 	. ./tcl.env; \
-		CFLAGS="$${TCL_INCLUDE_SPEC} $${TCL_DEFS}" \
+		CFLAGS="$${TCL_DEFS} $${CFLAGS} " \
 		LIBS="$${TCL_LIB_FLAG} $${TCL_LIBS}" \
 		mkconfig/mkconfig.sh tcl.dat
 
 tk/tk.d:	tk.dat tcl.env
 	. ./tcl.env; \
-		CFLAGS="$${TK_INCLUDE_SPEC} $${TK_DEFS}" \
+		CFLAGS="$${TK_INCLUDE_SPEC} $${TK_DEFS} $${CFLAGS} " \
 		LIBS="$${TK_LIB_FLAG} $${TK_LIBS}" \
 		mkconfig/mkconfig.sh tk.dat
 
 x11/x.d x11/xlib.d:	x.dat tcl.env
 	. ./tcl.env; \
-		CFLAGS="" LIBS="" \
+		CFLAGS="$${CFLAGS} " LIBS="$${LIBS} " \
 		mkconfig/mkconfig.sh x.dat
 
 TKFILES=tcl/tcl.d tk/tk.d x11/x.d x11/xlib.d
@@ -48,14 +49,14 @@ hw_tk_d1:	hw_tk_d1.d $(TKFILES)
 		mkconfig/mkc.sh -complink -c $(DC) -o hw_tk_d1 -- \
 		$(DFLAGS) $(LDFLAGS) \
 		$${TK_LIB_SPEC} $${TK_LIBS} \
-		$${TCL_LIB_SPEC} $${TCL_LIBS} $< $(TKFILES)
+		$${TCL_LIB_SPEC} $${TCL_LIBS} hw_tk_d1.d $(TKFILES)
 
 hw_tk_d2:	hw_tk_d2.d $(TKFILES)
 	. ./tcl.env; \
 		mkconfig/mkc.sh -complink -c $(DC) -o hw_tk_d2 -- \
 		$(DFLAGS) $(LDFLAGS) \
 		$${TK_LIB_SPEC} $${TK_LIBS} \
-		$${TCL_LIB_SPEC} $${TCL_LIBS} $< $(TKFILES)
+		$${TCL_LIB_SPEC} $${TCL_LIBS} hw_tk_d2.d $(TKFILES)
 
 ###
 
