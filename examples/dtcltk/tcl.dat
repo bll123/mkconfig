@@ -10,8 +10,8 @@ standard
 chdr tcl.h
 chdr tclDecls.h tcl.h
 chdr tclPlatDecls.h tcl.h
-chdr tclTomMath.h tcl.h
 chdr tclTomMathDecls.h tcl.h
+chdr tclTomMath.h tcl.h
 chdr utime.h
 chdr stdarg.h
 csys stat.h
@@ -21,18 +21,32 @@ csizes
 
 cstruct timespec
 ctype   int __dev_t
+ctype   int fflags_t
+ctype   int ino_t
 ctype   int __ino_t
 ctype   int __ino64_t
+ctype   int mode_t
 ctype   int __mode_t
+ctype   int nlink_t
 ctype   int __nlink_t
+ctype   int off_t
 ctype   int __off_t
 ctype   int __off64_t
+ctype   int blksize_t
 ctype   int __blksize_t
+ctype   int blkcnt_t
 ctype   int __blkcnt_t
 ctype   int __blkcnt64_t
+ctype   int uid_t
 ctype   int __uid_t
+ctype   int gid_t
 ctype   int __gid_t
+ctype   int time_t
 ctype   int __time_t
+ctype   int int32_t
+ctype   int __int32_t
+ctype   int uint32_t
+ctype   int __uint32_t
 cstruct stat
 cstruct stat64
 
@@ -1920,7 +1934,6 @@ alias TclBN_mp_clear_multi mp_clear_multi;
 alias TclBN_mp_cmp mp_cmp;
 alias TclBN_mp_cmp_d mp_cmp_d;
 alias TclBN_mp_cmp_mag mp_cmp_mag;
-alias TclBN_mp_cnt_lsb mp_cnt_lsb;
 alias TclBN_mp_copy mp_copy;
 alias TclBN_mp_count_bits mp_count_bits;
 alias TclBN_mp_div mp_div;
@@ -1935,7 +1948,6 @@ alias TclBN_mp_init mp_init;
 alias TclBN_mp_init_copy mp_init_copy;
 alias TclBN_mp_init_multi mp_init_multi;
 alias TclBN_mp_init_set mp_init_set;
-alias TclBN_mp_init_set_int mp_init_set_int;
 alias TclBN_mp_init_size mp_init_size;
 alias TclBN_mp_karatsuba_mul mp_karatsuba_mul;
 alias TclBN_mp_karatsuba_sqr mp_karatsuba_sqr;
@@ -1953,7 +1965,6 @@ alias TclBN_mp_read_radix mp_read_radix;
 alias TclBN_mp_rshd mp_rshd;
 /* alias TclBNMpSRmap mp_s_rmap; */
 alias TclBN_mp_set mp_set;
-alias TclBN_mp_set_int mp_set_int;
 alias TclBN_mp_shrink mp_shrink;
 alias TclBN_mp_sqr mp_sqr;
 alias TclBN_mp_sqrt mp_sqrt;
@@ -1973,3 +1984,19 @@ alias TclBN_s_mp_sqr s_mp_sqr;
 alias TclBN_s_mp_sub s_mp_sub;
 
 endinclude
+
+if mpcntlsb _hdr_tclTomMathDecls && _cdcl_TclBN_mp_cnt_lsb
+include
+ alias TclBN_mp_cnt_lsb mp_cnt_lsb;
+endinclude
+endif
+if mpinitsetint _hdr_tclTomMathDecls && _cdcl_TclBN_mp_init_set_int
+include
+ alias TclBN_mp_init_set_int mp_init_set_int;
+endinclude
+endif
+if mpsetint _hdr_tclTomMathDecls && _cdcl_TclBN_mp_set_int
+include
+ alias TclBN_mp_set_int mp_set_int;
+endinclude
+endif
