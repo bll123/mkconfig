@@ -20,6 +20,7 @@ CHANGES
         Added examples dir.
         clang: add -Wno-unknown-warning-option
         Fixed read problems with ksh93 93u.
+        Added a work-around for cd problem w/debian ksh93 93u (bug #679966).
         Handle __restrict__ on NetBSD 6.
         Remove improper flags for AIX.  Not fully tested.
 
