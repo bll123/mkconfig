@@ -24,7 +24,7 @@ if [ "$1" = "-d" ]; then
   shift
   shift
 fi
-mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
+mypath=`echo $0 | sed -e 's,/[^/]*$,,' -e 's,^\.,./.,'`
 _MKCONFIG_DIR=`(cd $mypath;pwd)`
 export _MKCONFIG_DIR
 . ${_MKCONFIG_DIR}/bin/shellfuncs.sh
@@ -583,13 +583,10 @@ main_process () {
     VARSFILE="../mkc_none_${_MKCONFIG_PREFIX}.vars"
   fi
 
-  # ksh93 93u 'read' changed.  Need the raw read.
+  # ksh93 93u 'read' changed.  Need the raw read for 'include'.
   # Unfortunately, this affects other shells.
-  # shellfuncs tests for the necessity
+  # shellfuncs tests for the necessity.
   rawarg=
-  if [ $shreqreadraw -eq 1 ]; then
-    rawarg=-r
-  fi
   # save stdin in fd 7; open stdin
   exec 7<&0 < ${configfile}
   while read ${rawarg} tdatline; do
@@ -600,11 +597,12 @@ main_process () {
       echo "#### ${linenumber}: ${tdatline}" >&9
       if [ "${tdatline}" = "endinclude" ]; then
         ininclude=0
+        rawarg=
         resetifs
       else
         if [ $shreqreadraw -eq 1 ]; then
           # have to do our own backslash processing.
-          tdatline=$(echo "${tdatline}" | 
+          tdatline=$(echo "${tdatline}" |
               sed -e 's/\\\([^\\]\)/\1/g' -e 's/\\\\/\\/g')
         fi
         echo "${tdatline}" >> $INC
@@ -721,6 +719,9 @@ main_process () {
           include)
             _chkconfigfname
             ininclude=1
+            if [ $shreqreadraw -eq 1 ]; then
+              rawarg=-r
+            fi
             ;;
           loadunit*)
             set $tdatline
