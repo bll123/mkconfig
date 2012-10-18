@@ -1,4 +1,4 @@
-mkconfig - configuration tool (version 1.20)
+mkconfig - configuration tool (version 1.21)
 
 Please e-mail any configuration units and the corresponding
 manual page entry to brad.lanam.di_at_gmail.com.  They will be
@@ -15,6 +15,12 @@ ISSUES
       ldc2 has structure size problems on 64bit (issue #28).
 
 CHANGES
+
+    1.21                                    [18 Oct 2012]
+        Added examples dir.
+        clang: add -Wno-unknown-warning-option
+        Fixed read problems with ksh93 93u.
+        Remove improper flags for AIX.  Not fully tested.
 
     1.20                                    [25 Jan 2012]
         D: rewrite c-typedef extraction.
