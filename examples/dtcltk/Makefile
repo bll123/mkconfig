@@ -57,11 +57,3 @@ hw_tk_d2:	hw_tk_d2.d $(TKFILES)
 		$(DFLAGS) $(LDFLAGS) \
 		$${TK_LIB_SPEC} $${TK_LIBS} \
 		$${TCL_LIB_SPEC} $${TCL_LIBS} hw_tk_d2.d $(TKFILES)
-
-###
-
-tar:		mktar.sh
-	@-rm -f $(MKCONFIGPATH)/*.tar.gz \
-		dctltk-[0-9].[0-9][0-9][a-z].tar.gz > /dev/null 2>&1
-	cd $(MKCONFIGPATH) && $(MAKE) tar
-	./mktar.sh
