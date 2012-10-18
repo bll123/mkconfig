@@ -465,6 +465,7 @@ check_args () {
 #define __attribute__(a)
 #define __nonnull__(a,b)
 #define __restrict
+#define __restrict__
 #define __THROW
 #define __const const
 "
