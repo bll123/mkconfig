@@ -12,7 +12,7 @@ if [ "$1" = "-d" ]; then
   shift
   shift
 fi
-mypath=`echo $0 | sed -e 's,/[^/]*$,,'`
+mypath=`echo $0 | sed -e 's,/[^/]*$,,' -e 's,^\.,./.,'`
 _MKCONFIG_DIR=`(cd $mypath;pwd)`
 export _MKCONFIG_DIR
 . ${_MKCONFIG_DIR}/bin/shellfuncs.sh
