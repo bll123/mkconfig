@@ -68,6 +68,19 @@ test_append () {
   fi
 }
 
+test_readraw () {
+  shreqreadraw=0
+  TMPRR=readraw$$
+  echo 'aa\\\\bb' > $TMPRR
+  read rrx < $TMPRR 2>/dev/null
+  read -r rry < $TMPRR 2>/dev/null
+  rc=$?
+  rm -f $TMPRR
+  if [ $rc -eq 0 -a $rrx != 'aa\\bb' -a $rry = 'aa\\\\bb' ]; then
+    shreqreadraw=1
+  fi
+}
+
 test_math () {
   shhasmath=0
   (eval 'x=1;y=$(($x+1)); test z$y = z2') 2>/dev/null
@@ -103,6 +116,7 @@ test_lower () {
 
 testshcapability () {
   test_append
+  test_readraw
   test_math
   test_upper
   test_lower
