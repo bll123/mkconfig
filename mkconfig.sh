@@ -583,32 +583,44 @@ main_process () {
     VARSFILE="../mkc_none_${_MKCONFIG_PREFIX}.vars"
   fi
 
+  # ksh93 93u 'read' changed.  Need the raw read.
+  # Unfortunately, this affects other shells.
+  # shellfuncs tests for the necessity
+  rawarg=
+  if [ $shreqreadraw -eq 1 ]; then
+    rawarg=-r
+  fi
   # save stdin in fd 7; open stdin
   exec 7<&0 < ${configfile}
-  while read tdatline; do
+  while read ${rawarg} tdatline; do
     resetifs
     domath linenumber "$linenumber + 1"
 
     if [ $ininclude -eq 1 ]; then
-        if [ "${tdatline}" = "endinclude" ]; then
-          echo "#### ${linenumber}: ${tdatline}" >&9
-          ininclude=0
-          resetifs
-        else
-          echo "${tdatline}" >> $INC
+      echo "#### ${linenumber}: ${tdatline}" >&9
+      if [ "${tdatline}" = "endinclude" ]; then
+        ininclude=0
+        resetifs
+      else
+        if [ $shreqreadraw -eq 1 ]; then
+          # have to do our own backslash processing.
+          tdatline=$(echo "${tdatline}" | 
+              sed -e 's/\\\([^\\]\)/\1/g' -e 's/\\\\/\\/g')
         fi
+        echo "${tdatline}" >> $INC
+      fi
     else
-        case ${tdatline} in
-            "")
-                continue
-                ;;
-            \#*)
-                continue
-                ;;
-            *)
-                echo "#### ${linenumber}: ${tdatline}" >&9
-                ;;
-        esac
+      case ${tdatline} in
+        "")
+          continue
+          ;;
+        \#*)
+          continue
+          ;;
+        *)
+          echo "#### ${linenumber}: ${tdatline}" >&9
+          ;;
+      esac
     fi
 
     if [ $ininclude -eq 0 ]; then
