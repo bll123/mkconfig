@@ -40,15 +40,15 @@ _dogetconf () {
   then
       echo "using flags from getconf" >&9
       lfccflags="`${xgetconf} LFS_CFLAGS 2>/dev/null`"
-      if [ "$lfccflags" = "undefined" ]; then
+      if [ "$lfccflags" = undefined ]; then
         lfccflags=""
       fi
       lfldflags="`${xgetconf} LFS_LDFLAGS 2>/dev/null`"
-      if [ "$lfldflags" = "undefined" ]; then
+      if [ "$lfldflags" = undefined ]; then
         lfldflags=""
       fi
       lflibs="`${xgetconf} LFS_LIBS 2>/dev/null`"
-      if [ "$lflibs" = "undefined" ]; then
+      if [ "$lflibs" = undefined ]; then
         lflibs=""
       fi
   fi
@@ -65,8 +65,7 @@ _dohpflags () {
 
   # check for libintl in other places...
   if [ -d /usr/local/include -a \
-      -d /usr/local/lib ]
-  then
+      -d /usr/local/lib ]; then
     hpccincludes="-I/usr/local/include"
     hpldflags="-L/usr/local/lib"
     if [ -d /usr/local/lib/hpux32 ]; then
@@ -124,8 +123,7 @@ check_using_gcc () {
   # check for gcc...
   ${CC} -v 2>&1 | grep 'gcc version' > /dev/null 2>&1
   rc=$?
-  if [ $rc -eq 0 ]
-  then
+  if [ $rc -eq 0 ]; then
       echo "found gcc" >&9
       usinggcc="Y"
   fi
@@ -148,8 +146,7 @@ check_using_gnu_ld () {
   # check for gcc...
   ${CC} -v 2>&1 | grep 'GNU ld' > /dev/null 2>&1
   rc=$?
-  if [ $rc -eq 0 ]
-  then
+  if [ $rc -eq 0 ]; then
       echo "found gnu ld" >&9
       usinggnuld="Y"
   fi
@@ -170,22 +167,23 @@ check_cflags () {
 
   gccflags=""
 
-  if [ "${_MKCONFIG_USING_GCC}" = "Y" ]
-  then
+  if [ "${_MKCONFIG_USING_GCC}" = Y ]; then
       echo "set gcc flags" >&9
       gccflags="-Wall -Waggregate-return -Wconversion -Wformat -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wpointer-arith -Wshadow -Wstrict-prototypes -Wunused"
       # -Wextra -Wno-unused-but-set-variable -Wno-unused-parameter
   fi
+  if [ "${CC}" = clang ]; then
+     ccflags="-Wno-unknown-warning-option $ccflags"
+  fi
 
   TCC=${CC}
-  if [ "${_MKCONFIG_USING_GCC}" = "Y" ]
-  then
+  if [ "${_MKCONFIG_USING_GCC}" = Y ]; then
     TCC=gcc
   fi
 
   case ${_MKCONFIG_SYSTYPE} in
       AIX)
-        if [ "${_MKCONFIG_USING_GCC}" = "N" ]; then
+        if [ "${_MKCONFIG_USING_GCC}" = N ]; then
           ccflags="-qhalt=e $ccflags"
           ccflags="$ccflags -qmaxmem=-1"
           case ${_MKCONFIG_SYSREV} in
@@ -200,8 +198,7 @@ check_cflags () {
         ccincludes="-I/usr/local/include $ccincludes"
         ;;
       HP-UX)
-        if [ "${lfccflags}" = "" -a "${_MKCONFIG_32BIT_FLAGS}" = F ]
-        then
+        if [ "${lfccflags}" = "" -a "${_MKCONFIG_32BIT_FLAGS}" = F ]; then
             ccflags="-D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 $ccflags"
         fi
         case ${TCC} in
@@ -250,7 +247,7 @@ check_cflags () {
 
   case ${CC} in
     g++|c++)
-      if [ "${_MKCONFIG_USING_GCC}" = "Y" ]; then
+      if [ "${_MKCONFIG_USING_GCC}" = Y ]; then
         echo "set g++ flags" >&9
         gccflags="-Wall -Waggregate-return -Wconversion -Wformat -Wpointer-arith -Wshadow -Wunused"
       fi
@@ -285,7 +282,7 @@ main () { return 0; }" > t.c
     flag=0
   fi
   printyesno $name ${flag}
-  if [ $flag = "0" ]; then
+  if [ $flag = 0 ]; then
     flag=""
   fi
   setdata ${_MKCONFIG_PREFIX} CFLAGS "$ccflags ${flag}"
@@ -300,8 +297,7 @@ check_ldflags () {
   _dogetconf
 
   TCC=${CC}
-  if [ "${_MKCONFIG_USING_GCC}" = "Y" ]
-  then
+  if [ "${_MKCONFIG_USING_GCC}" = Y ]; then
     TCC=gcc
   fi
 
@@ -359,8 +355,7 @@ check_libs () {
   gccflags=""
 
   TCC=${CC}
-  if [ "${_MKCONFIG_USING_GCC}" = "Y" ]
-  then
+  if [ "${_MKCONFIG_USING_GCC}" = Y ]; then
     TCC=gcc
   fi
 
@@ -387,7 +382,7 @@ check_shcflags () {
   printlabel SHCFLAGS "shared library cflags"
 
   shcflags="-fPIC $SHCFLAGS"
-  if [ "$_MKCONFIG_USING_GCC" != "Y" ]; then
+  if [ "$_MKCONFIG_USING_GCC" != Y ]; then
     case ${_MKCONFIG_SYSTYPE} in
       CYGWIN*)
         shcflags="$SHCFLAGS"
@@ -426,10 +421,10 @@ check_shldflags () {
   printlabel SHLDFLAGS "shared library ldflags"
 
   shldflags="$SHLDFLAGS -shared"
-  if [ "$_MKCONFIG_USING_GCC" != "Y" ]; then
+  if [ "$_MKCONFIG_USING_GCC" != Y ]; then
     case ${_MKCONFIG_SYSTYPE} in
       AIX)
-        shldflags="$SHLDFLAGS -dy -z text -G"
+        shldflags="$SHLDFLAGS -G"
         ;;
       HP-UX)
         shldflags="$SHLDFLAGS -b"
@@ -466,7 +461,7 @@ check_sharednameflag () {
   printlabel SHLDNAMEFLAG "shared lib name flag"
 
   SHLDNAMEFLAG="-Wl,-soname="
-  if [ "$_MKCONFIG_USING_GNU_LD" != "Y" ]; then
+  if [ "$_MKCONFIG_USING_GNU_LD" != Y ]; then
     case ${_MKCONFIG_SYSTYPE} in
       Darwin)
         # -compatibility_version -current_version
@@ -494,7 +489,7 @@ check_shareexeclinkflag () {
   printlabel SHEXECLINK "shared executable link flag "
 
   SHEXECLINK="-Bdynamic "
-  if [ "$_MKCONFIG_USING_GCC" != "Y" ]; then
+  if [ "$_MKCONFIG_USING_GCC" != Y ]; then
     case ${_MKCONFIG_SYSTYPE} in
       AIX)
         SHEXECLINK="-brtl -bdynamic "
@@ -528,7 +523,7 @@ check_sharerunpathflag () {
   printlabel SHRUNPATH "shared run path flag "
 
   SHRUNPATH="-Wl,-rpath="
-  if [ "$_MKCONFIG_USING_GNU_LD" != "Y" ]; then
+  if [ "$_MKCONFIG_USING_GNU_LD" != Y ]; then
     case ${_MKCONFIG_SYSTYPE} in
       AIX)
         SHRUNPATH=""
