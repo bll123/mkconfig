@@ -178,3 +178,13 @@ util/mkcextmacro.awk	script to extract C language macros
 util/mkcextstruct.awk	script to extract C language structures
 util/mkcexttypedef.awk	script to extract C language typedefs
 util/mktar.sh		creates tar file
+examples/           examples
+examples/dtcltk/    example c-d code conversion
+examples/dtcltk/Makefile
+examples/dtcltk/env.dat
+examples/dtcltk/hw_tk_c.c
+examples/dtcltk/hw_tk_d1.d
+examples/dtcltk/hw_tk_d2.d
+examples/dtcltk/tcl.dat
+examples/dtcltk/tk.dat
+examples/dtcltk/x.dat
