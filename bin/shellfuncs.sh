@@ -72,13 +72,16 @@ test_readraw () {
   shreqreadraw=0
   TMPRR=readraw$$
   echo 'aa\\\\bb' > $TMPRR
-  read rrx < $TMPRR 2>/dev/null
-  read -r rry < $TMPRR 2>/dev/null
-  rc=$?
-  rm -f $TMPRR
-  if [ $rc -eq 0 -a $rrx != 'aa\\bb' -a $rry = 'aa\\\\bb' ]; then
-    shreqreadraw=1
+  read rrx < $TMPRR >/dev/null 2>&1
+  (eval read -r rry < $TMPRR) 2>/dev/null
+  yrc=$?
+  if [ $yrc -eq 0 ]; then
+    read -r rry < $TMPRR 2>/dev/null
+    if [ ${rrx} != 'aa\\bb' -a ${rry} = 'aa\\\\bb' ]; then
+      shreqreadraw=1
+    fi
   fi
+  rm -f $TMPRR
 }
 
 test_math () {
