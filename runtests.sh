@@ -22,14 +22,14 @@ TESTORDER=test_order
 SUBDIR=F
 
 # this is a workaround for ksh93 on solaris
-if [ "$1" = "-d" ]; then
+if [ "$1" = -d ]; then
   cd $2
   shift
   shift
 fi
 unset CDPATH
 
-if [ "$1" = "-s" ]; then
+if [ "$1" = -s ]; then
   SUBDIR=T
   shift
   CC="$1"
@@ -210,7 +210,7 @@ runshelltest () {
 _MKCONFIG_RUNTOPDIR=`pwd`
 export _MKCONFIG_RUNTOPDIR
 mypath=`echo $0 | sed -e 's,/[^/]*$,,' -e 's,^\.,./.,'`
-if [ "$mypath" = "runtests.sh" ]; then
+if [ "$mypath" = runtests.sh ]; then
   mypath=.
 fi
 _MKCONFIG_DIR=`(cd $mypath;pwd)`
@@ -227,7 +227,7 @@ _MKC_SH_PL=3
 export _MKC_SH_PL
 
 doshelltest $0 $@
-if [ $SUBDIR = "F" ]; then
+if [ $SUBDIR = F ]; then
   setechovars
   mkconfigversion
 fi
@@ -250,7 +250,7 @@ fi
 _MKCONFIG_RUNTESTDIR=`pwd`
 export _MKCONFIG_RUNTESTDIR
 
-if [ $SUBDIR = "F" ]; then
+if [ $SUBDIR = F ]; then
   _MKCONFIG_RUNTMPDIR=$_MKCONFIG_RUNTOPDIR/_mkconfig_runtests
   export _MKCONFIG_RUNTMPDIR
 
@@ -278,18 +278,18 @@ else
   done >> $TMPORDER
 fi
 
-if [ $SUBDIR = "F" ]; then
+if [ $SUBDIR = F ]; then
   test -d $_MKCONFIG_RUNTMPDIR && rm -rf "$_MKCONFIG_RUNTMPDIR"
 fi
 test -d $_MKCONFIG_RUNTMPDIR || mkdir $_MKCONFIG_RUNTMPDIR
 
 MAINLOG=${_MKCONFIG_RUNTMPDIR}/main.log
-if [ $SUBDIR = "F" ]; then
+if [ $SUBDIR = F ]; then
   > $MAINLOG
 fi
 exec 8>>$MAINLOG
 
-if [ $SUBDIR = "F" ]; then
+if [ $SUBDIR = F ]; then
   echo "## locating valid shells"
   getlistofshells
 fi
@@ -325,7 +325,7 @@ while read tline; do
     lastpass=$pass
   fi
   if [ $grc -ne 0 -a "$lastpass" != "$pass" ]; then
-    if [ $SUBDIR = "F" ]; then
+    if [ $SUBDIR = F ]; then
       echo "## stopping tests due to failures in $testdir/ pass $lastpass"
     else
       fpass=$lastpass
@@ -359,10 +359,10 @@ while read tline; do
   fi
 
   tprefix=`echo $tbase | sed 's/-.*//'`
-  if [ "${CC}" = "" -a "$tprefix" = "c" ]; then
+  if [ "${CC}" = "" -a "$tprefix" = c ]; then
     continue
   fi
-  if [ "${DC}" = "" -a "$tprefix" = "d" ]; then
+  if [ "${DC}" = "" -a "$tprefix" = d ]; then
     continue
   fi
   tf="${tbase}.sh"
@@ -434,11 +434,11 @@ while read tline; do
   if [ $src -ne 0 ]; then
     src=1
     grc=1
-    if [ $tbase = "c-compiler" -a $grc -ne 0 ]; then
+    if [ $tbase = c-compiler -a $grc -ne 0 ]; then
       CC=""
       grc=0
     fi
-    if [ $tbase = "d-compiler" -a $grc -ne 0 ]; then
+    if [ $tbase = d-compiler -a $grc -ne 0 ]; then
       DC=""
       grc=0
     fi
@@ -456,8 +456,9 @@ while read tline; do
   fi
   domath count "$count + 1"
 
-  if [ "$DOPERL" = "T" -a \
-       \( $runshpl -eq $_MKC_PL -o $runshpl -eq $_MKC_SH_PL \) ]; then
+  # for some reason, unixware can't handle this if it is split into 
+  # multiple lines.
+  if [ "$DOPERL" = T -a \( $runshpl -eq $_MKC_PL -o $runshpl -eq $_MKC_SH_PL \) ]; then
     _MKCONFIG_TSTRUNTMPDIR=$_MKCONFIG_RUNTMPDIR/${tbase}_pl
     export _MKCONFIG_TSTRUNTMPDIR
     mkdir ${_MKCONFIG_TSTRUNTMPDIR}
@@ -517,7 +518,7 @@ fi
 
 exec 8>&-
 
-if [ $SUBDIR = "F" ]; then
+if [ $SUBDIR = F ]; then
   echo "$count tests $fcount failures"
   if [ $fcount -eq 0 ]; then
     if [ "$MKC_KEEP_RUN_TMP" = "" ]; then
