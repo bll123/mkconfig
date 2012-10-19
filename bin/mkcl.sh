@@ -214,8 +214,8 @@ ldflags=
 if [ $componly = F ]; then
   shrunpath=""
   if [ "${libs}" != "" -a "${SHRUNPATH}" != "" ]; then
-    shrunpath="${SHRUNPATH}:${libpath}"
-    dosubst shrunpath '^:' ''
+    dosubst libpath '^:' ''
+    shrunpath="${SHRUNPATH}${libpath}"
   fi
   shlibpath=""
   if [ "${libs}" != "" -a "${libpath}" != "" ]; then
@@ -248,7 +248,8 @@ if [ $havesource = T ]; then
   fi
 fi
 
-cmd="${comp} ${allflags} ${flags} ${ldflags} ${shexeclink} ${OUTFLAG}$outfile $objects \
+cmd="${comp} ${allflags} ${flags} ${ldflags} ${shexeclink} \
+    ${OUTFLAG}$outfile $objects \
     ${files} ${shrunpath} ${shlibpath} $libs"
 if [ $doecho = T ]; then
   echo $cmd
