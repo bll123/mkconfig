@@ -70,18 +70,31 @@ test_append () {
 
 test_readraw () {
   shreqreadraw=0
-  TMPRR=readraw$$
-  echo 'aa\\\\bb' > $TMPRR
-  read rrx < $TMPRR >/dev/null 2>&1
-  (eval read -r rry < $TMPRR) 2>/dev/null
-  yrc=$?
-  if [ $yrc -eq 0 ]; then
-    read -r rry < $TMPRR 2>/dev/null
-    if [ ${rrx} != 'aa\\bb' -a ${rry} = 'aa\\\\bb' ]; then
-      shreqreadraw=1
+  # unixware 7.14 compiles and runs this code ok, but it's shell gets
+  # completely wacked out later.  So run it in a subshell.
+  # (similar to mandriva 2011 problem with read < file)
+  (
+    rrv='aa\\\\bb'
+    read rrx << _HERE_
+$rrv
+_HERE_
+    (
+      eval "read -r rry <<_HERE_
+$rrv
+_HERE_"
+    ) 2>/dev/null
+    yrc=$?
+    if [ $yrc -eq 0 ]; then
+      read -r rry << _HERE_
+$rrv
+_HERE_
+      if [ ${rrx} != 'aa\\bb' -a ${rry} = 'aa\\\\bb' ]; then
+        shreqreadraw=1
+      fi
     fi
-  fi
-  rm -f $TMPRR
+    exit $shreqreadraw
+  )
+  shreqreadraw=$?
 }
 
 test_math () {
