@@ -156,12 +156,8 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -sharedlib \
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-shrunpath=""
-if [ "${SHRUNPATH}" != "" ]; then
-  shrunpath="${SHRUNPATH}."
-fi
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -link -e -c ${CC} \
-    -o mkct6a${EXE_EXT} -- mkct6${OBJ_EXT} ${shrunpath} -L. -lmkct5
+    -o mkct6a${EXE_EXT} -- mkct6${OBJ_EXT} -L. -lmkct5
 eval $cmd
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
