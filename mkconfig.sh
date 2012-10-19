@@ -19,7 +19,7 @@ set -f  # set this globally.
 
 unset CDPATH
 # this is a workaround for ksh93 on solaris
-if [ "$1" = "-d" ]; then
+if [ "$1" = -d ]; then
   cd $2
   shift
   shift
@@ -288,7 +288,7 @@ check_ifoption () {
     if [ "$trc" = T ]; then trc=1; fi
     if [ "$trc" = F ]; then trc=0; fi
 
-    if [ $type = "ifnotoption" ]; then
+    if [ $type = ifnotoption ]; then
       if [ $trc -eq 0 ]; then trc=1; else trc=0; fi
     fi
     if [ $optionsloaded = F ]; then
@@ -404,7 +404,7 @@ check_set () {
   dosubst tnm '_setint_' '' '_setstr' ''
 
   printlabel $name "${type}: ${tnm}"
-  if [ "$type" = "set" ]; then
+  if [ "$type" = set ]; then
     getdata tval ${prefix} ${nm}
     if [ "$tval" != "" ]; then
       printyesno $nm "${sval}"
@@ -412,7 +412,7 @@ check_set () {
     else
       printyesno_actual $nm "no such variable"
     fi
-  elif [ "$type" = "setint" ]; then
+  elif [ "$type" = setint ]; then
     printyesno_actual $nm "${sval}"
     setdata ${_MKCONFIG_PREFIX} ${nm} "${sval}"
   else
@@ -514,7 +514,7 @@ require_unit () {
 
 _create_output () {
 
-  if [ ${CONFH} != "none" ]; then
+  if [ ${CONFH} != none ]; then
     confdir=`echo ${CONFH} | sed -e 's,/[^/]*$,,'`
     test -d $confdir || mkdir -p $confdir
 
@@ -592,18 +592,19 @@ main_process () {
   while read ${rawarg} tdatline; do
     resetifs
     domath linenumber "$linenumber + 1"
+    echo "#### ${linenumber}: ${tdatline}" >&9
 
     if [ $ininclude -eq 1 ]; then
-      echo "#### ${linenumber}: ${tdatline}" >&9
-      if [ "${tdatline}" = "endinclude" ]; then
+      if [ "${tdatline}" = endinclude ]; then
         ininclude=0
         rawarg=
         resetifs
       else
         if [ $shreqreadraw -eq 1 ]; then
           # have to do our own backslash processing.
-          tdatline=$(echo "${tdatline}" |
-              sed -e 's/\\\([^\\]\)/\1/g' -e 's/\\\\/\\/g')
+          # backquotes suck.
+          tdatline=`echo "${tdatline}" |
+              sed -e 's/\\\\\\([^\\\\]\\)/\\1/g' -e 's/\\\\\\\\/\\\\/g'`
         fi
         echo "${tdatline}" >> $INC
       fi
@@ -812,7 +813,7 @@ main_process () {
             set $tdatline
             type=$1
             nm=$2
-            if [ "$type" = "setint" -o "$type" = "setstr" ]; then
+            if [ "$type" = setint -o "$type" = setstr ]; then
               nm="_${type}_$2"
             fi
             shift; shift
@@ -898,7 +899,7 @@ if [ $# -ne 1 ] || [ ! -f $configfile  ]; then
   usage
   exit 1
 fi
-if [ -d $_MKCONFIG_TMP -a $_MKCONFIG_TMP != "_tmp_mkconfig" ]; then
+if [ -d $_MKCONFIG_TMP -a $_MKCONFIG_TMP != _tmp_mkconfig ]; then
   echo "$_MKCONFIG_TMP must not exist."
   usage
   exit 1
