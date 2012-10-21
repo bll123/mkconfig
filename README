@@ -13,16 +13,19 @@ TESTING
 ISSUES
     - D Compiler bugs:
       ldc2 has structure size problems on 64bit (issue #28).
+      gdc 4.6.3 (LinuxMint) has structure size problems on 64bit.
 
 CHANGES
 
     1.21                                    [18 Oct 2012]
-        Added examples dir.
+        Added examples directory.
         clang: add -Wno-unknown-warning-option
-        Fixed read problems with ksh93 93u.
-        Added a work-around for cd problem w/debian ksh93 93u (bug #679966).
+        addcflag directive updated to not add the flag if the compiler
+            has a warning.
+        Fixed read problems with ksh93 93u+.
+        Added a work-around for cd problem w/debian ksh93 93u+ (bug #679966).
         Handle __restrict__ on NetBSD 6.
-        Remove improper flags for AIX.  Not fully tested.
+        Remove improper link flags for AIX.  Not tested.
 
     1.20                                    [25 Jan 2012]
         D: rewrite c-typedef extraction.
