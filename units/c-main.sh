@@ -303,7 +303,7 @@ check_define () {
   checkcache ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
 
-  code="main () {
+  code="int main () {
 #ifdef ${def}
 return (0);
 #else
@@ -313,9 +313,9 @@ return (1);
 
   _c_chk_run "$name" "$code" all
   rc=$?
-  if [ $rc -eq 0 ]; then rc=1; else rc=0; fi
-  setdata ${_MKCONFIG_PREFIX} ${name} ${rc}
-  printyesno $name $rc
+  if [ $rc -eq 0 ]; then trc=1; else trc=0; fi
+  setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
+  printyesno $name $trc
 }
 
 check_param_void_star () {
@@ -378,8 +378,7 @@ check_memberxdr () {
   name=$nm
 
   printlabel $name "member:XDR: ${struct} ${member}"
-  checkcache ${_MKCONFIG_PREFIX} $name
-  if [ $rc -eq 0 ]; then return; fi
+  # no cache
 
   _c_chk_cpp $name "" all
   rc=$?
@@ -453,8 +452,7 @@ check_args () {
   name=$nm
 
   printlabel $name "args: ${funcnm}"
-  checkcache ${_MKCONFIG_PREFIX} $name
-  if [ $rc -eq 0 ]; then return; fi
+  # no cache
 
   trc=0
   ccount=0
