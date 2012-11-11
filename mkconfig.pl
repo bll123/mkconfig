@@ -1443,6 +1443,8 @@ main_process
     my $include = '';
     my $tline = '';
     my $ifstmtcount = 0;
+    my $ifcurrlvl = 0;
+    my $doif = $ifcurrlvl;
     while (my $line = <DATAIN>)
     {
       chomp $line;
@@ -1485,22 +1487,33 @@ main_process
 
       if ($line =~ m#^\s*else#o)
       {
+        if ($ifcurrlvl == $doif) {
           $doproc = $doproc == 0 ? 1 : 0;
           $iflevels =~ s/.\d+\s$//;
           $iflevels .= "-$ifstmtcount ";
+        }
+      }
+      elsif ($line =~ m#^\s*if\s#o) {
+        if ($doproc == 0) {
+          $ifcurrlvl += 1;
+        }
       }
       elsif ($line =~ m#^\s*endif#o)
       {
-        if ($#doproclist >= 0) {
-          print LOGFH "## endif: doproclist: " . join (' ', @doproclist) . "\n";
-          $doproc = shift @doproclist;
-          print LOGFH "## endif: doproclist now : " . join (' ', @doproclist) . "\n";
-          print LOGFH "## endif: doproc: $doproc\n";
-          $iflevels =~ s/.\d+\s$//;
-        } else {
-          $doproc = 1;
-          $iflevels = '';
+        if ($ifcurrlvl == $doif) {
+          if ($#doproclist >= 0) {
+            print LOGFH "## endif: doproclist: " . join (' ', @doproclist) . "\n";
+            $doproc = shift @doproclist;
+            print LOGFH "## endif: doproclist now : " . join (' ', @doproclist) . "\n";
+            print LOGFH "## endif: doproc: $doproc\n";
+            $iflevels =~ s/.\d+\s$//;
+          } else {
+            $doproc = 1;
+            $iflevels = '';
+          }
+          $doif -= 1;
         }
+        $ifcurrlvl -= 1;
       }
 
       if ($doproc == 1) {
@@ -1641,12 +1654,14 @@ main_process
         {
             my $iflabel = $1;
             my $ifline = $2;
+            ++$ifcurrlvl;
             ++$ifstmtcount;
             print LOGFH "## if: label: $iflabel count $ifstmtcount line: $ifline\n";
             my $rc = check_if ($iflabel, $ifstmtcount, $ifline, \%clist, \%config);
             $iflevels .= "+$ifstmtcount ";
             unshift @doproclist, $doproc;
             $doproc = $rc;
+            $doif = $ifcurrlvl;
             print LOGFH "## if: doproclist: " . join (' ', @doproclist) . "\n";
             print LOGFH "## if: doproc: $doproc\n";
         }

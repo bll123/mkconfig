@@ -581,6 +581,8 @@ main_process () {
   ifstmtcount=0
   ifleveldisp=""
   iflevels=""
+  ifcurrlvl=0
+  doif=$ifcurrlvl
   initifs
   > $INC
   case ${configfile} in
@@ -645,33 +647,49 @@ main_process () {
     if [ $ininclude -eq 0 ]; then
       case ${tdatline} in
         "else")
-          if [ $doproc -eq 0 ]; then doproc=1; else doproc=0; fi
-          set -- $iflevels
-          shift
-          iflevels=$@
-          iflevels="-$ifstmtcount $iflevels"
-          _setifleveldisp
-          echo "## else iflevels: $iflevels" >&9
-          ;;
-        "endif")
-          set $doproclist
-          c=$#
-          if [ $c -gt 0 ]; then
-            echo "## doproclist: $doproclist" >&9
-            doproc=$1
-            shift
-            doproclist=$@
-            echo "## doproc: $doproc doproclist: $doproclist" >&9
+          if [ $ifcurrlvl -eq $doif ]; then
+            if [ $doproc -eq 0 ]; then doproc=1; else doproc=0; fi
             set -- $iflevels
             shift
             iflevels=$@
+            iflevels="-$ifstmtcount $iflevels"
             _setifleveldisp
-            echo "## endif iflevels: $iflevels" >&9
+            echo "## else iflevels: $iflevels" >&9
           else
-            doproc=1
-            ifleveldisp=""
-            iflevels=""
+            echo "## else: ifcurrlvl: $ifcurrlvl doif: $doif" >&9
           fi
+          ;;
+        "if "*)
+          if [ $doproc -eq 0 ]; then
+            domath ifcurrlvl "$ifcurrlvl + 1"
+            echo "## if: ifcurrlvl: $ifcurrlvl doif: $doif" >&9
+          fi
+          ;;
+        "endif")
+          echo "## endifA: ifcurrlvl: $ifcurrlvl doif: $doif" >&9
+          if [ $ifcurrlvl -eq $doif ]; then
+            set $doproclist
+            c=$#
+            if [ $c -gt 0 ]; then
+              echo "## doproclist: $doproclist" >&9
+              doproc=$1
+              shift
+              doproclist=$@
+              echo "## doproc: $doproc doproclist: $doproclist" >&9
+              set -- $iflevels
+              shift
+              iflevels=$@
+              _setifleveldisp
+              echo "## endif iflevels: $iflevels" >&9
+            else
+              doproc=1
+              ifleveldisp=""
+              iflevels=""
+            fi
+            domath doif "$doif - 1"
+          fi
+          domath ifcurrlvl "$ifcurrlvl - 1"
+          echo "## endifB: ifcurrlvl: $ifcurrlvl doif: $doif" >&9
           ;;
       esac
 
@@ -731,6 +749,8 @@ main_process () {
             label=$1
             shift
             ifline=$@
+            domath ifcurrlvl "$ifcurrlvl + 1"
+            echo "## if: ifcurrlvl: $ifcurrlvl" >&9
             domath ifstmtcount "$ifstmtcount + 1"
             check_if $label $ifstmtcount "$ifline"
             rc=$?
@@ -739,6 +759,7 @@ main_process () {
             echo "## if iflevels: $iflevels" >&9
             doproclist="$doproc $doproclist"
             doproc=$rc
+            doif=$ifcurrlvl
             echo "## doproc: $doproc doproclist: $doproclist" >&9
             ;;
           "else")
