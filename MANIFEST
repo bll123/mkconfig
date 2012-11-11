@@ -157,6 +157,8 @@ tests.d/env.d/env-set.sh
 tests.d/env.d/env-source.dat
 tests.d/env.d/env-source.sh
 tests.d/env.d/test_order
+tests.d/grep.dat
+tests.d/grep.sh
 tests.d/multword.dat
 tests.d/multword.sh
 tests.d/test_order

@@ -2,6 +2,7 @@
 1 compsh
 2 multword
 2 command
+2 grep
 3 env.d
 4 c.d
 5 d.d
