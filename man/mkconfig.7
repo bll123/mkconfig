@@ -30,7 +30,7 @@
 .fi
 ..
 .\"
-.TH mkconfig 7 "18 Jan 2012"
+.TH mkconfig 7 "10 Nov 2012"
 .SH Name
 mkconfig \- build configuration utilities
 .SH Synopsis
@@ -183,6 +183,19 @@ command sed
 #define _cmd_loc_sed "/bin/sed" /* C */
 enum bool _command_sed = true; /* D */
 enum string _cmd_loc_sed = "/bin/sed"; /* D */
+.Ve
+.RE
+.TP
+\fBgrep\fP tag pattern filename
+.RS
+Searches filename for pattern.  tag is used for naming and display purposes.
+.PP
+.Vb
+.B e.g.
+grep mysearch root /etc/passwd
+.B Output:
+#define _grep_mysearch 1  /* C */
+enum bool _grep_mysearch = true; /* D */
 .Ve
 .RE
 .TP
