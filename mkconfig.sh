@@ -257,6 +257,26 @@ check_command () {
     fi
 }
 
+check_grep () {
+  name=$1; shift
+  tag=$1; shift
+  pat=$1; shift
+  fn=$1; shift
+
+  locnm=_grep_${name}
+
+  printlabel $name "grep: ${tag}"
+  checkcache ${_MKCONFIG_PREFIX} $name
+  if [ $rc -eq 0 ]; then return; fi
+
+  grep -l ${pat} ${fn} > /dev/null 2>&1
+  rc=$?
+  if [ $rc -eq 0 ]; then trc=1; else trc=0; fi
+
+  printyesno $name $trc
+  setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
+}
+
 check_ifoption () {
     ifdispcount=$1
     type=$2
@@ -664,6 +684,14 @@ main_process () {
             shift
             nm="_command_${cmd}"
             check_command ${nm} $@
+            ;;
+          grep*)
+            _chkconfigfname
+            set $tdatline
+            tag=$2
+            shift
+            nm="_grep_${tag}"
+            check_grep ${nm} $@
             ;;
           "echo"*)
             _chkconfigfname
