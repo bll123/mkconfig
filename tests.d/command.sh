@@ -16,6 +16,10 @@ chkouth '^#define _command_grep 1$'
 chkouth '^#define _cmd_loc_grep "/.*/grep"$'
 chkouth '^#define _command_awk 1$'
 chkouth '^#define _cmd_loc_awk "/.*/grep"$'
+chkcache "^mkc_c__command_xblah='0'$"
+chkcache "^mkc_c__command_awk='1'$"
+chkcache "^mkc_c__command_grep='1'$"
+chkcache "^mkc_c__command_sed='1'$"
 
 testcleanup
 
