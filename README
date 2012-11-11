@@ -1,4 +1,4 @@
-mkconfig - configuration tool (version 1.21)
+mkconfig - configuration tool (version 1.22)
 
 Please e-mail any configuration units and the corresponding
 manual page entry to brad.lanam.di_at_gmail.com.  They will be
@@ -16,6 +16,12 @@ ISSUES
       gdc 4.6.3 (LinuxMint) has structure size problems on 64bit.
 
 CHANGES
+
+    1.22                                    [--]
+        Fixed the display of the define directive.
+        Fixed issues where the cache should not be used for XDR types
+          and library function arguments.
+        Fixed processing of nested if statements.
 
     1.21                                    [18 Oct 2012]
         Added examples directory.
