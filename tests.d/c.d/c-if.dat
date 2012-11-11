@@ -132,6 +132,23 @@ else
 endif
 setint _test_n6_ok 1
 
+setint _test_nb1_ok 1
+setint _test_nb2_ok 1
+setint _test_nb3_ok 1
+setint _test_nb4_ok 0
+setint _test_nb5_ok 1
+if nbvarc _setint__var_c
+  setint _test_nb1_ok 0
+  if nbvara _setint__var_a
+    setint _test_nb2_ok 0
+  else
+    setint _test_nb3_ok 0
+  endif
+else
+  setint _test_nb4_ok 1
+endif
+setint _test_nb5_ok 1
+
 setint _test_p1_ok 0
 setint _test_p2_ok 0
 setint _test_p3_ok 0
