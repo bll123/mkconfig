@@ -618,6 +618,34 @@ check_command
 }
 
 sub
+check_grep
+{
+    my ($name, $args, $r_clist, $r_config) = @_;
+
+    my @arglist = split (/ +/o, $args);
+    my $tag = $arglist[0];
+    my $pat= $arglist[1];
+    my $fn = $arglist[2];
+    $name = "_grep_${tag}";
+    my $locnm = "_grep_${tag}";
+
+    printlabel $name, "grep: $tag";
+    if (checkcache ($name, $r_clist, $r_config) == 0)
+    {
+        return;
+    }
+
+    setlist $r_clist, $name;
+    $r_config->{$name} = 0;
+    my $rc = system ("grep '${pat}' $fn > /dev/null 2>&1");
+    if ($rc == 0) {
+      $r_config->{$name} = 1;
+    }
+
+    printyesno_val $name, $r_config->{$name};
+}
+
+sub
 check_ifoption
 {
     my ($ifcount, $type, $name, $opt, $r_clist, $r_config) = @_;
@@ -1038,10 +1066,7 @@ check_args
     my ($name, $funcnm, $r_a, $r_clist, $r_config) = @_;
 
     printlabel $name, "args: $funcnm";
-    if (checkcache_val ($name, $r_clist, $r_config) == 0)
-    {
-        return;
-    }
+    # no cache
 
     if ($ENV{'_MKCONFIG_USING_GCC'} == 'N' &&
         $ENV{'_MKCONFIG_SYSTYPE'} == 'HP-UX' ) {
@@ -1194,10 +1219,7 @@ check_memberxdr
     my ($name, $struct, $member, $r_clist, $r_config) = @_;
 
     printlabel $name, "member:xdr: $struct.$member";
-    if (checkcache ($name, $r_clist, $r_config) == 0)
-    {
-        return;
-    }
+    # no cache
 
     $r_config->{$name} = 0;
     my $rc = _chk_cpp ($name, "", $r_clist, $r_config,
@@ -1597,6 +1619,10 @@ main_process
         {
             my $cmds = $1;
             check_command ('', $cmds, \%clist, \%config);
+        }
+        elsif ($line =~ m#^\s*grep\s+(.*)#o)
+        {
+            check_grep ('', $1, \%clist, \%config);
         }
         elsif ($line =~ m#^\s*(if(not)?option)\s+([^\s]+)#o)
         {
