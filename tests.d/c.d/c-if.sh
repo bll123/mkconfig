@@ -27,6 +27,7 @@ for t in \
     _test_m1_ok _test_m2_ok _test_m3_ok _test_m4_ok \
     _test_n1_ok _test_n2_ok _test_n3_ok _test_n4_ok \
         _test_n5_ok _test_n6_ok \
+    _test_nb1_ok _test_nb2_ok _test_nb3_ok _test_nb4_ok _test_nb5_ok \
     _test_p1_ok _test_p2_ok _test_p3_ok _test_p4_ok \
         _test_p5_ok _test_p6_ok _test_p7_ok \
     ; do
