@@ -138,6 +138,29 @@ check_using_gcc () {
   setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_GCC "${usinggcc}"
 }
 
+check_using_clang () {
+  usingclang="N"
+
+  printlabel _MKCONFIG_USING_CLANG "Using clang"
+
+  # check for gcc...
+  ${CC} -v 2>&1 | grep 'clang version' > /dev/null 2>&1
+  rc=$?
+  if [ $rc -eq 0 ]; then
+      echo "found clang" >&9
+      usingclang="Y"
+  fi
+
+  case ${CC} in
+      *clang*)
+          usingclang="Y"
+          ;;
+  esac
+
+  printyesno_val _MKCONFIG_USING_CLANG "${usingclang}"
+  setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_CLANG "${usingclang}"
+}
+
 check_using_gnu_ld () {
   usinggnuld="N"
 
@@ -172,8 +195,8 @@ check_cflags () {
       gccflags="-Wall -Waggregate-return -Wconversion -Wformat -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wpointer-arith -Wshadow -Wstrict-prototypes -Wunused"
       # -Wextra -Wno-unused-but-set-variable -Wno-unused-parameter
   fi
-  if [ "${CC}" = clang ]; then
-     ccflags="-Wno-unknown-warning-option $ccflags"
+  if [ "${_MKCONFIG_USING_CLANG}" = Y ]; then
+     ccflags="-Wno-unknown-warning-option -Weverything -Wno-padded -Wno-format-nonliteral -Wno-cast-align -Wno-system-headers $ccflags"
   fi
 
   TCC=${CC}
