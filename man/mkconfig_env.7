@@ -4,7 +4,7 @@
 .\"
 .\" mkconfig_env.7
 .\"
-.\" Copyright 2011-2012 Brad Lanam  Walnut Creek CA USA
+.\" Copyright 2011-2013 Brad Lanam  Walnut Creek CA USA
 .\"
 .\" brad.lanam.di_at_gmail.com
 .\"
@@ -30,7 +30,7 @@
 .fi
 ..
 .\"
-.TH mkconfig_env 7 "18 Jan 2012"
+.TH mkconfig_env 7 "17 Jan 2013"
 .SH Name
 mkconfig_env \- mkconfig environment units
 .\" .SH Synopsis
@@ -73,6 +73,7 @@ does not correspond to the marketing version.
 The cc environment unit determines basic flags needed to run the
 C compiler.  Since these units are interdependent on each other, they
 should be configured in the order: 32bitflags, cc, using_gcc,
+using_clang,
 cflags, ldflags, and libs.  The CC, CFLAGS, LDFLAGS, LIBS, SHCFLAGS,
 and SHLDFLAGS
 environment variables may be set in the options file.  Any value set
@@ -94,6 +95,12 @@ Sets the CC environment variable.
 \fBusing_gcc\fP
 .RS
 Sets the _MKCONFIG_USING_GCC environment variable to 'Y' if the gcc
+compiler is being used.
+.RE
+.TP
+\fBusing_clang\fP
+.RS
+Sets the _MKCONFIG_USING_CLANG environment variable to 'Y' if the clang
 compiler is being used.
 .RE
 .TP
