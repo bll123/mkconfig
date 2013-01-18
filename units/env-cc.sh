@@ -192,7 +192,7 @@ check_cflags () {
 
   if [ "${_MKCONFIG_USING_GCC}" = Y ]; then
       echo "set gcc flags" >&9
-      gccflags="-Wall -Waggregate-return -Wconversion -Wformat -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wpointer-arith -Wshadow -Wstrict-prototypes -Wunused"
+      gccflags="-Wall -Waggregate-return -Wconversion -Wformat -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wpointer-arith -Wshadow -Wstrict-prototypes -Wunused -Wno-unknown-pragmas"
       # -Wextra -Wno-unused-but-set-variable -Wno-unused-parameter
   fi
   if [ "${_MKCONFIG_USING_CLANG}" = Y ]; then
