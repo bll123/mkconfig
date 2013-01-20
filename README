@@ -1,4 +1,4 @@
-mkconfig - configuration tool (version 1.22)
+mkconfig - configuration tool (version 1.23)
 
 Please e-mail any configuration units and the corresponding
 manual page entry to brad.lanam.di_at_gmail.com.  They will be
@@ -16,6 +16,10 @@ ISSUES
       gdc 4.6.3 (LinuxMint) has structure size problems on 64bit.
 
 CHANGES
+
+    1.23                                    [19 Jan 2013]
+        Added the 'using_clang' environment directive.
+        Added default flags for the clang compiler.
 
     1.22                                    [15 Nov 2012]
         Fixed the display of the define directive.
