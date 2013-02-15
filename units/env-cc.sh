@@ -424,7 +424,7 @@ check_shcflags () {
       HP-UX)
         shcflags="+Z $SHCFLAGS"
         ;;
-      Irix)
+      IRIX*)
         shcflags="-KPIC $SHCFLAGS"
         ;;
       OSF1)
@@ -460,7 +460,7 @@ check_shldflags () {
       HP-UX)
         shldflags="$SHLDFLAGS -b"
         ;;
-      Irix)
+      IRIX*)
         # "-shared"
         ;;
       OSF1)
@@ -500,7 +500,7 @@ check_sharednameflag () {
       HP-UX)
         SHLDNAMEFLAG="-Wl,+h "
         ;;
-      Irix)
+      IRIX*)
         # -soname
         ;;
       OSF1)
@@ -564,6 +564,9 @@ check_sharerunpathflag () {
         ;;
       HP-UX)
         SHRUNPATH="-Wl,+b "
+        ;;
+      IRIX*)
+        SHRUNPATH="-Wl,-rpath "
         ;;
       OSF1)
         SHRUNPATH="-rpath "
