@@ -17,6 +17,9 @@ ISSUES
 
 CHANGES
 
+    1.24                                    [--]
+        Updates for MirOS and Irix.
+
     1.23                                    [19 Jan 2013]
         Added the 'using_clang' environment directive.
         Added default flags for the clang compiler.
