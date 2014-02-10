@@ -17,8 +17,9 @@ ISSUES
 
 CHANGES
 
-    1.24                                    [--]
+    1.24                                    [2014-2-9]
         Updates for MirOS and Irix.
+        Added -Wno-disabled-macro-expansion for clang.
 
     1.23                                    [19 Jan 2013]
         Added the 'using_clang' environment directive.
