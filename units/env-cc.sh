@@ -196,7 +196,7 @@ check_cflags () {
       # -Wextra -Wno-unused-but-set-variable -Wno-unused-parameter
   fi
   if [ "${_MKCONFIG_USING_CLANG}" = Y ]; then
-     ccflags="-Wno-unknown-warning-option -Weverything -Wno-padded -Wno-format-nonliteral -Wno-cast-align -Wno-system-headers $ccflags"
+     ccflags="-Wno-unknown-warning-option -Weverything -Wno-padded -Wno-format-nonliteral -Wno-cast-align -Wno-system-headers -Wno-disabled-macro-expansion $ccflags"
   fi
 
   TCC=${CC}
