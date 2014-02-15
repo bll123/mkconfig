@@ -1,4 +1,4 @@
-mkconfig - configuration tool (version 1.23)
+mkconfig - configuration tool (version 1.24)
 
 Please e-mail any configuration units and the corresponding
 manual page entry to brad.lanam.di_at_gmail.com.  They will be
@@ -17,7 +17,7 @@ ISSUES
 
 CHANGES
 
-    1.24                                    [2014-2-9]
+    1.24                                    [2014-2-15]
         Updates for MirOS and Irix.
         Added -Wno-disabled-macro-expansion for clang.
 
