@@ -19,6 +19,7 @@ CHANGES
 
     1.25                                    [2015-10-18]
         Fix 'using_gnu_ld' environment test.
+        Add 'addldflag' to env-cc.
 
     1.24                                    [2014-2-15]
         Updates for MirOS and Irix.

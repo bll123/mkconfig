@@ -319,6 +319,38 @@ main () { return 0; }" > t.c
   setdata ${_MKCONFIG_PREFIX} CFLAGS "$ccflags ${flag}"
 }
 
+check_addldflag () {
+  name=$1
+  flag=$2
+  ccflags="${CFLAGS:-}"
+  ldflags="${LDFLAGS:-}"
+
+  printlabel LDFLAGS "Add LD flag: ${flag}"
+
+  echo "#include <stdio.h>
+main () { return 0; }" > t.c
+  echo "# test ${flag}" >&9
+  # need to set w/all cflags/ldflags; gcc doesn't always error out otherwise
+  TMPF=t$$.txt
+  ${CC} ${ccflags} ${ldflags} ${flag} -o t t.c > $TMPF 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    flag=0
+  fi
+  grep -i "warning.*${flag}" $TMPF > /dev/null 2>&1
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    flag=0
+  fi
+  cat $TMPF >&9
+  rm -f $TMPF > /dev/null 2>&1
+  printyesno $name ${flag}
+  if [ $flag = 0 ]; then
+    flag=""
+  fi
+  setdata ${_MKCONFIG_PREFIX} LDFLAGS "$ldflags ${flag}"
+}
+
 check_ldflags () {
   _read_option LDFLAGS ""
   ldflags="${LDFLAGS:-${oval}}"
