@@ -143,7 +143,7 @@ check_using_clang () {
 
   printlabel _MKCONFIG_USING_CLANG "Using clang"
 
-  # check for gcc...
+  # check for clang...
   ${CC} -v 2>&1 | grep 'clang version' > /dev/null 2>&1
   rc=$?
   if [ $rc -eq 0 ]; then
@@ -166,8 +166,8 @@ check_using_gnu_ld () {
 
   printlabel _MKCONFIG_USING_GNU_LD "Using gnu ld"
 
-  # check for gcc...
-  ${CC} -v 2>&1 | grep 'GNU ld' > /dev/null 2>&1
+  # check for gnu ld...
+  ld -v 2>&1 | grep 'GNU ld' > /dev/null 2>&1
   rc=$?
   if [ $rc -eq 0 ]; then
       echo "found gnu ld" >&9
