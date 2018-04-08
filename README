@@ -1,8 +1,13 @@
-mkconfig - configuration tool (version 1.24)
+mkconfig - configuration tool (version 1.29)
+
+Simply copy the entire directory structure as a sub-directory
+in your application software.  Remove the man/ and examples/
+directories.
 
 Please e-mail any configuration units and the corresponding
 manual page entry to brad.lanam.di_at_gmail.com.  They will be
 included in the next release.
+
 
 TESTING
     Version 1.20 D has been tested on:
@@ -11,11 +16,36 @@ TESTING
       Debian 6 [64bit] (dmd2)
 
 ISSUES
+    - CFLAGS
+      Needs to be reworked to separate CFLAGS in different categories.
+      Standard, Application, User, Extra, etc.
     - D Compiler bugs:
       ldc2 has structure size problems on 64bit (issue #28).
       gdc 4.6.3 (LinuxMint) has structure size problems on 64bit.
 
 CHANGES
+
+    1.29                                    [2018-4-6]
+        Changed .tar.gz creation to not include tests.
+
+    1.28                                    [2016-8-9]
+        Cleaned up some compiler warnings.
+        More fixes for msys/mingw.
+
+    1.27                                    [2016-2-22]
+        Protected standard definitions from multiple inclusion.
+        Fixed ifoption/ifnotoption.
+        Removed 'lib' prefix when creating libraries.
+        Removed LDFLAGS when creating shared libraries.
+        Fixes to run under msys.
+        Added printf_long_double test (for mingw).
+        Fix cache bug with values ending in '='.
+        Fixed args test on mac os x.
+        Fixed args test for cygwin.
+
+    1.26                                    [2016-1-6]
+        Added yes/no as possible option values.
+        Options can be overridden by environment variables.
 
     1.25                                    [2015-10-18]
         Fix 'using_gnu_ld' environment test.
