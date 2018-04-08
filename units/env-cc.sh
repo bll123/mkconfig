@@ -300,7 +300,7 @@ main () { return 0; }" > t.c
   echo "# test ${flag}" >&9
   # need to set w/all cflags; gcc doesn't always error out otherwise
   TMPF=t$$.txt
-  ${CC} ${ccflags} ${flag} t.c > $TMPF 2>&1
+  ${CC} ${ccflags} ${flag} -o t t.c > $TMPF 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     flag=0
