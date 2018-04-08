@@ -5,3 +5,4 @@ Platforms
 *.tar.gz
 *.zip
 *~
+Test/*
