@@ -25,6 +25,10 @@ ISSUES
 
 CHANGES
 
+    1.30                                    [2018-4-10]
+        C: size: Allow specification of libraries.
+        Restore lost printf_long_double test.
+
     1.29                                    [2018-4-6]
         Changed .tar.gz creation to not include tests.
 

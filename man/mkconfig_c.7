@@ -279,13 +279,29 @@ npt statfs _lib_statfs
 .Ve
 .RE
 .TP
-\fBsiz\fP type\-name
+\fBprintf_long_double\fP [libs, ...]
 .RS
-Check the size of type\-name.
+Check if printing a long double requires a special format code.
+Some libintl.h headers redefine sprintf(), and -lintl may be required.
 .PP
 .Vb
 .B e.g.
-siz long long
+printf_long_double
+.br
+printf_long_double -lintl
+.Ve
+.RE
+.TP
+\fBsize\fP type\-name [libs, ...]
+.RS
+Check the size of type\-name.
+Some libintl.h headers redefine printf(), and -lintl may be required.
+.PP
+.Vb
+.B e.g.
+size long long
+.br
+size long long -lintl
 .B Output:
 #define _siz_long_long 8
 .Ve

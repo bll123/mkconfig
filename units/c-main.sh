@@ -338,6 +338,49 @@ tparamvs (ptr)
   do_c_check_compile ${name} "${code}" all
 }
 
+check_printf_long_double () {
+  name="_printf_long_double"
+
+  shift
+  libs=$*
+  otherlibs=$*
+
+  if [ "${otherlibs}" != "" ]; then
+    printlabel $name "printf: long double printable [${otherlibs}]"
+  else
+    printlabel $name "printf: long double printable"
+    checkcache ${_MKCONFIG_PREFIX} $name
+    if [ $rc -eq 0 ]; then return; fi
+  fi
+
+  code="int main (int argc, char *argv[]) {
+long double a;
+long double b;
+char t[40];
+a = 1.0;
+b = 2.0;
+a = a / b;
+sprintf (t, \"%.1Lf\", a);
+if (strcmp(t,\"0.5\") == 0) {
+return (0);
+}
+return (1);
+}"
+
+  _c_chk_run "$name" "$code" all
+  rc=$?
+  dlibs=$_retdlibs
+  if [ $rc -eq 0 ]; then trc=1; else trc=0; fi
+  tag=""
+  if [ $rc -eq 0 -a "$dlibs" != "" ]; then
+    tag=" with ${dlibs}"
+    cmd="mkc_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
+    eval $cmd
+  fi
+  setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
+  printyesno $name $trc "$tag"
+}
+
 check_member () {
   shift
   struct=$1
@@ -406,24 +449,53 @@ check_memberxdr () {
 
 check_size () {
   shift
-  type=$*
+  type=""
+  libs=""
+  otherlibs=""
+  while test $# -gt 0; do
+    case $1 in
+      -*)
+        libs=$*
+        otherlibs=$*
+        break
+        ;;
+      *)
+        if [ "$type" != "" ]; then
+          doappend type ' '
+        fi
+        doappend type $1
+        shift
+        ;;
+    esac
+  done
   nm="_siz_${type}"
   dosubst nm ' ' '_'
 
   name=$nm
 
-  printlabel $name "sizeof: ${type}"
-  checkcache_val ${_MKCONFIG_PREFIX} $name
-  if [ $rc -eq 0 ]; then return; fi
+  if [ "${otherlibs}" != "" ]; then
+    printlabel $name "sizeof: ${type} [${otherlibs}]"
+  else
+    printlabel $name "sizeof: ${type}"
+    checkcache_val ${_MKCONFIG_PREFIX} $name
+    if [ $rc -eq 0 ]; then return; fi
+  fi
 
   code="main () { printf(\"%u\", sizeof(${type})); return (0); }"
   _c_chk_run ${name} "${code}" all
   rc=$?
+  dlibs=$_retdlibs
   val=$_retval
   if [ $rc -ne 0 ]; then
     val=0
   fi
-  printyesno_val $name $val
+  tag=""
+  if [ $rc -eq 0 -a "$dlibs" != "" ]; then
+    tag=" with ${dlibs}"
+    cmd="mkc_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
+    eval $cmd
+  fi
+  printyesno_val $name $val "$tag"
   setdata ${_MKCONFIG_PREFIX} ${name} ${val}
 }
 
