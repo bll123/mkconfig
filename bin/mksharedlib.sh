@@ -1,8 +1,6 @@
 #!/bin/sh
 #
-# $Id$
-#
-# Copyright 2010-2012 Brad Lanam Walnut Creek, CA USA
+# Copyright 2010-2018 Brad Lanam Walnut Creek, CA USA
 #
 
 unset CDPATH
@@ -29,11 +27,6 @@ for f in $@; do
   case $f in
     "-e")
       doecho=T
-      ;;
-    "-c")
-      shift
-      comp=$1
-      shift
       ;;
     "--")
       ;;
@@ -93,8 +86,8 @@ done
 #fi
 
 if [ $grc -eq 0 ]; then
-  dosubst libnm '${SHLIB_EXT}$' '' '^lib' ''
-  libfnm=lib${libnm}${SHLIB_EXT}
+  dosubst libnm '${SHLIB_EXT}$' ''
+  libfnm=${libnm}${SHLIB_EXT}
   shrunpath=""
   if [ "${libs}" != "" -a "${SHRUNPATH}" != "" ]; then
     shrunpath=${libpath}
@@ -105,7 +98,7 @@ if [ $grc -eq 0 ]; then
     shlibpath=${libpath}
     dosubst shlibpath '^:' '-L'
   fi
-  cmd="${comp} ${LDFLAGS} ${SHLDFLAGS} -o $libfnm ${shrunpath} ${shlibpath} ${objects} ${libs}"
+  cmd="${comp} ${SHLDFLAGS} -o $libfnm ${shrunpath} ${shlibpath} ${objects} ${libs}"
   if [ "$doecho" = "T" ]; then
     echo $cmd
   fi

@@ -73,7 +73,7 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e -o mkct${i}${OBJ_EX
 grc=0
 set +f
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -sharedlib \
-    -e mkct mkct[51234]${OBJ_EXT}
+    -e libmkct mkct[51234]${OBJ_EXT}
 set -f
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi

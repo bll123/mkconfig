@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright 2011-2012 Brad Lanam Walnut Creek CA USA
+# Copyright 2011-2018 Brad Lanam Walnut Creek CA USA
 #
 
 #

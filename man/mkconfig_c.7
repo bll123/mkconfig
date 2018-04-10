@@ -1,10 +1,7 @@
 .\"
-.\" $Id$
-.\" $Revision$
-.\"
 .\" mkconfig_c.7
 .\"
-.\" Copyright 2011 Brad Lanam  Walnut Creek CA USA
+.\" Copyright 2011-2018 Brad Lanam  Walnut Creek CA USA
 .\"
 .\" brad.lanam.di_at_gmail.com
 .\"
@@ -279,29 +276,13 @@ npt statfs _lib_statfs
 .Ve
 .RE
 .TP
-\fBprintf_long_double\fP [libs, ...]
-.RS
-Check if printing a long double requires a special format code.
-Some libintl.h headers redefine sprintf(), and -lintl may be required.
-.PP
-.Vb
-.B e.g.
-printf_long_double
-.br
-printf_long_double -lintl
-.Ve
-.RE
-.TP
-\fBsize\fP type\-name [libs, ...]
+\fBsiz\fP type\-name
 .RS
 Check the size of type\-name.
-Some libintl.h headers redefine printf(), and -lintl may be required.
 .PP
 .Vb
 .B e.g.
-size long long
-.br
-size long long -lintl
+siz long long
 .B Output:
 #define _siz_long_long 8
 .Ve

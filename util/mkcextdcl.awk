@@ -1,6 +1,6 @@
 #!/usr/bin/awk
 #
-# Copyright 2010-2012 Brad Lanam Walnut Creek CA
+# Copyright 2010-2018 Brad Lanam Walnut Creek CA
 
 BEGIN {
   dclstart = "[	 *]" ARGV[2] "[	 ]*\\(";

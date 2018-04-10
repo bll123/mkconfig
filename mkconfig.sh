@@ -1,8 +1,6 @@
 #!/bin/sh
 #
-# $Id$
-#
-# Copyright 2009-2010 Brad Lanam Walnut Creek, CA USA
+# Copyright 2009-2018 Brad Lanam Walnut Creek, CA USA
 #
 
 #
@@ -61,9 +59,33 @@ _savecache () {
     # Then we have to undo it for bash.
     # Other shells do: x=$''; remove the $
     # And then there's: x='', which gets munged.
+    # Any value that actually ends with an '=' is going to get mangled.
+    #savecachedebug=F
+    #if [ $savecachedebug = T ]; then
+    #  echo "## savecache original"
+    #  set | grep "^mkc_"
+    #  echo "## savecache A"
+    #  set | grep "^mkc_" | \
+    #    sed -e "s/=/='/"
+    #  echo "## savecache B"
+    #  set | grep "^mkc_" | \
+    #    sed -e "s/=/='/" -e "s/$/'/"
+    #  echo "## savecache C"
+    #  set | grep "^mkc_" | \
+    #    sed -e "s/=/='/" -e "s/$/'/" -e "s/''/'/g"
+    #  echo "## savecache D"
+    #  set | grep "^mkc_" | \
+    #    sed -e "s/=/='/" -e "s/$/'/" -e "s/''/'/g" \
+    #    -e "s/^\([^=]*\)='$/\1=''/"
+    #  echo "## savecache E"
+    #  set | grep "^mkc_" | \
+    #    sed -e "s/=/='/" -e "s/$/'/" -e "s/''/'/g" \
+    #    -e "s/^\([^=]*\)='$/\1=''/" -e "s/='\$'/='/"
+    #fi
+    #unset savecachedebug
     set | grep "^mkc_" | \
       sed -e "s/=/='/" -e "s/$/'/" -e "s/''/'/g" \
-      -e "s/='$/=''/" -e "s/='\$'/='/" \
+      -e "s/^\([^=]*\)='$/\1=''/" -e "s/='\$'/='/" \
       > ${CACHEFILE}
 }
 
@@ -286,36 +308,46 @@ check_ifoption () {
     printlabel $name "$type ($ifdispcount): ${oopt}"
 
     _loadoptions
-    trc=F  # if option is not set, it's false
+    trc=0  # if option is not set, it's false
 
     found=F
     if [ $optionsloaded = T ]; then
       eval tval=\$_mkc_opt_${oopt}
+      # override the option value with the environment variable
+      eval tenvval=\$${oopt}
+      if [ "$tenvval" != "" ]; then
+        tval=$tenvval
+      fi
       if [ "$tval" != "" ]; then
         found=T
         trc=$tval
         tolower trc
         echo "  found option: $oopt $trc" >&9
-        if [ "$trc" = t ]; then trc=T; fi
-        if [ "$trc" = enable ]; then trc=T; fi
-        if [ "$trc" = f ]; then trc=F; fi
-        if [ "$trc" = disable ]; then trc=F; fi
-        if [ "$trc" = true ]; then trc=T; fi
-        if [ "$trc" = false ]; then trc=F; fi
+        if [ "$trc" = t ]; then trc=1; fi
+        if [ "$trc" = f ]; then trc=0; fi
+        if [ "$trc" = enable ]; then trc=1; fi
+        if [ "$trc" = disable ]; then trc=0; fi
+        if [ "$trc" = true ]; then trc=1; fi
+        if [ "$trc" = false ]; then trc=0; fi
+        if [ "$trc" = yes ]; then trc=1; fi
+        if [ "$trc" = no ]; then trc=0; fi
       fi
     fi
 
-    if [ "$trc" = T ]; then trc=1; fi
-    if [ "$trc" = F ]; then trc=0; fi
+    # these must be set before ifnotoption processing
+    if [ $optionsloaded = F ]; then
+      trc=0
+    elif [ "$found" = F ]; then
+      trc=0
+    fi
 
     if [ $type = ifnotoption ]; then
       if [ $trc -eq 0 ]; then trc=1; else trc=0; fi
     fi
+
     if [ $optionsloaded = F ]; then
-      trc=0
       printyesno_actual $name "no options file"
     elif [ "$found" = F ]; then
-      trc=0
       printyesno_actual $name "option not found"
     else
       printyesno $name $trc
@@ -654,12 +686,13 @@ main_process () {
             iflevels=$@
             iflevels="-$ifstmtcount $iflevels"
             _setifleveldisp
-            echo "## else iflevels: $iflevels" >&9
+            echo "## else: ifcurrlvl: $ifcurrlvl doif: $doif doproc:$doproc" >&9
+            echo "## else: iflevels: $iflevels" >&9
           else
-            echo "## else: ifcurrlvl: $ifcurrlvl doif: $doif" >&9
+            echo "## else: ifcurrlvl: $ifcurrlvl doif: $doif doproc:$doproc" >&9
           fi
           ;;
-        "if "*)
+        "if "*|"ifoption"*|"ifnotoption"*)
           if [ $doproc -eq 0 ]; then
             domath ifcurrlvl "$ifcurrlvl + 1"
             echo "## if: ifcurrlvl: $ifcurrlvl doif: $doif" >&9
@@ -732,6 +765,7 @@ main_process () {
             type=$1
             opt=$2
             nm="_${type}_${opt}"
+            echo "## if: ifcurrlvl: $ifcurrlvl" >&9
             domath ifstmtcount "$ifstmtcount + 1"
             check_ifoption $ifstmtcount $type ${nm} ${opt}
             rc=$?

@@ -1,9 +1,6 @@
 #!/bin/sh
 #
-# $Id$
-# $Source$
-#
-# Copyright 2001-2012 Brad Lanam, Walnut Creek, California USA
+# Copyright 2001-2018 Brad Lanam, Walnut Creek, California USA
 #
 
 #
@@ -300,7 +297,7 @@ main () { return 0; }" > t.c
   echo "# test ${flag}" >&9
   # need to set w/all cflags; gcc doesn't always error out otherwise
   TMPF=t$$.txt
-  ${CC} ${ccflags} ${flag} -o t t.c > $TMPF 2>&1
+  ${CC} ${ccflags} ${flag} t.c > $TMPF 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     flag=0
@@ -447,7 +444,7 @@ check_shcflags () {
   shcflags="-fPIC $SHCFLAGS"
   if [ "$_MKCONFIG_USING_GCC" != Y ]; then
     case ${_MKCONFIG_SYSTYPE} in
-      CYGWIN*)
+      CYGWIN*|MSYS*|MINGW*)
         shcflags="$SHCFLAGS"
         ;;
       Darwin)
@@ -617,4 +614,47 @@ check_sharerunpathflag () {
 
   printyesno_val SHRUNPATH "$SHRUNPATH"
   setdata ${_MKCONFIG_PREFIX} SHRUNPATH "$SHRUNPATH"
+}
+
+check_findincludepath () {
+  name=$1
+  hdr=$2
+  cincludes="${CFLAGS:-}"
+  printlabel CFLAGS "Search for: ${hdr}"
+  sp=""
+  incchk=""
+  pp=`echo $PATH | sed 's/:/ /g'`
+  set $pp
+  for p in $pp; do
+    case $p in
+      */bin)
+        td=`echo $p | sed 's,/bin$,/include,'`
+        if [ -d $td ]; then
+          if [ -f "$td/$hdr" ]; then
+            echo "found: ${td}" >&9
+            sp=$td
+            break
+          fi
+          list=`find $td -name ${hdr} -print | grep -v private 2>/dev/null`
+          for tp in $list; do
+            sp=`dirname $tp`
+            echo "find path:${sp}" >&9
+            break
+          done
+        fi
+        ;;
+    esac
+  done
+
+  echo "ccflags:${ccflags}" >&9
+  if [ "$sp" != "" ]; then
+    if [ $sp = "/usr/include" ]; then
+      printyesno_val $name "${hdr} yes"
+    else
+      printyesno_val $name "${hdr} -I${sp}"
+      setdata ${_MKCONFIG_PREFIX} CFLAGS "$ccflags -I$sp"
+    fi
+  else
+    printyesno_val $name "${hdr} no"
+  fi
 }

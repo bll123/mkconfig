@@ -1,9 +1,6 @@
 #!/bin/sh
 #
-# $Id$
-# $Source$
-#
-# Copyright 1994-2010 Brad Lanam, Walnut Creek, CA
+# Copyright 1994-2018 Brad Lanam, Walnut Creek, CA
 #
 
 #
@@ -456,7 +453,7 @@ while read tline; do
   fi
   domath count "$count + 1"
 
-  # for some reason, unixware can't handle this if it is split into 
+  # for some reason, unixware can't handle this if it is split into
   # multiple lines.
   if [ "$DOPERL" = T -a \( $runshpl -eq $_MKC_PL -o $runshpl -eq $_MKC_SH_PL \) ]; then
     _MKCONFIG_TSTRUNTMPDIR=$_MKCONFIG_RUNTMPDIR/${tbase}_pl

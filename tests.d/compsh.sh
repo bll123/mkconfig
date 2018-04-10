@@ -18,21 +18,21 @@ fi
 DASH_N_SUPPORTED=T
 # test for -n not supported.
 (
-  TMP=chkdashn$$
-  rm -f $TMP $TMP.out > /dev/null 2>&1
-  echo 'while test $# -gt 1; do echo $1; shift; done; exit 1' > $TMP
-  chmod a+rx $TMP
-  cmd="$_MKCONFIG_SHELL -n $TMP;echo \$? > $TMP.out"
+  TMPF=chkdashn$$
+  rm -f $TMPF $TMPF.out > /dev/null 2>&1
+  echo 'while test $# -gt 1; do echo $1; shift; done; exit 1' > $TMPF
+  chmod a+rx $TMPF
+  cmd="$_MKCONFIG_SHELL -n $TMPF;echo \$? > $TMPF.out"
   eval $cmd &
   job=$!
   sleep 1
   rc=1
-  if [ ! -f $TMP.out ]; then
+  if [ ! -f $TMPF.out ]; then
     kill $job
   else
-    rc=`cat $TMP.out`
+    rc=`cat $TMPF.out`
   fi
-  rm -f $TMP $TMP.out > /dev/null 2>&1
+  rm -f $TMPF $TMPF.out > /dev/null 2>&1
   exit $rc
 )
 rc=$?

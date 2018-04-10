@@ -1,8 +1,6 @@
 #!/bin/sh
 #
-# $Id$
-#
-# Copyright 2009-2010 Brad Lanam Walnut Creek, CA USA
+# Copyright 2009-2018 Brad Lanam Walnut Creek, CA USA
 #
 
 # this is a workaround for ksh93 on solaris

@@ -1,8 +1,6 @@
 #!/usr/bin/perl
 #
-# $Id$
-#
-# Copyright 2006-2010 Brad Lanam Walnut Creek, CA USA
+# Copyright 2006-2018 Brad Lanam Walnut Creek, CA USA
 #
 
 # HP-UX doesn't have these installed.
@@ -654,33 +652,36 @@ check_ifoption
 
     loadoptions ();
 
-    my $trc = 'F';
+    my $trc = 0;
 
     my $found = 'F';
     if ($optionsloaded && defined ($optionshash{$opt})) {
       $found = 'T';
       $trc = lc $optionshash{$opt};
       print LOGFH "##  found: $opt => $trc\n";
-      if ($trc eq 't') { $trc = 'T'; }
-      if ($trc eq 'enable') { $trc = 'T'; }
-      if ($trc eq 'f') { $trc = 'F'; }
-      if ($trc eq 'disable') { $trc = 'F'; }
-      if ($trc eq 'true') { $trc = 'T'; }
-      if ($trc eq 'false') { $trc = 'F'; }
+      if ($trc eq 't') { $trc = 1; }
+      if ($trc eq 'enable') { $trc = 1; }
+      if ($trc eq 'f') { $trc = 0; }
+      if ($trc eq 'disable') { $trc = 0; }
+      if ($trc eq 'true') { $trc = 1; }
+      if ($trc eq 'false') { $trc = 0; }
+      if ($trc eq 'yes') { $trc = 1; }
+      if ($trc eq 'no') { $trc = 0; }
     }
 
-    if ($trc eq 'T') { $trc = 1; }
-    if ($trc eq 'F') { $trc = 0; }
+    if (! $optionsloaded) {
+      $trc = 0;
+    } elsif ($found eq 'F') {
+      $trc = 0;
+    }
 
     if ($type eq 'ifnotoption') {
       $trc = $trc == 0 ? 1 : 0;
     }
 
     if (! $optionsloaded) {
-      $trc = 0;
       printyesno_actual $name, "no options file";
     } elsif ($found eq 'F') {
-      $trc = 0;
       printyesno_actual $name, "option not found";
     } else {
       printyesno $name, $trc;
@@ -700,9 +701,11 @@ check_if
     $ifline =~ s/\(/ ( /og;
     $ifline =~ s/\)/ ) /og;
     $ifline =~ s/&&/ \&\& /og;
-    $ifline =~ s/\|\|/ || /og;
     $ifline =~ s/ and / && /og;
+    $ifline =~ s/ -a / && /og;
+    $ifline =~ s/\|\|/ || /og;
     $ifline =~ s/ or / || /og;
+    $ifline =~ s/ -o / || /og;
     $ifline =~ s/ not / ! /og;
     $ifline =~ s/ +/ /og;
     $ifline =~ s/^ *//og;
@@ -965,6 +968,43 @@ _HERE_
 }
 
 sub
+check_printf_long_double
+{
+  my ($name, $r_clist, $r_config) = @_;
+
+  printlabel $name, "printf: long double printable";
+  if (checkcache ($name, $r_clist, $r_config) == 0) {
+    return;
+  }
+
+  setlist $r_clist, $name;
+  my $code = << "_HERE_";
+int main (int argc, char *argv[]) {
+long double a;
+long double b;
+char t[40];
+a = 1.0;
+b = 2.0;
+a = a / b;
+sprintf (t, \"%.1Lf\", a);
+if (strcmp(t,\"0.5\") == 0) {
+return (0);
+}
+return (1);
+}
+_HERE_
+
+  my $val = 0;
+  my %a = (
+       'incheaders' => 'all',
+       );
+  my $rc = _chk_run ($name, $code, \$val, $r_clist, $r_config, \%a);
+  $r_config->{$name} = $rc == 0 ? 1 : 0;
+  printyesno $name, $r_config->{$name};
+}
+
+
+sub
 check_lib
 {
     my ($name, $func, $r_clist, $r_config, $r_a) = @_;
@@ -1079,6 +1119,7 @@ check_args
 
     my $oldprecc = $precc;
     $precc .= "/* get rid of most gcc-isms */
+#define __asm(a)
 #define __asm__(a)
 #define __attribute__(a)
 #define __nonnull__(a,b)
@@ -1332,8 +1373,8 @@ create_output
     From: ${configfile}
     Using: mkconfig-${_MKCONFIG_VERSION} (perl) */
 
-#ifndef __INC_${CONFHTAGUC}_H
-#define __INC_${CONFHTAGUC}_H 1
+#ifndef MKC_INC_${CONFHTAGUC}_H
+#define MKC_INC_${CONFHTAGUC}_H 1
 
 _HERE_
 
@@ -1365,25 +1406,28 @@ _HERE_
   # standard tail -- always needed; non specific
   print CCOFH <<'_HERE_';
 
-#if ! _key_void
-# define void int
-#endif
-#if ! _key_void || ! _param_void_star
-  typedef char *_pvoid;
-#else
-  typedef void *_pvoid;
-#endif
-#if ! _key_const
-# define const
-#endif
-
-#ifndef _
-# if _proto_stdc
-#  define _(args) args
-# else
-#  define _(args) ()
+#ifndef MKC_STANDARD_DEFS
+# define MKC_STANDARD_DEFS 1
+# if ! _key_void
+#  define void int
 # endif
-#endif
+# if ! _key_void || ! _param_void_star
+   typedef char *_pvoid;
+# else
+   typedef void *_pvoid;
+# endif
+# if ! _key_const
+#  define const
+# endif
+
+# ifndef _
+#  if _proto_stdc
+#   define _(args) args
+#  else
+#   define _(args) ()
+#  endif
+# endif
+#endif /* MKC_STANDARD_DEFS */
 
 _HERE_
 
@@ -1391,7 +1435,7 @@ _HERE_
 
   print CCOFH <<"_HERE_";
 
-#endif /* __INC_${CONFHTAGUC}_H */
+#endif /* MKC_INC_${CONFHTAGUC}_H */
 _HERE_
   close CCOFH;
 }
@@ -1774,6 +1818,9 @@ main_process
                     check_ptr_declare ($nm, $var, \%clist, \%config);
                 }
             }
+        }
+        elsif ($line =~ m#^\s*printf_long_double#o) {
+          check_printf_long_double ('_printf_long_double', \%clist, \%config);
         }
         elsif ($line =~ m#^\s*member\s+(.*)\s+([^\s]+)#o)
         {

@@ -1,8 +1,6 @@
 #!/bin/sh
 #
-# $Id$
-#
-# Copyright 2010-2012 Brad Lanam Walnut Creek, CA USA
+# Copyright 2010-2018 Brad Lanam Walnut Creek, CA USA
 #
 
 unset CDPATH
@@ -55,8 +53,8 @@ if [ "$arcmd" = "" ]; then
 fi
 
 if [ $grc -eq 0 ]; then
-  dosubst libnm '${SHLIB_EXT}$' '' '^lib' ''
-  libfnm=lib${libnm}.a
+  dosubst libnm '${SHLIB_EXT}$' ''
+  libfnm=${libnm}.a
   # for really old systems...
   if [ "$ranlibcmd" = "" -a "$lordercmd" != "" -a "$tsortcmd" != "" ]; then
     objects=`$lordercmd ${objects} | $tsortcmd`

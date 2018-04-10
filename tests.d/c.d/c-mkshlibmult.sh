@@ -132,27 +132,27 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e -o mkct${i}${OBJ_EX
 grc=0
 
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -sharedlib \
-    -e mkct1 mkct1${OBJ_EXT}
+    -e libmkct1 mkct1${OBJ_EXT}
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -sharedlib \
-    -e mkct2 mkct2${OBJ_EXT} -L. -lmkct1
+    -e libmkct2 mkct2${OBJ_EXT} -L. -lmkct1
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -sharedlib \
-    -e mkct3 mkct3${OBJ_EXT} -L. -lmkct2
+    -e libmkct3 mkct3${OBJ_EXT} -L. -lmkct2
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -sharedlib \
-    -e mkct4 mkct4${OBJ_EXT} -L. -lmkct3
+    -e libmkct4 mkct4${OBJ_EXT} -L. -lmkct3
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -sharedlib \
-    -e mkct5 mkct5${OBJ_EXT} -L. -lmkct4
+    -e libmkct5 mkct5${OBJ_EXT} -L. -lmkct4
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 

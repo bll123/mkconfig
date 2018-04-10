@@ -1,9 +1,6 @@
 #!/bin/sh
 #
-# $Id$
-# $Revision$
-#
-# Copyright 2010-2012 Brad Lanam Walnut Creek, CA, USA
+# Copyright 2010-2018 Brad Lanam Walnut Creek, CA, USA
 #
 
 if [ ! -f "${_MKCONFIG_DIR}/VERSION" ]; then
@@ -261,7 +258,6 @@ chkshell () {
 
   grc=0
 
-  TMP=chksh$$
   chkmsg=""
   # test to make sure the set command works properly
   # some shells output xyzzy=abc def

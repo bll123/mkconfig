@@ -1,9 +1,6 @@
 #!/bin/sh
 #
-# $Id$
-# $Source$
-#
-# Copyright 2001-2012 Brad Lanam, Walnut Creek, California, USA
+# Copyright 2001-2018 Brad Lanam, Walnut Creek, California, USA
 #
 
 #
@@ -31,11 +28,11 @@ check_objext () {
   checkcache_val ${_MKCONFIG_PREFIX} $name
   if [ $? -eq 0 ]; then return; fi
 
-  TMP=objext
+  TMPF=objext
 
   CC=${CC:-cc}
 
-  > $TMP.c echo '
+  > $TMPF.c echo '
   #include <stdio.h>
   main ()
   {
@@ -44,9 +41,9 @@ check_objext () {
   }
 '
 
-  ${CC} ${CFLAGS} ${CPPFLAGS} -c $TMP.c > /dev/null 2>&1 # don't care about warnings...
+  ${CC} ${CFLAGS} ${CPPFLAGS} -c $TMPF.c > /dev/null 2>&1 # don't care about warnings...
   OBJ_EXT=".o"
-  if [ -f "$TMP.obj" ]; then
+  if [ -f "$TMPF.obj" ]; then
      echo "object extension is .obj" >&9
      OBJ_EXT=".obj"
   else
@@ -63,11 +60,11 @@ check_exeext () {
   checkcache_val ${_MKCONFIG_PREFIX} $name
   if [ $? -eq 0 ]; then return; fi
 
-  TMP=exeext
+  TMPF=exeext
 
   CC=${CC:-cc}
 
-  > $TMP.c echo '
+  > $TMPF.c echo '
   #include <stdio.h>
   main ()
   {
@@ -76,9 +73,9 @@ check_exeext () {
   }
 '
 
-  ${CC} ${CFLAGS} ${CPPFLAGS} -o $TMP $TMP.c > /dev/null 2>&1 # don't care about warnings
+  ${CC} ${CFLAGS} ${CPPFLAGS} -o $TMPF $TMPF.c > /dev/null 2>&1 # don't care about warnings
   EXE_EXT=""
-  if [ -f "$TMP.exe" ]
+  if [ -f "$TMPF.exe" ]
   then
      echo "executable extension is .exe" >&9
      EXE_EXT=".exe"
@@ -105,7 +102,7 @@ check_shlibext () {
     Darwin)
       SHLIB_EXT=".dylib"
       ;;
-    CYGWIN*)
+    CYGWIN*|MSYS*|MINGW*)
       SHLIB_EXT=".dll"
       ;;
   esac

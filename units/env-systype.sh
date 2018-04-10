@@ -1,9 +1,6 @@
 #!/bin/sh
 #
-# $Id$
-# $Revision$
-#
-# Copyright 2010 Brad Lanam Walnut Creek, CA USA
+# Copyright 2010-2018 Brad Lanam Walnut Creek, CA USA
 #
 
 #

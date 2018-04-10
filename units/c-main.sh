@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright 2010-2012 Brad Lanam Walnut Creek CA USA
+# Copyright 2010-2018 Brad Lanam Walnut Creek CA USA
 #
 #
 #   The four headers: stdio.h, stdlib.h, sys/types.h, and sys/param.h
@@ -13,25 +13,28 @@
 #
 #   The following code is present in the final config.h file:
 #
-#       #if ! _key_void
-#       # define void int
-#       #endif
-#       #if ! _key_const
-#       # define const
-#       #endif
-#       #if ! _key_void || ! _param_void_star
-#         typedef char *_pvoid;
-#       #else
-#         typedef void *_pvoid;
-#       #endif
-#
-#       #ifndef _
-#       # if _proto_stdc
-#       #  define _(args) args
-#       # else
-#       #  define _(args) ()
+#       #ifndef MKC_STANDARD_DEFS
+#       # define MKC_STANDARD_DEFS 1
+#       # if ! _key_void
+#       #  define void int
 #       # endif
-#       #endif
+#       # if ! _key_const
+#       #  define const
+#       # endif
+#       # if ! _key_void || ! _param_void_star
+#          typedef char *_pvoid;
+#       # else
+#          typedef void *_pvoid;
+#       # endif
+#
+#       # ifndef _
+#       #  if _proto_stdc
+#       #   define _(args) args
+#       #  else
+#       #   define _(args) ()
+#       #  endif
+#       # endif
+#       #endif /* MKC_STANDARD_DEFS */
 #
 
 #
@@ -91,40 +94,43 @@ preconfigfile () {
   echo "    From: ${configfile}"
   echo "    Using: mkconfig-${_MKCONFIG_VERSION} */"
   echo ''
-  echo "#ifndef __INC_${CONFHTAGUC}_H
-#define __INC_${CONFHTAGUC}_H 1
+  echo "#ifndef MKC_INC_${CONFHTAGUC}_H
+#define MKC_INC_${CONFHTAGUC}_H 1
 "
 }
 
 stdconfigfile () {
   pc_configfile=$1
   echo '
-#if ! _key_void
-# define void int
-#endif
-#if ! _key_void || ! _param_void_star
-  typedef char *_pvoid;
-#else
-  typedef void *_pvoid;
-#endif
-#if ! _key_const
-# define const
-#endif
-
-#ifndef _
-# if _proto_stdc
-#  define _(args) args
-# else
-#  define _(args) ()
+#ifndef MKC_STANDARD_DEFS
+# define MKC_STANDARD_DEFS 1
+# if ! _key_void
+#  define void int
 # endif
-#endif
+# if ! _key_void || ! _param_void_star
+   typedef char *_pvoid;
+# else
+   typedef void *_pvoid;
+# endif
+# if ! _key_const
+#  define const
+# endif
+
+# ifndef _
+#  if _proto_stdc
+#   define _(args) args
+#  else
+#   define _(args) ()
+#  endif
+# endif
+#endif /* MKC_STANDARD_DEFS */
 '
 }
 
 postconfigfile () {
   pc_configfile=$1
   echo "
-#endif /* __INC_${CONFHTAGUC}_H */"
+#endif /* MKC_INC_${CONFHTAGUC}_H */"
 }
 
 standard_checks () {
@@ -362,16 +368,14 @@ return (1);
   _c_chk_run "$name" "$code" all
   rc=$?
   dlibs=$_retdlibs
-  if [ $rc -eq 0 ]; then trc=1; else trc=0; fi
-  tag=""
   if [ $rc -eq 0 -a "$dlibs" != "" ]; then
-    tag=" with ${dlibs}"
     cmd="mkc_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
     eval $cmd
   fi
-  setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
-  printyesno $name $trc "$tag"
+  if [ $rc -eq 0 ]; then trc=1; else trc=0; fi
   otherlibs=""
+  setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
+  printyesno $name $trc
 }
 
 check_member () {
@@ -444,7 +448,6 @@ check_size () {
   shift
   type=$*
 
-  libs=""
   otherlibs="-lintl"
   nm="_siz_${type}"
   dosubst nm ' ' '_'
@@ -461,13 +464,12 @@ check_size () {
   if [ $rc -ne 0 ]; then
     val=0
   fi
-  tag=""
   if [ $rc -eq 0 -a "$dlibs" != "" ]; then
-    tag=" with ${dlibs}"
     cmd="mkc_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
     eval $cmd
   fi
-  printyesno_val $name $val "$tag"
+  otherlibs=""
+  printyesno_val $name $val
   setdata ${_MKCONFIG_PREFIX} ${name} ${val}
 }
 
@@ -502,8 +504,27 @@ check_args () {
   ccount=0
 
   oldprecc="${precc}"
+
+  if [ "$_have_variadic" = "" ]; then
+    precc=""
+    code="#define testvariadic(...)"
+    _c_chk_cpp _args_testvariadic "$code" all
+    rc=$?
+    _have_variadic=F
+    if [ $rc -eq 0 ]; then
+      _have_variadic=T
+    fi
+  fi
+
+  asmdef="#define __asm__(a)"
+  if [ $_have_variadic = T ]; then
+    asmdef="#define __asm__(...)"
+  fi
+
+  precc="$oldprecc"
   doappend precc "/* get rid of most gcc-isms */
-#define __asm__(a)
+#define __asm(a)
+$asmdef
 #define __attribute__(a)
 #define __nonnull__(a,b)
 #define __restrict

@@ -1,8 +1,6 @@
 #!/bin/sh
 #
-# $Id$
-#
-# Copyright 2010-2012 Brad Lanam Walnut Creek, CA USA
+# Copyright 2010-2018 Brad Lanam Walnut Creek, CA USA
 #
 # This script is used to change an option in an options file.
 # Usage:

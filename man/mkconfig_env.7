@@ -1,10 +1,7 @@
 .\"
-.\" $Id$
-.\" $Revision$
-.\"
 .\" mkconfig_env.7
 .\"
-.\" Copyright 2011-2013 Brad Lanam  Walnut Creek CA USA
+.\" Copyright 2011-2018 Brad Lanam  Walnut Creek CA USA
 .\"
 .\" brad.lanam.di_at_gmail.com
 .\"
@@ -114,6 +111,13 @@ and appropriate to the operating system and compiler.
 .RS
 Checks to see if \fIcompiler\-flag\fP is valid for the compiler and
 if ok, adds it to the CFLAGS environment variable.
+.RE
+.TP
+\fBfindincludepath\fP header\-file
+.RS
+Attempts to locate the include path where header\-file is located
+and add it to the CFLAGS environment variable.
+Used for hard to locate and versioned header files.
 .RE
 .TP
 \fBldflags\fP
