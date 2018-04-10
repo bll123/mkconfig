@@ -341,17 +341,9 @@ tparamvs (ptr)
 check_printf_long_double () {
   name="_printf_long_double"
 
-  shift
-  libs=$*
-  otherlibs=$*
+  otherlibs="-lintl"
 
-  if [ "${otherlibs}" != "" ]; then
-    printlabel $name "printf: long double printable [${otherlibs}]"
-  else
-    printlabel $name "printf: long double printable"
-    checkcache ${_MKCONFIG_PREFIX} $name
-    if [ $rc -eq 0 ]; then return; fi
-  fi
+  printlabel $name "printf: long double printable"
 
   code="int main (int argc, char *argv[]) {
 long double a;
@@ -379,6 +371,7 @@ return (1);
   fi
   setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
   printyesno $name $trc "$tag"
+  otherlibs=""
 }
 
 check_member () {
@@ -449,37 +442,16 @@ check_memberxdr () {
 
 check_size () {
   shift
-  type=""
+  type=$*
+
   libs=""
-  otherlibs=""
-  while test $# -gt 0; do
-    case $1 in
-      -*)
-        libs=$*
-        otherlibs=$*
-        break
-        ;;
-      *)
-        if [ "$type" != "" ]; then
-          doappend type ' '
-        fi
-        doappend type $1
-        shift
-        ;;
-    esac
-  done
+  otherlibs="-lintl"
   nm="_siz_${type}"
   dosubst nm ' ' '_'
 
   name=$nm
 
-  if [ "${otherlibs}" != "" ]; then
-    printlabel $name "sizeof: ${type} [${otherlibs}]"
-  else
-    printlabel $name "sizeof: ${type}"
-    checkcache_val ${_MKCONFIG_PREFIX} $name
-    if [ $rc -eq 0 ]; then return; fi
-  fi
+  printlabel $name "sizeof: ${type}"
 
   code="main () { printf(\"%u\", sizeof(${type})); return (0); }"
   _c_chk_run ${name} "${code}" all
@@ -671,9 +643,8 @@ CPP_EXTERNS_END
 check_lib () {
   func=$2
   shift;shift
-  libs=$*
+  otherlibs=$*
   nm="_lib_${func}"
-  otherlibs=${libs}
 
   name=$nm
 
@@ -739,6 +710,7 @@ CPP_EXTERNS_END
     fi
   fi
 
+  otherlibs=""
   printyesno $name $trc "$tag"
   setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
   return $trc
@@ -747,10 +719,9 @@ CPP_EXTERNS_END
 check_class () {
   class=$2
   shift;shift
-  libs=$*
+  otherlibs=$*
   nm="_class_${class}"
   dosubst nm '/' '_' ':' '_'
-  otherlibs=${libs}
 
   name=$nm
 
@@ -776,6 +747,8 @@ check_class () {
     cmd="mkc_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
     eval $cmd
   fi
+
+  otherlibs=""
   printyesno $name $trc "$tag"
   setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
 }
