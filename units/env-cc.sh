@@ -625,25 +625,26 @@ check_findincludepath () {
   incchk=""
   pp=`echo $PATH | sed 's/:/ /g'`
   set $pp
-  for p in $pp; do
+  for p in $pp $HOME/local/include /usr/local/include /opt/local/include; do
+    td=$p
     case $p in
       */bin)
         td=`echo $p | sed 's,/bin$,/include,'`
-        if [ -d $td ]; then
-          if [ -f "$td/$hdr" ]; then
-            echo "found: ${td}" >&9
-            sp=$td
-            break
-          fi
-          list=`find $td -name ${hdr} -print | grep -v private 2>/dev/null`
-          for tp in $list; do
-            sp=`dirname $tp`
-            echo "find path:${sp}" >&9
-            break
-          done
-        fi
         ;;
     esac
+    if [ -d $td ]; then
+      if [ -f "$td/$hdr" ]; then
+        echo "found: ${td}" >&9
+        sp=$td
+        break
+      fi
+      list=`find $td -name ${hdr} -print 2>/dev/null | grep -v private 2>/dev/null`
+      for tp in $list; do
+        sp=`dirname $tp`
+        echo "find path:${sp}" >&9
+        break
+      done
+    fi
   done
 
   echo "ccflags:${ccflags}" >&9
