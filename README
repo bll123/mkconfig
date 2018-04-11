@@ -1,4 +1,4 @@
-mkconfig - configuration tool (version 1.29)
+mkconfig - configuration tool (version 1.31)
 
 Simply copy the entire directory structure as a sub-directory
 in your application software.  Remove the man/ and examples/
