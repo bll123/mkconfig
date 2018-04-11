@@ -25,6 +25,10 @@ ISSUES
 
 CHANGES
 
+    1.31                                    [2018-4-11]
+        env-cc: update findincludepath to search more common paths.
+        Remove Makefile and MANIFEST from standard distribution.
+
     1.30                                    [2018-4-10]
         Repo got completely mucked up.  Restore lost code.
         C: size: -lintl option for modern libintl.h

@@ -1,6 +1,4 @@
 LICENSE			LICENSE
-MANIFEST		MANIFEST
-Makefile
 README          	README
 VERSION			version
 bin/
