@@ -122,6 +122,10 @@ while test $# -gt 0; do
       doappend reqlibfiles " $1"
       shift
       ;;
+    -D*)
+      doappend CFLAGS " $1"
+      shift
+      ;;
     --)
       shift
       break
@@ -173,6 +177,10 @@ fi
 grc=0
 for f in $@ $olibs; do
   case $f in
+    -D*)
+      doappend CFLAGS $1
+      shift
+      ;;
     -L)
       ispath=1
       ;;
@@ -265,6 +273,7 @@ if [ $havesource = T ]; then
     doappend allflags " ${CFLAGS_DEBUG}"        # debug flags
     doappend allflags " ${CFLAGS_INCLUDE}"      # any include files
     doappend allflags " ${CFLAGS_USER}"         # specified by the user
+    doappend allflags " ${CFLAGS}"              # specified by the user
     if [ $shared = T ];then
       doappend allflags " ${CFLAGS_SHARED}"
       doappend allflags " ${CFLAGS_SHARED_USER}"
