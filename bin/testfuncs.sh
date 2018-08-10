@@ -6,7 +6,7 @@
 maindodisplay () {
   snm=$2
   if [ "$1" = "-d" ]; then
-    putsnonl $snm
+    echo $snm
     exit 0
   fi
 }
@@ -19,14 +19,14 @@ maindoquery () {
 
 chkccompiler () {
   if [ "${CC}" = "" ]; then
-    putsnonl " no C compiler; skipped" >&5
+    echo " no C compiler; skipped" >&5
     exit 0
   fi
 }
 
 chkdcompiler () {
   if [ "${DC}" = "" ]; then
-    putsnonl " no D compiler; skipped" >&5
+    echo " no D compiler; skipped" >&5
     exit 0
   fi
 }
