@@ -136,9 +136,6 @@ while test $# -gt 0; do
   esac
 done
 if [ "$logfile" != "" ]; then
-  if [ $logfile -ot mkconfig.log ]; then
-    >$logfile
-  fi
   exec 9>>$logfile
 fi
 
@@ -377,7 +374,9 @@ else
   rc=$?
 fi
 if [ $rc -eq 0 ]; then
-  if puts "$out" | grep -i warning: >/dev/null 2>&1; then
+  puts "$out" | grep -i warning: >/dev/null 2>&1
+  rc=$?
+  if [ $rc -eq 0 ]; then
     puts " warnings"
   else
     puts " ok"
