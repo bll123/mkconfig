@@ -44,7 +44,7 @@ if [ $? -ne 0 ]; then
 fi
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -staticlib \
     -log mkc_compile.log${stag} \
-    libtst1lib tst1lib${OBJ_EXT}
+    -o libtst1lib.a tst1lib${OBJ_EXT}
 
 dorunmkc reqlibs out.h
 

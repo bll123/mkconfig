@@ -31,7 +31,7 @@ fi
 test -f libmlib2.a && rm -f libmlib2.a
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -staticlib \
     -log mkc_compile.log${stag} \
-    libmlib2 mlib2${OBJ_EXT} >&9
+    -o libmlib2.a mlib2${OBJ_EXT} >&9
 
 > mlib1.d echo '
 import mlib2;
@@ -47,7 +47,7 @@ fi
 test -f libmlib1.a && rm -f libmlib1.a
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -staticlib \
     -log mkc_compile.log${stag} \
-    libmlib1 mlib1${OBJ_EXT} >&9
+    -o libmlib1.a mlib1${OBJ_EXT} >&9
 
 dorunmkc reqlibs out.d
 

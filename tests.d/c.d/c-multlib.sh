@@ -36,7 +36,7 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -compile \
     -log mkc_compile.log${stag} -e -o tst2libb${OBJ_EXT} tst2libb.c
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -staticlib \
     -log mkc_compile.log${stag} -e \
-    libtst2libb tst2libb${OBJ_EXT}
+    -o libtst2libb.a tst2libb${OBJ_EXT}
 
 > tst2libc.c echo '
 #include <stdio.h>
@@ -49,7 +49,7 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -compile \
     -log mkc_compile.log${stag} -e -o tst2libc${OBJ_EXT} tst2libc.c
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -staticlib \
     -log mkc_compile.log${stag} -e \
-    libtst2libc tst2libc${OBJ_EXT}
+    -o libtst2libc.a tst2libc${OBJ_EXT}
 
 dorunmkc reqlibs out.h
 

@@ -31,7 +31,7 @@ fi
 test -f libslib1.a && rm -f libslib1.a
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -staticlib \
     -log mkc_compile.log${stag} \
-    libslib1 slib1${OBJ_EXT} >&9
+    -o libslib1.a slib1${OBJ_EXT} >&9
 
 dorunmkc reqlibs out.d
 

@@ -64,7 +64,7 @@ grc=0
 set +f
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -staticlib \
     -log mkc_compile.log${stag} \
-    -e libmkct mkct[51234]${OBJ_EXT}
+    -e -o libmkct.a mkct[51234]${OBJ_EXT}
 set -f
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi

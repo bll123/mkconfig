@@ -32,6 +32,15 @@ while test $# -gt 0; do
       logfile=$1
       shift
       ;;
+    -o)
+      shift
+      tf=$1
+      shift
+      if [ "$libnm" = "" ]; then
+        libnm=$tf
+        continue
+      fi
+      ;;
     *${OBJ_EXT})
       tf=$1
       shift
@@ -72,7 +81,7 @@ fi
 
 if [ $grc -eq 0 ]; then
   dosubst libnm '${SHLIB_EXT}$' ''
-  libfnm=${libnm}.a
+  libfnm=${libnm}
   # for really old systems...
   if [ "$ranlibcmd" = "" -a "$lordercmd" != "" -a "$tsortcmd" != "" ]; then
     objects=`$lordercmd ${objects} | $tsortcmd`
