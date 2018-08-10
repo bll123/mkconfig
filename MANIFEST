@@ -1,22 +1,32 @@
-LICENSE			LICENSE
-README          	README
-VERSION			version
 bin/
 bin/envfuncs.sh		compiler environment helper functions
-bin/mkcsetopt.sh	set options in options file
 bin/mkcl.sh		compile or link
+bin/mkcsetopt.sh	set options in options file
 bin/mkreqlib.sh		required link libraries
 bin/mkstaticlib.sh	create a static library
 bin/shellfuncs.sh	mkconfig functions
 bin/testfuncs.sh	test suite functions
+examples/           examples
+examples/dtcltk/    example c-d code conversion
+examples/dtcltk/env.dat
+examples/dtcltk/hw_tk_c.c
+examples/dtcltk/hw_tk_d1.d
+examples/dtcltk/hw_tk_d2.d
+examples/dtcltk/Makefile
+examples/dtcltk/tcl.dat
+examples/dtcltk/tk.dat
+examples/dtcltk/x.dat
+LICENSE			LICENSE
 man/
 man/mkconfig.7		manual page
 man/mkconfig_c.7	manual page
 man/mkconfig_d.7	manual page
 man/mkconfig_env.7	manual page
-mkc.sh			compile/link/library/other tool
 mkconfig.pl		perl config program
 mkconfig.sh		shell config program
+mkc.sh			compile/link/library/other tool
+README          	README
+runtests.sh
 units/			units for mkconfig.sh
 units/c-include-conflict.sh
 units/c-main.sh
@@ -34,13 +44,4 @@ util/mkcextdcl.awk	script to extract C language declarations
 util/mkcextmacro.awk	script to extract C language macros
 util/mkcextstruct.awk	script to extract C language structures
 util/mkcexttypedef.awk	script to extract C language typedefs
-examples/           examples
-examples/dtcltk/    example c-d code conversion
-examples/dtcltk/Makefile
-examples/dtcltk/env.dat
-examples/dtcltk/hw_tk_c.c
-examples/dtcltk/hw_tk_d1.d
-examples/dtcltk/hw_tk_d2.d
-examples/dtcltk/tcl.dat
-examples/dtcltk/tk.dat
-examples/dtcltk/x.dat
+VERSION			version

@@ -6,7 +6,7 @@
 maindodisplay () {
   snm=$2
   if [ "$1" = "-d" ]; then
-    echo $snm
+    putsnonl $snm
     exit 0
   fi
 }
