@@ -44,13 +44,47 @@ addlibpath () {
   fi
 }
 
+compile=F
+link=F
+shared=F
+mkexec=F
+mklib=F
+
 doecho=F
 comp=${CC}
-reqlibfile=
+reqlibfiles=
+logfile=mkc_compile.log
 c=T
 d=F
 while test $# -gt 0; do
   case $1 in
+    -compile|-comp)
+      shift
+      compile=T
+      shared=F
+      ;;
+    -link)
+      shift
+      link=T
+      ;;
+    -log)
+      shift
+      logfile=$1
+      shift
+      ;;
+    -shared)
+      shift
+      shared=T
+      ;;
+    -exec)
+      shift
+      mkexec=T
+      ;;
+    -lib)
+      shift
+      mkexec=F
+      mklib=T
+      ;;
     -c)
       shift
       comp=$1
@@ -61,6 +95,18 @@ while test $# -gt 0; do
           c=F
           ;;
       esac
+      ;;
+    -d)
+      shift
+      ndir=$1
+      cd $ndir
+      rc=$?
+      if [ $rc -ne 0 ]; then
+        puts "## Unable to cd to $ndir"
+        grc=$rc
+        exit $grc
+      fi
+      shift
       ;;
     -e)
       doecho=T
@@ -73,7 +119,7 @@ while test $# -gt 0; do
       ;;
     -r)
       shift
-      reqlibfile=$1
+      doappend reqlibfiles " $1"
       shift
       ;;
     --)
@@ -85,6 +131,12 @@ while test $# -gt 0; do
       ;;
   esac
 done
+if [ "$logfile" != "" ]; then
+  if [ $logfile -ot mkconfig.log ]; then
+    >$logfile
+  fi
+  exec 9>>$logfile
+fi
 
 # DC_LINK should be in environment already.
 OUTFLAG="-o "
@@ -102,6 +154,7 @@ case ${comp} in
     ;;
 esac
 
+flags=
 files=
 objects=
 libnames=
@@ -109,33 +162,34 @@ libpathnames=
 islib=0
 ispath=0
 olibs=
-componly=F
 havesource=F
 
-if [ "$reqlibfile" != "" ]; then
-  olibs=`cat $reqlibfile`
+if [ "$reqlibfiles" != "" ]; then
+  for rf in $reqlibfiles; do
+    doappend olibs "`cat $rf`"
+  done
 fi
 
 grc=0
 for f in $@ $olibs; do
   case $f in
-    "-L")
+    -L)
       ispath=1
       ;;
-    "-L"*)
+    -L*)
       tf=$f
       dosubst tf '-L' ''
       if [ ! -d "$tf" ]; then
-        echo "## unable to locate dir $tf"
+        puts "## unable to locate dir $tf"
         grc=1
       else
         addlibpath $tf
       fi
       ;;
-    "-l")
+    -l)
       islib=1
       ;;
-    "-l"*)
+    -l*)
       addlib $f
       ;;
     lib*)
@@ -143,7 +197,7 @@ for f in $@ $olibs; do
       ;;
     *${OBJ_EXT})
       if [ ! -f "$f" ]; then
-        echo "## unable to locate $f"
+        puts "## unable to locate $f"
         grc=1
       else
         doappend objects " $f"
@@ -151,7 +205,7 @@ for f in $@ $olibs; do
       ;;
     *.c|*.d)
       if [ ! -f "$f" ]; then
-        echo "## unable to locate $f"
+        puts "## unable to locate $f"
         grc=1
       else
         doappend files " $f"
@@ -161,7 +215,7 @@ for f in $@ $olibs; do
     "-"*)
       doappend flags " $f"
       if [ $f = "-c" ]; then
-        componly=T
+        compile=T
       fi
       ;;
     *)
@@ -169,7 +223,7 @@ for f in $@ $olibs; do
         addlib "-l$f"
       elif [ $ispath -eq 1 ]; then
         if [ ! -d "$f" ]; then
-          echo "## unable to locate dir $f"
+          puts "## unable to locate dir $f"
           grc=1
         else
           addlibpath $f
@@ -192,68 +246,139 @@ for lp in $libpathnames; do
 done
 dosubst libpath '^:' ''
 
+outflags=""
 if [ "$outfile" = "" ]; then
   flags="${flags} -c"
-  componly=T
 else
+  outflags="${OUTFLAG}$outfile"
   case ${outfile} in
     *.o|*.obj)
       flags="${flags} -c"
-      componly=T
       ;;
   esac
-fi
-
-shrunpath=
-shlibpath=
-shexeclink=
-ldflags=
-
-if [ $componly = F ]; then
-  shrunpath=""
-  if [ "${libs}" != "" -a "${SHRUNPATH}" != "" ]; then
-    dosubst libpath '^:' ''
-    shrunpath="${SHRUNPATH}${libpath}"
-  fi
-  shlibpath=""
-  if [ "${libs}" != "" -a "${libpath}" != "" ]; then
-    shlibpath="${DC_LINK}-L${libpath}"
-  fi
-  shexeclink=""
-  if [ "${SHEXECLINK}" != "" ]; then
-    shexeclink="${SHEXECLINK}"
-  fi
-
-  if [ "${DC_LINK}" != "" ]; then
-    ldflags=""
-    for flag in ${LDFLAGS}; do
-      doappend ldflags " ${DC_LINK}${flag}"
-    done
-  else
-    doappend ldflags " ${LDFLAGS}"
-  fi
 fi
 
 allflags=
 if [ $havesource = T ]; then
   if [ $c = T ];then
-    doappend allflags " ${CPPFLAGS}"
-    doappend allflags " ${CFLAGS}"
-    doappend allflags " ${SHCFLAGS}"
+    doappend allflags " ${CFLAGS_OPTIMIZE}"     # optimization flags
+    doappend allflags " ${CFLAGS_DEBUG}"        # debug flags
+    doappend allflags " ${CFLAGS_INCLUDE}"      # any include files
+    doappend allflags " ${CFLAGS_USER}"         # specified by the user
+    if [ $shared = T ];then
+      doappend allflags " ${CFLAGS_SHARED}"
+      doappend allflags " ${CFLAGS_SHARED_USER}"
+    fi
+    doappend allflags " ${CFLAGS_APPLICATION}"  # added by the config process
+    doappend allflags " ${CFLAGS_COMPILER}"     # compiler flags
+    doappend allflags " ${CFLAGS_SYSTEM}"       # needed for this system
   fi
   if [ $d = T ];then
     doappend allflags " ${DFLAGS}"
   fi
 fi
 
-cmd="${comp} ${allflags} ${flags} ${ldflags} ${shexeclink} \
-    ${OUTFLAG}$outfile $objects \
-    ${files} ${shrunpath} ${shlibpath} $libs"
-if [ $doecho = T ]; then
-  echo $cmd
-fi
-eval $cmd
-rc=$?
-if [ $rc -ne 0 ]; then grc=$rc; fi
+allldflags=
+ldflags_runpath=
+ldflags_shared_libs=
+ldflags_exec_link=
 
+if [ $link = T ]; then
+  doappend allldflags " ${LDFLAGS_OPTIMIZE}"     # optimization flags
+  doappend allldflags " ${LDFLAGS_DEBUG}"        # debug flags
+  doappend allldflags " ${LDFLAGS_USER}"         # specified by the user
+  doappend allldflags " ${LDFLAGS_APPLICATION}"  # added by the config process
+  doappend allldflags " ${LDFLAGS_COMPILER}"     # link flags
+  doappend allldflags " ${LDFLAGS_SYSTEM}"       # needed for this system
+fi
+if [ $link = T -a $shared = T ]; then
+  doappend allldflags " ${LDFLAGS_SHARED}"
+  doappend allldflags " ${LDFLAGS_SHARED_USER}"
+fi
+if [ \( $shared = T \) -o \( $mkexec = T \) ]; then
+  ldflags_runpath=""
+  if [ "${libpath}" != "" -a "${LDFLAGS_RUNPATH}" != "" ]; then
+    dosubst libpath '^:' ''
+    ldflags_runpath="${LDFLAGS_RUNPATH}${libpath}"
+  fi
+  ldflags_shared_libs=""
+  if [ "${libs}" != "" -a "${libpath}" != "" ]; then
+    ### is this right???
+    ldflags_shared_libs="${DC_LINK}-L${libpath}"
+  fi
+
+  ldflags_exec_link=""
+  if [ $mklib = F -a $mkexec = T ]; then
+    if [ "${LDFLAGS_EXEC_LINK}" != "" ]; then
+      ldflags_exec_link="${LDFLAGS_EXEC_LINK}"
+    fi
+  fi
+fi
+if [ $link = T ]; then
+  if [ "${DC_LINK}" != "" ]; then
+    ldflags=""
+    for flag in ${LDFLAGS}; do
+      doappend allldflags " ${DC_LINK}${flag}"
+    done
+  fi
+fi
+if [ $link = T ]; then
+  doappend alllibs " ${LDFLAGS_LIBS_USER}"
+  doappend alllibs " ${LDFLAGS_LIBS_APPLICATION}"
+  doappend alllibs " ${LDFLAGS_LIBS_SYSTEM}"
+fi
+
+# clear the standard env vars so they don't get picked up.
+CFLAGS=
+CPPFLAGS=
+LDFLAGS=
+LIBS=
+cmd="${comp} ${allflags} ${flags} ${allldflags} ${ldflags_exec_link} \
+    $outflags $objects \
+    ${files} ${ldflags_runpath} ${ldflags_shared_libs} ${alllibs} ${libs}"
+if [ $compile = T ]; then
+  putsnonl "COMPILE ${files} ..."
+  if [ "$logfile" != "" ]; then
+    puts "COMPILE ${files}" >&9
+  fi
+fi
+if [ $link = T ]; then
+  putsnonl "LINK ${outfile} ..."
+  if [ "$logfile" != "" ]; then
+    puts "LINK ${outfile}" >&9
+  fi
+fi
+if [ $doecho = T ]; then
+  puts ""
+  puts "    $cmd"
+fi
+if [ "$logfile" != "" ]; then
+  puts "    $cmd" >&9
+fi
+out=""
+if [ "$logfile" != "" ]; then
+  out=`eval $cmd 2>&1`
+  rc=$?
+  puts "$out" >&9
+  if [ $doecho = T ]; then
+    puts "$out"
+  fi
+else
+  eval $cmd
+  rc=$?
+fi
+if [ $rc -eq 0 ]; then
+  if puts "$out" | grep -i warning: >/dev/null 2>&1; then
+    puts " warnings"
+  else
+    puts " ok"
+  fi
+else
+  puts " fail"
+  grc=$rc
+fi
+
+if [ "$logfile" != "" ]; then
+  exec 9>&-
+fi
 exit $grc

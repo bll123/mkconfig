@@ -2,7 +2,6 @@
 #
 # Copyright 2010-2018 Brad Lanam Walnut Creek CA USA
 #
-#
 
 CPPCOUNTER=1
 
@@ -39,7 +38,7 @@ _c_print_hdrs () {
     for tnm in '_hdr_stdio' '_hdr_stdlib' '_sys_types' '_sys_param'; do
       getdata tval ${_MKCONFIG_PREFIX} ${tnm}
       if [ "${tval}" != "0" -a "${tval}" != "" ]; then
-          echo "#include <${tval}>"
+          puts "#include <${tval}>"
       fi
     done
   fi
@@ -56,7 +55,7 @@ _c_print_hdrs () {
           if [ "${hdval}" != "0" ]; then
             getdata iqval ${_MKCONFIG_PREFIX} '_inc_conflict__sys_quota__hdr_linux_quota'
             if [ "${iqval}" = "1" ]; then
-              echo "#include <${hdval}>"
+              puts "#include <${hdval}>"
             fi
           fi
           ;;
@@ -64,13 +63,13 @@ _c_print_hdrs () {
           if [ "${hdval}" != "0" ]; then
             getdata itval ${_MKCONFIG_PREFIX} '_inc_conflict__hdr_time__sys_time'
             if [ "${itval}" = "1" ]; then
-              echo "#include <${hdval}>"
+              puts "#include <${hdval}>"
             fi
           fi
           ;;
         _hdr_*|_sys_*)
           if [ "${hdval}" != "0" -a "${hdval}" != "" ]; then
-            echo "#include <${hdval}>"
+            puts "#include <${hdval}>"
           fi
           ;;
       esac
@@ -87,12 +86,12 @@ _c_chk_run () {
 
   _c_chk_link_libs ${crname} "${code}" $inc
   rc=$?
-  echo "##  run test: link: $rc" >&9
+  puts "##  run test: link: $rc" >&9
   rval=0
   if [ $rc -eq 0 ]; then
     rval=`./${crname}.exe`
     rc=$?
-    echo "##  run test: run: $rc retval:$rval" >&9
+    puts "##  run test: run: $rc retval:$rval" >&9
     if [ $rc -lt 0 ]; then
       _exitmkconfig $rc
     fi
@@ -121,16 +120,16 @@ _c_chk_link_libs () {
   >${tcfile}
   # $cllname should be unique
   exec 4>>${tcfile}
-  echo "${precc}" >&4
+  puts "${precc}" >&4
   _c_print_headers $inc >&4
-  echo "${code}" | sed 's/_dollar_/$/g' >&4
+  puts "${code}" | sed 's/_dollar_/$/g' >&4
   exec 4>&-
 
   dlibs=""
   otherlibs=""
   _c_chk_link $cllname
   rc=$?
-  echo "##      link test (none): $rc" >&9
+  puts "##      link test (none): $rc" >&9
   if [ $rc -ne 0 ]; then
     while test $ocounter -lt $ocount; do
       domath ocounter "$ocounter + 1"
@@ -141,7 +140,7 @@ _c_chk_link_libs () {
       otherlibs=${olibs}
       _c_chk_link $cllname
       rc=$?
-      echo "##      link test (${olibs}): $rc" >&9
+      puts "##      link test (${olibs}): $rc" >&9
       if [ $rc -eq 0 ]; then
         break
       fi
@@ -167,20 +166,21 @@ _c_chk_cpp () {
     if [ -f $tcppfile -a -f $tcppout ]; then
       test -f ${cppname}.out && rm -f ${cppname}.out
       ln -s ${tcppout} ${cppname}.out
-      echo "##  _cpp test: reusing $tcppout" >&9
+      puts "##  _cpp test: reusing $tcppout" >&9
       rc=0
       return $rc
     fi
   fi
   # $cppname should be unique
   exec 4>>${tcppfile}
-  echo "${precc}" >&4
+  puts "${precc}" >&4
   _c_print_headers $inc >&4
-  echo "${code}" | sed 's/_dollar_/$/g' >&4
+  puts "${code}" | sed 's/_dollar_/$/g' >&4
   exec 4>&-
 
-  cmd="${CC} ${CFLAGS} ${CPPFLAGS} -E ${tcppfile} > ${tcppout} "
-  echo "##  _cpp test: $cmd" >&9
+  setcflags
+  cmd="${CC} ${CFLAGS} -E ${tcppfile} > ${tcppout} "
+  puts "##  _cpp test: $cmd" >&9
   cat ${tcppfile} >&9
   eval $cmd >&9 2>&9
   rc=$?
@@ -192,27 +192,30 @@ _c_chk_cpp () {
     test -f ${cppname}.out && rm -f ${cppname}.out
     ln -s ${tcppout} ${cppname}.out
   fi
-  echo "##      _cpp test: $rc" >&9
+  puts "##      _cpp test: $rc" >&9
   return $rc
 }
 
 _c_chk_link () {
   clname=$1
 
-  cmd="${CC} ${CFLAGS} ${CPPFLAGS} -o ${clname}.exe ${clname}.c "
+  setcflags
+  setldflags
+  setlibs
+  cmd="${CC} ${CFLAGS} -o ${clname}.exe ${clname}.c "
   cmd="${cmd} ${LDFLAGS} ${LIBS} "
   _clotherlibs=$otherlibs
   if [ "${_clotherlibs}" != "" ]; then
     cmd="${cmd} ${_clotherlibs} "
   fi
-  echo "##  _link test: $cmd" >&9
+  puts "##  _link test: $cmd" >&9
   cat ${clname}.c >&9
   eval $cmd >&9 2>&9
   rc=$?
   if [ $rc -lt 0 ]; then
     _exitmkconfig $rc
   fi
-  echo "##      _link test: $rc" >&9
+  puts "##      _link test: $rc" >&9
   if [ $rc -eq 0 ]; then
     if [ ! -x "${clname}.exe" ]; then  # not executable
       rc=1
@@ -231,17 +234,18 @@ _c_chk_compile () {
   >${tcfile}
   # $ccname should be unique
   exec 4>>${tcfile}
-  echo "${precc}" >&4
+  puts "${precc}" >&4
   _c_print_headers $inc >&4
-  echo "${code}" | sed 's/_dollar_/$/g' >&4
+  puts "${code}" | sed 's/_dollar_/$/g' >&4
   exec 4>&-
 
-  cmd="${CC} ${CFLAGS} ${CPPFLAGS} -c ${tcfile}"
-  echo "##  compile test: $cmd" >&9
+  setcflags
+  cmd="${CC} ${CFLAGS} -c ${tcfile}"
+  puts "##  compile test: $cmd" >&9
   cat ${ccname}.c >&9
   eval ${cmd} >&9 2>&9
   rc=$?
-  echo "##  compile test: $rc" >&9
+  puts "##  compile test: $rc" >&9
   return $rc
 }
 

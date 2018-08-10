@@ -13,7 +13,8 @@ dosetup $@
 main () { exit (0); }
 '
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp \
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -compile \
+    -log mkc_compile.log${stag} \
     -e -o c_compiler.exe c_compiler.c
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi

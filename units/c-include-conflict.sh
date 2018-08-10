@@ -36,7 +36,7 @@ check_include_conflict () {
     i2=$3
 
     if [ "${CC}" = "" ]; then
-      echo "No compiler specified" >&2
+      puts "No compiler specified" >&2
       return
     fi
 

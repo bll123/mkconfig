@@ -15,6 +15,9 @@ dosetup $@
 
 /* modified from linux sys/statvfs.h */
 # if __GNUC__
+#  if defined (__THROW)
+#   undef __THROW
+#  endif
 #  define __THROW
 extern int a (__const char *__restrict __file,
       long *__restrict __buf)

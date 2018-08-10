@@ -17,30 +17,48 @@ libnm=""
 objects=""
 grc=0
 doecho=F
-
-for f in $@; do
-  case $f in
-    "-e")
+logfile=mkc_compile.log
+while test $# -gt 0; do
+  case $1 in
+    -e)
+      shift
       doecho=T
       ;;
-    "--")
+    --)
+      shift
+      ;;
+    -log)
+      shift
+      logfile=$1
+      shift
       ;;
     *${OBJ_EXT})
-      if [ ! -f "$f" ]; then
-        echo "## unable to locate $f"
+      tf=$1
+      shift
+      if [ ! -f "$tf" ]; then
+        puts "## unable to locate $tf"
         grc=1
       else
-        doappend objects " $f"
+        doappend objects " $tf"
       fi
       ;;
     *)
+      tf=$1
+      shift
       if [ "$libnm" = "" ]; then
-        libnm=$f
+        libnm=$tf
         continue
       fi
       ;;
   esac
 done
+
+if [ "$logfile" != "" ]; then
+  if [ $logfile -ot mkconfig.log ]; then
+    >$logfile
+  fi
+  exec 9>>$logfile
+fi
 
 locatecmd ranlibcmd ranlib
 locatecmd arcmd ar
@@ -48,7 +66,7 @@ locatecmd lordercmd lorder
 locatecmd tsortcmd tsort
 
 if [ "$arcmd" = "" ]; then
-  echo "## Unable to locate 'ar' command"
+  puts "## Unable to locate 'ar' command"
   grc=1
 fi
 
@@ -61,19 +79,50 @@ if [ $grc -eq 0 ]; then
   fi
   test -f $libfnm && rm -f $libfnm
   cmd="$arcmd cq $libfnm ${objects}"
-  if [ $doecho = "T" ]; then
-    echo $cmd
+  putsnonl "CREATE ${libfnm} ..."
+  if [ "$logfile" != "" ]; then
+    puts "CREATE ${libfnm}" >&9
   fi
-  eval $cmd
-  rc=$?
-  if [ $rc -ne 0 ]; then grc=$rc; fi
-  if [ "$ranlibcmd" != "" ]; then
-    cmd="$ranlibcmd $libfnm"
-    echo $cmd
+  if [ $doecho = "T" ]; then
+    puts ""
+    puts $cmd
+  fi
+  if [ "$logfile" != "" ]; then
+    out=`eval $cmd 2>&1`
+    rc=$?
+    puts "$out" >&9
+    if [ $doecho = T ]; then
+      puts "$out"
+    fi
+  else
     eval $cmd
     rc=$?
-    if [ $rc -ne 0 ]; then grc=$rc; fi
+  fi
+  if [ $rc -ne 0 ]; then
+    grc=$rc
+  fi
+  if [ "$ranlibcmd" != "" ]; then
+    cmd="$ranlibcmd $libfnm"
+    if [ $doecho = "T" ]; then
+      puts $cmd
+    fi
+    if [ "$logfile" != "" ]; then
+      eval $cmd >&9
+      rc=$?
+    else
+      eval $cmd
+      rc=$?
+    fi
+  fi
+  if [ $rc -ne 0 ]; then
+    puts " fail"
+    grc=$rc
+  else
+    puts " ok"
   fi
 fi
 
+if [ "$logfile" != "" ]; then
+  exec 9>&-
+fi
 exit $grc

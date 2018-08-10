@@ -1125,6 +1125,9 @@ check_args
 #define __nonnull__(a,b)
 #define __restrict
 #define __restrict__
+#if defined(__THROW)
+# undef __THROW
+#endif
 #define __THROW
 #define __const const
 ";

@@ -19,14 +19,14 @@ maindoquery () {
 
 chkccompiler () {
   if [ "${CC}" = "" ]; then
-    echo ${EN} " no C compiler; skipped${EC}" >&5
+    putsnonl " no C compiler; skipped" >&5
     exit 0
   fi
 }
 
 chkdcompiler () {
   if [ "${DC}" = "" ]; then
-    echo ${EN} " no D compiler; skipped${EC}" >&5
+    putsnonl " no D compiler; skipped" >&5
     exit 0
   fi
 }
@@ -39,8 +39,11 @@ getsname () {
 
 dosetup () {
   grc=0
-  stag=$1
-  shift
+  stag=""
+  if [ $# -eq 2 ];then
+    stag=$1
+    shift
+  fi
   script=$@
   set -f
 }
@@ -71,7 +74,7 @@ dorunmkc () {
 
 chkccompile () {
   fn=$1
-  ${CC} -c ${CPPFLAGS} ${CFLAGS} ${fn}
+  ${CC} -c ${CFLAGS} ${fn}
   if [ $? -ne 0 ]; then
     echo "## compile of ${fn} failed"
     grc=1

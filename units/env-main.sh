@@ -22,10 +22,10 @@ preconfigfile () {
   pc_configfile=$1
   configfile=$2
 
-  echo "#!/bin/sh"
-  echo "# Created on: `date`"
-  echo "#  From: ${configfile}"
-  echo "#  Using: mkconfig-${_MKCONFIG_VERSION}"
+  puts "#!/bin/sh"
+  puts "# Created on: `date`"
+  puts "#  From: ${configfile}"
+  puts "#  Using: mkconfig-${_MKCONFIG_VERSION}"
   return
 }
 
@@ -71,19 +71,19 @@ output_item () {
   case $name in
     _source_*)
       if [ $val != "0" ]; then
-        echo ". ${val}"
+        puts ". ${val}"
       fi
       ;;
     _setint*|_setstr*|_opt_*)
       tname=$name
       dosubst tname '_setint_' '' '_setstr_' '' '_opt_' ''
-      echo "${tname}=\"${val}\""
-      echo "export ${tname}"
+      puts "${tname}=\"${val}\""
+      puts "export ${tname}"
       ;;
 
     *)
-      echo "${name}=\"${val}\""
-      echo "export ${name}"
+      puts "${name}=\"${val}\""
+      puts "export ${name}"
       ;;
   esac
 }

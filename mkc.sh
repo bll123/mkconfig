@@ -14,37 +14,32 @@ mypath=`echo $0 | sed -e 's,/[^/]*$,,' -e 's,^\.,./.,'`
 _MKCONFIG_DIR=`(cd $mypath;pwd)`
 export _MKCONFIG_DIR
 . ${_MKCONFIG_DIR}/bin/shellfuncs.sh
+. ${_MKCONFIG_DIR}/bin/envfuncs.sh
 
 doshelltest $0 $@
-setechovars
 
 rc=0
 args=$@
 found=T
 case $1 in
-  -compile|-comp|-link|-complink)
-    shift
-    ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/bin/mkcl.sh -d `pwd` $@
+  -compile|-comp|-link)
+    ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/bin/mkcl.sh -d `pwd` "$@"
     rc=$?
+    shift
     ;;
   -staticlib)
     shift
-    ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/bin/mkstaticlib.sh -d `pwd` $@
-    rc=$?
-    ;;
-  -sharedlib)
-    shift
-    ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/bin/mksharedlib.sh -d `pwd` $@
+    ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/bin/mkstaticlib.sh -d `pwd` "$@"
     rc=$?
     ;;
   -setopt)
     shift
-    ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/bin/mkcsetopt.sh -d `pwd` $@
+    ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/bin/mkcsetopt.sh -d `pwd` "$@"
     rc=$?
     ;;
-  -reqlib|-reqlibs)
+  -reqlib)
     shift
-    ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/bin/mkreqlib.sh -d `pwd` $@
+    ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/bin/mkreqlib.sh -d `pwd` "$@"
     rc=$?
     ;;
   *)

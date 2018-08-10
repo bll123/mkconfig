@@ -2,10 +2,10 @@ LICENSE			LICENSE
 README          	README
 VERSION			version
 bin/
+bin/envfuncs.sh		compiler environment helper functions
 bin/mkcsetopt.sh	set options in options file
 bin/mkcl.sh		compile or link
 bin/mkreqlib.sh		required link libraries
-bin/mksharedlib.sh	create a shared library
 bin/mkstaticlib.sh	create a static library
 bin/shellfuncs.sh	mkconfig functions
 bin/testfuncs.sh	test suite functions

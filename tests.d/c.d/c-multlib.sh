@@ -32,8 +32,10 @@ extern int tst2libc ();
 int tst2libb () { tst2libc(); return 0; }
 '
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e -o tst2libb${OBJ_EXT} tst2libb.c
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -staticlib -e \
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -compile \
+    -log mkc_compile.log${stag} -e -o tst2libb${OBJ_EXT} tst2libb.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -staticlib \
+    -log mkc_compile.log${stag} -e \
     libtst2libb tst2libb${OBJ_EXT}
 
 > tst2libc.c echo '
@@ -43,8 +45,10 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -staticlib -e \
 int tst2libc () { printf ("hello world\\n"); return 0; }
 '
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e -o tst2libc${OBJ_EXT} tst2libc.c
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -staticlib -e \
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -compile \
+    -log mkc_compile.log${stag} -e -o tst2libc${OBJ_EXT} tst2libc.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -staticlib \
+    -log mkc_compile.log${stag} -e \
     libtst2libc tst2libc${OBJ_EXT}
 
 dorunmkc reqlibs out.h

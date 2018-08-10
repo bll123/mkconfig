@@ -32,7 +32,7 @@ check_objext () {
 
   CC=${CC:-cc}
 
-  > $TMPF.c echo '
+  > $TMPF.c puts '
   #include <stdio.h>
   main ()
   {
@@ -41,13 +41,13 @@ check_objext () {
   }
 '
 
-  ${CC} ${CFLAGS} ${CPPFLAGS} -c $TMPF.c > /dev/null 2>&1 # don't care about warnings...
+  ${CC} -c $TMPF.c > /dev/null 2>&1 # don't care about warnings...
   OBJ_EXT=".o"
   if [ -f "$TMPF.obj" ]; then
-     echo "object extension is .obj" >&9
+     puts "object extension is .obj" >&9
      OBJ_EXT=".obj"
   else
-     echo "object extension is .o" >&9
+     puts "object extension is .o" >&9
   fi
 
   printyesno_val $name "${OBJ_EXT}"
@@ -64,7 +64,7 @@ check_exeext () {
 
   CC=${CC:-cc}
 
-  > $TMPF.c echo '
+  > $TMPF.c puts '
   #include <stdio.h>
   main ()
   {
@@ -73,14 +73,14 @@ check_exeext () {
   }
 '
 
-  ${CC} ${CFLAGS} ${CPPFLAGS} -o $TMPF $TMPF.c > /dev/null 2>&1 # don't care about warnings
+  ${CC} -o $TMPF $TMPF.c > /dev/null 2>&1 # don't care about warnings
   EXE_EXT=""
   if [ -f "$TMPF.exe" ]
   then
-     echo "executable extension is .exe" >&9
+     puts "executable extension is .exe" >&9
      EXE_EXT=".exe"
   else
-     echo "executable extension is none" >&9
+     puts "executable extension is none" >&9
   fi
 
   printyesno_val $name "${EXE_EXT}"

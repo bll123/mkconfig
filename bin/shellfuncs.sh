@@ -28,17 +28,6 @@ mkconfigversion () {
   echo "mkconfig version ${_MKCONFIG_VERSION}"
 }
 
-setechovars () {
-  EN='-n'
-  EC=''
-  if [ "`echo -n test`" = "-n test" ]; then
-    EN=''
-    EC='\c'
-  fi
-  export EN
-  export EC
-}
-
 dosubst () {
   subvar=$1
   shift
@@ -52,6 +41,26 @@ dosubst () {
   done
   cmd="${subvar}=\`echo \${${subvar}} | sed ${sa}\`"
   eval $cmd;
+}
+
+test_printf () {
+  shhasprintf=0
+  (eval 'printf %s hello >/dev/null') 2>/dev/null
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    shhasprintf=1
+    eval 'putsnonl () { printf %s "$*"; }'
+    eval 'puts () { printf "%s\n" "$*"; }'
+  else
+    _tEN='-n'
+    _tEC=''
+    if [ "`echo -n test`" = "-n test" ]; then
+      _tEN=''
+      _tEC='\c'
+    fi
+    eval 'putsnonl () { echo ${_tEN} "$*"${_tEC}; }'
+    eval 'puts () { echo "$*"; }'
+  fi
 }
 
 test_append () {
@@ -128,6 +137,7 @@ test_lower () {
 }
 
 testshcapability () {
+  test_printf
   test_append
   test_readraw
   test_math

@@ -17,59 +17,50 @@ require_unit env-main
 require_unit env-systype
 
 env_dogetconf=F
-env_dohpflags=F
 _MKCONFIG_32BIT_FLAGS=F
+
+# helper routine
+_setflags () {
+  while test $# -gt 0; do
+    _tvar=$1
+    _tenm=$2
+    shift;shift
+    eval _tval=\$$_tvar
+    dosubst _tval '^ *' ''
+    setdata ${_MKCONFIG_PREFIX} ${_tenm} "$_tval"
+  done
+}
 
 _dogetconf () {
   if [ "$env_dogetconf" = T ]; then
     return
   fi
   if [ ${_MKCONFIG_32BIT_FLAGS} = T ]; then
-    lfccflags=""
-    lfldflags=""
-    lflibs=""
+    lfccflags=
+    lfldflags=
+    lflibs=
     env_dogetconf=T
     return
   fi
 
   locatecmd xgetconf getconf
-  if [ "${xgetconf}" != "" ]
+  if [ z${xgetconf} != z ]
   then
-      echo "using flags from getconf" >&9
+      puts "using flags from getconf" >&9
       lfccflags="`${xgetconf} LFS_CFLAGS 2>/dev/null`"
       if [ "$lfccflags" = undefined ]; then
-        lfccflags=""
+        lfccflags=
       fi
       lfldflags="`${xgetconf} LFS_LDFLAGS 2>/dev/null`"
       if [ "$lfldflags" = undefined ]; then
-        lfldflags=""
+        lfldflags=
       fi
       lflibs="`${xgetconf} LFS_LIBS 2>/dev/null`"
       if [ "$lflibs" = undefined ]; then
-        lflibs=""
+        lflibs=
       fi
   fi
   env_dogetconf=T
-}
-
-_dohpflags () {
-  if [ "$env_dohpflags" = T ]; then
-    return
-  fi
-
-  hpccincludes=""
-  hpldflags=""
-
-  # check for libintl in other places...
-  if [ -d /usr/local/include -a \
-      -d /usr/local/lib ]; then
-    hpccincludes="-I/usr/local/include"
-    hpldflags="-L/usr/local/lib"
-    if [ -d /usr/local/lib/hpux32 ]; then
-      hpldflags="$hpldflags -L/usr/local/lib/hpux32"
-    fi
-  fi
-  env_dohpflags=T
 }
 
 check_32bitflags () {
@@ -103,7 +94,7 @@ check_cc () {
         ;;
   esac
 
-  echo "cc:${CC}" >&9
+  puts "cc:${CC}" >&9
 
   printyesno_val CC "${CC}"
   setdata ${_MKCONFIG_PREFIX} CC "${CC}"
@@ -121,7 +112,7 @@ check_using_gcc () {
   ${CC} -v 2>&1 | grep 'gcc version' > /dev/null 2>&1
   rc=$?
   if [ $rc -eq 0 ]; then
-      echo "found gcc" >&9
+      puts "found gcc" >&9
       usinggcc="Y"
   fi
 
@@ -144,7 +135,7 @@ check_using_clang () {
   ${CC} -v 2>&1 | grep 'clang version' > /dev/null 2>&1
   rc=$?
   if [ $rc -eq 0 ]; then
-      echo "found clang" >&9
+      puts "found clang" >&9
       usingclang="Y"
   fi
 
@@ -167,7 +158,7 @@ check_using_gnu_ld () {
   ld -v 2>&1 | grep 'GNU ld' > /dev/null 2>&1
   rc=$?
   if [ $rc -eq 0 ]; then
-      echo "found gnu ld" >&9
+      puts "found gnu ld" >&9
       usinggnuld="Y"
   fi
 
@@ -176,24 +167,31 @@ check_using_gnu_ld () {
 }
 
 check_cflags () {
-  _read_option CFLAGS ""
-  ccflags="${CFLAGS:-${oval}}"
-  _read_option CINCLUDES ""
-  ccincludes="${CINCLUDES:-${oval}}"
-
-  printlabel CFLAGS "C flags"
-
-  _dogetconf
-
-  gccflags=""
+  cflags_debug=
+  cflags_optimize="-O2"
+  cflags_include=
+  cflags_user=
+  cflags_compiler=
+  cflags_system=
+  cflags_application=
 
   if [ "${_MKCONFIG_USING_GCC}" = Y ]; then
-      echo "set gcc flags" >&9
-      gccflags="-Wall -Waggregate-return -Wconversion -Wformat -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wpointer-arith -Wshadow -Wstrict-prototypes -Wunused -Wno-unknown-pragmas"
-      # -Wextra -Wno-unused-but-set-variable -Wno-unused-parameter
+    puts "set gcc flags" >&9
+    gccflags="-Wall -Waggregate-return -Wconversion -Wformat -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wpointer-arith -Wshadow -Wstrict-prototypes -Wunused -Wno-unknown-pragmas"
+    # -Wextra -Wno-unused-but-set-variable -Wno-unused-parameter
+    case ${CC} in
+      g++|c++)
+        if [ "${_MKCONFIG_USING_GCC}" = Y ]; then
+          puts "set g++ flags" >&9
+          gccflags="-Wall -Waggregate-return -Wconversion -Wformat -Wpointer-arith -Wshadow -Wunused"
+        fi
+        ;;
+    esac
+    doappend cflags_compiler " $gccflags"
   fi
   if [ "${_MKCONFIG_USING_CLANG}" = Y ]; then
-     ccflags="-Wno-unknown-warning-option -Weverything -Wno-padded -Wno-format-nonliteral -Wno-cast-align -Wno-system-headers -Wno-disabled-macro-expansion $ccflags"
+    puts "set clang flags" >&9
+    doappend cflags_compiler " -Wno-unknown-warning-option -Weverything -Wno-padded -Wno-format-nonliteral -Wno-cast-align -Wno-system-headers -Wno-disabled-macro-expansion"
   fi
 
   TCC=${CC}
@@ -204,41 +202,42 @@ check_cflags () {
   case ${_MKCONFIG_SYSTYPE} in
       AIX)
         if [ "${_MKCONFIG_USING_GCC}" = N ]; then
-          ccflags="-qhalt=e $ccflags"
-          ccflags="$ccflags -qmaxmem=-1"
+          doappend cflags_system " -qhalt=e -qmaxmem=-1"
           case ${_MKCONFIG_SYSREV} in
             4.*)
-              ccflags="-DUSE_ETC_FILESYSTEMS=1 $ccflags"
+              doappend cflags_system " -DUSE_ETC_FILESYSTEMS=1"
               ;;
           esac
         fi
         ;;
       FreeBSD)
         # FreeBSD has many packages that get installed in /usr/local
-        ccincludes="-I/usr/local/include $ccincludes"
+        doappend cflags_include " -I/usr/local/include"
         ;;
       HP-UX)
-        if [ "${lfccflags}" = "" -a "${_MKCONFIG_32BIT_FLAGS}" = F ]; then
-            ccflags="-D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 $ccflags"
+        if [ "z${lfccflags}" = z -a "${_MKCONFIG_32BIT_FLAGS}" = F ]; then
+          doappend cflags_system " -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64"
         fi
         case ${TCC} in
           cc)
             case ${_MKCONFIG_SYSREV} in
               *.10.*)
-                ccflags="+DAportable $ccflags"
+                doappend cflags_system " +DAportable"
                 ;;
             esac
             cc -v 2>&1 | grep -l Bundled > /dev/null 2>&1
             rc=$?
             if [ $rc -ne 0 ]; then
-              ccflags="-Ae $ccflags"
+              doappend cflags_system " -Ae"
             fi
-            _MKCONFIG_USING_GCC="N"
+            _MKCONFIG_USING_GCC=N
             ;;
         esac
 
-        _dohpflags
-        ccincludes="$hpccincludes $ccincludes"
+        if [ -d /usr/local/include -a \
+            -d /usr/local/lib ]; then
+          doappend cflags_include " -I/usr/local/include"
+        fi
         ;;
       SunOS)
         case ${_MKCONFIG_SYSREV} in
@@ -248,16 +247,9 @@ check_cflags () {
                 # If solaris is compile w/strict ansi, we get
                 # a work-around for the long long type with
                 # large files.  So we compile w/extensions.
-                ccflags="-Xa -v $ccflags"
+                doappend cflags_system " -Xa -v"
                 # optimization; -xO3 is good. -xO4 must be set by user.
-                ccflags="`echo $ccflags | sed 's,-xO. *,-xO3 ,'`"
-                ccflags="`echo $ccflags | sed 's,-O *,-xO3 ,'`"
-                echo $ccflags | grep -- '-xO3' >/dev/null 2>&1
-                case $rc in
-                    0)
-                        ldflags="-fast $ldflags"
-                        ;;
-                esac
+                cflags_optimize="-xO3"
                 ;;
             esac
             ;;
@@ -265,39 +257,57 @@ check_cflags () {
         ;;
   esac
 
-  case ${CC} in
-    g++|c++)
-      if [ "${_MKCONFIG_USING_GCC}" = Y ]; then
-        echo "set g++ flags" >&9
-        gccflags="-Wall -Waggregate-return -Wconversion -Wformat -Wpointer-arith -Wshadow -Wunused"
-      fi
-      ;;
-  esac
-
-  ccflags="$gccflags $ccflags"
-
   # largefile flags
-  ccflags="$ccflags $lfccflags"
+  doappend cflags_system " $lfccflags"
 
-  echo "ccflags:${ccflags}" >&9
+  _dogetconf
 
-  printyesno_val CFLAGS "$ccflags $ccincludes"
-  setdata ${_MKCONFIG_PREFIX} CFLAGS "$ccflags $ccincludes"
+  # plain CFLAGS will be interpreted as the user's cflags
+  _read_option CFLAGS ""
+  cflags_user=$CFLAGS
+  _read_option CFLAGS_DEBUG ""
+  if [ "z$CFLAGS_DEBUG" != z ]; then
+    cflags_debug="$CFLAGS_DEBUG"
+  fi
+  _read_option CFLAGS_OPTIMIZE ""
+  if [ "z$CFLAGS_OPTIMIZE" != z ]; then
+    cflags_optimize="$CFLAGS_OPTIMIZE"
+  fi
+  _read_option CFLAGS_INCLUDE ""
+  doappend cflags_include " $CFLAGS_INCLUDE"
+  doappend cflags_include " $CPPFLAGS"
+
+  puts "cflags_debug:${cflags_debug}" >&9
+  puts "cflags_optimize:${cflags_optimize}" >&9
+  puts "cflags_include:${cflags_include}" >&9
+  puts "cflags_user:${cflags_user}" >&9
+  puts "cflags_compiler:${cflags_compiler}" >&9
+  puts "cflags_system:${cflags_system}" >&9
+  puts "cflags_application:${cflags_application}" >&9
+
+  _setflags \
+      cflags_debug CFLAGS_DEBUG \
+      cflags_optimize CFLAGS_OPTIMIZE \
+      cflags_user CFLAGS_USER \
+      cflags_include CFLAGS_INCLUDE \
+      cflags_compiler CFLAGS_COMPILER  \
+      cflags_system CFLAGS_SYSTEM \
+      cflags_application CFLAGS_APPLICATION
 }
 
 check_addcflag () {
   name=$1
   flag=$2
-  ccflags="${CFLAGS:-}"
 
-  printlabel CFLAGS "Add C flag: ${flag}"
+  printlabel CFLAGS_APPLICATION "Add C flag: ${flag}"
 
-  echo "#include <stdio.h>
+  puts "#include <stdio.h>
 main () { return 0; }" > t.c
-  echo "# test ${flag}" >&9
+  puts "# test ${flag}" >&9
   # need to set w/all cflags; gcc doesn't always error out otherwise
   TMPF=t$$.txt
-  ${CC} ${ccflags} ${flag} t.c > $TMPF 2>&1
+  setcflags
+  ${CC} ${CFLAGS} ${flag} t.c > $TMPF 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     flag=0
@@ -310,26 +320,27 @@ main () { return 0; }" > t.c
   cat $TMPF >&9
   rm -f $TMPF > /dev/null 2>&1
   printyesno $name ${flag}
-  if [ $flag = 0 ]; then
-    flag=""
+  if [ $flag != 0 ]; then
+    doappend CFLAGS_APPLICATION " $flag"
+    setdata ${_MKCONFIG_PREFIX} CFLAGS_APPLICATION "$CFLAGS_APPLICATION"
   fi
-  setdata ${_MKCONFIG_PREFIX} CFLAGS "$ccflags ${flag}"
 }
 
 check_addldflag () {
   name=$1
   flag=$2
-  ccflags="${CFLAGS:-}"
-  ldflags="${LDFLAGS:-}"
 
-  printlabel LDFLAGS "Add LD flag: ${flag}"
+  printlabel LDFLAGS_APPLICATION "Add LD flag: ${flag}"
 
-  echo "#include <stdio.h>
+  setcflags
+  setldflags
+  setlibs
+  puts "#include <stdio.h>
 main () { return 0; }" > t.c
-  echo "# test ${flag}" >&9
+  puts "# test ${flag}" >&9
   # need to set w/all cflags/ldflags; gcc doesn't always error out otherwise
   TMPF=t$$.txt
-  ${CC} ${ccflags} ${ldflags} ${flag} -o t t.c > $TMPF 2>&1
+  ${CC} ${CFLAGS} ${LDFLAGS} ${flag} -o t t.c > $TMPF 2>&1
   rc=$?
   if [ $rc -ne 0 ]; then
     flag=0
@@ -342,51 +353,58 @@ main () { return 0; }" > t.c
   cat $TMPF >&9
   rm -f $TMPF > /dev/null 2>&1
   printyesno $name ${flag}
-  if [ $flag = 0 ]; then
-    flag=""
+  if [ $flag != 0 ]; then
+    doappend ldflags_application " $flag"
+    _setflags ldflags_application LDFLAGS_APPLICATION
   fi
-  setdata ${_MKCONFIG_PREFIX} LDFLAGS "$ldflags ${flag}"
 }
 
 check_ldflags () {
-  _read_option LDFLAGS ""
-  ldflags="${LDFLAGS:-${oval}}"
-
-  printlabel LDFLAGS "C Load flags"
-
-  _dogetconf
-
   TCC=${CC}
   if [ "${_MKCONFIG_USING_GCC}" = Y ]; then
     TCC=gcc
   fi
 
+  ldflags_debug=
+  ldflags_optimize=
+  ldflags_user=
+  ldflags_compiler=
+  ldflags_system=
+  ldflags_application=
+
+  doappend ldflags_system " $lfldflags"
+
   case ${_MKCONFIG_SYSTYPE} in
       FreeBSD)
         # FreeBSD has many packages that get installed in /usr/local
-        ldflags="-L/usr/local/lib $ldflags"
+        doappend ldflags_system " -L/usr/local/lib"
         ;;
       HP-UX)
-        _dohpflags
-        ldflags="$hpldflags $ldflags"
+        # check for libintl in other places...
+        if [ -d /usr/local/include -a \
+            -d /usr/local/lib ]; then
+          doappend ldflags_system " -L/usr/local/lib"
+          if [ -d /usr/local/lib/hpux32 ]; then
+            doappend ldflags_system " -L/usr/local/lib/hpux32"
+          fi
+        fi
         case ${TCC} in
           cc)
-            ldflags="-Wl,+s $ldflags"
+            doappend ldflags_system " -Wl,+s"
             ;;
         esac
         ;;
       OS/2)
-        ldflags="-Zexe"
+        doappend ldflags_system " -Zexe"
         ;;
       SunOS)
         case ${_MKCONFIG_SYSREV} in
           5.*)
             case ${TCC} in
               cc)
-                echo $CFLAGS | grep -- '-xO3' >/dev/null 2>&1
-                case $rc in
-                    0)
-                        ldflags="-fast $ldflags"
+                case $CFLAGS_OPTIMIZE in
+                    -xO[3456])
+                        ldflags_optimize="-fast"
                         ;;
                 esac
                 ;;
@@ -396,23 +414,42 @@ check_ldflags () {
         ;;
   esac
 
-  ldflags="$ldflags $lfldflags"
+  _dogetconf
 
-  echo "ldflags:${ldflags}" >&9
+  # plain LDFLAGS will be interpreted as the user's ldflags
+  _read_option LDFLAGS ""
+  ldflags_user=$LDFLAGS
+  _read_option LDFLAGS_DEBUG ""
+  if [ "z$LDFLAGS_DEBUG" != z ]; then
+    ldflags_debug="$LDFLAGS_DEBUG"
+  fi
+  _read_option LDFLAGS_OPTIMIZE ""
+  if [ "z$LDFLAGS_OPTIMIZE" != z ]; then
+    ldflags_optimize="$LDFLAGS_OPTIMIZE"
+  fi
 
-  printyesno_val LDFLAGS "$ldflags"
-  setdata ${_MKCONFIG_PREFIX} LDFLAGS "$ldflags"
+  puts "ldflags_debug:${ldflags_debug}" >&9
+  puts "ldflags_optimize:${ldflags_optimize}" >&9
+  puts "ldflags_user:${ldflags_user}" >&9
+  puts "ldflags_compiler:${ldflags_compiler}" >&9
+  puts "ldflags_system:${ldflags_system}" >&9
+  puts "ldflags_application:${ldflags_application}" >&9
+
+  _setflags \
+      ldflags_debug LDFLAGS_DEBUG \
+      ldflags_optimize LDFLAGS_OPTIMIZE \
+      ldflags_user LDFLAGS_USER \
+      ldflags_compiler LDFLAGS_COMPILER \
+      ldflags_system LDFLAGS_SYSTEM \
+      ldflags_application LDFLAGS_APPLICATION
 }
 
 check_libs () {
-  _read_option LIBS ""
-  libs="${LIBS:-${oval}}"
-
-  printlabel LIBS "C Libraries"
-
   _dogetconf
 
-  gccflags=""
+  ldflags_libs_user=
+  ldflags_libs_application=
+  ldflags_libs_system=
 
   TCC=${CC}
   if [ "${_MKCONFIG_USING_GCC}" = Y ]; then
@@ -422,99 +459,125 @@ check_libs () {
   case ${_MKCONFIG_SYSTYPE} in
       BeOS|Haiku)
         # uname -m does not reflect actual architecture
-        libs="-lroot -lbe $libs"
+        doappend ldflags_libs_system " -lroot -lbe"
         ;;
   esac
 
   # largefile flags
-  libs="$libs $lflibs"
+  doappend ldflags_libs_system " $lflibs"
 
-  echo "libs:${libs}" >&9
+  _read_option LIBS ""
+  doappend ldflags_libs_user " $LIBS"
 
-  printyesno_val LIBS "$libs"
-  setdata ${_MKCONFIG_PREFIX} LIBS "$libs"
+  puts "ldflags_libs_user:${ldflags_libs_user}" >&9
+  puts "ldflags_libs_application:${ldflags_libs_application}" >&9
+  puts "ldflags_libs_system:${ldflags_libs_system}" >&9
+
+  _setflags \
+      ldflags_libs_user LDFLAGS_LIBS_USER \
+      ldflags_libs_application LDFLAGS_LIBS_APPLICATION \
+      ldflags_libs_system LDFLAGS_LIBS_SYSTEM
+}
+
+# for backwards compatibility
+check_shcflags () {
+  check_cflags_shared
 }
 
 check_shcflags () {
-  _read_option SHCFLAGS ""
-  shcflags="${SHCFLAGS:-${oval}}"
+  printlabel CFLAGS_SHARED "shared library cflags"
 
-  printlabel SHCFLAGS "shared library cflags"
+  cflags_shared=""
 
-  shcflags="-fPIC $SHCFLAGS"
+  doappend cflags_shared " -fPIC"
   if [ "$_MKCONFIG_USING_GCC" != Y ]; then
     case ${_MKCONFIG_SYSTYPE} in
       CYGWIN*|MSYS*|MINGW*)
-        shcflags="$SHCFLAGS"
         ;;
       Darwin)
-        shcflags="-fno-common $SHCFLAGS"
+        doappend cflags_shared " -fno-common"
         ;;
       HP-UX)
-        shcflags="+Z $SHCFLAGS"
+        doappend cflags_shared " +Z"
         ;;
       IRIX*)
-        shcflags="-KPIC $SHCFLAGS"
+        doappend cflags_shared " -KPIC"
         ;;
       OSF1)
         # none
         ;;
       SCO_SV)
-        shcflags="-KPIC $SHCFLAGS"
+        doappend cflags_shared " -KPIC"
         ;;
       SunOS)
-        shcflags="-KPIC $SHCFLAGS"
+        doappend cflags_shared " -KPIC"
         ;;
       UnixWare)
-        shcflags="-KPIC $SHCFLAGS"
+        doappend cflags_shared " -KPIC"
         ;;
     esac
   fi
 
-  printyesno_val SHCFLAGS "$shcflags"
-  setdata ${_MKCONFIG_PREFIX} SHCFLAGS "$shcflags"
+  _read_option CFLAGS_SHARED ""
+  if [ "z$CFLAGS_SHARED" != z ]; then
+    cflags_shared_user="${CFLAGS_SHARED}"
+  fi
+  printyesno_val CFLAGS_SHARED "$cflags_shared $cflags_shared_user"
+
+  _setflags \
+      cflags_shared CFLAGS_SHARED \
+      cflags_shared_user CFLAGS_SHARED_USER
 }
 
+# for backwards compatibility
 check_shldflags () {
-  _read_option SHLDFLAGS ""
-  shldflags="${SHLDFLAGS:-${oval}}"
-  printlabel SHLDFLAGS "shared library ldflags"
+  check_ldflags_shared
+}
 
-  shldflags="$SHLDFLAGS -shared"
+check_ldflags_shared () {
+  printlabel LDFLAGS_SHARED "shared library ldflags"
+
+  ldflags_shared=-shared
   if [ "$_MKCONFIG_USING_GCC" != Y ]; then
     case ${_MKCONFIG_SYSTYPE} in
       AIX)
-        shldflags="$SHLDFLAGS -G"
+        doappend ldflags_shared " -G"
         ;;
       HP-UX)
-        shldflags="$SHLDFLAGS -b"
+        doappend ldflags_shared " -b"
         ;;
       IRIX*)
         # "-shared"
         ;;
       OSF1)
-        shldflags="-shared -msym -no_archive"
+        doappend ldflags_shared " -msym -no_archive"
         ;;
       SCO_SV)
-        shldflags="$SHLDFLAGS -G"
+        doappend ldflags_shared " -G"
         ;;
       SunOS)
-        shldflags="$SHLDFLAGS -G"
+        doappend ldflags_shared " -G"
         ;;
       UnixWare)
-        shldflags="$SHLDFLAGS -G"
+        doappend ldflags_shared " -G"
         ;;
     esac
   fi
 
   case ${_MKCONFIG_SYSTYPE} in
     Darwin)
-      shldflags="$SHLDFLAGS -dynamiclib"
+      doappend ldflags_shared " -dynamiclib"
       ;;
   esac
 
-  printyesno_val SHLDFLAGS "$shldflags"
-  setdata ${_MKCONFIG_PREFIX} SHLDFLAGS "$shldflags"
+  _read_option LDFLAGS_SHARED ""
+  if [ "z$LDFLAGS_SHARED" != z ]; then
+    ldflags_shared_user="${LDFLAGS_SHARED}"
+  fi
+  printyesno_val LDFLAGS_SHARED "$ldflags_shared $ldflags_shared_user"
+
+  _setflags \
+      ldflags_shared LDFLAGS_SHARED ldflags_shared_user LDFLAGS_SHARED_USER
 }
 
 check_sharednameflag () {
@@ -546,116 +609,125 @@ check_sharednameflag () {
 }
 
 check_shareexeclinkflag () {
-  printlabel SHEXECLINK "shared executable link flag "
+  printlabel LDFLAGS_EXEC_LINK "shared executable link flag "
 
-  SHEXECLINK="-Bdynamic "
+  LDFLAGS_EXEC_LINK="-Bdynamic "
   if [ "$_MKCONFIG_USING_GCC" != Y ]; then
     case ${_MKCONFIG_SYSTYPE} in
       AIX)
-        SHEXECLINK="-brtl -bdynamic "
+        LDFLAGS_EXEC_LINK="-brtl -bdynamic "
         ;;
       Darwin)
-        SHEXECLINK=""
+        LDFLAGS_EXEC_LINK=
         ;;
       HP-UX)
-        SHEXECLINK="+Z"
+        LDFLAGS_EXEC_LINK="+Z"
         ;;
       OSF1)
-        SHEXECLINK="-msym -no_archive "
+        LDFLAGS_EXEC_LINK="-msym -no_archive "
         ;;
       SCO_SV)
-        SHEXECLINK=""
+        LDFLAGS_EXEC_LINK=
         ;;
       SunOS)
         # -Bdynamic
         ;;
       UnixWare)
-        SHEXECLINK=""
+        LDFLAGS_EXEC_LINK=
         ;;
     esac
   fi
 
-  printyesno_val SHEXECLINK "$SHEXECLINK"
-  setdata ${_MKCONFIG_PREFIX} SHEXECLINK "$SHEXECLINK"
+  printyesno_val LDFLAGS_EXEC_LINK "$LDFLAGS_EXEC_LINK"
+  setdata ${_MKCONFIG_PREFIX} LDFLAGS_EXEC_LINK "$LDFLAGS_EXEC_LINK"
 }
 
 check_sharerunpathflag () {
-  printlabel SHRUNPATH "shared run path flag "
+  printlabel LDFLAGS_RUNPATH "shared run path flag "
 
-  SHRUNPATH="-Wl,-rpath="
+  LDFLAGS_RUNPATH="-Wl,-rpath="
   if [ "$_MKCONFIG_USING_GNU_LD" != Y ]; then
     case ${_MKCONFIG_SYSTYPE} in
       AIX)
-        SHRUNPATH=""
+        LDFLAGS_RUNPATH=
         ;;
       Darwin)
-        SHRUNPATH=""
+        LDFLAGS_RUNPATH=
         ;;
       HP-UX)
-        SHRUNPATH="-Wl,+b "
+        LDFLAGS_RUNPATH="-Wl,+b "
         ;;
       IRIX*)
-        SHRUNPATH="-Wl,-rpath "
+        LDFLAGS_RUNPATH="-Wl,-rpath "
         ;;
       OSF1)
-        SHRUNPATH="-rpath "
+        LDFLAGS_RUNPATH="-rpath "
         ;;
       SCO_SV)
-        SHRUNPATH="-Wl,-R "
+        LDFLAGS_RUNPATH="-Wl,-R "
         ;;
       SunOS)
-        SHRUNPATH="-Wl,-R"
+        LDFLAGS_RUNPATH="-Wl,-R"
         ;;
       UnixWare)
-        SHRUNPATH="-Wl,-R "
+        LDFLAGS_RUNPATH="-Wl,-R "
         ;;
     esac
   fi
 
-  printyesno_val SHRUNPATH "$SHRUNPATH"
-  setdata ${_MKCONFIG_PREFIX} SHRUNPATH "$SHRUNPATH"
+  printyesno_val LDFLAGS_RUNPATH "$LDFLAGS_RUNPATH"
+  setdata ${_MKCONFIG_PREFIX} LDFLAGS_RUNPATH "$LDFLAGS_RUNPATH"
 }
 
-check_findincludepath () {
+check_addconfig () {
   name=$1
-  hdr=$2
-  cincludes="${CFLAGS:-}"
-  printlabel CFLAGS "Search for: ${hdr}"
-  sp=""
-  incchk=""
-  pp=`echo $PATH | sed 's/:/ /g'`
-  set $pp
-  for p in $pp $HOME/local/include /usr/local/include /opt/local/include; do
+  evar=$2
+  addto=$3
+  printlabel ADDCONFIG "Add Config: ${evar} ${addto}"
+  eval _tvar="\$$evar"
+  if [ "z$_tvar" != z ]; then
+    printyesno_val $name yes
+    doappend $addto " $_tvar"
+    puts "got: ${evar} ${_tvar}" >&9
+    eval puts "\"$addto: \$$addto\"" >&9
+    ucaddto=$addto
+    toupper ucaddto
+    _setflags $addto $ucaddto
+  else
+    printyesno_val $name no
+  fi
+}
+
+check_findconfig () {
+  name=$1
+  cfile=$2
+  printlabel FINDCONFIG "Search for: ${cfile}"
+  sp=
+  incchk=
+  pp=`puts $PATH | sed 's/:/ /g'`
+  for p in $HOME/local/lib /usr/local/lib /opt/local/lib $pp; do
     td=$p
     case $p in
       */bin)
-        td=`echo $p | sed 's,/bin$,/include,'`
+        td=`puts $p | sed 's,/bin$,/lib,'`
         ;;
     esac
     if [ -d $td ]; then
-      if [ -f "$td/$hdr" ]; then
-        echo "found: ${td}" >&9
+      if [ -f "$td/$cfile.sh" ]; then
+        puts "found: ${td}" >&9
         sp=$td
         break
       fi
-      list=`find $td -name ${hdr} -print 2>/dev/null | grep -v private 2>/dev/null`
-      for tp in $list; do
-        sp=`dirname $tp`
-        echo "find path:${sp}" >&9
-        break
-      done
     fi
   done
 
-  echo "ccflags:${ccflags}" >&9
-  if [ "$sp" != "" ]; then
-    if [ $sp = "/usr/include" ]; then
-      printyesno_val $name "${hdr} yes"
-    else
-      printyesno_val $name "${hdr} -I${sp}"
-      setdata ${_MKCONFIG_PREFIX} CFLAGS "$ccflags -I$sp"
-    fi
+  if [ z$sp != z ]; then
+    printyesno_val $name yes
+    setdata ${_MKCONFIG_PREFIX} config_${cfile} Y
+    setdata ${_MKCONFIG_PREFIX} config_path_${cfile} $sp/$cfile
+    . $sp/$cfile.sh ; # load the environment variables
   else
-    printyesno_val $name "${hdr} no"
+    printyesno_val $name no
+    setdata ${_MKCONFIG_PREFIX} config_${cfile} N
   fi
 }

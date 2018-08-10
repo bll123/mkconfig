@@ -136,8 +136,8 @@ ${inode}"
   systype=`uname -s`
   shelllist=""
   for s in $tshelllist; do
-    echo ${EN} "  check $s${EC}" >&8
-    echo ${EN} "   $s${EC}"
+    putsnonl "  check $s" >&8
+    putsnonl "   $s"
     cmd="$s -c \". $_MKCONFIG_DIR/bin/shellfuncs.sh;chkshell echo\""
     eval $cmd >&8 2>&1
     rc=$?
@@ -177,7 +177,7 @@ runshelltest () {
 
   cd $_MKCONFIG_TSTRUNTMPDIR
   if [ "$_MKCONFIG_SHELL" != "" ]; then
-    echo ${EN} " ${dispshell}${EC}"
+    putsnonl " ${dispshell}"
   fi
   targ=$arg
   if [ "$arg" != "" ]; then
@@ -195,7 +195,7 @@ runshelltest () {
   echo "####" >&9
   exec 9>&-
   if [ $rc -ne 0 -a "$_MKCONFIG_SHELL" != "" ]; then
-    echo ${EN} "*${EC}"
+    putsnonl "*"
   fi
   return $rc
 }
@@ -225,7 +225,6 @@ export _MKC_SH_PL
 
 doshelltest $0 $@
 if [ $SUBDIR = F ]; then
-  setechovars
   mkconfigversion
 fi
 
@@ -386,8 +385,8 @@ while read tline; do
   arg="mkconfig.sh"
 
   scount=""
-  echo ${EN} "$tbase ...${EC}"
-  echo ${EN} "$tbase ...${EC}" >&8
+  putsnonl "$tbase ..."
+  putsnonl "$tbase ..." >&8
   _MKCONFIG_TSTRUNTMPDIR=$_MKCONFIG_RUNTMPDIR/${tbase}
   export _MKCONFIG_TSTRUNTMPDIR
   mkdir ${_MKCONFIG_TSTRUNTMPDIR}
@@ -395,14 +394,14 @@ while read tline; do
     cp $tconfig $_MKCONFIG_TSTRUNTMPDIR/$tconfh
   fi
   tfdisp=`$_MKCONFIG_RUNTESTDIR/$tf -d`
-  echo ${EN} " ${tfdisp}${EC}"
-  echo ${EN} " ${tfdisp}${EC}" >&8
+  putsnonl " ${tfdisp}"
+  putsnonl " ${tfdisp}" >&8
   $_MKCONFIG_RUNTESTDIR/$tf -q
   runshpl=$?
 
   if [ $runshpl -eq $_MKC_SH -o $runshpl -eq $_MKC_SH_PL ]; then
-    echo ${EN} " ...${EC}"
-    echo ${EN} " ...${EC}" >&8
+    putsnonl " ..."
+    putsnonl " ..." >&8
     src=0
     scount=1
     for s in $shelllist; do
@@ -468,12 +467,12 @@ while read tline; do
     echo "# Test: $tf mkconfig.pl" >&9
     echo "# $dt" >&9
     echo "####" >&9
-    echo ${EN} "$tbase ...${EC}"
-    echo ${EN} "$tbase ...${EC}" >&8
-    echo ${EN} " ${tfdisp}${EC}"
-    echo ${EN} " ${tfdisp}${EC}" >&8
-    echo ${EN} " ... perl${EC}"
-    echo ${EN} " ... perl${EC}" >&8
+    putsnonl "$tbase ..."
+    putsnonl "$tbase ..." >&8
+    putsnonl " ${tfdisp}"
+    putsnonl " ${tfdisp}" >&8
+    putsnonl " ... perl"
+    putsnonl " ... perl" >&8
     echo "## Using mkconfig.pl " >&9
     if [ -f $tconfig ]; then
       cp $tconfig $_MKCONFIG_TSTRUNTMPDIR/$tconfh

@@ -82,7 +82,7 @@ _create_enum () {
 
   tenum="${estr}${e1}${type} ${e2}${var} = ${strq}${val}${strq}${e3};"
   if [ $out = T ]; then
-    echo $tenum
+    puts $tenum
   fi
 }
 
@@ -120,41 +120,41 @@ modify_ctypes () {
       -e 's/xcharx/${_c_char}/g' \
       -e 's/xbytex/byte/g'
     "
-  echo "#####  modify_ctypes" >&9
+  puts "#####  modify_ctypes" >&9
 
-#  echo "##### modify_ctypes: before" >&9
-#  echo "$tcode1" >&9
-#  echo "##### modify_ctypes: end before" >&9
+#  puts "##### modify_ctypes: before" >&9
+#  puts "$tcode1" >&9
+#  puts "##### modify_ctypes: end before" >&9
 
-#  echo "##### modify_ctypes: $cmd" >&9
-  eval "${tmcnm1}=\`echo \"\${tcode1}\" | ${cmd}\`" >&9 2>&9
+#  puts "##### modify_ctypes: $cmd" >&9
+  eval "${tmcnm1}=\`puts \"\${tcode1}\" | ${cmd}\`" >&9 2>&9
 
-#  echo "#### modify_ctypes: after" >&9
-#  eval "echo \"\$${tmcnm1}\"" >&9
-#  echo "#### modify_ctypes: end after" >&9
+#  puts "#### modify_ctypes: after" >&9
+#  eval "puts \"\$${tmcnm1}\"" >&9
+#  puts "#### modify_ctypes: end after" >&9
 }
 
 modify_cchglist () {
   tmcnm2=$1
   tcode2=$2
 
-  echo "#####  modify_cchglist" >&9
+  puts "#####  modify_cchglist" >&9
 
-# echo "##### modify_cchglist: before" >&9
-# echo "$tcode2" >&9
-# echo "##### modify_cchglist: end before" >&9
+# puts "##### modify_cchglist: before" >&9
+# puts "$tcode2" >&9
+# puts "##### modify_cchglist: end before" >&9
 
   cmd="sed ${cchglist2} -e 's/a/a/;# could be empty'"
-# echo "##### modify_cchglist: $cmd" >&9
-  eval "tcode2=\`echo \"\${tcode2}\" | ${cmd}\`" >&9 2>&9
+# puts "##### modify_cchglist: $cmd" >&9
+  eval "tcode2=\`puts \"\${tcode2}\" | ${cmd}\`" >&9 2>&9
 
   cmd="sed ${cchglist1} -e 's/a/a/;# could be empty'"
-# echo "##### modify_cchglist: $cmd" >&9
-  eval "tcode2=\`echo \"\${tcode2}\" | ${cmd}\`" >&9 2>&9
+# puts "##### modify_cchglist: $cmd" >&9
+  eval "tcode2=\`puts \"\${tcode2}\" | ${cmd}\`" >&9 2>&9
 
-# echo "#### modify_cchglist: after" >&9
-# echo "${tcode2}" >&9
-# echo "#### modify_cchglist: end after" >&9
+# puts "#### modify_cchglist: after" >&9
+# puts "${tcode2}" >&9
+# puts "#### modify_cchglist: end after" >&9
 
   eval "${tmcnm2}=\"\${tcode2}\""
 }
@@ -163,10 +163,10 @@ modify_ccode () {
   tmcnm3=$1
   tcode3=$2
 
-  echo "##### modify_ccode" >&9
-#  echo "##### modify_ccode: before" >&9
-#  echo "$tcode3" >&9
-#  echo "##### modify_ccode: end before" >&9
+  puts "##### modify_ccode" >&9
+#  puts "##### modify_ccode: before" >&9
+#  puts "$tcode3" >&9
+#  puts "##### modify_ccode: end before" >&9
 
   cmd="
     sed -e 's/[	 ][	 ]*/ /g;# clean up spacing' \
@@ -183,12 +183,12 @@ modify_ccode () {
       -e '# remove spacing before braces' \
       -e 's/[	 ]*\([{}]\)/ \1/;' \
       "
-#  echo "##### modify_ccode: ${cmd}" >&9
-  eval "tcode3=\`echo \"\${tcode3}\" | ${cmd} \`" >&9 2>&9
+#  puts "##### modify_ccode: ${cmd}" >&9
+  eval "tcode3=\`puts \"\${tcode3}\" | ${cmd} \`" >&9 2>&9
 
-#  echo "#### modify_ccode: after A" >&9
-#  echo "${tcode3}" >&9
-#  echo "#### modify_ccode: end after A" >&9
+#  puts "#### modify_ccode: after A" >&9
+#  puts "${tcode3}" >&9
+#  puts "#### modify_ccode: end after A" >&9
 
   modify_cchglist tcode3 "${tcode3}"
 
@@ -218,19 +218,19 @@ modify_ccode () {
     sed -e '/^_END_;$/d; # workaround for sed N above'
     "
 
-#  echo "##### modify_ccode: ${cmd}" >&9
+#  puts "##### modify_ccode: ${cmd}" >&9
 
   # add _END_; as workaround for sed N above
-  eval "tcode3=\`echo \"\${tcode3}
+  eval "tcode3=\`puts \"\${tcode3}
 _END_;\" | ${cmd} \`" >&9 2>&9
   if [ "$DVERSION" = 1 ]; then
     cmd="sed -e 's/const *//g; # remove all const'"
-    eval "tcode3=\`echo \"\${tcode3}\" | ${cmd} \`" >&9 2>&9
+    eval "tcode3=\`puts \"\${tcode3}\" | ${cmd} \`" >&9 2>&9
   fi
 
-#  echo "#### modify_ccode: after B" >&9
-#  echo "${tcode3}" >&9
-#  echo "#### modify_ccode: end after B" >&9
+#  puts "#### modify_ccode: after B" >&9
+#  puts "${tcode3}" >&9
+#  puts "#### modify_ccode: end after B" >&9
 
   eval "${tmcnm3}=\"\${tcode3}\""
 }
@@ -274,15 +274,15 @@ ${cmacros}
 "
   fi
   if [ "${ccode}" != "" ]; then
-    echo ""
+    puts ""
     modify_ccode ccode "${ccode}"
-    echo "${ccode}"
+    puts "${ccode}"
   fi
   if [ "${daliases}" != "" ]; then
-    echo "${daliases}"
+    puts "${daliases}"
   fi
   if [ "${dasserts}" != "" ]; then
-    echo "${dasserts}"
+    puts "${dasserts}"
   fi
 }
 
@@ -308,32 +308,32 @@ preconfigfile () {
   pc_configfile=$1
   configfile=$2
 
-  echo "DC: ${DC}" >&9
-  echo "DVERSION: ${DVERSION}" >&9
-  echo "DFLAGS: ${DFLAGS}" >&9
-  echo "LDFLAGS: ${LDFLAGS}" >&9
-  echo "LIBS: ${LIBS}" >&9
-  echo "DC_OF: ${DC_OF}" >&9
+  puts "DC: ${DC}" >&9
+  puts "DVERSION: ${DVERSION}" >&9
+  puts "DFLAGS: ${DFLAGS}" >&9
+  puts "LDFLAGS: ${LDFLAGS}" >&9
+  puts "LIBS: ${LIBS}" >&9
+  puts "DC_OF: ${DC_OF}" >&9
 
-  echo "// Created on: `date`"
-  echo "//  From: ${configfile}"
-  echo "//  Using: mkconfig-${_MKCONFIG_VERSION}"
+  puts "// Created on: `date`"
+  puts "//  From: ${configfile}"
+  puts "//  Using: mkconfig-${_MKCONFIG_VERSION}"
 
   if [ "$modname" != "" ]; then
-    echo ''
-    echo "module $modname;"
+    puts ''
+    puts "module $modname;"
   fi
 
   if [ "$DVERSION" = 2 ]; then
     getdata tval ${_MKCONFIG_PREFIX} '_import_std_string'
     if [ "$tval" != "0" -a "$tval" != "" ]; then
-      echo ''
-      echo "import std.string;"
+      puts ''
+      puts "import std.string;"
     fi
   fi
   getdata tval ${_MKCONFIG_PREFIX} '_type_string'
   if [ "$tval" = "0" ]; then
-    echo "alias char[] string;"
+    puts "alias char[] string;"
   fi
   if [ "${_MKCONFIG_SYSTYPE}" != "" ]; then
     _create_enum -o string SYSTYPE "${_MKCONFIG_SYSTYPE}"
@@ -347,7 +347,7 @@ preconfigfile () {
   eval $cmd
 
   if [ "${DC}" = "" ]; then
-    echo "No compiler specified" >&2
+    puts "No compiler specified" >&2
     return
   fi
 }
@@ -362,7 +362,7 @@ postconfigfile () {
 
 standard_checks () {
   if [ "${DC}" = "" ]; then
-    echo "No compiler specified" >&2
+    puts "No compiler specified" >&2
     return
   fi
 
@@ -417,8 +417,8 @@ check_import () {
   shift;shift
   reqimp=$*
 
-  nm1=`echo ${imp} | sed -e 's,/.*,,'`
-  nm2="_`echo $imp | sed -e \"s,^${nm1},,\" -e 's,^/*,,'`"
+  nm1=`puts ${imp} | sed -e 's,/.*,,'`
+  nm2="_`puts $imp | sed -e \"s,^${nm1},,\" -e 's,^/*,,'`"
   nm="_${type}_${nm1}"
   if [ "$nm2" != "_" ]; then
     doappend nm $nm2
@@ -968,12 +968,12 @@ check_ctypedef () {
   # check and see if typedef already done by cstruct.
   # check and make sure cstruct was executed.
   getdata tval ${_MKCONFIG_PREFIX} $name
-  echo "## chk:got:$tval: for $name" >&9
+  puts "## chk:got:$tval: for $name" >&9
   if [ "$tval" != 0 -a "$tval" != 1 -a "$tval" != "" ]; then
     getdata ttval ${_MKCONFIG_PREFIX} _cstruct_$tval
-    echo "## chk:got:$ttval: for _cstruct_$tval" >&9
+    puts "## chk:got:$ttval: for _cstruct_$tval" >&9
     if [ "$ttval" = 1 ]; then
-      echo "## already done by cstruct" >&9
+      puts "## already done by cstruct" >&9
       # reset data to 1.
       setdata ${_MKCONFIG_PREFIX} ${name} 1
       printyesno $name "already"
@@ -987,20 +987,20 @@ check_ctypedef () {
   rc=$?
   if [ $rc -eq 0 ]; then
     tdata=`${awkcmd} -f ${_MKCONFIG_DIR}/util/mkcexttypedef.awk ${name}.out ${typname}`
-    tdata=`echo $tdata`  # make single line.
-    echo "## tdata(0): ${tdata}" >&9
+    tdata=`puts $tdata`  # make single line.
+    puts "## tdata(0): ${tdata}" >&9
     if [ "$tdata" != "" ]; then
       trc=1
-      tdata=`echo $tdata | sed -e \
+      tdata=`puts $tdata | sed -e \
         's/^\(.*\)([ 	*]*\([a-zA-Z0-9_][a-zA-Z0-9_]*\)[ 	]*)[ 	]*(\(.*\))[ 	]*;/\1 function(\3) \2;/' \
         -e 's/[ 	]*;/;/'`
-      echo "## tdata(B): ${tdata}" >&9
+      puts "## tdata(B): ${tdata}" >&9
       dosubst tdata typedef alias
-      echo "## tdata(c): ${tdata}" >&9
+      puts "## tdata(c): ${tdata}" >&9
       tta=a
       ttb=b
       if [ $noprefix = T ]; then
-        ttl=`echo $tdata | sed 's/^alias *[sue][trucniom]* *\([a-zA-Z0-9_]*\) *\([a-zA-Z0-9_]*\);/\1 \2/'`
+        ttl=`puts $tdata | sed 's/^alias *[sue][trucniom]* *\([a-zA-Z0-9_]*\) *\([a-zA-Z0-9_]*\);/\1 \2/'`
         set $ttl
         if [ $# -eq 2 ]; then
           tta=$1
@@ -1055,17 +1055,17 @@ _findheader () {
       *.h)
         create_chdr_nm nhdr $thdr
         getdata vhdr ${_MKCONFIG_PREFIX} $nhdr
-        echo "   checking $thdr : $nhdr : $vhdr " >&9
+        puts "   checking $thdr : $nhdr : $vhdr " >&9
         if [ "${vhdr}" != "0" -a "${vhdr}" != "" ]; then
           for p in $cmpaths; do
-            echo "  checking $p/$thdr for $fhpat" >&9
+            puts "  checking $p/$thdr for $fhpat" >&9
             if [ -f $p/$thdr ]; then
               egrep "$fhpat" $p/$thdr >/dev/null 2>&1
               rc=$?
               if [ $rc -eq 0 ]; then
                 fhrc=1
                 fhdr=$p/$thdr
-                echo "  found $fhdr for $mname" >&9
+                puts "  found $fhdr for $mname" >&9
                 break
               fi
             fi
@@ -1096,7 +1096,7 @@ check_cmacro () {
 
   _findheader "define[	 ]*${mname}[^a-zA-Z0-9_]" $@
 
-  echo "  \$@:$@" >&9
+  puts "  \$@:$@" >&9
 
   # eat the rest of the .h args
   while test $# -gt 0; do
@@ -1113,8 +1113,8 @@ check_cmacro () {
 
   if [ $fhrc -eq 1 ]; then
     macro=`${awkcmd} -f ${_MKCONFIG_DIR}/util/mkcextmacro.awk $fhdr ${mname}`
-    echo "  extracted macro: $macro" >&9
-    macro=`echo ${macro} |
+    puts "  extracted macro: $macro" >&9
+    macro=`puts ${macro} |
         sed -e 's/	/ /g;# tab to space' \
         -e 's/^# *define *//' \
         -e 's/\$/; }/' \
@@ -1124,7 +1124,7 @@ check_cmacro () {
         -e 's/^/auto C_MACRO_/' \
         -e 's/\(C_MACRO_[a-zA-Z0-9_]*([^)]*) *\)/\1 { return /' \
         -e 's/\(C_MACRO_[a-zA-Z0-9_]*  *\)/\1 () { return /'`
-    echo "  initial macro: $macro" >&9
+    puts "  initial macro: $macro" >&9
     trc=1
   fi
 
@@ -1135,11 +1135,11 @@ check_cmacro () {
     type=int
   fi
   if [ "$type" = void ]; then
-    macro=`echo ${macro} | sed -e "s/return//"`
+    macro=`puts ${macro} | sed -e "s/return//"`
   fi
   if [ "$DVERSION" = 1 -a $rc -eq 0 -a $trc -eq 1 ]; then
-    macro=`echo ${macro} | sed -e "s/^auto/${type}/"`
-    echo "  macroC: $macro" >&9
+    macro=`puts ${macro} | sed -e "s/^auto/${type}/"`
+    puts "  macroC: $macro" >&9
   fi
 
   tfirst=1
@@ -1147,19 +1147,19 @@ check_cmacro () {
     while test $# -gt 0; do
       type=$1
       if [ $tfirst -eq 1 ]; then
-        macro=`echo ${macro} | sed -e "s/(/(${type} /" `
-        echo "  macroD: $macro" >&9
+        macro=`puts ${macro} | sed -e "s/(/(${type} /" `
+        puts "  macroD: $macro" >&9
         tfirst=0
-        ttype=`echo $type | sed 's/\*/\\\\*/g'`
+        ttype=`puts $type | sed 's/\*/\\\\*/g'`
         tmp="($ttype [a-zA-Z0-9_]*"
       else
-        echo "  tmp: $tmp" >&9
-        cmd="macro=\`echo \${macro} |
+        puts "  tmp: $tmp" >&9
+        cmd="macro=\`puts \${macro} |
             sed -e 's/\(${tmp}\) *, */\\\\1, ${type} /'\`"
-        echo "  cmdE: $cmd" >&9
+        puts "  cmdE: $cmd" >&9
         eval $cmd
-        echo "  macroE: $macro" >&9
-        ttype=`echo $type | sed 's/\*/\\\\*/g'`
+        puts "  macroE: $macro" >&9
+        ttype=`puts $type | sed 's/\*/\\\\*/g'`
         doappend tmp ", ${ttype} [a-zA-Z0-9_]*"
       fi
       shift
@@ -1193,7 +1193,7 @@ check_cstruct () {
 
   nm="_${type}_${s}"
   ctype=$type
-  ctype=`echo $ctype | sed -e 's/^c//'`
+  ctype=`puts $ctype | sed -e 's/^c//'`
   lab=C_ST_
   case $ctype in
     enum)
@@ -1220,14 +1220,14 @@ check_cstruct () {
 
   if [ $rc -eq 0 ]; then
     st=`${awkcmd} -f ${_MKCONFIG_DIR}/util/mkcextstruct.awk -v dcode=T ${name}.out ${s} `
-    echo "#### initial ${ctype}" >&9
-    echo "${st}" >&9
-    echo "#### end initial ${ctype}" >&9
+    puts "#### initial ${ctype}" >&9
+    puts "${st}" >&9
+    puts "#### end initial ${ctype}" >&9
     if [ "${st}" != "" ]; then
       havest=T
-      tst=`echo ${st} | sed -e 's/{.*}/ = /' -e 's/[	]/ /g' -e 's/  / /g' \
+      tst=`puts ${st} | sed -e 's/{.*}/ = /' -e 's/[	]/ /g' -e 's/  / /g' \
           -e 's/^ *//' -e 's/[ ;]*\$//'`
-      echo "### ${ctype} basics:${tst}:" >&9
+      puts "### ${ctype} basics:${tst}:" >&9
       # should now be: [typedef] {struct|union|enum} [name] = [name2]
       if [ "${tst}" != "" ]; then
         set ${tst}
@@ -1246,12 +1246,12 @@ check_cstruct () {
           tdnm=$1
           shift
         fi
-        echo "#### stnm=${stnm}" >&9
+        puts "#### stnm=${stnm}" >&9
         otdnm=$tdnm
         dosubst otdnm '\*' ''
         ttdnm=$tdnm
         dosubst ttdnm '\*' '\\*'
-        echo "#### tdnm=tdnm:${tdnm}:otdnm:${otdnm}:" >&9
+        puts "#### tdnm=tdnm:${tdnm}:otdnm:${otdnm}:" >&9
 
         if [ "$stnm" != "" -o "$otdnm" != "" ]; then
           trc=1
@@ -1263,7 +1263,7 @@ check_cstruct () {
         # remove "struct"
         # remove all const
         # remove blank lines
-        st=`echo "${st}" |
+        st=`puts "${st}" |
             sed -e 's/[	]/ /g' -e 's/  / /g' \
               -e 's/typedef *//' \
               -e "s/${ttdnm} *;/;/; # typedef name or named struct" \
@@ -1274,19 +1274,19 @@ check_cstruct () {
               | grep -v '^ *$' `
         # change all other struct/union/enum to our tag.
         if [ "$stnm" != "" ]; then
-          st=`echo "${st}" |
+          st=`puts "${st}" |
               sed -e "s/${ctype} *${stnm}\\([^a-zA-Z0-9_]\\)/${lab}${stnm}\\1/"`
         fi
-        echo "#### modified ${ctype} (A)" >&9
-        echo ":${st}:" >&9
-        echo "#### end modified ${ctype} (A)" >&9
+        puts "#### modified ${ctype} (A)" >&9
+        puts ":${st}:" >&9
+        puts "#### end modified ${ctype} (A)" >&9
       else
         trc=0
       fi
     fi
 
     if [ $havest = T ]; then
-      echo "### check for nested struct/union/enum" >&9
+      puts "### check for nested struct/union/enum" >&9
 
       # look for any nested structure definitions as changed by
       # the awk extractor and add them to the cchglist.
@@ -1298,16 +1298,16 @@ check_cstruct () {
       while read tsline; do
         case $tsline in
           *struct*{|*union*{|*enum*{)
-            echo "###   found: ${tsline}" >&9
-            ttype=`echo ${tsline} | sed -e 's/^[ const]*\([sue][trucniom]*\) *.*/\1/'`
-            tl=`echo ${tsline} | sed -e "s/^.*${ttype} *\([a-zA-Z0-9_]*\) *{.*/\1/"`
-            tlab=`echo ${tl} | sed 's/^\(C_[STUNEM]*_\).*/\1/'`
-            tl=`echo ${tl} | sed -e "s/^${tlab}//"`
-            echo "###   ttype: ${ttype}" >&9
-            echo "###   tlab: ${tlab}" >&9
-            echo "###   tl: ${tl}" >&9
+            puts "###   found: ${tsline}" >&9
+            ttype=`puts ${tsline} | sed -e 's/^[ const]*\([sue][trucniom]*\) *.*/\1/'`
+            tl=`puts ${tsline} | sed -e "s/^.*${ttype} *\([a-zA-Z0-9_]*\) *{.*/\1/"`
+            tlab=`puts ${tl} | sed 's/^\(C_[STUNEM]*_\).*/\1/'`
+            tl=`puts ${tl} | sed -e "s/^${tlab}//"`
+            puts "###   ttype: ${ttype}" >&9
+            puts "###   tlab: ${tlab}" >&9
+            puts "###   tl: ${tl}" >&9
             if [ "$tl" != "" ]; then
-              st=`echo "${st}" | sed -e "s/${ttype} *${tl}/${tl}/g"`
+              st=`puts "${st}" | sed -e "s/${ttype} *${tl}/${tl}/g"`
               doappend cchglist2 "-e 's/\([^a-zA-Z0-9_]\)${tl}\([^a-zA-Z0-9_]\)/\1${tlab}${tl}\2/g' "
               doappend cchglist2 "-e 's/^${tl}\([^a-zA-Z0-9_]\)/${tlab}${tl}\1/g' "
             fi
@@ -1315,13 +1315,13 @@ check_cstruct () {
             ;;
           *"}"*)
             if [ $inst -ge 1 ]; then
-              tnname=`echo ${tsline} | sed -e 's/.*}[ *]*\([^; ]*\) *;/\1/'`
+              tnname=`puts ${tsline} | sed -e 's/.*}[ *]*\([^; ]*\) *;/\1/'`
               # doesn't handle } w/no semi right.
               if [ "$tnname" != "" -a "$tnname" != "}" ]; then
-                echo "###   tnname:${tnname}:" >&9
+                puts "###   tnname:${tnname}:" >&9
                 doappend cchglist1 "-e 's/->${tnname}\././g' "
                 doappend cchglist1 "-e 's/\.${tnname}\././g' "
-                st=`echo "${st}" | sed -e "s/}[ *]*${tnname} *;/};/"`
+                st=`puts "${st}" | sed -e "s/}[ *]*${tnname} *;/};/"`
               fi
             fi
             domath inst "$inst - 1"
@@ -1346,27 +1346,27 @@ _HERE_
           case $tsline in
             *":"*)
               inbf=1
-              tline=`echo $tsline | sed 's/.*://'`
-              echo $tline | grep sizeof > /dev/null 2>&1
+              tline=`puts $tsline | sed 's/.*://'`
+              puts $tline | grep sizeof > /dev/null 2>&1
               rc=$?
               while test $rc -eq 0; do
-                ttval=`echo $tline | sed -e 's/.*sizeof *( *\([^)]*\) *).*/\1/'`
+                ttval=`puts $tline | sed -e 's/.*sizeof *( *\([^)]*\) *).*/\1/'`
                 tnm="_csiz_${ttval}"
                 dosubst tnm ' ' '_'
                 getdata tval ${_MKCONFIG_PREFIX} $tnm
                 if [ "$tval" = "" ]; then
                   tval=0
                 fi
-                tline=`echo $tline | sed -e "s/\(.*\)sizeof *([^)]*)\(.*\)/\1 ${tval} \2/"`
-                echo $tline | grep sizeof > /dev/null 2>&1
+                tline=`puts $tline | sed -e "s/\(.*\)sizeof *([^)]*)\(.*\)/\1 ${tval} \2/"`
+                puts $tline | grep sizeof > /dev/null 2>&1
                 rc=$?
               done
               # remove casts
-              tline=`echo $tline | \
+              tline=`puts $tline | \
                 sed -e 's/([a-z ]*)//g' -e 's/ *;//' -e 's// /g' -e 's/  / /g'`
               domath tval " $tline "
               domath bftsiz "$bftsiz + $tval"
-              echo "## bf:$tline:$tval:$bftsiz" >&9
+              puts "## bf:$tline:$tval:$bftsiz" >&9
               ;;
             *)
               if [ $inbf -eq 1 ]; then
@@ -1374,7 +1374,7 @@ _HERE_
                   domath tval "$bftsiz % 8"
                   if [ $tval -eq 0 ]; then
                     domath tval "$bftsiz / 8"
-                    echo "## bf:ubyte[$tval] bitfield_${s}${bffcnt};" >&9
+                    puts "## bf:ubyte[$tval] bitfield_${s}${bffcnt};" >&9
                     doappend nst "
  ubyte[$tval] bitfield_${s}${bffcnt};"
                   else
@@ -1395,9 +1395,9 @@ _HERE_
         done << _HERE_
 ${st}
 _HERE_
-        echo "## old st:$st:" >&9
+        puts "## old st:$st:" >&9
         st=$nst
-        echo "## new st:$st:" >&9
+        puts "## new st:$st:" >&9
       fi
 
       ts=$s
@@ -1405,17 +1405,17 @@ _HERE_
         ts=${s}_
       fi
       st=`(
-          echo "${ctype} ${lab}${ts} ";
-          echo "${st}"
+          puts "${ctype} ${lab}${ts} ";
+          puts "${st}"
           )`
-      echo "#### modified ${ctype} (B)" >&9
-      echo "${st}" >&9
-      echo "#### end modified ${ctype} (B)" >&9
+      puts "#### modified ${ctype} (B)" >&9
+      puts "${st}" >&9
+      puts "#### end modified ${ctype} (B)" >&9
 
       # save this for possible later use (cmembertype, cmemberxdr)
       cmd="CST_${s}=\${st}"
       eval $cmd
-      echo "   save: CST_${s}" >&9
+      puts "   save: CST_${s}" >&9
     else
       trc=0
     fi
@@ -1430,7 +1430,7 @@ _HERE_
           if [ "$tstnm" = "" ]; then
             tstnm="${ctype} ${stnm}"  # c language name
           fi
-          echo "#### check size using: ${tstnm}" >&9
+          puts "#### check size using: ${tstnm}" >&9
           code="main () { printf (\"%d\", sizeof (${tstnm})); return (0); }"
           _c_chk_run ${name} "${code}" all
           rc=$?
@@ -1438,7 +1438,7 @@ _HERE_
             _exitmkconfig $rc
           fi
           rval=$_retval
-          echo "#### not enum: rval=${rval}" >&9
+          puts "#### not enum: rval=${rval}" >&9
           if [ $rc -ne 0 ]; then
             trc=0
           fi
@@ -1451,15 +1451,15 @@ _HERE_
 
   if [ $trc -eq 1 ]; then
     if [ "$stnm" != "" ]; then
-      echo "## add to cchglist: -e 's/\([^a-zA-Z0-9_]\)${ctype} *${stnm}\([^a-zA-Z0-9_]\)/\1${lab}${s}\2/g' " >&9
+      puts "## add to cchglist: -e 's/\([^a-zA-Z0-9_]\)${ctype} *${stnm}\([^a-zA-Z0-9_]\)/\1${lab}${s}\2/g' " >&9
       doappend cchglist2 "-e 's/\([^a-zA-Z0-9_]\)${ctype} *${stnm}\([^a-zA-Z0-9_]\)/\1${lab}${s}\2/g' "
-      echo "## add to cchglist: -e 's/^${ctype} *${stnm}\([^a-zA-Z0-9_]\)/${lab}${s}\1/g' " >&9
+      puts "## add to cchglist: -e 's/^${ctype} *${stnm}\([^a-zA-Z0-9_]\)/${lab}${s}\1/g' " >&9
       doappend cchglist2 "-e 's/^${ctype} *${stnm}\([^a-zA-Z0-9_]\)/${lab}${s}\1/g' "
     fi
     if [ $havetypedef = T -a "$otdnm" != "" ]; then
-      echo "## add to cchglist: -e 's/\([^a-zA-Z0-9_]\)${otdnm}\([^a-zA-Z0-9_]\)/\1${lab}${s}\2/g' " >&9
+      puts "## add to cchglist: -e 's/\([^a-zA-Z0-9_]\)${otdnm}\([^a-zA-Z0-9_]\)/\1${lab}${s}\2/g' " >&9
       doappend cchglist1 "-e 's/\([^a-zA-Z0-9_]\)${otdnm}\([^a-zA-Z0-9_]\)/\1${lab}${s}\2/g' "
-      echo "## add to cchglist: -e 's/^${otdnm}\([^a-zA-Z0-9_]\)/${lab}${s}\1/g' " >&9
+      puts "## add to cchglist: -e 's/^${otdnm}\([^a-zA-Z0-9_]\)/${lab}${s}\1/g' " >&9
       doappend cchglist1 "-e 's/^${otdnm}\([^a-zA-Z0-9_]\)/${lab}${s}\1/g' "
     fi
     doappend cstructs "
@@ -1468,7 +1468,7 @@ ${st}
     if [ $havetypedef = T -a "$otdnm" != "" ]; then
       # if noprefix is on, don't alias some name to itself.
       if [ $noprefix = F -o ${s} != ${tdnm} ]; then
-        echo "## add alias: ${lab}${ts} ${tdnm}" >&9
+        puts "## add alias: ${lab}${ts} ${tdnm}" >&9
         setdata ${_MKCONFIG_PREFIX} _ctypedef_${otdnm} $s
         doappend daliases "alias ${lab}${ts} ${tdnm};
 "
@@ -1476,7 +1476,7 @@ ${st}
     fi
     if [ $havetypedef = T -a "$otdnm" != "" -a \
         "$stnm" != "" -a "$stnm" != "$s" ]; then
-      echo "## add alias: ${lab}${ts} ${lab}${stnm}" >&9
+      puts "## add alias: ${lab}${ts} ${lab}${stnm}" >&9
       setdata ${_MKCONFIG_PREFIX} _ctypedef_${stnm} $s
       doappend daliases "alias ${lab}${ts} ${lab}${stnm};
 "
@@ -1534,17 +1534,17 @@ check_cmembertype () {
 
   trc=0
   cmd="st=\${CST_${struct}}"
-  echo "   get: ${cmd}" >&9
+  puts "   get: ${cmd}" >&9
   eval $cmd
   if [ "$st" != "" ]; then
-    echo "  struct ${struct}: ${st}" >&9
-    tmem=`echo "$st" | grep "${member} *;\$"`
+    puts "  struct ${struct}: ${st}" >&9
+    tmem=`puts "$st" | grep "${member} *;\$"`
     rc=$?
-    echo "  found: ${tmem}" >&9
+    puts "  found: ${tmem}" >&9
     if [ $rc -eq 0 ]; then
-      mtype=`echo $tmem | sed -e "s/ *${member} *;$//" -e 's/^ *//'`
-      echo "  type:${mtype}:" >&9
-      echo "  member:${member}:" >&9
+      mtype=`puts $tmem | sed -e "s/ *${member} *;$//" -e 's/^ *//'`
+      puts "  type:${mtype}:" >&9
+      puts "  member:${member}:" >&9
       trc=1
       if [ "${mtype}" != "" -a "${member}" != "" -a \( \
           $noprefix = F -o "${mtype}" != "${member}" \) ]; then
@@ -1574,16 +1574,16 @@ check_cmemberxdr () {
 
   trc=0
   cmd="st=\${CST_${struct}}"
-  echo "   get: ${cmd}" >&9
+  puts "   get: ${cmd}" >&9
   eval $cmd
   if [ "$st" != "" ]; then
-    echo "  struct ${struct}: ${st}" >&9
-    tmem=`echo "$st" | grep "${member} *;\$"`
+    puts "  struct ${struct}: ${st}" >&9
+    tmem=`puts "$st" | grep "${member} *;\$"`
     rc=$?
-    echo "  found: ${tmem}" >&9
+    puts "  found: ${tmem}" >&9
     if [ $rc -eq 0 ]; then
-      mtype=`echo $tmem | sed -e "s/ *${member} *;$//" -e 's/^ *//'`
-      echo "  type: ${mtype}" >&9
+      mtype=`puts $tmem | sed -e "s/ *${member} *;$//" -e 's/^ *//'`
+      puts "  type: ${mtype}" >&9
       trc=1
       doappend daliases "alias xdr_${mtype} xdr_${member};
 "
@@ -1645,62 +1645,62 @@ check_cdcl () {
 
     if [ $trc -eq 1 ]; then
       dcl=`${awkcmd} -f ${_MKCONFIG_DIR}/util/mkcextdcl.awk ${name}.out ${dname}`
-      dcl=`echo $dcl`  # make single line.
-      echo "## dcl(0): ${dcl}" >&9
+      dcl=`puts $dcl`  # make single line.
+      puts "## dcl(0): ${dcl}" >&9
       # extern will be replaced
       # ; may or may not be present, so remove it.
-      cmd="dcl=\`echo \"\$dcl\" | sed -e 's/extern *//' -e 's/;//' \`"
+      cmd="dcl=\`puts \"\$dcl\" | sed -e 's/extern *//' -e 's/;//' \`"
       eval $cmd
       if [ "$DVERSION" = 1 ]; then
         dosubst dcl 'const' ''
       fi
-      echo "## dcl(A): ${dcl}" >&9
-      echo $dcl | grep __asm__ > /dev/null 2>&1
+      puts "## dcl(A): ${dcl}" >&9
+      puts $dcl | grep __asm__ > /dev/null 2>&1
       rc=$?
       dclren=""
       if [ $rc -eq 0 ]; then
-        dclren=`echo $dcl | sed -e 's/.*__asm__[ 	]*("" "\([a-z0-9A-Z_]*\)")/\1/'`
+        dclren=`puts $dcl | sed -e 's/.*__asm__[ 	]*("" "\([a-z0-9A-Z_]*\)")/\1/'`
       fi
-      echo "## dclren: ${dclren}" >&9
+      puts "## dclren: ${dclren}" >&9
       if [ "$dclren" != "" ]; then
         doappend daliases "alias ${dclren} ${dname};
 "
-        cmd="dcl=\`echo \"\$dcl\" | \
+        cmd="dcl=\`puts \"\$dcl\" | \
             sed -e 's/[ 	]*__asm__[ 	]*([^)]*)[ 	]*//' \
             -e 's/\([ \*]\)${dname}\([ (]\)/\1${dclren}\2/' \`"
         eval $cmd
-        echo "## dcl(B): ${dcl}" >&9
+        puts "## dcl(B): ${dcl}" >&9
       fi
-      cmd="dcl=\`echo \"\$dcl\" | sed -e 's/( *void *)/()/' \`"
+      cmd="dcl=\`puts \"\$dcl\" | sed -e 's/( *void *)/()/' \`"
       eval $cmd
-      echo "## dcl(C): ${dcl}" >&9
+      puts "## dcl(C): ${dcl}" >&9
       tdcl=$dcl
       modify_ctypes tdcl "${tdcl}"
       modify_cchglist tdcl "${tdcl}"    # need any struct renames for args
-      echo "## tdcl(D): ${tdcl}" >&9
+      puts "## tdcl(D): ${tdcl}" >&9
       if [ $argflag = 1 ]; then
-        c=`echo ${tdcl} | sed 's/[^,]*//g'`
-        ccount=`echo ${EN} "$c${EC}" | wc -c`
+        c=`puts ${tdcl} | sed 's/[^,]*//g'`
+        ccount=`putsnonl "$c" | wc -c`
         domath ccount "$ccount + 1"  # 0==1 also, unfortunately
-        c=`echo ${tdcl} | sed 's/^[^(]*(//'`
-        c=`echo ${c} | sed 's/)[^)]*$//'`
-        echo "## c(E): ${c}" >&9
+        c=`puts ${tdcl} | sed 's/^[^(]*(//'`
+        c=`puts ${c} | sed 's/)[^)]*$//'`
+        puts "## c(E): ${c}" >&9
         val=1
         while test "${c}" != ""; do
           tmp=$c
-          tmp=`echo ${c} | sed -e 's/ *,.*$//' -e 's/[	 ]/ /g'`
+          tmp=`puts ${c} | sed -e 's/ *,.*$//' -e 's/[	 ]/ /g'`
           dosubst tmp 'struct ' 'struct#' 'union ' 'union#' 'enum ' 'enum#'
           # only do the following if the names of the variables are declared
-          echo ${tmp} | grep ' ' > /dev/null 2>&1
+          puts ${tmp} | grep ' ' > /dev/null 2>&1
           rc=$?
           if [ $rc -eq 0 ]; then
-            tmp=`echo ${tmp} | sed -e 's/ *[A-Za-z0-9_]*$//'`
+            tmp=`puts ${tmp} | sed -e 's/ *[A-Za-z0-9_]*$//'`
           fi
           dosubst tmp 'struct#' 'struct ' 'union#' 'union ' 'enum#' 'enum '
           if [ $noconst = T ]; then
-            tmp=`echo ${tmp} | sed -e 's/const *//'`
+            tmp=`puts ${tmp} | sed -e 's/const *//'`
           fi
-          echo "## tmp(F): ${tmp}" >&9
+          puts "## tmp(F): ${tmp}" >&9
           nm="_c_arg_${val}_${dname}"
           setdata ${_MKCONFIG_PREFIX} ${nm} "${tmp}"
           case ${tmp} in
@@ -1712,16 +1712,16 @@ check_cdcl () {
               ;;
           esac
           domath val "$val + 1"
-          c=`echo ${c} | sed -e 's/^[^,]*//' -e 's/^[	 ,]*//'`
+          c=`puts ${c} | sed -e 's/^[^,]*//' -e 's/^[	 ,]*//'`
         done
         tname=${dclren:-$dname}
-        echo "## tname(G): ${tname} ($dname - $dclren)" >&9
-        c=`echo ${tdcl} | sed -e 's/[ 	]/ /g' \
+        puts "## tname(G): ${tname} ($dname - $dclren)" >&9
+        c=`puts ${tdcl} | sed -e 's/[ 	]/ /g' \
             -e "s/\([ \*]\)${tname}[ (].*/\1/" \
             -e 's/^ *//' \
             -e 's/ *$//'`
         if [ $noconst = T ]; then
-          c=`echo ${c} | sed -e 's/const *//'`
+          c=`puts ${c} | sed -e 's/const *//'`
         fi
         nm="_c_type_${dname}"
         setdata ${_MKCONFIG_PREFIX} ${nm} "${c}"

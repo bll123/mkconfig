@@ -29,7 +29,8 @@ if [ $grc -eq 0 ]; then
 int main (char[][] args) { return 0; }
 '
 
-  ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -comp -e -c ${DC} \
+  ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -compile \
+      -log mkc_compile.log${stag} -e -c ${DC} \
       -o d_compiler.exe d_compiler.d >&9
   rc=$?
   if [ $rc -ne 0 ]; then

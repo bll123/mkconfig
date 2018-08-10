@@ -41,7 +41,7 @@ if [ $rc -ne 0 ]; then
 fi
 
 if [ "$DASH_N_SUPPORTED" = F ]; then
-  echo ${EN} "(skip)${EC}" >&5
+  putsnonl "(skip)" >&5
   exit 0
 fi
 

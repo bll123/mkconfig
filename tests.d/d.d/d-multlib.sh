@@ -22,28 +22,32 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
 int mlib2_f () { return 0; }
 '
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -c ${DC} -o mlib2${OBJ_EXT} mlib2.d >&9
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -compile \
+    -log mkc_compile.log${stag} -c ${DC} -o mlib2${OBJ_EXT} mlib2.d >&9
 if [ $? -ne 0 ]; then
   echo "## compile mlib2.d failed"
   exit 1
 fi
 test -f libmlib2.a && rm -f libmlib2.a
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` \
-    -staticlib libmlib2 mlib2${OBJ_EXT} >&9
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -staticlib \
+    -log mkc_compile.log${stag} \
+    libmlib2 mlib2${OBJ_EXT} >&9
 
 > mlib1.d echo '
 import mlib2;
 int mlib1_f () { mlib2_f(); return 0; }
 '
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -o mlib1${OBJ_EXT} -c ${DC} mlib1.d >&9
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -compile \
+    -log mkc_compile.log${stag} -o mlib1${OBJ_EXT} -c ${DC} mlib1.d >&9
 if [ $? -ne 0 ]; then
   echo "compile mlib1.d failed"
   exit 1
 fi
 test -f libmlib1.a && rm -f libmlib1.a
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` \
-    -staticlib libmlib1 mlib1${OBJ_EXT} >&9
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -staticlib \
+    -log mkc_compile.log${stag} \
+    libmlib1 mlib1${OBJ_EXT} >&9
 
 dorunmkc reqlibs out.d
 

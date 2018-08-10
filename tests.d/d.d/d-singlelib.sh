@@ -22,14 +22,16 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkconfig.sh -d `pwd` \
 int slib1_f () { return 0; }
 '
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -c ${DC} -o slib1${OBJ_EXT} slib1.d >&9
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -compile \
+    -log mkc_compile.log${stag} -c ${DC} -o slib1${OBJ_EXT} slib1.d >&9
 if [ $? -ne 0 ]; then
   echo "## compile slib1.d failed"
   exit 1
 fi
 test -f libslib1.a && rm -f libslib1.a
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` \
-    -staticlib libslib1 slib1${OBJ_EXT} >&9
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -staticlib \
+    -log mkc_compile.log${stag} \
+    libslib1 slib1${OBJ_EXT} >&9
 
 dorunmkc reqlibs out.d
 

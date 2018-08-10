@@ -39,7 +39,8 @@ i=1
 
 int mkct${i} () { return 1; }
 "
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e -o mkct${i}${OBJ_EXT} mkct${i}.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -compile -shared \
+    -log mkc_compile.log${stag} -e -o mkct${i}${OBJ_EXT} mkct${i}.c
 
 i=2
 > mkct${i}.c echo "
@@ -57,7 +58,8 @@ int mkct${i} () { int i; i = 0;
     i += mkct1(); i += 2;
     return i; }
 "
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e -o mkct${i}${OBJ_EXT} mkct${i}.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -compile -shared \
+    -log mkc_compile.log${stag} -e -o mkct${i}${OBJ_EXT} mkct${i}.c
 
 i=3
 > mkct${i}.c echo "
@@ -75,7 +77,8 @@ int mkct${i} () { int i; i = 0;
     i += mkct2(); i += 3;
     return i; }
 "
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e -o mkct${i}${OBJ_EXT} mkct${i}.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -compile -shared \
+    -log mkc_compile.log${stag} -e -o mkct${i}${OBJ_EXT} mkct${i}.c
 
 i=4
 > mkct${i}.c echo "
@@ -93,7 +96,8 @@ int mkct${i} () { int i; i = 0;
     i += mkct3(); i += 4;
     return i; }
 "
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e -o mkct${i}${OBJ_EXT} mkct${i}.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -compile -shared \
+    -log mkc_compile.log${stag} -e -o mkct${i}${OBJ_EXT} mkct${i}.c
 
 i=5
 > mkct${i}.c echo "
@@ -111,7 +115,8 @@ int mkct${i} () { int i; i = 0;
     i += mkct4();
     return i; }
 "
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e -o mkct${i}${OBJ_EXT} -- mkct${i}.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -compile -shared \
+    -log mkc_compile.log${stag} -e -o mkct${i}${OBJ_EXT} -- mkct${i}.c
 
 i=6
 > mkct${i}.c echo '
@@ -127,36 +132,43 @@ i=6
 extern int mkct5 _((void));
 main () { int i, j; i = mkct5(); j = 1; if (i == 10) { j = 0; } return j; }
 '
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -comp -e -o mkct${i}${OBJ_EXT} mkct${i}.c
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -compile -shared \
+    -log mkc_compile.log${stag} -e -o mkct${i}${OBJ_EXT} mkct${i}.c
 
 grc=0
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -sharedlib \
-    -e libmkct1 mkct1${OBJ_EXT}
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -link -shared \
+    -log mkc_compile.log${stag} \
+    -e -o libmkct1${SHLIB_EXT} mkct1${OBJ_EXT} -L.
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -sharedlib \
-    -e libmkct2 mkct2${OBJ_EXT} -L. -lmkct1
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -link -shared \
+    -log mkc_compile.log${stag} \
+    -e -o libmkct2${SHLIB_EXT} mkct2${OBJ_EXT} -L. -lmkct1
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -sharedlib \
-    -e libmkct3 mkct3${OBJ_EXT} -L. -lmkct2
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -link -shared \
+    -log mkc_compile.log${stag} \
+    -e -o libmkct3${SHLIB_EXT} mkct3${OBJ_EXT} -L. -lmkct2
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -sharedlib \
-    -e libmkct4 mkct4${OBJ_EXT} -L. -lmkct3
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -link -shared \
+    -log mkc_compile.log${stag} \
+    -e -o libmkct4${SHLIB_EXT} mkct4${OBJ_EXT} -L. -lmkct3
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -sharedlib \
-    -e libmkct5 mkct5${OBJ_EXT} -L. -lmkct4
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -link -shared \
+    -log mkc_compile.log${stag} \
+    -e -o libmkct5${SHLIB_EXT} mkct5${OBJ_EXT} -L. -lmkct4
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -link -e -c ${CC} \
+${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -link -exec \
+    -log mkc_compile.log${stag} -e -c ${CC} \
     -o mkct6a${EXE_EXT} -- mkct6${OBJ_EXT} -L. -lmkct5
 eval $cmd
 rc=$?

@@ -1,4 +1,4 @@
-mkconfig - configuration tool (version 1.31)
+mkconfig - configuration tool (version 2.0.0)
 
 Website: https://gentoo.com/di/mkconfig.html
 SourceForge: https://sourceforge.net/projects/mkconfig/
@@ -19,14 +19,19 @@ TESTING
       Debian 6 [64bit] (dmd2)
 
 ISSUES
-    - CFLAGS
-      Needs to be reworked to separate CFLAGS in different categories.
-      Standard, Application, User, Extra, etc.
     - D Compiler bugs:
       ldc2 has structure size problems on 64bit (issue #28).
       gdc 4.6.3 (LinuxMint) has structure size problems on 64bit.
 
 CHANGES
+
+    2.0.0                                   [--]
+        env-cc: split CFLAGS, LDFLAGS, LIBS into multiple environment
+          variables for easier processing. D language is probably broken.
+        Clean output style for mkcl.sh.
+        Added compile log file.
+        Added 'findconfig' and 'addconfig' commands.
+        Removed 'findincludefile' command.
 
     1.31                                    [2018-4-11]
         env-cc: update findincludepath to search more common paths.

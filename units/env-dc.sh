@@ -22,7 +22,7 @@ check_dc () {
 
   printlabel DC "D compiler"
 
-  echo "dc:${DC}" >&9
+  puts "dc:${DC}" >&9
 
   case ${DC} in
     *ldc*|*ldmd*)
@@ -70,7 +70,7 @@ check_dc () {
       ;;
   esac
 
-  > tv.d echo '
+  > tv.d puts '
 int main (char[][] args) {
   version (D_Version2) { return 2; }
   version (D_Version3) { return 3; }
@@ -101,7 +101,7 @@ int main (char[][] args) {
     esac
   fi
   if [ $grc -ne 0 ]; then
-    echo "## Failure to determine D version"
+    puts "## Failure to determine D version"
     exit 1
   fi
   setdata ${_MKCONFIG_PREFIX} DVERSION $dver
@@ -120,7 +120,7 @@ check_using_gdc () {
   rc=$?
   if [ $rc -eq 0 ]
   then
-      echo "found gdc" >&9
+      puts "found gdc" >&9
       usinggdc="Y"
   fi
 
@@ -146,7 +146,7 @@ check_dflags () {
 
   if [ "${_MKCONFIG_USING_GDC}" = "Y" ]
   then
-      echo "set gdc flags" >&9
+      puts "set gdc flags" >&9
       gdcflags=""
   fi
 
@@ -158,7 +158,7 @@ check_dflags () {
 
   dflags="$gdcflags $dflags"
 
-  echo "dflags:${dflags}" >&9
+  puts "dflags:${dflags}" >&9
 
   printyesno_val DFLAGS "$dflags"
   setdata ${_MKCONFIG_PREFIX} DFLAGS "$dflags"

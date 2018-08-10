@@ -26,9 +26,9 @@ mypath=`echo $0 | sed -e 's,/[^/]*$,,' -e 's,^\.,./.,'`
 _MKCONFIG_DIR=`(cd $mypath;pwd)`
 export _MKCONFIG_DIR
 . ${_MKCONFIG_DIR}/bin/shellfuncs.sh
+. ${_MKCONFIG_DIR}/bin/envfuncs.sh
 
 doshelltest $0 $@
-setechovars
 
 LOG="mkconfig.log"
 _MKCONFIG_TMP="_tmp_mkconfig"
@@ -42,7 +42,7 @@ INC="mkcinclude.txt"                   # temporary
 
 _chkconfigfname () {
   if [ "$CONFH" = "" ]; then
-    echo "Config file name not set.  Exiting."
+    puts "Config file name not set.  Exiting."
     _exitmkconfig 1
   fi
 }
@@ -62,22 +62,22 @@ _savecache () {
     # Any value that actually ends with an '=' is going to get mangled.
     #savecachedebug=F
     #if [ $savecachedebug = T ]; then
-    #  echo "## savecache original"
+    #  puts "## savecache original"
     #  set | grep "^mkc_"
-    #  echo "## savecache A"
+    #  puts "## savecache A"
     #  set | grep "^mkc_" | \
     #    sed -e "s/=/='/"
-    #  echo "## savecache B"
+    #  puts "## savecache B"
     #  set | grep "^mkc_" | \
     #    sed -e "s/=/='/" -e "s/$/'/"
-    #  echo "## savecache C"
+    #  puts "## savecache C"
     #  set | grep "^mkc_" | \
     #    sed -e "s/=/='/" -e "s/$/'/" -e "s/''/'/g"
-    #  echo "## savecache D"
+    #  puts "## savecache D"
     #  set | grep "^mkc_" | \
     #    sed -e "s/=/='/" -e "s/$/'/" -e "s/''/'/g" \
     #    -e "s/^\([^=]*\)='$/\1=''/"
-    #  echo "## savecache E"
+    #  puts "## savecache E"
     #  set | grep "^mkc_" | \
     #    sed -e "s/=/='/" -e "s/$/'/" -e "s/''/'/g" \
     #    -e "s/^\([^=]*\)='$/\1=''/" -e "s/='\$'/='/"
@@ -107,12 +107,12 @@ setvar () {
     rc=$?
     # if already in the list of vars, don't add it to the file again.
     if [ $rc -ne 0 ]; then
-      echo ${svname} >&8
+      puts ${svname} >&8
     fi
 
     cmd="mkv_${prefix}_${svname}=T"
     eval $cmd
-    echo "   setvar: $cmd" >&9
+    puts "   setvar: $cmd" >&9
 }
 
 setdata () {
@@ -126,7 +126,7 @@ setdata () {
 
     cmd="mkc_${prefix}_${sdname}=\"${sdval}\""
     eval $cmd
-    echo "   setdata: $cmd" >&9
+    puts "   setdata: $cmd" >&9
     setvar $prefix $sdname
 }
 
@@ -153,8 +153,8 @@ printlabel () {
   tname=$1
   tlabel=$2
 
-  echo "   $ifleveldisp[${tname}] ${tlabel} ... " >&9
-  echo ${EN} "${ifleveldisp}${tlabel} ... ${EC}" >&1
+  puts "   $ifleveldisp[${tname}] ${tlabel} ... " >&9
+  putsnonl "${ifleveldisp}${tlabel} ..." >&1
 }
 
 _doexport () {
@@ -172,8 +172,8 @@ printyesno_actual () {
   ynval=$2
   yntag=${3:-}
 
-  echo "   [${ynname}] $ynval ${yntag}" >&9
-  echo "$ynval ${yntag}" >&1
+  puts "   [${ynname}] $ynval ${yntag}" >&9
+  puts " $ynval ${yntag}" >&1
 }
 
 printyesno_val () {
@@ -240,8 +240,8 @@ _loadoptions () {
           ;;
       esac
 
-      topt=`echo $o | sed 's/=.*//'`
-      tval=`echo $o | sed 's/.*=//'`
+      topt=`puts "$o" | sed 's/=.*//'`
+      tval=`puts "$o" | sed 's/.*=//'`
       eval "_mkc_opt_${topt}=\"${tval}\""
     done
     exec <&6 6<&-
@@ -322,7 +322,7 @@ check_ifoption () {
         found=T
         trc=$tval
         tolower trc
-        echo "  found option: $oopt $trc" >&9
+        puts "  found option: $oopt $trc" >&9
         if [ "$trc" = t ]; then trc=1; fi
         if [ "$trc" = f ]; then trc=0; fi
         if [ "$trc" = enable ]; then trc=1; fi
@@ -364,7 +364,7 @@ check_if () {
     printlabel $name, "if ($ifdispcount): $iflabel";
 
     boolclean ifline
-    echo "## ifline: $ifline" >&9
+    puts "## ifline: $ifline" >&9
 
     trc=0  # if option is not set, it's false
 
@@ -373,16 +373,16 @@ check_if () {
     qtoken=""
     quoted=0
     for token in $ifline; do
-      echo "## token: $token" >&9
+      puts "## token: $token" >&9
 
       case $token in
         \'*\')
-          token=`echo $token | sed -e s,\',,g`
-          echo "## begin/end quoted token" >&9
+          token=`puts $token | sed -e s,\',,g`
+          puts "## begin/end quoted token" >&9
           ;;
         \'*)
           qtoken=$token
-          echo "## begin qtoken: $qtoken" >&9
+          puts "## begin qtoken: $qtoken" >&9
           quoted=1
           continue
           ;;
@@ -392,13 +392,13 @@ check_if () {
         case $token in
           *\')
             token="${qtoken} $token"
-            token=`echo $token | sed -e s,\',,g`
-            echo "## end qtoken: $token" >&9
+            token=`puts $token | sed -e s,\',,g`
+            puts "## end qtoken: $token" >&9
             quoted=0
             ;;
           *)
             qtoken="$qtoken $token"
-            echo "## in qtoken: $qtoken" >&9
+            puts "## in qtoken: $qtoken" >&9
             continue
             ;;
         esac
@@ -430,13 +430,13 @@ check_if () {
 
     if [ "$ifline" != "" ]; then
       dosubst nline '(' '\\\\\\(' ')' '\\\\\\)'
-      echo "## nline: $nline" >&9
+      puts "## nline: $nline" >&9
       eval $nline
       trc=$?
-      echo "## eval nline: $trc" >&9
+      puts "## eval nline: $trc" >&9
       # replace w/ shell return
       if [ $trc -eq 0 ]; then trc=1; else trc=0; fi
-      echo "## eval nline final: $trc" >&9
+      puts "## eval nline final: $trc" >&9
     fi
 
     texp=$_MKCONFIG_EXPORT
@@ -484,7 +484,7 @@ _read_option () {
     eval tval=\$_mkc_opt_${onm}
     if [ "$tval" != "" ]; then
       found=T
-      echo "  found option: $onm $tval" >&9
+      puts "  found option: $onm $tval" >&9
       oval="$tval"
     fi
   fi
@@ -508,12 +508,12 @@ check_option () {
 check_echo () {
   val=$1
 
-  echo "## echo: $val" >&9
-  echo "$val" >&1
+  puts "## echo: $val" >&9
+  puts "$val" >&1
 }
 
 check_exit () {
-  echo "## exit" >&9
+  puts "## exit" >&9
   _exitmkconfig 5
 }
 
@@ -535,8 +535,8 @@ _doloadunit () {
    tag=" (dependency)"
   fi
   if [ -f ${_MKCONFIG_DIR}/units/${lu}.sh ]; then
-    echo "load-unit: ${lu} ${tag}" >&1
-    echo "   found ${lu} ${tag}" >&9
+    puts "load-unit: ${lu} ${tag}" >&1
+    puts "   found ${lu} ${tag}" >&9
     . ${_MKCONFIG_DIR}/units/${lu}.sh
     tlu=$lu
     dosubst tlu '-' '_'
@@ -556,10 +556,10 @@ require_unit () {
     cmd="val=\$_MKCONFIG_UNIT_${trqu}"
     eval $cmd
     if [ "$val" = Y ]; then
-      echo "   required unit ${rqu} already loaded" >&9
+      puts "   required unit ${rqu} already loaded" >&9
       continue
     fi
-    echo "   required unit ${rqu} needed" >&9
+    puts "   required unit ${rqu} needed" >&9
     _doloadunit $rqu Y
   done
 }
@@ -567,7 +567,7 @@ require_unit () {
 _create_output () {
 
   if [ ${CONFH} != none ]; then
-    confdir=`echo ${CONFH} | sed -e 's,/[^/]*$,,'`
+    confdir=`puts ${CONFH} | sed -e 's,/[^/]*$,,'`
     test -d $confdir || mkdir -p $confdir
 
     > ${CONFH}
@@ -646,7 +646,7 @@ main_process () {
   while read ${rawarg} tdatline; do
     resetifs
     domath linenumber "$linenumber + 1"
-    echo "#### ${linenumber}: ${tdatline}" >&9
+    puts "#### ${linenumber}: ${tdatline}" >&9
 
     if [ $ininclude -eq 1 ]; then
       if [ "${tdatline}" = endinclude ]; then
@@ -657,10 +657,10 @@ main_process () {
         if [ $shreqreadraw -eq 1 ]; then
           # have to do our own backslash processing.
           # backquotes suck.
-          tdatline=`echo "${tdatline}" |
+          tdatline=`puts "${tdatline}" |
               sed -e 's/\\\\\\([^\\\\]\\)/\\1/g' -e 's/\\\\\\\\/\\\\/g'`
         fi
-        echo "${tdatline}" >> $INC
+        puts "${tdatline}" >> $INC
       fi
     else
       case ${tdatline} in
@@ -671,7 +671,7 @@ main_process () {
           continue
           ;;
         *)
-          echo "#### ${linenumber}: ${tdatline}" >&9
+          puts "#### ${linenumber}: ${tdatline}" >&9
           ;;
       esac
     fi
@@ -686,34 +686,34 @@ main_process () {
             iflevels=$@
             iflevels="-$ifstmtcount $iflevels"
             _setifleveldisp
-            echo "## else: ifcurrlvl: $ifcurrlvl doif: $doif doproc:$doproc" >&9
-            echo "## else: iflevels: $iflevels" >&9
+            puts "## else: ifcurrlvl: $ifcurrlvl doif: $doif doproc:$doproc" >&9
+            puts "## else: iflevels: $iflevels" >&9
           else
-            echo "## else: ifcurrlvl: $ifcurrlvl doif: $doif doproc:$doproc" >&9
+            puts "## else: ifcurrlvl: $ifcurrlvl doif: $doif doproc:$doproc" >&9
           fi
           ;;
         "if "*|"ifoption"*|"ifnotoption"*)
           if [ $doproc -eq 0 ]; then
             domath ifcurrlvl "$ifcurrlvl + 1"
-            echo "## if: ifcurrlvl: $ifcurrlvl doif: $doif" >&9
+            puts "## if: ifcurrlvl: $ifcurrlvl doif: $doif" >&9
           fi
           ;;
         "endif")
-          echo "## endifA: ifcurrlvl: $ifcurrlvl doif: $doif" >&9
+          puts "## endifA: ifcurrlvl: $ifcurrlvl doif: $doif" >&9
           if [ $ifcurrlvl -eq $doif ]; then
             set $doproclist
             c=$#
             if [ $c -gt 0 ]; then
-              echo "## doproclist: $doproclist" >&9
+              puts "## doproclist: $doproclist" >&9
               doproc=$1
               shift
               doproclist=$@
-              echo "## doproc: $doproc doproclist: $doproclist" >&9
+              puts "## doproc: $doproc doproclist: $doproclist" >&9
               set -- $iflevels
               shift
               iflevels=$@
               _setifleveldisp
-              echo "## endif iflevels: $iflevels" >&9
+              puts "## endif iflevels: $iflevels" >&9
             else
               doproc=1
               ifleveldisp=""
@@ -722,7 +722,7 @@ main_process () {
             domath doif "$doif - 1"
           fi
           domath ifcurrlvl "$ifcurrlvl - 1"
-          echo "## endifB: ifcurrlvl: $ifcurrlvl doif: $doif" >&9
+          puts "## endifB: ifcurrlvl: $ifcurrlvl doif: $doif" >&9
           ;;
       esac
 
@@ -765,16 +765,16 @@ main_process () {
             type=$1
             opt=$2
             nm="_${type}_${opt}"
-            echo "## if: ifcurrlvl: $ifcurrlvl" >&9
+            puts "## if: ifcurrlvl: $ifcurrlvl" >&9
             domath ifstmtcount "$ifstmtcount + 1"
             check_ifoption $ifstmtcount $type ${nm} ${opt}
             rc=$?
             iflevels="+$ifstmtcount $iflevels"
             _setifleveldisp
-            echo "## ifopt iflevels: $iflevels" >&9
+            puts "## ifopt iflevels: $iflevels" >&9
             doproclist="$doproc $doproclist"
             doproc=$rc
-            echo "## doproc: $doproc doproclist: $doproclist" >&9
+            puts "## doproc: $doproc doproclist: $doproclist" >&9
             ;;
           "if "*)
             _chkconfigfname
@@ -784,17 +784,17 @@ main_process () {
             shift
             ifline=$@
             domath ifcurrlvl "$ifcurrlvl + 1"
-            echo "## if: ifcurrlvl: $ifcurrlvl" >&9
+            puts "## if: ifcurrlvl: $ifcurrlvl" >&9
             domath ifstmtcount "$ifstmtcount + 1"
             check_if $label $ifstmtcount "$ifline"
             rc=$?
             iflevels="+$ifstmtcount $iflevels"
             _setifleveldisp
-            echo "## if iflevels: $iflevels" >&9
+            puts "## if iflevels: $iflevels" >&9
             doproclist="$doproc $doproclist"
             doproc=$rc
             doif=$ifcurrlvl
-            echo "## doproc: $doproc doproclist: $doproclist" >&9
+            puts "## doproc: $doproc doproclist: $doproclist" >&9
             ;;
           "else")
             ;;
@@ -832,8 +832,8 @@ main_process () {
                 OPTIONFILE="../${file}"
                 ;;
             esac
-            echo "option-file: ${file}" >&1
-            echo "   option file name: ${OPTIONFILE}" >&9
+            puts "option-file: ${file}" >&1
+            puts "   option file name: ${OPTIONFILE}" >&9
             ;;
           option*)
             _chkconfigfname
@@ -875,10 +875,10 @@ main_process () {
                 CONFH="../${file}"
                 ;;
             esac
-            echo "output-file: ${file}" >&1
-            echo "   config file name: ${CONFH}" >&9
-            file=`echo $file | sed -e 's,.*/,,'`
-            file=`echo $file | sed -e 's/\..*//'`
+            puts "output-file: ${file}" >&1
+            puts "   config file name: ${CONFH}" >&9
+            file=`puts $file | sed -e 's,.*/,,'`
+            file=`puts $file | sed -e 's/\..*//'`
             CONFHTAG=$file
             CONFHTAGUC=$file
             toupper CONFHTAGUC
@@ -931,7 +931,7 @@ main_process () {
 }
 
 usage () {
-  echo "Usage: $0 [-C] [-c <cache-file>] [-o <options-file>]
+  puts "Usage: $0 [-C] [-c <cache-file>] [-o <options-file>]
            [-L <log-file>] <config-file>
   -C : clear cache-file
 defaults:
@@ -978,12 +978,12 @@ done
 
 configfile=$1
 if [ $# -ne 1 ] || [ ! -f $configfile  ]; then
-  echo "No configuration file specified or not found."
+  puts "No configuration file specified or not found."
   usage
   exit 1
 fi
 if [ -d $_MKCONFIG_TMP -a $_MKCONFIG_TMP != _tmp_mkconfig ]; then
-  echo "$_MKCONFIG_TMP must not exist."
+  puts "$_MKCONFIG_TMP must not exist."
   usage
   exit 1
 fi
@@ -1009,14 +1009,14 @@ fi
 dt=`date`
 exec 9>>$LOG
 
-echo "#### " >&9
-echo "# Start: $dt " >&9
-echo "# $0 ($shell) using $configfile " >&9
-echo "#### " >&9
-echo "shell: $shell" >&9
-echo "has append: ${shhasappend}" >&9
-echo "has math: ${shhasmath}" >&9
-echo "has upper: ${shhasupper}" >&9
+puts "#### " >&9
+puts "# Start: $dt " >&9
+puts "# $0 ($shell) using $configfile " >&9
+puts "#### " >&9
+puts "shell: $shell" >&9
+puts "has append: ${shhasappend}" >&9
+puts "has math: ${shhasmath}" >&9
+puts "has upper: ${shhasupper}" >&9
 
 locatecmd awkcmd awk
 locatecmd nawkcmd nawk
@@ -1031,16 +1031,16 @@ fi
 if [ "$gawkcmd" != "" ]; then
   awkcmd=$gawkcmd
 fi
-echo "awk: $awkcmd" >&9
+puts "awk: $awkcmd" >&9
 
-echo "$0 ($shell) using $configfile"
+puts "$0 ($shell) using $configfile"
 
 main_process $configfile
 
 dt=`date`
-echo "#### " >&9
-echo "# End: $dt " >&9
-echo "#### " >&9
+puts "#### " >&9
+puts "# End: $dt " >&9
+puts "#### " >&9
 exec 9>&-
 
 cd ..

@@ -79,29 +79,33 @@ preconfigfile () {
   pc_configfile=$1
   configfile=$2
 
-  echo "CC: ${CC}" >&9
-  echo "CFLAGS: ${CFLAGS}" >&9
-  echo "CPPFLAGS: ${CPPFLAGS}" >&9
-  echo "LDFLAGS: ${LDFLAGS}" >&9
-  echo "LIBS: ${LIBS}" >&9
+  # log all of the compiler and linker options
+  for nm in CC CFLAGS_OPTIMIZE CFLAGS_DEBUG CFLAGS_INCLUDE CFLAGS_USER \
+      CFLAGS_APPLICATION CFLAGS_COMPILER CFLAGS_SYSTEM CFLAGS_SHARED \
+      CFLAGS_SHARED_USER LDFLAGS_OPTIMIZE LDFLAGS_DEBUG LDFLAGS_USER \
+      LDFLAGS_APPLICATION LDFLAGS_COMPILER LDFLAGS_SYSTEM LDFLAGS_SHARED \
+      LDFLAGS_LIBS_USER LDFLAGS_LIBS_APPLICATION LDFLAGS_LIBS_SYSTEM; do
+    cmd="puts \"$nm: \${$nm}\""
+    eval $cmd >&9
+  done
 
   if [ "${CC}" = "" ]; then
-    echo "No compiler specified" >&2
+    puts "No compiler specified" >&2
     return
   fi
 
-  echo "/* Created on: `date`"
-  echo "    From: ${configfile}"
-  echo "    Using: mkconfig-${_MKCONFIG_VERSION} */"
-  echo ''
-  echo "#ifndef MKC_INC_${CONFHTAGUC}_H
+  puts "/* Created on: `date`"
+  puts "    From: ${configfile}"
+  puts "    Using: mkconfig-${_MKCONFIG_VERSION} */"
+  puts ''
+  puts "#ifndef MKC_INC_${CONFHTAGUC}_H
 #define MKC_INC_${CONFHTAGUC}_H 1
 "
 }
 
 stdconfigfile () {
   pc_configfile=$1
-  echo '
+  puts '
 #ifndef MKC_STANDARD_DEFS
 # define MKC_STANDARD_DEFS 1
 # if ! _key_void
@@ -129,13 +133,13 @@ stdconfigfile () {
 
 postconfigfile () {
   pc_configfile=$1
-  echo "
+  puts "
 #endif /* MKC_INC_${CONFHTAGUC}_H */"
 }
 
 standard_checks () {
   if [ "${CC}" = "" ]; then
-    echo "No compiler specified" >&2
+    puts "No compiler specified" >&2
     return
   fi
 
@@ -159,8 +163,8 @@ check_hdr () {
   reqhdr=$*
   # input may be:  ctype.h kernel/fs_info.h
   #    storage/Directory.h
-  nm1=`echo ${hdr} | sed -e 's,/.*,,'`
-  nm2="_`echo $hdr | sed -e s,\^${nm1},, -e 's,^/*,,'`"
+  nm1=`puts ${hdr} | sed -e 's,/.*,,'`
+  nm2="_`puts $hdr | sed -e s,\^${nm1},, -e 's,^/*,,'`"
   nm="_${type}_${nm1}"
   if [ "$nm2" != "_" ]; then
     doappend nm $nm2
@@ -427,13 +431,13 @@ check_memberxdr () {
   if [ $rc -eq 0 ]; then
     st=`${awkcmd} -f ${_MKCONFIG_DIR}/util/mkcextstruct.awk ${name}.out ${struct}`
     if [ "$st" != "" ]; then
-      echo "  ${struct}: ${st}" >&9
-      tmem=`echo "$st" | grep "${member} *;\$"`
+      puts "  ${struct}: ${st}" >&9
+      tmem=`puts "$st" | grep "${member} *;\$"`
       rc=$?
-      echo "  found: ${tmem}" >&9
+      puts "  found: ${tmem}" >&9
       if [ $rc -eq 0 ]; then
-        mtype=`echo $tmem | sed -e "s/ *${member} *;$//" -e 's/^ *//'`
-        echo "  type: ${mtype}" >&9
+        mtype=`puts $tmem | sed -e "s/ *${member} *;$//" -e 's/^ *//'`
+        puts "  type: ${mtype}" >&9
         trc=1
         setdata ${_MKCONFIG_PREFIX} xdr_${member} xdr_${mtype}
       fi
@@ -529,6 +533,9 @@ $asmdef
 #define __nonnull__(a,b)
 #define __restrict
 #define __restrict__
+#if defined(__THROW)
+# undef __THROW
+#endif
 #define __THROW
 #define __const const
 "
@@ -549,52 +556,52 @@ $asmdef
     # have a declaration
     if [ $trc -eq 1 ]; then
       dcl=`${awkcmd} -f ${_MKCONFIG_DIR}/util/mkcextdcl.awk ${name}.out ${funcnm}`
-      dcl=`echo $dcl` # make single line
+      dcl=`puts $dcl` # make single line, no quotes!
       # extern will be replaced
       # ; may or may not be present, so remove it.
-      cmd="dcl=\`echo \"\$dcl\" | sed -e 's/extern *//' -e 's/;//' \`"
+      cmd="dcl=\`puts \"\$dcl\" | sed -e 's/extern *//' -e 's/;//' \`"
       eval $cmd
-      echo "## dcl(A): ${dcl}" >&9
-      cmd="dcl=\`echo \"\$dcl\" | sed -e 's/( *void *)/()/' \`"
+      puts "## dcl(A): ${dcl}" >&9
+      cmd="dcl=\`puts \"\$dcl\" | sed -e 's/( *void *)/()/' \`"
       eval $cmd
-      echo "## dcl(C): ${dcl}" >&9
-      c=`echo ${dcl} | sed 's/[^,]*//g'`
-      ccount=`echo ${EN} "$c${EC}" | wc -c`
+      puts "## dcl(C): ${dcl}" >&9
+      c=`puts "${dcl}" | sed 's/[^,]*//g'`
+      ccount=`putsnonl "$c" | wc -c`
       domath ccount "$ccount + 1"  # 0==1 also, unfortunately
-      c=`echo ${dcl} | sed 's/^[^(]*(//'`
-      c=`echo ${c} | sed 's/)[^)]*$//'`
-      echo "## c(E): ${c}" >&9
+      c=`puts "${dcl}" | sed 's/^[^(]*(//'`
+      c=`puts "${c}" | sed 's/)[^)]*$//'`
+      puts "## c(E): ${c}" >&9
       val=1
       while test "${c}" != ""; do
         tmp=$c
-        tmp=`echo ${c} | sed -e 's/ *,.*$//' -e 's/[	 ]/ /g'`
+        tmp=`puts "${c}" | sed -e 's/ *,.*$//' -e 's/[	 ]/ /g'`
         dosubst tmp 'struct ' 'struct#' 'union ' 'union#' 'enum ' 'enum#'
         # only do the following if the names of the variables are declared
-        echo ${tmp} | grep ' ' > /dev/null 2>&1
+        puts "${tmp}" | grep ' ' > /dev/null 2>&1
         rc=$?
         if [ $rc -eq 0 ]; then
-          tmp=`echo ${tmp} | sed -e 's/ *[A-Za-z0-9_]*$//'`
+          tmp=`puts "${tmp}" | sed -e 's/ *[A-Za-z0-9_]*$//'`
         fi
         dosubst tmp 'struct#' 'struct ' 'union#' 'union ' 'enum#' 'enum '
         if [ $noconst = T ]; then
-          tmp=`echo ${tmp} | sed -e 's/const *//'`
+          tmp=`puts "${tmp}" | sed -e 's/const *//'`
         fi
-        echo "## tmp(F): ${tmp}" >&9
+        puts "## tmp(F): ${tmp}" >&9
         nm="_c_arg_${val}_${funcnm}"
         setdata ${_MKCONFIG_PREFIX} ${nm} "${tmp}"
         domath val "$val + 1"
-        c=`echo ${c} | sed -e 's/^[^,]*//' -e 's/^[	 ,]*//'`
-        echo "## c(G): ${c}" >&9
+        c=`puts "${c}" | sed -e 's/^[^,]*//' -e 's/^[	 ,]*//'`
+        puts "## c(G): ${c}" >&9
       done
-      c=`echo ${dcl} | sed -e 's/[ 	]/ /g' \
+      c=`puts "${dcl}" | sed -e 's/[ 	]/ /g' \
             -e "s/\([ \*]\)${funcnm}[ (].*/\1/" \
             -e 's/^ *//' \
             -e 's/ *$//'`
-      echo "## c(T0): ${c}" >&9
+      puts "## c(T0): ${c}" >&9
       if [ $noconst = T ]; then
-        c=`echo ${c} | sed -e 's/const *//'`
+        c=`puts "${c}" | sed -e 's/const *//'`
       fi
-      echo "## c(T1): ${c}" >&9
+      puts "## c(T1): ${c}" >&9
       nm="_c_type_${funcnm}"
       setdata ${_MKCONFIG_PREFIX} ${nm} "${c}"
     fi
@@ -787,18 +794,18 @@ output_item () {
     _setint_*)
       tname=$name
       dosubst tname '_setint_' ''
-      echo "#define ${tname} ${val}"
+      puts "#define ${tname} ${val}"
       ;;
     _setstr_*|_opt_*|_cmd_loc_*)
       tname=$name
       dosubst tname '_setstr_' '' '_opt_' ''
-      echo "#define ${tname} \"${val}\""
+      puts "#define ${tname} \"${val}\""
       ;;
     _hdr_*|_sys_*|_command_*)
-      echo "#define ${name} ${tval}"
+      puts "#define ${name} ${tval}"
       ;;
     *)      # _c_arg, _c_type go here also
-      echo "#define ${name} ${val}"
+      puts "#define ${name} ${val}"
       ;;
   esac
 }
