@@ -34,14 +34,14 @@ mkconfig \- build configuration utilities
 .\" mkconfig.sh [-C] [-c <cache-file>]
 .\"       [-o <option-file>] [-L <log-file>] config-file
 .\" runtests.sh <tests-dir> [test1, ...]
-.\" mkc.sh -complink -c <compiler> [-e] [-o execname|-o objname]
+.\" mkc.sh {-compile|-link} [-shared] [-exec]
+.\"   [-c <compiler>] [-e] [-o execname|-o objname]
 .\"   [-r required-lib-file] --
 .\"   [sourcefile ...] [objectfile ...] [compile-or-link-flags ...]
 .\"   [-L <lib-path>] [-l <lib>]
 .\" mkc.sh -reqlib [-c <cache-file>] [-o <lib-file>] input-file
 .\" mkc.sh -setopt [-o <option-file>] option value
-.\" mkc.sh -staticlib [-e] libname objectfile ...
-.\" mkc.sh -sharedlib [-e] libname objectfile ... [-L <lib-path>] [-l <lib>]
+.\" mkc.sh -staticlib [-e] -o libname.a objectfile ...
 .B mkconfig.sh
 [\fB\-C\fP]
 [\fB\-c\fP <cache\-file>]
@@ -72,6 +72,11 @@ The tests to be run may be specified on the command line.
 [\fB\-o\fP <lib\-file>]
 input\-file
 .PP
+Is used in conjunction with the c\-main language unit or
+d\-main language unit to output the
+libraries required for linking.  See the description for the 'lib'
+check routine for the c\-main language unit.
+.PP
 cache\-file defaults to 'mkconfig.cache'.
 .PP
 output\-file defaults to 'mkconfig.reqlibs'.
@@ -82,25 +87,33 @@ input\-file is the C/C++ output\-file created by mkconfig.sh.
 [\fB\-o\fP <option\-file>]
 option value
 .PP
+Is used to change the value of the options in the option file.
+.PP
 option\-file defaults to 'options.dat'.
 .PP
 .B mkc.sh \-staticlib
-[-e] lib\-name object\-file [...]
-.PP
-The -e option echos the command line.
-.PP
-.B mkc.sh \-sharedlib
-[-e] lib\-name object\-file [...] [-L lib\-path ...] [-l lib ...]
+[-e] -o libname.a object\-file [...]
 .PP
 The -e option echos the command line.
 .PP
 .B mkc.sh
-\-complink \-c <compiler> [\-e] [\-o <execname>|\-o <objname>]
+\-compile|\-link [\-c <compiler>] [\-shared] [\-exec] [\-e]
+[\-o <execname>|\-o <objname>]
 [\-r required\-lib\-file] \-\-
 [<sourcefile> ...] [<objectfile> ...] [<compile\-or\-link\-flags> ...]
 [\-L <lib\-path>] [\-l <lib>]
 .PP
-The -e option echos the command line.
+Compiles to an executable or object file given source or object files,
+compiler options, link options and a list of library paths and libraries.
+.PP
+The \-e option echos the command line.
+.PP
+Use the \-shared option to build shared object or library files.
+.PP
+Use the \-exec option when building an executable against shared objects.
+.PP
+The \-staticlib option
+creates a static library given a library name and a list of object files.
 .SH Description
 \fImkconfig.sh\fP
 is a build configuration utility.
@@ -117,28 +130,6 @@ _MKCONFIG_SHELL environment variable is set to a particular shell,
 \fIruntests.sh\fP
 is a simple test harness for mkconfig.  It is intended as a simple,
 portable test harness.  There are better test harnesses available.
-.PP
-\fImkc.sh \-setopt\fP
-is used to change the value of the options in the option file.
-.PP
-\fImkc.sh \-complink\fP
-compiles to an executable or object file given source or object files,
-compiler options, link options and a list of library paths and libraries.
-.PP
-\fImkc.sh \-reqlib\fP
-is used in conjunction with the c\-main language unit or
-d\-main language unit to output the
-libraries required for linking.  See the description for the 'lib'
-check routine for the c\-main language unit.
-.PP
-\fImkc.sh \-link\fP
-.PP
-\fImkc.sh \-staticlib\fP
-creates a static library given a library name and a list of object files.
-.PP
-\fImkc.sh \-sharedlib\fP
-creates a shared library given a library name, a list of object files,
-a list of library paths and libraries.
 .SH Basic Directives (mkconfig.sh)
 .TP
 \fB#\fP comment

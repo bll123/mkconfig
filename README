@@ -28,10 +28,14 @@ CHANGES
     2.0.0                                   [--]
         env-cc: split CFLAGS, LDFLAGS, LIBS into multiple environment
           variables for easier processing. D language is probably broken.
-        Clean output style for mkcl.sh.
-        Added compile log file.
+        Clean output style for mkc.sh.
+        Added compilation log file.
         Added 'findconfig' and 'addconfig' commands.
         Removed 'findincludefile' command.
+
+        This is a major update.  The mkc.sh utility should be used to
+        compile and link your programs.  It will pull in the proper
+        cflags, ldflags, etc.
 
     1.31                                    [2018-4-11]
         env-cc: update findincludepath to search more common paths.

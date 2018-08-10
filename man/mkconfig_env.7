@@ -71,8 +71,8 @@ The cc environment unit determines basic flags needed to run the
 C compiler.  Since these units are interdependent on each other, they
 should be configured in the order: 32bitflags, cc, using_gcc,
 using_clang,
-cflags, ldflags, and libs.  The CC, CFLAGS, LDFLAGS, LIBS, SHCFLAGS,
-and SHLDFLAGS
+cflags, ldflags, and libs.  The CC, CFLAGS, LDFLAGS, LIBS, CFLAGS_SHARED,
+and LDFLAGS_SHARED
 environment variables may be set in the options file.  Any value set
 in the environment will override the settings in the options file.
 .RS
@@ -103,7 +103,9 @@ compiler is being used.
 .TP
 \fBcflags\fP
 .RS
-Sets the CFLAGS environment variable according to the 'getconf' program
+Sets the CFLAGS_DEBUG, CFLAGS_OPTIMIZE, CFLAGS_INCLUDE, CFLAGS_USER,
+CFLAGS_COMPILER, CFLAGS_APPLICATION and CFLAGS_SYSTEM
+environment variable according to the 'getconf' program
 and appropriate to the operating system and compiler.
 .RE
 .TP
@@ -113,48 +115,56 @@ Checks to see if \fIcompiler\-flag\fP is valid for the compiler and
 if ok, adds it to the CFLAGS environment variable.
 .RE
 .TP
-\fBfindincludepath\fP header\-file
+\fBfindconfig\fP config\-file
 .RS
-Attempts to locate the include path where header\-file is located
-and add it to the CFLAGS environment variable.
-Used for hard to locate and versioned header files.
+Locates the config\-file (someConfig.sh) and loads it.
+.RE
+.TP
+\fBaddconfig\fP env\-var mkconfig\-var
+.RS
+After a configuration file is loaded, the environment variables contained
+therein can be loaded into mkconfig variables.  Typical mkconfig variables
+are: \fIcflags_include\fP, \fIldflags_lib_application\fP, etc.
 .RE
 .TP
 \fBldflags\fP
 .RS
-Sets the LDFLAGS environment variable according to the 'getconf' program
+Sets the LDFLAGS_DEBUG, LDFLAGS_OPTIMIZE, LDFLAGS_USER,
+LDFLAGS_COMPILER, LDFLAGS_APPLICATION and LDFLAGS_SYSTEM
+environment variables according to the 'getconf' program
 and appropriate to the operating system and compiler.
 .RE
 .TP
 \fBlibs\fP
 .RS
-Sets the LIBS environment variable according to the 'getconf' program
+Sets the LDFLAGS_LIBS_USER, LDFLAGS_LIBS_APPLICATION and LDFLAGS_LIBS_SYSTEM
+environment variable according to the 'getconf' program
 and appropriate to the operating system and compiler.
 .RE
 .TP
-\fBshcflags\fP
+\fBcflags_shared\fP
 .RS
-Sets the SHCFLAGS environment variable for building position
+Sets the CFLAGS_SHARED environment variable for building position
 independent code
 as appropriate to the operating system and compiler.
 .RE
 .TP
-\fBshldflags\fP
+\fBldflags_shared\fP
 .RS
-Sets the SHLDFLAGS environment variable for building a shared library
+Sets the LDFLAGS_SHARED environment variable for building a shared library
 as appropriate to the operating system and compiler.
 .RE
 .TP
 \fBshareexeclinkflag\fP
 .RS
-Sets the SHEXECLINK environment variable for building an executable
+Sets the LDFLAGS_EXEC_LINK environment variable for building an executable
 against shared libraries
 as appropriate to the operating system and compiler.
 .RE
 .TP
 \fBsharerunpathflag\fP
 .RS
-Sets the SHRUNPATH environment variable to the
+Sets the LDFLAGS_RUNPATH environment variable to the
 flag for setting the shared run path
 as appropriate to the operating system and compiler.
 .RE
