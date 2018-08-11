@@ -1144,7 +1144,7 @@ check_args
      if ($rc == 0) {
        my $dcl = `${awkcmd} -f ${_MKCONFIG_DIR}/util/mkcextdcl.awk ${name}.out ${funcnm}`;
        # $dcl may be multi-line...fix this now.
-       $dcl =~ s/[ 	\n]/ /gos;
+       $dcl =~ s/[ 	\n\r]/ /gos;
        $dcl =~ s/extern *//o;
        $dcl =~ s/;//o;
        print LOGFH "##  dcl(A): $dcl\n";
@@ -1227,6 +1227,7 @@ _HERE_
     my $rc = _chk_run ($name, $code, \$val, $r_clist, $r_config, {});
     if ($rc == 0)
     {
+        $val =~ s/\r//o;
         $r_config->{$name} = $val;
     }
     printyesno_val $name, $r_config->{$name};
