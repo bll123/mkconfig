@@ -489,10 +489,10 @@ check_shcflags () {
 
   cflags_shared=""
 
-  doappend cflags_shared " -fPIC"
   if [ "$_MKCONFIG_USING_GCC" != Y ]; then
     case ${_MKCONFIG_SYSTYPE} in
       CYGWIN*|MSYS*|MINGW*)
+        doappend cflags_shared " -fPIC"
         ;;
       Darwin)
         doappend cflags_shared " -fno-common"
@@ -505,6 +505,7 @@ check_shcflags () {
         ;;
       OSF1)
         # none
+        doappend cflags_shared " -fPIC"
         ;;
       SCO_SV)
         doappend cflags_shared " -KPIC"
@@ -515,7 +516,12 @@ check_shcflags () {
       UnixWare)
         doappend cflags_shared " -KPIC"
         ;;
+      *)
+        doappend cflags_shared " -fPIC"
+        ;;
     esac
+  else
+    doappend cflags_shared " -fPIC"
   fi
 
   _read_option CFLAGS_SHARED ""
@@ -537,7 +543,6 @@ check_shldflags () {
 check_ldflags_shared () {
   printlabel LDFLAGS_SHARED "shared library ldflags"
 
-  ldflags_shared=-shared
   if [ "$_MKCONFIG_USING_GCC" != Y ]; then
     case ${_MKCONFIG_SYSTYPE} in
       AIX)
@@ -548,6 +553,7 @@ check_ldflags_shared () {
         ;;
       IRIX*)
         # "-shared"
+        doappend ldflags_shared " -shared"
         ;;
       OSF1)
         doappend ldflags_shared " -msym -no_archive"
@@ -561,7 +567,12 @@ check_ldflags_shared () {
       UnixWare)
         doappend ldflags_shared " -G"
         ;;
+      *)
+        doappend ldflags_shared " -shared"
+        ;;
     esac
+  else
+    doappend ldflags_shared " -shared"
   fi
 
   case ${_MKCONFIG_SYSTYPE} in
