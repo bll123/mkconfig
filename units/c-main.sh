@@ -556,7 +556,9 @@ $asmdef
     # have a declaration
     if [ $trc -eq 1 ]; then
       dcl=`${awkcmd} -f ${_MKCONFIG_DIR}/util/mkcextdcl.awk ${name}.out ${funcnm}`
-      dcl=`puts $dcl` # make single line, no quotes!
+      # make single line, use no quotes
+      # remove carriage returns...msys2 sometimes has them embedded.
+      dcl=`puts $dcl | sed 's/\r//'`
       # extern will be replaced
       # ; may or may not be present, so remove it.
       cmd="dcl=\`puts \"\$dcl\" | sed -e 's/extern *//' -e 's/;//' \`"
