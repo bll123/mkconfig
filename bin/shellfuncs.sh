@@ -44,6 +44,9 @@ dosubst () {
 }
 
 test_echo () {
+  # It was suggested to use printf().
+  # printf does not quite work the same in the Tru64 shell.
+  # Of course no one uses that any more...
   _tEN='-n'
   _tEC=''
   if [ "`echo -n test`" = "-n test" ]; then
