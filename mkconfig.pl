@@ -215,6 +215,56 @@ setlist
 }
 
 sub
+setcflags
+{
+  my $CFLAGS = '';
+  if ( $ENV{'CFLAGS_ALL'} != "" ) {
+    $CFLAGS= $ENV{'CFLAGS_ALL'};
+  } else {
+    $CFLAGS .= ' ' . $ENV{'CFLAGS_OPTIMIZE'};
+    $CFLAGS .= ' ' . $ENV{'CFLAGS_DEBUG'};
+    $CFLAGS .= ' ' . $ENV{'CFLAGS_INCLUDE'};
+    $CFLAGS .= ' ' . $ENV{'CFLAGS_USER'};
+    $CFLAGS .= ' ' . $ENV{'CFLAGS_APPLICATION'};
+    $CFLAGS .= ' ' . $ENV{'CFLAGS_COMPILER'};
+    $CFLAGS .= ' ' . $ENV{'CFLAGS_SYSTEM'};
+  }
+  $ENV{'CFLAGS'} = $CFLAGS;
+}
+
+sub
+setldflags
+{
+  my $LDFLAGS = '';
+  if ( $ENV{'LDFLAGS_ALL'} != "" ) {
+    $LDFLAGS = $ENV{'LDFLAGS_ALL'}
+  } else {
+    $LDFLAGS .= ' ' . $ENV{'LDFLAGS_OPTIMIZE'};
+    $LDFLAGS .= ' ' . $ENV{'LDFLAGS_DEBUG'};
+    $LDFLAGS .= ' ' . $ENV{'LDFLAGS_USER'};
+    $LDFLAGS .= ' ' . $ENV{'LDFLAGS_APPLICATION'};
+    $LDFLAGS .= ' ' . $ENV{'LDFLAGS_COMPILER'};
+    $LDFLAGS .= ' ' . $ENV{'LDFLAGS_SYSTEM'};
+  }
+  $ENV{'LDFLAGS'} = $LDFLAGS;
+}
+
+
+sub
+setlibs
+{
+  my $LIBS = '';
+  if ( $ENV{'LDFLAGS_LIBS_ALL'} != "" ) {
+    $LIBS = $ENV{'LDFLAGS_LIBS_ALL'}
+  } else {
+    $LIBS .= ' ' . $ENV{'LDFLAGS_LIBS_USER'};
+    $LIBS .= ' ' . $ENV{'LDFLAGS_LIBS_APPLICATION'};
+    $LIBS .= ' ' . $ENV{'LDFLAGS_LIBS_SYSTEM'};
+  }
+  $ENV{'LIBS'} = $LIBS;
+}
+
+sub
 print_headers
 {
     my ($r_a, $r_clist, $r_config) = @_;
@@ -370,7 +420,11 @@ _chk_link_libs
 {
     my ($name, $r_a) = @_;
 
-    my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} $ENV{'CPPFLAGS'} ";
+    setcflags
+    setldflags
+    setlibs
+
+    my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} ";
     if (defined ($r_a->{'cflags'}))
     {
         $cmd .= ' ' . $r_a->{'cflags'} . ' ';
@@ -407,7 +461,9 @@ _chk_cpp
     print CCFH $code;
     close CCFH;
 
-    my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} $ENV{'CPPFLAGS'} ";
+    setcflags
+
+    my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} ";
     if (defined ($r_a->{'cflags'}))
     {
         $cmd .= ' ' . $r_a->{'cflags'} . ' ';
@@ -438,7 +494,9 @@ _chk_compile
     print CCFH $code;
     close CCFH;
 
-    my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} $ENV{'CPPFLAGS'} -c $name.c";
+    setcflags
+
+    my $cmd = "$ENV{'CC'} $ENV{'CFLAGS'} -c $name.c";
     print LOGFH "##  compile test: $cmd\n";
     my $rc = system ("cat $name.c >> $LOG");
     if ($rc & 127) { exitmkconfig ($rc); }
@@ -1227,7 +1285,7 @@ _HERE_
     my $rc = _chk_run ($name, $code, \$val, $r_clist, $r_config, {});
     if ($rc == 0)
     {
-        $val =~ s/\r//o;
+        $val =~ s/\r//gos;
         $r_config->{$name} = $val;
     }
     printyesno_val $name, $r_config->{$name};
@@ -1977,11 +2035,13 @@ print STDOUT "$0 using $configfile\n";
 unlink $LOG;
 open (LOGFH, ">>$LOG");
 $ENV{'CFLAGS'} = $ENV{'CFLAGS'};
-print LOGFH "CC: $ENV{'CC'}\n";
-print LOGFH "CFLAGS: $ENV{'CFLAGS'}\n";
-print LOGFH "CPPFLAGS: $ENV{'CPPFLAGS'}\n";
-print LOGFH "LDFLAGS: $ENV{'LDFLAGS'}\n";
-print LOGFH "LIBS: $ENV{'LIBS'}\n";
+foreach my $nm ('CC', 'CFLAGS_OPTIMIZE', 'CFLAGS_DEBUG', 'CFLAGS_INCLUDE', 'CFLAGS_USER',
+      'CFLAGS_APPLICATION', 'CFLAGS_COMPILER', 'CFLAGS_SYSTEM', 'CFLAGS_SHARED',
+      'CFLAGS_SHARED_USER', 'LDFLAGS_OPTIMIZE', 'LDFLAGS_DEBUG', 'LDFLAGS_USER',
+      'LDFLAGS_APPLICATION', 'LDFLAGS_COMPILER', 'LDFLAGS_SYSTEM', 'LDFLAGS_SHARED',
+      'LDFLAGS_LIBS_USER', 'LDFLAGS_LIBS_APPLICATION', 'LDFLAGS_LIBS_SYSTEM') {
+  print LOGFH "$nm: $ENV{$nm}\n";
+}
 print LOGFH "awk: $awkcmd\n";
 
 main_process $configfile;

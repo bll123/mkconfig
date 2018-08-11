@@ -63,10 +63,8 @@ while test $# -gt 0; do
 done
 
 if [ "$logfile" != "" ]; then
-  if [ $logfile -ot mkconfig.log ]; then
-    >$logfile
-  fi
   exec 9>>$logfile
+  puts "# `date`" >&9
 fi
 
 locatecmd ranlibcmd ranlib

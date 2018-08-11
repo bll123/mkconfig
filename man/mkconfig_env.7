@@ -107,6 +107,8 @@ Sets the CFLAGS_DEBUG, CFLAGS_OPTIMIZE, CFLAGS_INCLUDE, CFLAGS_USER,
 CFLAGS_COMPILER, CFLAGS_APPLICATION and CFLAGS_SYSTEM
 environment variable according to the 'getconf' program
 and appropriate to the operating system and compiler.
+.PP
+The CFLAGS_ALL environment variable can be used to override the c flags.
 .RE
 .TP
 \fBaddcflag\fP compiler\-flag
@@ -133,6 +135,8 @@ Sets the LDFLAGS_DEBUG, LDFLAGS_OPTIMIZE, LDFLAGS_USER,
 LDFLAGS_COMPILER, LDFLAGS_APPLICATION and LDFLAGS_SYSTEM
 environment variables according to the 'getconf' program
 and appropriate to the operating system and compiler.
+.PP
+The LDFLAGS_ALL environment variable can be used to override the load flags.
 .RE
 .TP
 \fBlibs\fP
@@ -140,6 +144,8 @@ and appropriate to the operating system and compiler.
 Sets the LDFLAGS_LIBS_USER, LDFLAGS_LIBS_APPLICATION and LDFLAGS_LIBS_SYSTEM
 environment variable according to the 'getconf' program
 and appropriate to the operating system and compiler.
+.PP
+The LDFLAGS_LIBS_ALL environment variable can be used to override the libraries.
 .RE
 .TP
 \fBcflags_shared\fP

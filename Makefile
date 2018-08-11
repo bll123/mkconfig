@@ -44,3 +44,6 @@ tests.done: runtests.sh
 .PHONY: tar
 tar:
 	./util/mktar.sh
+.PHONY: tar
+alltar:
+	tar -c -z --exclude=*.gz --exclude=Archive -f mkconfig.tar.gz *

@@ -137,6 +137,7 @@ while test $# -gt 0; do
 done
 if [ "$logfile" != "" ]; then
   exec 9>>$logfile
+  puts "# `date`" >&9
 fi
 
 # DC_LINK should be in environment already.
@@ -263,24 +264,28 @@ else
   esac
 fi
 
-allflags=
+allcflags=
 if [ $havesource = T ]; then
   if [ $c = T ];then
-    doappend allflags " ${CFLAGS_OPTIMIZE}"     # optimization flags
-    doappend allflags " ${CFLAGS_DEBUG}"        # debug flags
-    doappend allflags " ${CFLAGS_INCLUDE}"      # any include files
-    doappend allflags " ${CFLAGS_USER}"         # specified by the user
-    doappend allflags " ${CFLAGS}"              # specified by the user
-    if [ $shared = T ];then
-      doappend allflags " ${CFLAGS_SHARED}"
-      doappend allflags " ${CFLAGS_SHARED_USER}"
+    if [ "$CFLAGS_ALL" != "" ]; then
+      doappend allcflags " ${CFLAGS_ALL}"
+    else
+      doappend allcflags " ${CFLAGS_OPTIMIZE}"     # optimization flags
+      doappend allcflags " ${CFLAGS_DEBUG}"        # debug flags
+      doappend allcflags " ${CFLAGS_INCLUDE}"      # any include files
+      doappend allcflags " ${CFLAGS_USER}"         # specified by the user
+      doappend allcflags " ${CFLAGS}"              # specified by the user
+      if [ $shared = T ];then
+        doappend allcflags " ${CFLAGS_SHARED}"
+        doappend allcflags " ${CFLAGS_SHARED_USER}"
+      fi
+      doappend allcflags " ${CFLAGS_APPLICATION}"  # added by the config process
+      doappend allcflags " ${CFLAGS_COMPILER}"     # compiler flags
+      doappend allcflags " ${CFLAGS_SYSTEM}"       # needed for this system
     fi
-    doappend allflags " ${CFLAGS_APPLICATION}"  # added by the config process
-    doappend allflags " ${CFLAGS_COMPILER}"     # compiler flags
-    doappend allflags " ${CFLAGS_SYSTEM}"       # needed for this system
   fi
   if [ $d = T ];then
-    doappend allflags " ${DFLAGS}"
+    doappend allcflags " ${DFLAGS}"
   fi
 fi
 
@@ -290,12 +295,16 @@ ldflags_shared_libs=
 ldflags_exec_link=
 
 if [ $link = T ]; then
-  doappend allldflags " ${LDFLAGS_OPTIMIZE}"     # optimization flags
-  doappend allldflags " ${LDFLAGS_DEBUG}"        # debug flags
-  doappend allldflags " ${LDFLAGS_USER}"         # specified by the user
-  doappend allldflags " ${LDFLAGS_APPLICATION}"  # added by the config process
-  doappend allldflags " ${LDFLAGS_COMPILER}"     # link flags
-  doappend allldflags " ${LDFLAGS_SYSTEM}"       # needed for this system
+  if [ "$LDFLAGS_ALL" != "" ]; then
+    doappend allldflags " ${LDFLAGS_ALL}"
+  else
+    doappend allldflags " ${LDFLAGS_OPTIMIZE}"     # optimization flags
+    doappend allldflags " ${LDFLAGS_DEBUG}"        # debug flags
+    doappend allldflags " ${LDFLAGS_USER}"         # specified by the user
+    doappend allldflags " ${LDFLAGS_APPLICATION}"  # added by the config process
+    doappend allldflags " ${LDFLAGS_COMPILER}"     # link flags
+    doappend allldflags " ${LDFLAGS_SYSTEM}"       # needed for this system
+  fi
 fi
 if [ $link = T -a $shared = T ]; then
   doappend allldflags " ${LDFLAGS_SHARED}"
@@ -329,9 +338,13 @@ if [ $link = T ]; then
   fi
 fi
 if [ $link = T ]; then
-  doappend alllibs " ${LDFLAGS_LIBS_USER}"
-  doappend alllibs " ${LDFLAGS_LIBS_APPLICATION}"
-  doappend alllibs " ${LDFLAGS_LIBS_SYSTEM}"
+  if [ "$LDFLAGS_LIBS_ALL" != "" ]; then
+    doappend alllibs " ${LDFLAGS_LIBS_ALL}"
+  else
+    doappend alllibs " ${LDFLAGS_LIBS_USER}"
+    doappend alllibs " ${LDFLAGS_LIBS_APPLICATION}"
+    doappend alllibs " ${LDFLAGS_LIBS_SYSTEM}"
+  fi
 fi
 
 # clear the standard env vars so they don't get picked up.
@@ -339,7 +352,7 @@ CFLAGS=
 CPPFLAGS=
 LDFLAGS=
 LIBS=
-cmd="${comp} ${allflags} ${flags} ${allldflags} ${ldflags_exec_link} \
+cmd="${comp} ${allcflags} ${flags} ${allldflags} ${ldflags_exec_link} \
     $outflags $objects \
     ${files} ${ldflags_runpath} ${ldflags_shared_libs} ${alllibs} ${libs}"
 if [ $compile = T ]; then
