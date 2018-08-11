@@ -9,8 +9,8 @@ chkdcompiler
 getsname $0
 dosetup $@
 
-TMP=opts
-> $TMP echo '
+TOPTFILE=opts
+> $TOPTFILE echo '
 TEST_OPT_SET=abc123
 TEST_OPT_SET_SPACE=abc 123
 '

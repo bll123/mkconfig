@@ -9,8 +9,8 @@ chkccompiler
 getsname $0
 dosetup $@
 
-TMP=opts
-> $TMP echo '
+TOPTFILE=opts
+> $TOPTFILE echo '
 TEST_ENABLE=enable
 TEST_DISABLE=disable
 TEST_ASSIGN_T=t
