@@ -94,7 +94,7 @@ _HERE_"
       read -r rry << _HERE_
 $rrv
 _HERE_
-      if [ ${rrx} != 'aa\\bb' -a ${rry} = 'aa\\\\bb' ]; then
+      if [ "${rrx}" != 'aa\\bb' -a "${rry}" = 'aa\\\\bb' ]; then
         shreqreadraw=1
       fi
     fi
