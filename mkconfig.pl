@@ -36,6 +36,14 @@ CPP_EXTERNS_END
 #endif
 _HERE_
 
+my $postcc = <<'_HERE_';
+/* some gcc's (cygwin) redefine __restrict again */
+#if defined (__restrict)
+# undef __restrict
+#endif
+#define __restrict
+_HERE_
+
 my $optionsloaded = 0;
 my %optionshash;
 my $iflevels = '';
@@ -267,7 +275,7 @@ setlibs
 sub
 print_headers
 {
-    my ($r_a, $r_clist, $r_config) = @_;
+    my ($r_a, $r_clist, $r_config, $cppchk) = @_;
     my $txt;
 
     $txt = '';
@@ -282,6 +290,10 @@ print_headers
                  $r_config->{$val} ne '0')
             {
                 $txt .= "#include <" . $r_config->{$val} . ">\n";
+                # for cygwin/gcc
+                if ($cppchk && $val eq '_hdr_stdio') {
+                  $txt .= $postcc;
+                }
             }
         }
     }
@@ -364,7 +376,7 @@ _chk_link
     open (CLFH, ">$name.c");
     print CLFH $precc;
 
-    my $hdrs = print_headers ($r_a, $r_clist, $r_config);
+    my $hdrs = print_headers ($r_a, $r_clist, $r_config, 0);
     print CLFH $hdrs;
     print CLFH $code;
     close CLFH;
@@ -456,7 +468,7 @@ _chk_cpp
 
     open (CCFH, ">$name.c");
     print CCFH $precc;
-    my $hdrs = print_headers ($r_a, $r_clist, $r_config);
+    my $hdrs = print_headers ($r_a, $r_clist, $r_config, 1);
     print CCFH $hdrs;
     print CCFH $code;
     close CCFH;
@@ -489,7 +501,7 @@ _chk_compile
 
     open (CCFH, ">$name.c");
     print CCFH $precc;
-    my $hdrs = print_headers ($r_a, $r_clist, $r_config);
+    my $hdrs = print_headers ($r_a, $r_clist, $r_config, 0);
     print CCFH $hdrs;
     print CCFH $code;
     close CCFH;

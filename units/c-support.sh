@@ -5,8 +5,17 @@
 
 CPPCOUNTER=1
 
+  postcc="
+/* some gcc's (cygwin) redefine __restrict again */
+#if defined (__restrict)
+# undef __restrict
+#endif
+#define __restrict
+"
+
 _c_print_headers () {
   incheaders=$1
+  cppchk=$2
 
   out="${PH_PREFIX}${incheaders}"
 
@@ -16,29 +25,34 @@ _c_print_headers () {
   fi
 
   if [ "$PH_STD" = "T" -a "$incheaders" = "std" ]; then
-    _c_print_hdrs std > $out
+    _c_print_hdrs std $cppchk > $out
     cat $out
     return
   fi
 
   if [ "$PH_ALL" = "T" -a "$incheaders" = "all" ]; then
-    _c_print_hdrs all > $out
+    _c_print_hdrs all $cppchk > $out
     cat $out
     return
   fi
 
   # until PH_STD/PH_ALL becomes true, just do normal processing.
-  _c_print_hdrs $incheaders
+  _c_print_hdrs $incheaders $cppchk
 }
 
 _c_print_hdrs () {
   incheaders=$1
+  cppchk=$2
 
   if [ "${incheaders}" = "all" -o "${incheaders}" = "std" ]; then
     for tnm in '_hdr_stdio' '_hdr_stdlib' '_sys_types' '_sys_param'; do
       getdata tval ${_MKCONFIG_PREFIX} ${tnm}
       if [ "${tval}" != "0" -a "${tval}" != "" ]; then
-          puts "#include <${tval}>"
+        puts "#include <${tval}>"
+        # for cygwin/gcc
+        if [ "$cppchk" = T -a $tnm = _hdr_stdio ]; then
+          puts "${postcc}"
+        fi
       fi
     done
   fi
@@ -174,7 +188,7 @@ _c_chk_cpp () {
   # $cppname should be unique
   exec 4>>${tcppfile}
   puts "${precc}" >&4
-  _c_print_headers $inc >&4
+  _c_print_headers $inc T >&4
   puts "${code}" | sed 's/_dollar_/$/g' >&4
   exec 4>&-
 

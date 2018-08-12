@@ -74,7 +74,6 @@ CPP_EXTERNS_END
 # define CPP_EXTERNS_END
 #endif
 '
-
 preconfigfile () {
   pc_configfile=$1
   configfile=$2
@@ -539,7 +538,6 @@ $asmdef
 #define __THROW
 #define __const const
 "
-
   code=""
   _c_chk_cpp ${name} "/**/" all   # force no-reuse due to precc.
   rc=$?
