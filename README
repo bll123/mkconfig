@@ -56,14 +56,17 @@ ISSUES
 
 CHANGES
 
-    2.0.0                                   [--]
+    2.0.0                                   [2018-8-12]
         C: split CFLAGS, LDFLAGS, LIBS into multiple environment
           variables for easier processing. D language is probably broken.
+        C: fix shared flags
+        C: Various bug fixes for msys2, tru64, etc.
+        Clean up interfaces to mkcl.sh, mkstaticlib.sh
         Clean output style for mkc.sh.
         Added compilation log file.
-        Added 'findconfig' and 'addconfig' commands.
+        Added 'findconfig' and 'addconfig' commands for *Config.sh files.
         Removed 'findincludefile' command.
-        Various bug fixes for msys2, tru64, etc.
+        Remove mksharedlib.sh (now part of mkcl.sh).
 
     1.31                                    [2018-4-11]
         env-cc: update findincludepath to search more common paths.
