@@ -484,7 +484,7 @@ check_shcflags () {
   check_cflags_shared
 }
 
-check_shcflags () {
+check_cflags_shared () {
   printlabel CFLAGS_SHARED "shared library cflags"
 
   cflags_shared=""
