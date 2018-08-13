@@ -1,0 +1,23 @@
+
+Shell resource info
+  https://www.in-ulm.de/%7Emascheck/various/echo+printf/
+  https://www.gnu.org/software/autoconf/manual/autoconf.html#Portable-Shell
+
+Portability:
+  'read varname < filename' was segfaulting/causing issues on some systems,
+  so we work around it by opening the file on stdin, then using 'read' without
+  the redirection. (Mandriva 2011, dash, Unixware 7.14).
+
+  Tru64 sh has backslash interpolation issues.  See the test_echo function
+  in bin/shellfuncs.sh.
+
+  The set command has a wide variety of output formats.
+    x=$'value'
+    x='value'
+    x=value
+
+Speed:
+  bash is one of the slower shells.
+  Avoiding useless use of quotes helps a lot.
+  Also avoid opening and closing files all the time by using the numeric
+   file descriptors.

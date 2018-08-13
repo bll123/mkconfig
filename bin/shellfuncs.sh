@@ -19,7 +19,7 @@ export _MKCONFIG_VERSION
 # posh set command doesn't output correct data; don't bother with it.
 # yash has quoting/backquote issues
 # zsh is not bourne shell compatible
-#   set | grep can be fixed with: set | strings | grep
+#   set | grep can be fixed (nulls are output) with: set | strings | grep
 #   and 'emulate ksh' can be set in mkconfig.sh, but there
 #   are more issues, and I'm not interested in tracking them down.
 tryshell="ash bash dash ksh ksh88 ksh93 mksh pdksh sh sh5"
@@ -50,6 +50,7 @@ test_echo () {
   # Virtually all shells have printf.
   # I had not known it was supported so far back -- most
   # everything used echo, and printf was not mentioned much.
+  # 'printf' is POSIX compliant.
   if [ $rc -eq 0 ]; then
     shhasprintf=1
     eval 'putsnonl () { printf '%s' "$*"; }'
@@ -84,16 +85,18 @@ test_echo () {
   #
 
   # Test for interpolation bugs.
-  # if present, use 'echo'.
+  # If bugs are present, use 'echo'.
   tz="a \\\\ b"            # should interpolate as: a \\ b
-  t1=`echo "$tz"`
+  t1=`echo "$tz"`          # and both of these should return: a \\ b
   t2=`printf '%s\n' "$tz"`
+  # have to test against the original in order to catch the change
   if [ \( "$tz" != "$t1" \) -o \( "$tz" != "$t2" \) ]; then
     shhasprintf=0
   fi
 
   # 'echo' works everywhere, but is not a POSIX compliant command.
-  # Have not found any bourne compatible shell that does not support it.
+  # Have not found any bourne compatible shell that does not support
+  # either -n or \c.
   if [ $shhasprintf -eq 0 ]; then
     _tEN='-n'
     _tEC=''
@@ -106,6 +109,7 @@ test_echo () {
   fi
 }
 
+# The += form is much, much faster and less prone to errors.
 test_append () {
   shhasappend=0
   (eval 'x=a;x+=b; test z$x = zab') 2>/dev/null
@@ -146,6 +150,7 @@ _HERE_
   shreqreadraw=$?
 }
 
+# use the faster method $((expr)) if possible.
 test_math () {
   shhasmath=0
   (eval 'x=1;y=$(($x+1)); test z$y = z2') 2>/dev/null
@@ -157,6 +162,7 @@ test_math () {
   fi
 }
 
+# use the faster shell built-in if possible.
 test_upper () {
   shhasupper=0
   (eval 'typeset -u xuvar;xuvar=x;test z$xuvar = zX') 2>/dev/null
@@ -168,6 +174,7 @@ test_upper () {
   fi
 }
 
+# use the faster shell built-in if possible.
 test_lower () {
   shhaslower=0
   (eval 'typeset -l xuvar;xuvar=X;test z$xuvar = zx') 2>/dev/null

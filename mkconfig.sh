@@ -13,6 +13,7 @@
 #    4 - temporary              (c-main.sh)
 #
 
+# disable path name expansion
 set -f  # set this globally.
 
 unset CDPATH

@@ -47,4 +47,5 @@ tar:
 .PHONY: alltar
 alltar:
 	$(MAKE) distclean
-	tar -c -z --exclude=*.gz --exclude=Archive -f mkconfig.tar.gz *
+	tar -c -z --exclude=*.gz --exclude=Archive --exclude=TODO \
+		-f mkconfig.tar.gz *
