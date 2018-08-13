@@ -44,17 +44,66 @@ dosubst () {
 }
 
 test_echo () {
-  # It was suggested to use printf().
-  # printf does not quite work the same in the Tru64 shell.
-  # Of course no one uses that any more...
-  _tEN='-n'
-  _tEC=''
-  if [ "`echo -n test`" = "-n test" ]; then
-    _tEN=''
-    _tEC='\c'
+  shhasprintf=0
+  (eval 'printf %s hello >/dev/null') 2>/dev/null
+  rc=$?
+  # Virtually all shells have printf.
+  # I had not known it was supported so far back -- most
+  # everything used echo, and printf was not mentioned much.
+  if [ $rc -eq 0 ]; then
+    shhasprintf=1
+    eval 'putsnonl () { printf '%s' "$*"; }'
+    eval 'puts () { printf "%s\n" "$*"; }'
   fi
-  eval 'putsnonl () { echo ${_tEN} "$*"${_tEC}; }'
-  eval 'puts () { echo "$*"; }'
+
+  #
+  # Tru64 sh has some weird bugs.
+  # Not sure where the bug occurs -- probably both 'echo' and 'read',
+  # and they cancel other out.
+  # Backslash interpolation with echo and single quotes has issues.
+  # Apparently I didn't code anything that ran into that problem.
+  #
+  # The read/printf combo fails due to differences from read/echo.
+  #
+  # $ echo "a \\ b"
+  # a \ b
+  # $ printf "%s\n" "a \\ b"
+  # a \ b
+  # $ cat tt
+  # a \\ b
+  # $ read tdat < tt
+  # $ echo "$tdat"
+  # a \ b
+  # $ printf "%s\n" "$tdat"
+  # a \\ b              # should be: a \ b
+  # $ echo 'a \\ b'
+  # a \ b               # should be: a \\ b
+  # $ printf "%s\n" 'a \\ b'
+  # a \\ b
+  # $
+  #
+
+  # Test for interpolation bugs.
+  # if present, use 'echo'.
+  tz="a \\\\ b"            # should interpolate as: a \\ b
+  t1=`echo "$tz"`
+  t2=`printf '%s\n' "$tz"`
+  if [ \( "$tz" != "$t1" \) -o \( "$tz" != "$t2" \) ]; then
+    shhasprintf=0
+  fi
+
+  # 'echo' works everywhere, but is not a POSIX compliant command.
+  # Have not found any bourne compatible shell that does not support it.
+  if [ $shhasprintf -eq 0 ]; then
+    _tEN='-n'
+    _tEC=''
+    if [ "`echo -n test`" = "-n test" ]; then
+      _tEN=''
+      _tEC='\c'
+    fi
+    eval 'putsnonl () { echo ${_tEN} "$*"${_tEC}; }'
+    eval 'puts () { echo "$*"; }'
+  fi
 }
 
 test_append () {
