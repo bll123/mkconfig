@@ -56,6 +56,10 @@ ISSUES
 
 CHANGES
 
+    2.0.1                                   [--]
+        Add test for shell interpolation bug.  Use printf if possible.
+        env-cc: Fix cflags_shared.
+
     2.0.0                                   [2018-8-12]
         C: split CFLAGS, LDFLAGS, LIBS into multiple environment
           variables for easier processing. D language is probably broken.
