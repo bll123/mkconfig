@@ -122,7 +122,11 @@ while test $# -gt 0; do
       doappend reqlibfiles " $1"
       shift
       ;;
-    -D*)
+    [A-Za-z0-9_][A-Za-z0-9_]*=[\'\"]*[\'\"])
+      eval $1
+      shift
+      ;;
+    -D*|-U*)
       doappend CFLAGS " $1"
       shift
       ;;
@@ -209,7 +213,7 @@ for f in $@ $olibs; do
         doappend objects " $f"
       fi
       ;;
-    *.c|*.d)
+    *.c|*.d|*.m)
       if [ ! -f "$f" ]; then
         puts "## unable to locate $f"
         grc=1
@@ -330,12 +334,10 @@ if [ \( $shared = T \) -o \( $mkexec = T \) ]; then
   fi
 fi
 if [ $link = T ]; then
-  if [ "${DC_LINK}" != "" ]; then
-    ldflags=""
-    for flag in ${LDFLAGS}; do
-      doappend allldflags " ${DC_LINK}${flag}"
-    done
-  fi
+  ldflags=""
+  for flag in ${LDFLAGS}; do
+    doappend allldflags " ${DC_LINK}${flag}"
+  done
 fi
 if [ $link = T ]; then
   if [ "$LDFLAGS_LIBS_ALL" != "" ]; then

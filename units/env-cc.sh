@@ -167,13 +167,13 @@ check_using_gnu_ld () {
 }
 
 check_cflags () {
-  cflags_debug=
-  cflags_optimize="-O2"
-  cflags_include=
-  cflags_user=
-  cflags_compiler=
-  cflags_system=
-  cflags_application=
+  cflags_debug=${CFLAGS_DEBUG:-}
+  cflags_optimize=${CFLAGS_OPTIMIZE:--O2}
+  cflags_include=${CFLAGS_INCLUDE}
+  cflags_user=${CFLAGS_USER}
+  cflags_compiler=${CFLAGS_COMPILER}
+  cflags_system=${CFLAGS_SYSTEM}
+  cflags_application=${CFLAGS_APPLICATION}
 
   if [ "${_MKCONFIG_USING_GCC}" = Y ]; then
     puts "set gcc flags" >&9
@@ -365,12 +365,12 @@ check_ldflags () {
     TCC=gcc
   fi
 
-  ldflags_debug=
-  ldflags_optimize=
-  ldflags_user=
-  ldflags_compiler=
-  ldflags_system=
-  ldflags_application=
+  ldflags_debug=${LDFLAGS_DEBUG:-}
+  ldflags_optimize=${LDFLAGS_OPTIMIZE:-}
+  ldflags_user=${LDFLAGS_USER:-}
+  ldflags_compiler=${LDFLAGS_COMPILER:-}
+  ldflags_system=${LDFLAGS_SYSTEM:-}
+  ldflags_application=${LDFLAGS_APPLICATION:-}
 
   doappend ldflags_system " $lfldflags"
 
@@ -447,9 +447,9 @@ check_ldflags () {
 check_libs () {
   _dogetconf
 
-  ldflags_libs_user=
-  ldflags_libs_application=
-  ldflags_libs_system=
+  ldflags_libs_user=${LDFLAGS_LIBS_USER:-}
+  ldflags_libs_application=${LDFLAGS_LIBS_APPLICATION:-}
+  ldflags_libs_system=${LDFLAGS_LIBS_SYSTEM:-}
 
   TCC=${CC}
   if [ "${_MKCONFIG_USING_GCC}" = Y ]; then
