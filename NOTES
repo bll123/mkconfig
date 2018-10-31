@@ -5,8 +5,9 @@ Shell resource info
 
 Portability:
   'read varname < filename' was segfaulting/causing issues on some systems,
-  so we work around it by opening the file on stdin, then using 'read' without
-  the redirection. (Mandriva 2011, dash, Unixware 7.14).
+  so we work around it by saving stdin, opening the file on stdin,
+  then using 'read' without the redirection.
+  (Mandriva 2011/dash, Unixware 7.14).
 
   Tru64 sh has backslash interpolation issues.  See the test_echo function
   in bin/shellfuncs.sh.
@@ -15,6 +16,13 @@ Portability:
     x=$'value'
     x='value'
     x=value
+
+  Certainly not all of the information outlined in the autoconf docs is
+  followed by mkconfig.  I have not run into some of their issues in my
+  testing.  Some of their notes are perhaps for very old shells that no
+  longer exist.  And mkconfig will not work without a shell that is
+  modern enough to handle large amounts of memory.  e.g. sh on Ultrix
+  fails.
 
 Speed:
   bash is one of the slower shells.

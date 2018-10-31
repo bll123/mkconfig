@@ -210,8 +210,8 @@ check_cflags () {
           esac
         fi
         ;;
-      FreeBSD)
-        # FreeBSD has many packages that get installed in /usr/local
+      DragonFly|FreeBSD|OpenBSD)
+        # *BSD has many packages that get installed in /usr/local
         doappend cflags_include " -I/usr/local/include"
         ;;
       HP-UX)
@@ -716,7 +716,7 @@ check_findconfig () {
   sp=
   incchk=
   pp=`puts $PATH | sed 's/:/ /g'`
-  for p in $HOME/local/lib /usr/local/lib /opt/local/lib $pp; do
+  for p in $pp $HOME/local/lib /usr/local/lib /opt/local/lib; do
     td=$p
     case $p in
       */bin)

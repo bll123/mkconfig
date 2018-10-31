@@ -71,6 +71,7 @@ CHANGES
         mkcl.sh: Fix processing of LDFLAGS.
         mkcl.sh: Support .m extension.
         mkcl.sh: Support command line set of env vars (must be quoted).
+        env-cc: Add support for DragonFlyBSD.
 
     2.0.0                                   [2018-8-12]
         C: split CFLAGS, LDFLAGS, LIBS into multiple environment
