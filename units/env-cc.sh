@@ -742,3 +742,40 @@ check_findconfig () {
     setdata ${_MKCONFIG_PREFIX} config_${cfile} N
   fi
 }
+
+check_findpc () {
+  name=$1
+  cfile=$2
+  printlabel FINDPC "Search for: ${cfile}"
+  sp=
+  incchk=
+  pp=`puts $PATH | sed 's/:/ /g'`
+  for p in $pp $HOME/local/lib /usr/local/lib \
+      /opt/local/lib /usr/lib/x86_64-linux-gnu; do
+    td=$p
+    case $p in
+      */bin)
+        dosubst td '/bin$' '/lib'
+        ;;
+    esac
+
+    doappend td /pkgconfig
+    if [ -d $td ]; then
+      if [ -f "$td/$cfile.sh" ]; then
+        puts "found: ${td}" >&9
+        sp=$td
+        break
+      fi
+    fi
+  done
+
+  if [ z$sp != z ]; then
+    printyesno_val $name yes
+    setdata ${_MKCONFIG_PREFIX} pc_${cfile} Y
+    setdata ${_MKCONFIG_PREFIX} pc_path_${cfile} $sp/$cfile
+    . $sp/$cfile.sh ; # load the environment variables
+  else
+    printyesno_val $name no
+    setdata ${_MKCONFIG_PREFIX} pc_${cfile} N
+  fi
+}

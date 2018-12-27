@@ -122,9 +122,15 @@ if ok, adds it to the CFLAGS environment variable.
 Locates the config\-file (someConfig.sh) and loads it.
 .RE
 .TP
+\fBfindpc\fP pkgconfig\-file
+.RS
+Locates the pkgconfig\-file (someConfig.pc) and loads it.
+.RE
+.TP
 \fBaddconfig\fP env\-var mkconfig\-var
 .RS
-After a configuration file is loaded, the environment variables contained
+After a configuration or pkgconfig file is loaded,
+the environment variables contained
 therein can be loaded into mkconfig variables.  Typical mkconfig variables
 are: \fIcflags_include\fP, \fIldflags_lib_application\fP, etc.
 .RE
