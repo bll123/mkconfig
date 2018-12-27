@@ -1,4 +1,4 @@
-mkconfig - configuration tool (version 2.0.0)
+mkconfig - configuration tool (version 2.1.0)
 
 Website: https://gentoo.com/di/mkconfig.html
 SourceForge: https://sourceforge.net/projects/mkconfig/
@@ -62,7 +62,7 @@ ISSUES
 
 CHANGES
 
-    2.1.0                                   [--]
+    2.1.0                                   [2018-12-27]
         Add test for shell interpolation bug.  Use printf if possible
           for POSIX compliance.
         env-cc: Fix cflags_shared.
@@ -72,6 +72,7 @@ CHANGES
         mkcl.sh: Support .m extension.
         mkcl.sh: Support command line set of env vars (must be quoted).
         env-cc: Add support for DragonFlyBSD.
+        env-cc: Add support for pkgconfig files (findpc).
 
     2.0.0                                   [2018-8-12]
         C: split CFLAGS, LDFLAGS, LIBS into multiple environment
