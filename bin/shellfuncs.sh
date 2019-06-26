@@ -66,6 +66,8 @@ test_echo () {
   #
   # The read/printf combo fails due to differences from read/echo.
   #
+  # 2019-6-26: Apparently some older ksh93 also have this issue.
+  #
   # $ echo "a \\ b"
   # a \ b
   # $ printf "%s\n" "a \\ b"
@@ -104,7 +106,7 @@ test_echo () {
       _tEN=''
       _tEC='\c'
     fi
-    eval 'putsnonl () { echo ${_tEN} "$*"${_tEC}; }'
+    eval 'putsnonl () { echo ${_tEN} "$*${_tEC}"; }'
     eval 'puts () { echo "$*"; }'
   fi
 }
