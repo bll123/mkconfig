@@ -1,4 +1,4 @@
-mkconfig - configuration tool (version 2.1.0)
+mkconfig - configuration tool (version 2.1.1)
 
 Website: https://gentoo.com/di/mkconfig.html
 SourceForge: https://sourceforge.net/projects/mkconfig/
@@ -61,6 +61,9 @@ ISSUES
       in a long time.
 
 CHANGES
+
+    2.1.1                                   [2019-6-25]
+        env-cc: Fix getconf/cflags_system.
 
     2.1.0                                   [2018-12-27]
         Add test for shell interpolation bug.  Use printf if possible

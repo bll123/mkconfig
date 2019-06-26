@@ -257,10 +257,10 @@ check_cflags () {
         ;;
   esac
 
+  _dogetconf
+
   # largefile flags
   doappend cflags_system " $lfccflags"
-
-  _dogetconf
 
   # plain CFLAGS will be interpreted as the user's cflags
   _read_option CFLAGS ""
