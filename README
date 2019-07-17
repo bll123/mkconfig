@@ -14,7 +14,7 @@ libraries and executables using the shell configuration previously
 built.
 
 An example of mkconfig in use can be seen in the
-'di' program at https://sourceforge.net/projects/di/
+'di' program at https://sourceforge.net/projects/diskinfo-di/
 
 mkconfig works with most any bourne shell compatible shell.  Modern
 shells that are not bourne shell compatible are:
