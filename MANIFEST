@@ -25,7 +25,7 @@ man/mkconfig_env.7	manual page
 mkconfig.pl		perl config program
 mkconfig.sh		shell config program
 mkc.sh			compile/link/library/other tool
-README          	README
+README.txt
 runtests.sh
 units/			units for mkconfig.sh
 units/c-include-conflict.sh

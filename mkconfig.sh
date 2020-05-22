@@ -90,7 +90,7 @@ _savecache () {
       > ${CACHEFILE}
 }
 
-setvar () {
+setvariable () {
     prefix=$1
     svname=$2
 
@@ -113,7 +113,7 @@ setvar () {
 
     cmd="mkv_${prefix}_${svname}=T"
     eval $cmd
-    puts "   setvar: $cmd" >&9
+    puts "   setvariable: $cmd" >&9
 }
 
 setdata () {
@@ -128,7 +128,7 @@ setdata () {
     cmd="mkc_${prefix}_${sdname}=\"${sdval}\""
     eval $cmd
     puts "   setdata: $cmd" >&9
-    setvar $prefix $sdname
+    setvariable $prefix $sdname
 }
 
 getdata () {
@@ -207,7 +207,7 @@ checkcache_val () {
   getdata tval ${prefix} ${tname}
   rc=1
   if [ "$tval" != "" ]; then
-    setvar $prefix $tname
+    setvariable $prefix $tname
     printyesno_actual $tname "$tval" " (cached)"
     rc=0
   fi
@@ -221,7 +221,7 @@ checkcache () {
   getdata tval ${prefix} ${tname}
   rc=1
   if [ "$tval" != "" ]; then
-    setvar $prefix $tname
+    setvariable $prefix $tname
     printyesno $tname $tval " (cached)"
     rc=0
   fi

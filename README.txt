@@ -1,4 +1,4 @@
-mkconfig - configuration tool (version 2.1.1)
+mkconfig - configuration tool (version 2.2)
 
 Website: https://gentoo.com/di/mkconfig.html
 SourceForge: https://sourceforge.net/projects/mkconfig/
@@ -61,6 +61,11 @@ ISSUES
       in a long time.
 
 CHANGES
+
+    2.2                                     [2020-5-22]
+        Added support for oilshell (osh; oilshell.org).
+        mkcl.sh will display its messages as a single printf so that
+          make -j does not look really weird.
 
     2.1.1                                   [2019-6-25]
         env-cc: Fix getconf/cflags_system.

@@ -22,7 +22,7 @@ export _MKCONFIG_VERSION
 #   set | grep can be fixed (nulls are output) with: set | strings | grep
 #   and 'emulate ksh' can be set in mkconfig.sh, but there
 #   are more issues, and I'm not interested in tracking them down.
-tryshell="ash bash dash ksh ksh88 ksh93 mksh pdksh sh sh5"
+tryshell="ash bash dash ksh ksh88 ksh93 mksh pdksh sh sh5 osh"
 
 mkconfigversion () {
   echo "mkconfig version ${_MKCONFIG_VERSION}"
@@ -155,7 +155,7 @@ _HERE_
 # use the faster method $((expr)) if possible.
 test_math () {
   shhasmath=0
-  (eval 'x=1;y=$(($x+1)); test z$y = z2') 2>/dev/null
+  (eval 'x=1;w=0+1;y=$(($x+1));v=$(($w)); test z$y = z2 -a z$v = z1 ') 2>/dev/null
   if [ $? -eq 0 ]; then
     shhasmath=1
     eval 'domath () { mthvar=$1; mthval=$(($2)); eval $mthvar=$mthval; }'
@@ -253,6 +253,10 @@ getshelltype () {
     shvers=$YASH_VERSION
     shell=yash
     baseshell=yash
+  elif [ "$OIL_VERSION" != "" ]; then
+    shvers=$OIL_VERSION
+    shell=osh
+    baseshell=osh
   fi
 
   if [ $dispshell = sh -a $dispshell != $shell ]; then

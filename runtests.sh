@@ -64,7 +64,7 @@ getlistofshells () {
     for s in $tryshell ; do
       rs=$d/$s
       if [ -x $rs ]; then
-        while [ -h $rs ]; do
+        while [ -h $rs -a $s != osh ]; do
           ors=$rs
           rs="`ls -l $rs | sed 's/.* //'`"
           case $rs in
