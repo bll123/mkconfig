@@ -357,14 +357,15 @@ LIBS=
 cmd="${comp} ${allcflags} ${flags} ${allldflags} ${ldflags_exec_link} \
     $outflags $objects \
     ${files} ${ldflags_runpath} ${ldflags_shared_libs} ${alllibs} ${libs}"
+disp=""
 if [ $compile = T ]; then
-  putsnonl "COMPILE ${files} ..."
+  disp="${disp}COMPILE ${files} ... "
   if [ "$logfile" != "" ]; then
     puts "COMPILE ${files}" >&9
   fi
 fi
 if [ $link = T ]; then
-  putsnonl "LINK ${outfile} ..."
+  disp="${disp}LINK ${outfile} ... "
   if [ "$logfile" != "" ]; then
     puts "LINK ${outfile}" >&9
   fi
@@ -392,14 +393,15 @@ if [ $rc -eq 0 ]; then
   puts "$out" | grep -i warning: >/dev/null 2>&1
   rc=$?
   if [ $rc -eq 0 ]; then
-    puts " warnings"
+    disp="${disp} warnings"
   else
-    puts " ok"
+    disp="${disp} ok"
   fi
 else
-  puts " fail"
+  disp="${disp} fail"
   grc=$rc
 fi
+puts $disp
 
 if [ "$logfile" != "" ]; then
   exec 9>&-
