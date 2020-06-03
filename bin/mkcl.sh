@@ -311,7 +311,7 @@ if [ $link = T ]; then
   fi
 fi
 if [ $link = T -a $shared = T ]; then
-  doappend allldflags " ${LDFLAGS_SHARED}"
+  doappend allldflags " ${LDFLAGS_SHARED_LIBLINK}"
   doappend allldflags " ${LDFLAGS_SHARED_USER}"
 fi
 if [ \( $shared = T \) -o \( $mkexec = T \) ]; then

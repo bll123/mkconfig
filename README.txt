@@ -1,4 +1,4 @@
-mkconfig - configuration tool (version 2.2)
+mkconfig - configuration tool (version 2.3)
 
 Website: https://gentoo.com/di/mkconfig.html
 SourceForge: https://sourceforge.net/projects/mkconfig/
@@ -61,6 +61,9 @@ ISSUES
       in a long time.
 
 CHANGES
+
+    2.3                                     [2020-6-3]
+        Fixed an issue propogating LDFLAGS_SHARED.
 
     2.2                                     [2020-5-22]
         Added support for oilshell (osh; oilshell.org).
