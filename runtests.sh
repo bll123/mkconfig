@@ -77,7 +77,7 @@ getlistofshells () {
 
           # /etc/alternatives/xxx has some weird names w/dots.
           # all ksh* are ksh
-          # anything not ksh/bash/zsh is sh
+          # anything not ksh/bash/zsh/osh is sh
           # if the name is sh->bash or sh->ksh; don't follow symlink.
           ts=`echo $rs | sed -e 's,.*[/\.],,' \
               -e 's/ksh88/ksh/' -e 's/ksh93/ksh/' `
@@ -427,7 +427,10 @@ while read tline; do
     src=$?
   fi
 
-  if [ $src -ne 0 ]; then
+  if [ $src -eq 166 ]; then
+    echo " ... skipped"
+    echo " skipped" >&8
+  elif [ $src -ne 0 ]; then
     src=1
     grc=1
     if [ $tbase = c-compiler -a $grc -ne 0 ]; then
