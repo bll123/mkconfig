@@ -103,6 +103,21 @@ check_cc () {
   fi
 }
 
+check_using_cplusplus () {
+  usingcplusplus="N"
+
+  printlabel _MKCONFIG_USING_CPLUSPLUS "Using c++"
+
+  case ${CC} in
+      *g++*|*clang++*|*c++*)
+          usingcplusplus="Y"
+          ;;
+  esac
+
+  printyesno_val _MKCONFIG_USING_CPLUSPLUS "${usingcplusplus}"
+  setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_CPLUSPLUS "${usingcplusplus}"
+}
+
 check_using_gcc () {
   usinggcc="N"
 
@@ -422,10 +437,21 @@ check_ldflags () {
   _read_option LDFLAGS_DEBUG ""
   if [ "z$LDFLAGS_DEBUG" != z ]; then
     ldflags_debug="$LDFLAGS_DEBUG"
+  else
+    _read_option CFLAGS_DEBUG ""
+    if [ "z$CFLAGS_DEBUG" != z ]; then
+      ldflags_debug="$CFLAGS_DEBUG"
+    fi
   fi
+
   _read_option LDFLAGS_OPTIMIZE ""
   if [ "z$LDFLAGS_OPTIMIZE" != z ]; then
     ldflags_optimize="$LDFLAGS_OPTIMIZE"
+  else
+    _read_option CFLAGS_OPTIMIZE ""
+    if [ "z$CFLAGS_OPTIMIZE" != z ]; then
+      ldflags_optimize="$CFLAGS_OPTIMIZE"
+    fi
   fi
 
   puts "ldflags_debug:${ldflags_debug}" >&9
