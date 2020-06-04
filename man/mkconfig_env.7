@@ -70,7 +70,7 @@ does not correspond to the marketing version.
 The cc environment unit determines basic flags needed to run the
 C compiler.  Since these units are interdependent on each other, they
 should be configured in the order: 32bitflags, cc, using_gcc,
-using_clang,
+using_clang, using_cplusplus.
 cflags, ldflags, and libs.  The CC, CFLAGS, LDFLAGS, LIBS, CFLAGS_SHARED,
 and LDFLAGS_SHARED
 environment variables may be set in the options file.  Any value set
@@ -99,6 +99,12 @@ compiler is being used.
 .RS
 Sets the _MKCONFIG_USING_CLANG environment variable to 'Y' if the clang
 compiler is being used.
+.RE
+.TP
+\fBusing_cplusplus\fP
+.RS
+Sets the _MKCONFIG_USING_CPLUSPLUS environment variable to 'Y' if a c++
+compiler is being used.  Required.
 .RE
 .TP
 \fBcflags\fP

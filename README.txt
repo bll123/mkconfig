@@ -64,6 +64,9 @@ CHANGES
 
     2.3                                     [2020-6-3]
         Fixed an issue propogating LDFLAGS_SHARED.
+        Fix library check when using g++.
+        Propogate CFLAGS_OPTIMIZE and CFLAGS_DEBUG properly to linker.
+        Added bin/capabilities.sh script.
 
     2.2                                     [2020-5-22]
         Added support for oilshell (osh; oilshell.org).

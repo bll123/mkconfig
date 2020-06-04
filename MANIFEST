@@ -1,4 +1,5 @@
 bin/
+bin/capabilities.sh	display shell capabilities
 bin/envfuncs.sh		compiler environment helper functions
 bin/mkcl.sh		compile or link
 bin/mkcsetopt.sh	set options in options file
