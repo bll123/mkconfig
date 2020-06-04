@@ -51,7 +51,7 @@ my $iflevels = '';
 my $awkcmd = 'awk';
 foreach my $p (split /[;:]/o, $ENV{'PATH'})
 {
-    if (-x "$p/awk" && $awkcmd == "") {
+    if (-x "$p/awk" && $awkcmd eq "") {
         $awkcmd = "$p/awk";
     }
     if (-x "$p/nawk" && $awkcmd !~ /mawk$/o && $awkcmd !~ /gawk$/o) {
@@ -280,6 +280,9 @@ print_headers
 
     $txt = '';
 
+    if ($r_a->{'incheaders'} eq 'none') {
+      return $txt;
+    }
     if ($r_a->{'incheaders'} eq 'all' ||
         $r_a->{'incheaders'} eq 'std')
     {
@@ -556,7 +559,7 @@ _HERE_
     }
     $code .= <<"_HERE_";
 #include <${file}>
-main () { return (0); }
+int main () { return (0); }
 _HERE_
     my $rc = 1;
     $rc = _chk_compile ($name, $code, $r_clist, $r_config,
@@ -591,7 +594,7 @@ check_constant
 _HERE_
     }
     $code .= <<"_HERE_";
-main () { if (${constant} == 0) { 1; } return (0); }
+int main () { if (${constant} == 0) { 1; } return (0); }
 _HERE_
     do_chk_compile ($name, $code, 'all', $r_clist, $r_config);
 }
@@ -610,7 +613,7 @@ check_keyword
 
     $r_config->{$name} = 0;
     my $code = <<"_HERE_";
-main () { int ${keyword}; ${keyword} = 1; return (0); }
+int main () { int ${keyword}; ${keyword} = 1; return (0); }
 _HERE_
     my $rc = _chk_compile ($name, $code, $r_clist, $r_config,
         { 'incheaders' => 'std', });
@@ -928,7 +931,7 @@ check_include_conflict
         my $code = <<"_HERE_";
 #include <$h1>
 #include <$h2>
-main () { return 0; }
+int main () { return 0; }
 _HERE_
         do_chk_compile ($name, $code, 'std', $r_clist, $r_config);
     } else {
@@ -982,7 +985,7 @@ check_type
 struct xxx { $type mem; };
 static struct xxx v;
 struct xxx* f() { return &v; }
-main () { struct xxx *tmp; tmp = f(); return (0); }
+int main () { struct xxx *tmp; tmp = f(); return (0); }
 _HERE_
     do_chk_compile ($name, $code, 'all', $r_clist, $r_config);
 }
@@ -1000,7 +1003,7 @@ check_defined
 
     setlist $r_clist, $name;
     my $code = <<"_HERE_";
-main () {
+int main () {
 #ifdef ${def}
 return (0);
 #else
@@ -1100,14 +1103,38 @@ check_lib
     $r_config->{$name} = 0;
     # unfortunately, this does not work if the function
     # is not declared.
-    my $code = <<"_HERE_";
-typedef int (*_TEST_fun_)();
-static _TEST_fun_ i=(_TEST_fun_) $rfunc;
-main () {  i(); return (i==0); }
+    my $hinc = 'all';
+    my $code = '';
+    if ($ENV{'_MKCONFIG_USING_CPLUSPLUS'} eq 'Y') {
+      $hinc = 'none';
+      $code = <<"_HERE_";
+CPP_EXTERNS_BEG
+#undef $rfunc
+typedef char (*_TEST_fun_)();
+char $rfunc();
+_TEST_fun_ f = $rfunc;
+CPP_EXTERNS_END
+int main () {
+if (f == $rfunc) { return 0; }
+return 1;
+}
 _HERE_
+    } else {
+      $hinc = 'all';
+      $code = <<"_HERE_";
+CPP_EXTERNS_BEG
+typedef char (*_TEST_fun_)();
+_TEST_fun_ f = $rfunc;
+CPP_EXTERNS_END
+int main () {
+f(); if (f == $rfunc) { return 0; }
+return 1;
+}
+_HERE_
+    }
 
     my %a = (
-         'incheaders' => 'all',
+         'incheaders' => $hinc,
          'otherlibs' => $val,
          );
     my $rc = _chk_link ($name, $code, $r_clist, $r_config, \%a);
@@ -1148,7 +1175,7 @@ check_class
 
     $r_config->{$name} = 0;
     my $code = <<"_HERE_";
-main () { $class testclass; }
+int main () { $class testclass; }
 _HERE_
 
     my %a = (
@@ -1178,8 +1205,8 @@ check_args
     printlabel $name, "args: $funcnm";
     # no cache
 
-    if ($ENV{'_MKCONFIG_USING_GCC'} == 'N' &&
-        $ENV{'_MKCONFIG_SYSTYPE'} == 'HP-UX' ) {
+    if ($ENV{'_MKCONFIG_USING_GCC'} eq 'N' &&
+        $ENV{'_MKCONFIG_SYSTYPE'} eq 'HP-UX' ) {
       my $tcc = `$ENV{'CC'} -v 2>&1`;
       if ($tcc =~ /Bundled/o) {
         print " bundled cc; skipped";
@@ -1288,7 +1315,7 @@ check_size
     setlist $r_clist, $name;
     $r_config->{$name} = 0;
     my $code = <<"_HERE_";
-main () {
+int main () {
 	printf("%u\\n", sizeof($type));
     return (0);
     }
@@ -1317,7 +1344,7 @@ check_member
     setlist $r_clist, $name;
     $r_config->{$name} = 0;
     my $code = <<"_HERE_";
-main () { $struct s; int i; i = sizeof (s.$member); }
+int main () { $struct s; int i; i = sizeof (s.$member); }
 _HERE_
     my $rc = _chk_compile ($name, $code, $r_clist, $r_config,
             { 'incheaders' => 'all', });
@@ -1372,7 +1399,7 @@ check_int_declare
     setlist $r_clist, $name;
     $r_config->{$name} = 0;
     my $code = <<"_HERE_";
-    main () { int x; x = $function; }
+    int main () { int x; x = $function; }
 _HERE_
     my $rc = _chk_compile ($name, $code, $r_clist, $r_config,
             { 'incheaders' => 'all', });
@@ -1397,7 +1424,7 @@ check_ptr_declare
     setlist $r_clist, $name;
     $r_config->{$name} = 0;
     my $code = <<"_HERE_";
-main () { void *x; x = $function; }
+int main () { void *x; x = $function; }
 _HERE_
     my $rc = _chk_compile ($name, $code, $r_clist, $r_config,
             { 'incheaders' => 'all', });
