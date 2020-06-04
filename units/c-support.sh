@@ -17,6 +17,10 @@ _c_print_headers () {
   incheaders=$1
   cppchk=$2
 
+  if [ "$incheaders" = "none" ]; then
+    return
+  fi
+
   out="${PH_PREFIX}${incheaders}"
 
   if [ -f $out ]; then

@@ -195,7 +195,7 @@ check_hdr () {
   fi
   doappend code "
 #include <$file>
-main () { return (0); }
+int main () { return (0); }
 "
   rc=1
   _c_chk_compile ${name} "${code}" std
@@ -239,7 +239,7 @@ check_const () {
       done
   fi
   doappend code "
-main () { if (${constant} == 0) { 1; } return (0); }
+int main () { if (${constant} == 0) { 1; } return (0); }
 "
   do_c_check_compile ${name} "${code}" all
 }
@@ -252,7 +252,7 @@ check_key () {
   checkcache ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
 
-  code="main () { int ${keyword}; ${keyword} = 1; return (0); }"
+  code="int main () { int ${keyword}; ${keyword} = 1; return (0); }"
 
   _c_chk_compile ${name} "${code}" std
   rc=$?
@@ -297,7 +297,7 @@ check_typ () {
 struct xxx { ${type} mem; };
 static struct xxx v;
 struct xxx* f() { return &v; }
-main () { struct xxx *tmp; tmp = f(); return (0); }
+int main () { struct xxx *tmp; tmp = f(); return (0); }
 "
 
   do_c_check_compile ${name} "${code}" all
@@ -404,7 +404,7 @@ check_member () {
   checkcache ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
 
-  code="main () { ${struct} s; int i; i = sizeof (s.${member}); }"
+  code="int main () { ${struct} s; int i; i = sizeof (s.${member}); }"
 
   do_c_check_compile ${name} "${code}" all
 }
@@ -460,7 +460,7 @@ check_size () {
 
   printlabel $name "sizeof: ${type}"
 
-  code="main () { printf(\"%u\", sizeof(${type})); return (0); }"
+  code="int main () { printf(\"%u\", sizeof(${type})); return (0); }"
   _c_chk_run ${name} "${code}" all
   rc=$?
   dlibs=$_retdlibs
@@ -622,7 +622,7 @@ check_int_declare () {
   checkcache ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
 
-  code="main () { int x; x = ${function}; }"
+  code="int main () { int x; x = ${function}; }"
   do_c_check_compile ${name} "${code}" all
 }
 
@@ -634,7 +634,7 @@ check_ptr_declare () {
   checkcache ${_MKCONFIG_PREFIX} $name
   if [ $rc -eq 0 ]; then return; fi
 
-  code="main () { void *x; x = ${function}; }"
+  code="int main () { void *x; x = ${function}; }"
   do_c_check_compile ${name} "${code}" all
 }
 
@@ -692,20 +692,41 @@ check_lib () {
   trc=0
   # unfortunately, this does not work if the function
   # is not declared.
-  code="
+  if [ "$_MKCONFIG_USING_CPLUSPLUS" = Y ]; then
+    hinc=none
+    code="
 CPP_EXTERNS_BEG
-typedef int (*_TEST_fun_)();
-static _TEST_fun_ i=(_TEST_fun_) ${func};
+#undef $rfunc
+typedef char (*_TEST_fun_)();
+char $rfunc();
+_TEST_fun_ f = $rfunc;
 CPP_EXTERNS_END
-main () {  i(); return (i==0); }
+int main () {
+if (f == $rfunc) { return 0; }
+return 1;
+}
 "
+  else
+    hinc=all
+    code="
+CPP_EXTERNS_BEG
+typedef char (*_TEST_fun_)();
+_TEST_fun_ f = $rfunc;
+CPP_EXTERNS_END
+int main () {
+f(); if (f == $rfunc) { return 0; }
+return 1;
+}
+"
+  fi
 
-  _c_chk_link_libs ${name} "${code}" all
+  _c_chk_link_libs ${name} "${code}" $hinc
   rc=$?
   dlibs=$_retdlibs
   if [ $rc -eq 0 ]; then
       trc=1
   fi
+
   tag=""
   if [ $rc -eq 0 -a "$dlibs" != "" ]; then
     tag=" with ${dlibs}"
@@ -714,19 +735,42 @@ main () {  i(); return (i==0); }
   fi
 
   if [ ${trc} -eq 0 -a "$_MKCONFIG_TEST_EXTERN" != "" ]; then
-    # Normally, we don't want to do this, as
-    # on some systems we can get spurious errors
-    # where the lib does not exist and the link works!
-    # On modern systems, this simply isn't necessary.
-    code="
+    if [ $_MKCONFIG_USING_CPLUSPLUS = Y ]; then
+      hinc=none
+      code="
 CPP_EXTERNS_BEG
-  extern int ${func}();
-  typedef int (*_TEST_fun_)();
-  static _TEST_fun_ i=(_TEST_fun_) ${func};
+#undef $rfunc
+typedef char (*_TEST_fun_)();
+char $rfunc();
+_TEST_fun_ f = $rfunc;
 CPP_EXTERNS_END
-  main () {  i(); return (i==0); }
-  "
-    _c_chk_link_libs ${name} "${code}" all
+int main () {
+if (f == $rfunc) { return 0; }
+return 1;
+}
+"
+    else
+      hinc=all
+      code="
+CPP_EXTERNS_BEG
+/*
+Normally, we don't want to do this, as
+on some systems we can get spurious errors
+where the lib does not exist and the link works!
+On modern systems, this simply isn't necessary.
+*/
+extern int ${func}();
+typedef char (*_TEST_fun_)();
+_TEST_fun_ f = $rfunc;
+CPP_EXTERNS_END
+int main () {
+f(); if (f == $rfunc) { return 0; }
+return 1;
+}
+"
+    fi
+
+    _c_chk_link_libs ${name} "${code}" $hinc
     rc=$?
     dlibs=$_retdlibs
     if [ $rc -eq 0 ]; then
@@ -756,7 +800,7 @@ check_class () {
   name=$nm
 
   trc=0
-  code=" main () { ${class} testclass; } "
+  code=" int main () { ${class} testclass; } "
 
   if [ "$otherlibs" != "" ]; then
       printlabel $name "class: ${class} [${otherlibs}]"
