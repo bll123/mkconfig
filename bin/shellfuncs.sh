@@ -17,12 +17,12 @@ _MKCONFIG_VERSION=`cat ${_MKCONFIG_DIR}/VERSION`
 export _MKCONFIG_VERSION
 
 # posh set command doesn't output correct data; don't bother with it.
-# yash has quoting/backquote issues
+# older yash has quoting/backquote issues (what version did this get fixed?)
 # zsh is not bourne shell compatible
 #   set | grep can be fixed (nulls are output) with: set | strings | grep
 #   and 'emulate ksh' can be set in mkconfig.sh, but there
 #   are more issues, and I'm not interested in tracking them down.
-tryshell="ash bash bash2 bash3 bash4 bash5 dash ksh ksh88 ksh93 mksh pdksh sh sh5 osh"
+tryshell="ash bash bash2 bash3 bash4 bash5 dash ksh ksh88 ksh93 mksh pdksh sh sh5 osh yash"
 
 mkconfigversion () {
   echo "mkconfig version ${_MKCONFIG_VERSION}"
@@ -286,7 +286,7 @@ doshelltest () {
   fi
 
   getshelltype  # for display of error below
-  chkshell
+  chkshell "" $shell
   if [ $? -ne 0 ]; then
     echo "The shell in use ($dispshell) does not have the correct functionality:" >&2
     echo $chkmsg >&2
@@ -321,15 +321,31 @@ chkshell () {
   if [ "$1" = "echo" ]; then
     doecho=T
   fi
+  shellpath=$2
 
   grc=0
+
+  case $shellpath in
+    *yash)
+      # reject older versions of yash
+      # I do not know in what version the quoting/backquoting issues
+      # got fixed.
+      echo "$YASH_VERSION < 2.49" | bc -l
+      rc=$?
+      if [ $rc -eq 0 ]; then
+        chkmsg="${chkmsg}
+  older versions of yash are not supported"
+        grc=1
+      fi
+      ;;
+  esac
 
   chkmsg=""
   # test to make sure the set command works properly
   # some shells output xyzzy=abc def
   # some shells output xyzzy='abc def'
   # some shells output xyzzy=$'abc def' (ok; handled in mkconfig.sh)
-  # yash does this correctly, but has quoting/backquote issues
+  # yash does this correctly, but had quoting/backquote issues in older versions.
   (
     cmd='xyzzy="abc def"; val=`set | grep "^xyzzy"`; test "$val" = "xyzzy=abc def"'
     eval $cmd 2>/dev/null

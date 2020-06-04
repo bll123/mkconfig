@@ -138,7 +138,7 @@ ${inode}"
   for s in $tshelllist; do
     putsnonl "  check $s" >&8
     putsnonl "   $s"
-    cmd="$s -c \". $_MKCONFIG_DIR/bin/shellfuncs.sh;chkshell echo\""
+    cmd="$s -c \". $_MKCONFIG_DIR/bin/shellfuncs.sh;chkshell echo $s\""
     eval $cmd >&8 2>&1
     rc=$?
     cmd="$s -c \". $_MKCONFIG_DIR/bin/shellfuncs.sh;getshelltype $s echo\""

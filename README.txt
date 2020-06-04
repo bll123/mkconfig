@@ -67,6 +67,8 @@ CHANGES
         Fix library check when using g++.
         Propogate CFLAGS_OPTIMIZE and CFLAGS_DEBUG properly to linker.
         Added bin/capabilities.sh script.
+        Added yash to the supported scripts list (version 2.48 or later;
+          I don't know when its issues were fixed).
 
     2.2                                     [2020-5-22]
         Added support for oilshell (osh; oilshell.org).

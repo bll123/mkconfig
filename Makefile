@@ -18,7 +18,8 @@ clean:
 	@-$(RM) -rf tests.done tests.d/chksh* tests.d/c.d/chksh* \
 		tests.d/d.d/chksh* mkconfig.cache mkconfig.log \
 		mkc*.vars *~ */*~ */*/*~ \
-		*.orig */*.orig > /dev/null 2>&1
+		*.orig */*.orig \
+		*/test_order.tmp */*/test_order.tmp > /dev/null 2>&1
 
 .PHONY: realclean
 realclean:
