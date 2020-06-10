@@ -53,6 +53,11 @@ The systype environment unit determines what type, revision and
 architecture of the system you are running on.
 .RS
 .TP
+\fBstandard_system\fP
+.RS
+Runs the 'system type', 'system rev' and 'system arch' commands.
+.RE
+.TP
 \fBsystem\fP {type|rev|arch}
 .RS
 The system directive with the type, rev and arch arguments will create
@@ -68,14 +73,23 @@ does not correspond to the marketing version.
 .B env\-cc
 .br
 The cc environment unit determines basic flags needed to run the
-C compiler.  Since these units are interdependent on each other, they
+C compiler.  Use the 'standard_cc' check.
+.PP
+The checks are interdependent on each other and
 should be configured in the order: 32bitflags, cc, using_gcc,
 using_clang, using_cplusplus.
-cflags, ldflags, and libs.  The CC, CFLAGS, LDFLAGS, LIBS, CFLAGS_SHARED,
-and LDFLAGS_SHARED
+cflags, ldflags, and libs.
+.PP
+The CC, CFLAGS, LDFLAGS, LIBS, CFLAGS_SHARED, and LDFLAGS_SHARED
 environment variables may be set in the options file.  Any value set
 in the environment will override the settings in the options file.
 .RS
+.TP
+\fBstandard_cc\fP
+.RS
+Runs the 32bitflags, cc, using_gcc, using_gnu_ld, using_clang and
+using_cplusplus tests.
+.RE
 .TP
 \fB32bitflags\fP
 .RS
@@ -114,6 +128,8 @@ CFLAGS_COMPILER, CFLAGS_APPLICATION and CFLAGS_SYSTEM
 environment variable according to the 'getconf' program
 and appropriate to the operating system and compiler.
 .PP
+The CFLAGS environment variable will populate the CFLAGS_USER environment
+variable.
 The CFLAGS_ALL environment variable can be used to override the c flags.
 .RE
 .TP
@@ -148,6 +164,8 @@ LDFLAGS_COMPILER, LDFLAGS_APPLICATION and LDFLAGS_SYSTEM
 environment variables according to the 'getconf' program
 and appropriate to the operating system and compiler.
 .PP
+The LDFLAGS environment variable will populate the LDFLAGS_USER
+environment variable.
 The LDFLAGS_ALL environment variable can be used to override the load flags.
 .RE
 .TP

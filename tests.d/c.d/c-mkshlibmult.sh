@@ -130,7 +130,7 @@ i=6
 #endif
 
 extern int mkct5 _((void));
-main () { int i, j; i = mkct5(); j = 1; if (i == 10) { j = 0; } return j; }
+int main () { int i, j; i = mkct5(); j = 1; if (i == 10) { j = 0; } return j; }
 '
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -compile -shared \
     -log mkc_compile.log${stag} -e -o mkct${i}${OBJ_EXT} mkct${i}.c

@@ -317,7 +317,7 @@ check_addcflag () {
   printlabel CFLAGS_APPLICATION "Add C flag: ${flag}"
 
   puts "#include <stdio.h>
-main () { return 0; }" > t.c
+int main () { return 0; }" > t.c
   puts "# test ${flag}" >&9
   # need to set w/all cflags; gcc doesn't always error out otherwise
   TMPF=t$$.txt
@@ -351,7 +351,7 @@ check_addldflag () {
   setldflags
   setlibs
   puts "#include <stdio.h>
-main () { return 0; }" > t.c
+int main () { return 0; }" > t.c
   puts "# test ${flag}" >&9
   # need to set w/all cflags/ldflags; gcc doesn't always error out otherwise
   TMPF=t$$.txt

@@ -33,12 +33,12 @@ check_objext () {
   CC=${CC:-cc}
 
   > $TMPF.c puts '
-  #include <stdio.h>
-  main ()
-  {
-    printf ("hello\n");
-    return 0;
-  }
+#include <stdio.h>
+int main ()
+{
+  printf ("hello\n");
+  return 0;
+}
 '
 
   ${CC} -c $TMPF.c > /dev/null 2>&1 # don't care about warnings...
@@ -65,12 +65,12 @@ check_exeext () {
   CC=${CC:-cc}
 
   > $TMPF.c puts '
-  #include <stdio.h>
-  main ()
-  {
-    printf ("hello\n");
-    return 0;
-  }
+#include <stdio.h>
+int main ()
+{
+  printf ("hello\n");
+  return 0;
+}
 '
 
   ${CC} -o $TMPF $TMPF.c > /dev/null 2>&1 # don't care about warnings
