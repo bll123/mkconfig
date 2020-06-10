@@ -140,3 +140,9 @@ check_system () {
     setdata ${_MKCONFIG_PREFIX} _MKCONFIG_SYSARCH "${_MKCONFIG_SYSARCH}"
   fi
 }
+
+check_standard_system () {
+  check_system type
+  check_system  rev
+  check_system arch
+}
