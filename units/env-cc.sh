@@ -808,7 +808,6 @@ check_findpc () {
 
 check_standard_cc () {
   check_cc
-  check_32bitflags
   check_using_gcc
   check_using_gnu_ld
   check_using_clang
