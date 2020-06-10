@@ -58,9 +58,13 @@ _savecache () {
     # Some shells don't quote the values in the set
     # command like bash does.  So we do it.
     # Then we have to undo it for bash.
-    # Other shells do: x=$''; remove the $
+    #
+    # The $'' syntax interpolates backslashes and nothing else.
+    # For these, remove the $.
+    #
     # And then there's: x='', which gets munged.
     # Any value that actually ends with an '=' is going to get mangled.
+    #
     #savecachedebug=F
     #if [ $savecachedebug = T ]; then
     #  puts "## savecache original"
