@@ -18,11 +18,12 @@ export _MKCONFIG_VERSION
 
 # posh set command doesn't output correct data; don't bother with it.
 # older yash has quoting/backquote issues (what version did this get fixed?)
+# bosh is a disaster.
 # zsh is not bourne shell compatible
 #   set | grep can be fixed (nulls are output) with: set | strings | grep
 #   and 'emulate ksh' can be set in mkconfig.sh, but there
 #   are more issues, and I'm not interested in tracking them down.
-tryshell="ash bash bash2 bash3 bash4 bash5 dash ksh ksh88 ksh93 mksh pdksh sh sh5 osh yash"
+tryshell="bash bash5 bash4 bash3 ksh ksh88 ksh93 mksh pdksh yash ash dash bash2 sh sh5 osh"
 
 mkconfigversion () {
   echo "mkconfig version ${_MKCONFIG_VERSION}"
@@ -61,11 +62,11 @@ test_echo () {
   fi
 
   #
-  # Tru64 sh has some weird bugs.
-  # Not sure where the bug occurs -- probably both 'echo' and 'read',
-  # and they cancel other out.
   # Backslash interpolation with echo and single quotes has issues.
   # Apparently I didn't code anything that ran into that problem.
+  #
+  # echo with single quotes should be avoided as too many shells
+  # interpolate backslashes when they should not.
   #
   # The read/printf combo fails due to differences from read/echo.
   #
@@ -81,29 +82,27 @@ test_echo () {
   # a \\ b
   # $ read tdat < tt
   # $ echo "$tdat"
-  # a \ b
+  # a \ b               # should be: a \ b
   # $ printf "%s\n" "$tdat"
   # a \\ b              # should be: a \ b
   # $ echo 'a \\ b'
   # a \ b               # should be: a \\ b
   # $ printf "%s\n" 'a \\ b'
-  # a \\ b
+  # a \\ b              # should be: a \\ b
   # $
   #
 
   # Test for interpolation bugs.
   # If bugs are present, use 'echo'.
-  tz="a \\\\ b"            # should interpolate as: a \\ b
+  tz="a \\\\ b"            # should always interpolate as: a \\ b
   t1=`echo "$tz"`          # and both of these should return: a \\ b
   t2=`printf '%s\n' "$tz"`
   # have to test against the original in order to catch the change
-  if [ "$tz" != "$t1" ]; then
+  # if echo and printf do not match each other, it is very likely
+  # that the read/echo/printf mismatches also occur.
+  if [ \( "$tz" != "$t1" \) -o \( "$tz" != "$t2" \) ]; then
     shhasprintf=0
-    shhasprintferr="$shhasprintferr efail"
-  fi
-  if [ "$tz" != "$t2" ]; then
-    shhasprintf=0
-    shhasprintferr="$shhasprintferr pfail"
+    shhasprintferr=mismatch
   fi
 
   # 'echo' works everywhere, but is not a POSIX compliant command.
@@ -134,6 +133,14 @@ test_append () {
 }
 
 test_readraw () {
+  # $ cat tt
+  # a \\ b
+  # $ read tdat < tt
+  # $ echo "$tdat"
+  # a \ b               # should be: a \ b
+  # $ printf "%s\n" "$tdat"
+  # a \\ b              # should be: a \ b
+
   shreqreadraw=0
   # unixware 7.14 compiles and runs this code ok, but it's shell gets
   # completely wacked out later.  So run it in a subshell.
