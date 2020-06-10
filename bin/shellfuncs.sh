@@ -45,6 +45,7 @@ dosubst () {
 
 test_echo () {
   shhasprintf=0
+  shhasprintferr=""
   (eval 'printf %s hello >/dev/null') 2>/dev/null
   rc=$?
   # Virtually all shells have printf.
@@ -55,6 +56,8 @@ test_echo () {
     shhasprintf=1
     eval 'putsnonl () { printf '%s' "$*"; }'
     eval 'puts () { printf "%s\n" "$*"; }'
+  else
+    shhasprintferr=none
   fi
 
   #
@@ -67,6 +70,8 @@ test_echo () {
   # The read/printf combo fails due to differences from read/echo.
   #
   # 2019-6-26: Apparently some older ksh93 also have this issue.
+  # 2020-6-10: Apparently there are differences in quite a few shells here.
+  #            I am surprised I did not run into portability issues with this.
   #
   # $ echo "a \\ b"
   # a \ b
@@ -92,8 +97,13 @@ test_echo () {
   t1=`echo "$tz"`          # and both of these should return: a \\ b
   t2=`printf '%s\n' "$tz"`
   # have to test against the original in order to catch the change
-  if [ \( "$tz" != "$t1" \) -o \( "$tz" != "$t2" \) ]; then
+  if [ "$tz" != "$t1" ]; then
     shhasprintf=0
+    shhasprintferr="$shhasprintferr efail"
+  fi
+  if [ "$tz" != "$t2" ]; then
+    shhasprintf=0
+    shhasprintferr="$shhasprintferr pfail"
   fi
 
   # 'echo' works everywhere, but is not a POSIX compliant command.
@@ -155,11 +165,21 @@ _HERE_
 # use the faster method $((expr)) if possible.
 test_math () {
   shhasmath=0
-  (eval 'x=1;w=0+1;y=$(($x+1));v=$(($w)); test z$y = z2 -a z$v = z1 ') 2>/dev/null
-  if [ $? -eq 0 ]; then
-    shhasmath=1
-    eval 'domath () { mthvar=$1; mthval=$(($2)); eval $mthvar=$mthval; }'
-  else
+  shhasmatherr=none
+  (eval 'x=1;y=$(($x+1)); test z$y = z2') 2>/dev/null
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    (eval 'w=0+1;v=$(($w)); test z$v = z1 ') 2>/dev/null
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      shhasmath=1
+      shhasmatherr=""
+      eval 'domath () { mthvar=$1; mthval=$(($2)); eval $mthvar=$mthval; }'
+    else
+      shhasmatherr=heval
+    fi
+  fi
+  if [ $shhasmath -eq 0 ]; then
     eval 'domath () { mthvar=$1; mthval=`expr $2`; eval $mthvar=$mthval; }'
   fi
 }

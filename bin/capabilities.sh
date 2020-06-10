@@ -19,8 +19,9 @@ fi
 doshelltest $0 $@
 
 puts "$shell $shvers"
-puts "printf: $shhasprintf"
+puts "printf: $shhasprintf ($shhasprintferr)"
 puts "append: $shhasappend"
-puts "math: $shhasmath"
+puts "math: $shhasmath ($shhasmatherr)"
 puts "typeset -u: $shhasupper"
 puts "typeset -l: $shhaslower"
+puts "readraw required: $shreqreadraw"
