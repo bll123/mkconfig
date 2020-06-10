@@ -17,6 +17,11 @@ examples/dtcltk/Makefile
 examples/dtcltk/tcl.dat
 examples/dtcltk/tk.dat
 examples/dtcltk/x.dat
+examples/helloworld/	example hello world program
+examples/helloworld/hello.mkc
+examples/helloworld/hello.c
+examples/helloworld/Makefile
+examples/helloworld/env.mkc
 LICENSE			LICENSE
 man/
 man/mkconfig.7		manual page

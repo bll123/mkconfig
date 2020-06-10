@@ -20,6 +20,7 @@ clean:
 		mkc*.vars *~ */*~ */*/*~ \
 		*.orig */*.orig \
 		*/test_order.tmp */*/test_order.tmp > /dev/null 2>&1
+	@cd examples/helloworld; $(MAKE) clean
 
 .PHONY: realclean
 realclean:
