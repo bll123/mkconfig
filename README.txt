@@ -1,4 +1,4 @@
-mkconfig - configuration tool (version 2.3)
+mkconfig - configuration tool (version 2.4)
 
 Website: https://gentoo.com/di/mkconfig.html
 SourceForge: https://sourceforge.net/projects/mkconfig/
@@ -13,12 +13,15 @@ It also includes tools that can be used to compile, link and build
 libraries and executables using the shell configuration previously
 built.
 
-An example of mkconfig in use can be seen in the
+See: examples/helloworld for a simple example.
+
+Another example of mkconfig in use can be seen in the
 'di' program at https://sourceforge.net/projects/diskinfo-di/
+As of 2020-6-11, the 'di' program version 4.48 is using mkconfig version 2.3.
 
 mkconfig works with most any bourne shell compatible shell.  Modern
 shells that are not bourne shell compatible are:
-  posh, yash, zsh (compatibility mode).
+  posh, zsh (compatibility mode).
 Very old shells do not have the memory capabilities needed in order to
 save the large number of variables that mkconfig needs.
 

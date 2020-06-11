@@ -176,7 +176,9 @@ testcleanup () {
     for x in out.h out.d testouth.c opts test.env c.env \
 	mkc_files \
 	$@; do
-      test -e ${x} && mv ${x} ${x}${stag}
+      # test -e is not supported by older shells.
+      test -f ${x} && mv ${x} ${x}${stag}
+      test -d ${x} && mv ${x} ${x}${stag}
     done
   fi
 }

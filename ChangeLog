@@ -7,6 +7,7 @@ CHANGES
       Added examples/helloworld.
       Added Makefile.inc for simple builds.
       Made easier to use.
+      Move most files to a sub-directory.
 
     2.3                                     [2020-6-3]
       Fixed an issue propogating LDFLAGS_SHARED.
