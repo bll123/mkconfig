@@ -53,7 +53,8 @@ mklib=F
 doecho=F
 comp=${CC}
 reqlibfiles=
-logfile=mkc_compile.log
+MKC_FILES=${MKC_FILES:-mkc_files}
+logfile=${MKC_FILES}/mkc_compile.log
 c=T
 d=F
 while test $# -gt 0; do
@@ -127,7 +128,7 @@ while test $# -gt 0; do
       shift
       ;;
     -D*|-U*)
-      doappend CFLAGS " $1"
+      doappend CFLAGS_USER " $1"
       shift
       ;;
     --)
@@ -180,7 +181,7 @@ grc=0
 for f in $@ $olibs; do
   case $f in
     -D*)
-      doappend CFLAGS $1
+      doappend CFLAGS_USER $1
       shift
       ;;
     -L)
@@ -278,7 +279,6 @@ if [ $havesource = T ]; then
       doappend allcflags " ${CFLAGS_DEBUG}"        # debug flags
       doappend allcflags " ${CFLAGS_INCLUDE}"      # any include files
       doappend allcflags " ${CFLAGS_USER}"         # specified by the user
-      doappend allcflags " ${CFLAGS}"              # specified by the user
       if [ $shared = T ];then
         doappend allcflags " ${CFLAGS_SHARED}"
         doappend allcflags " ${CFLAGS_SHARED_USER}"
@@ -332,12 +332,6 @@ if [ \( $shared = T \) -o \( $mkexec = T \) ]; then
       ldflags_exec_link="${LDFLAGS_EXEC_LINK}"
     fi
   fi
-fi
-if [ $link = T ]; then
-  ldflags=""
-  for flag in ${LDFLAGS}; do
-    doappend allldflags " ${DC_LINK}${flag}"
-  done
 fi
 if [ $link = T ]; then
   if [ "$LDFLAGS_LIBS_ALL" != "" ]; then

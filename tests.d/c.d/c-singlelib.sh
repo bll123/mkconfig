@@ -55,7 +55,7 @@ sed -e '/^#define _key_/d' \
     -e '/Created on: /,/Using: mkc/ d' \
     out.h > out.h.n
 chkdiff c-singlelib.ctmp out.h.n
-chkdiff ${_MKCONFIG_RUNTESTDIR}/c-singlelib.reqlibs mkconfig.reqlibs
+chkdiff ${_MKCONFIG_RUNTESTDIR}/c-singlelib.reqlibs ${MKC_FILES}/mkconfig.reqlibs
 
 testcleanup
 

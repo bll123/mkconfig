@@ -314,16 +314,24 @@ check_define () {
   if [ $rc -eq 0 ]; then return; fi
 
   code="int main () {
-#ifdef ${def}
-return (0);
-#else
-return (1);
+#if defined(${def})
+# define MKC_DEFINED 1
+#endif
+#ifdef MKC_DEFINED
+printf (\"mkc_defined ${def}\");
 #endif
 }"
 
-  _c_chk_run "$name" "$code" all
+  trc=0
+  _c_chk_cpp "$name" "$code" all
   rc=$?
-  if [ $rc -eq 0 ]; then trc=1; else trc=0; fi
+  if [ $rc -eq 0 ]; then
+    egrep -l "mkc_defined" $name.out >/dev/null 2>&1
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      trc=1
+    fi
+  fi
   setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
   printyesno $name $trc
 }
@@ -460,9 +468,56 @@ check_size () {
 
   printlabel $name "sizeof: ${type}"
 
-  code="int main () { printf(\"%u\", sizeof(${type})); return (0); }"
-  _c_chk_run ${name} "${code}" all
-  rc=$?
+  if [ "$MKC_CROSS" = Y ]; then
+    puts "## size: cross compiling is active" >&9
+    code="int main () { printf(\"%u\", sizeof(${type})); return (0); }"
+    _c_chk_compile ${name} "${code}" all
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      sz=1
+      # this could be sped up by moving the common sizes to the beginning
+      # of the list of sizes to test.
+      while test $sz -lt 129; do
+        code="
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+main () {
+  size_t a = sizeof(int);
+
+  switch (a) {
+    case ${sz}:
+    case sizeof(${type}):
+    {
+      break;
+    }
+  }
+}
+"
+        _c_chk_compile ${name} "${code}" all
+        trc=$?
+        if [ $trc -ne 0 ]; then
+          _retval=$sz
+          rc=0
+          break
+        fi
+        if [ $sz -eq 1 ]; then
+          sz=2
+        else
+          domath sz "$sz + 2"
+        fi
+      done
+    else
+      _retval=0
+      rc=1
+    fi
+  else
+    puts "## size: cross compiling is NOT active" >&9
+    code="int main () { printf(\"%u\", sizeof(${type})); return (0); }"
+    _c_chk_run ${name} "${code}" all
+    rc=$?
+  fi
   dlibs=$_retdlibs
   val=$_retval
   if [ $rc -ne 0 ]; then
@@ -546,7 +601,7 @@ $asmdef
   precc="${oldprecc}"
 
   if [ $rc -eq 0 ]; then
-    egrep "[	 *]${funcnm}[	 ]*\(" $name.out >/dev/null 2>&1
+    egrep -l "[	 *]${funcnm}[	 ]*\(" $name.out >/dev/null 2>&1
     rc=$?
     if [ $rc -eq 0 ]; then
       trc=1

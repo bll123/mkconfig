@@ -18,6 +18,28 @@ export _MKCONFIG_DIR
 
 doshelltest $0 $@
 
+if [ "$MKC_PREFIX" != "" ]; then
+  if [ "$MKC_CONFDIR" = "" ]; then
+    MKC_CONFDIR=.
+    export MKC_CONFDIR
+  else
+    test -d "${MKC_CONFDIR}" || mkdir -p "${MKC_CONFDIR}"
+  fi
+  if [ "$MKC_OUTPUT" = "" ]; then
+    MKC_OUTPUT=config.h
+    export MKC_OUTPUT
+  fi
+  if [ ! -f ${MKC_CONFDIR}/${MKC_PREFIX}.env ]; then
+    ${_MKCONFIG_SHELL} ${MKC_DIR}/mkconfig.sh ${MKC_CONFDIR}/${MKC_PREFIX}-env.mkc
+  fi
+  if [ -f ${MKC_PREFIX}.env ]; then
+    . ./${MKC_PREFIX}.env
+    if [ ! -f ${MKC_OUTPUT} ]; then
+      ${_MKCONFIG_SHELL} ${MKC_DIR}/mkconfig.sh ${MKC_CONFDIR}/${MKC_PREFIX}.mkc
+    fi
+  fi
+fi
+
 rc=0
 args=$@
 found=T
@@ -41,6 +63,9 @@ case $1 in
     shift
     ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/bin/mkreqlib.sh -d `pwd` "$@"
     rc=$?
+    ;;
+  -makeconfig)
+    rc=0
     ;;
   *)
     found=F

@@ -9,12 +9,18 @@
 require 5.005;
 
 my $CONFH;
-my $LOG = "mkconfig.log";
-my $_MKCONFIG_TMP = "_tmp_mkconfig";
-my $OPTIONFILE = "options.dat";
-my $VARSFILE = "mkc_none_c.vars";
-my $CACHEFILE = "mkconfig.cache";
-my $REQLIB = "mkconfig.reqlibs";
+my $MKC_FILES = 'mkc_files';
+if ( $ENV{'MKC_FILES'} ne "" ) {
+  $MKC_FILES = $ENV{'MKC_FILES'};
+}
+mkdir $MKC_FILES, 0777;
+
+my $LOG = "../../${MKC_FILES}/mkconfig.log";
+my $_MKCONFIG_TMP = "${MKC_FILES}/_tmp_mkconfig";
+my $OPTIONFILE = "../../options.dat";
+my $VARSFILE = "../../${MKC_FILES}/mkc_none_c.vars";
+my $CACHEFILE = "../../${MKC_FILES}/mkconfig.cache";
+my $REQLIB = "../../${MKC_FILES}/mkconfig.reqlibs";
 my $_MKCONFIG_DIR = "invalid";
 
 my $precc = <<'_HERE_';
@@ -226,7 +232,7 @@ sub
 setcflags
 {
   my $CFLAGS = '';
-  if ( $ENV{'CFLAGS_ALL'} != "" ) {
+  if ( $ENV{'CFLAGS_ALL'} ne "" ) {
     $CFLAGS= $ENV{'CFLAGS_ALL'};
   } else {
     $CFLAGS .= ' ' . $ENV{'CFLAGS_OPTIMIZE'};
@@ -244,7 +250,7 @@ sub
 setldflags
 {
   my $LDFLAGS = '';
-  if ( $ENV{'LDFLAGS_ALL'} != "" ) {
+  if ( $ENV{'LDFLAGS_ALL'} ne "" ) {
     $LDFLAGS = $ENV{'LDFLAGS_ALL'}
   } else {
     $LDFLAGS .= ' ' . $ENV{'LDFLAGS_OPTIMIZE'};
@@ -262,7 +268,7 @@ sub
 setlibs
 {
   my $LIBS = '';
-  if ( $ENV{'LDFLAGS_LIBS_ALL'} != "" ) {
+  if ( $ENV{'LDFLAGS_LIBS_ALL'} ne "" ) {
     $LIBS = $ENV{'LDFLAGS_LIBS_ALL'}
   } else {
     $LIBS .= ' ' . $ENV{'LDFLAGS_LIBS_USER'};
@@ -1468,6 +1474,7 @@ create_output
   if ($CONFH eq 'none') { return; }
 
   my $dt=`date`;
+  chomp $dt;
   open (CCOFH, ">$CONFH");
   print CCOFH <<"_HERE_";
 /* Created on: ${dt}
@@ -1571,7 +1578,7 @@ main_process
 
     my $tconfigfile = $configfile;
     if ($configfile !~ m#^/#) {
-      $tconfigfile = "../$configfile";
+      $tconfigfile = "../../$configfile";
     }
     if (! open (DATAIN, "<$tconfigfile"))
     {
@@ -1678,7 +1685,7 @@ main_process
             if ($tconfh =~ m#^/#o) {
               $CONFH = $tconfh;
             } else {
-              $CONFH = "../$tconfh";
+              $CONFH = "../../$tconfh";
             }
             $CONFHTAG = $tconfh;
             $CONFHTAG =~ s,.*/,,;
@@ -1686,7 +1693,7 @@ main_process
             $CONFHTAGUC = uc $CONFHTAG;
             print LOGFH "config file: $CONFH\n";
             $inproc = 1;
-            $VARSFILE = "../mkc_${CONFHTAG}_c.vars";
+            $VARSFILE = "../../${MKC_FILES}/mkc_${CONFHTAG}_c.vars";
             $clist{'vars'} = ();
             $clist{'vhash'} = {};
         }
@@ -1697,7 +1704,7 @@ main_process
             if ($tfile =~ m#^/#o) {
               $OPTIONFILE = $tfile;
             } else {
-              $OPTIONFILE = "../$tfile";
+              $OPTIONFILE = "../../$tfile";
             }
             print LOGFH "options file: $OPTIONFILE\n";
         }
@@ -2028,17 +2035,11 @@ if (! defined ($configfile) || ! -f $configfile)
   usage;
   exit 1;
 }
-if (-d $_MKCONFIG_TMP && $_MKCONFIG_TMP ne "_tmp_mkconfig")
+if (-d $_MKCONFIG_TMP && $_MKCONFIG_TMP ne "mkc_files/_tmp_mkconfig")
 {
   usage;
   exit 1;
 }
-
-$LOG = "../$LOG";
-$REQLIB = "../$REQLIB";
-$CACHEFILE = "../$CACHEFILE";
-$VARSFILE = "../$VARSFILE";
-$OPTIONFILE = "../$OPTIONFILE";
 
 delete $ENV{'CDPATH'};
 delete $ENV{'GREP_OPTIONS'};
@@ -2062,23 +2063,27 @@ if (! chdir $currdir) {
 
 if (-d $_MKCONFIG_TMP) { system ("rm -rf $_MKCONFIG_TMP"); }
 mkdir $_MKCONFIG_TMP, 0777;
-chdir $_MKCONFIG_TMP;
+if (! chdir $_MKCONFIG_TMP) {
+  die ("Unable to cd to $_MKCONFIG_TMP. $!\n");
+}
 
 if ($clearcache)
 {
-    unlink $CACHEFILE;
-    unlink $VARSFILE;
+  unlink $CACHEFILE;
+  unlink $VARSFILE;
 }
 
 print STDOUT "$0 using $configfile\n";
 unlink $LOG;
 open (LOGFH, ">>$LOG");
 $ENV{'CFLAGS'} = $ENV{'CFLAGS'};
-foreach my $nm ('CC', 'CFLAGS_OPTIMIZE', 'CFLAGS_DEBUG', 'CFLAGS_INCLUDE', 'CFLAGS_USER',
-      'CFLAGS_APPLICATION', 'CFLAGS_COMPILER', 'CFLAGS_SYSTEM', 'CFLAGS_SHARED',
-      'CFLAGS_SHARED_USER', 'LDFLAGS_OPTIMIZE', 'LDFLAGS_DEBUG', 'LDFLAGS_USER',
-      'LDFLAGS_APPLICATION', 'LDFLAGS_COMPILER', 'LDFLAGS_SYSTEM', 'LDFLAGS_SHARED',
-      'LDFLAGS_LIBS_USER', 'LDFLAGS_LIBS_APPLICATION', 'LDFLAGS_LIBS_SYSTEM') {
+foreach my $nm ('CC', 'CFLAGS_OPTIMIZE', 'CFLAGS_DEBUG', 'CFLAGS_INCLUDE',
+      'CFLAGS_USER', 'CFLAGS_APPLICATION', 'CFLAGS_COMPILER', 'CFLAGS_SYSTEM',
+      'CFLAGS_SHARED', 'CFLAGS_SHARED_USER', 'LDFLAGS_OPTIMIZE',
+      'LDFLAGS_DEBUG', 'LDFLAGS_USER', 'LDFLAGS_APPLICATION',
+      'LDFLAGS_COMPILER', 'LDFLAGS_SYSTEM', 'LDFLAGS_SHARED',
+      'LDFLAGS_SHARED_LIBLINK', 'LDFLAGS_LIBS_USER',
+      'LDFLAGS_LIBS_APPLICATION', 'LDFLAGS_LIBS_SYSTEM') {
   print LOGFH "$nm: $ENV{$nm}\n";
 }
 print LOGFH "awk: $awkcmd\n";
@@ -2087,7 +2092,6 @@ main_process $configfile;
 
 close LOGFH;
 
-chdir "..";
 if ($ENV{'MKC_KEEP_TMP'} eq "") {
   if (-d $_MKCONFIG_TMP) { system ("rm -rf $_MKCONFIG_TMP"); }
 }

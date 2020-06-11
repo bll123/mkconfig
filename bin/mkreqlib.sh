@@ -16,7 +16,8 @@ fi
 doshelltest $0 $@
 
 RUNTOPDIR=`pwd`
-CACHEFILE="mkconfig.cache"
+MKC_FILES=${MKC_FILES:-mkc_files}
+CACHEFILE="${MKC_FILES}/mkconfig.cache"
 
 unset GREP_OPTIONS
 unset ENV
@@ -33,7 +34,7 @@ getlibdata () {
 mkconfigversion
 
 debug=F
-OUTLIBFILE="mkconfig.reqlibs"
+OUTLIBFILE="${MKC_FILES}/mkconfig.reqlibs"
 while test $# -gt 1; do
   case $1 in
     -X)

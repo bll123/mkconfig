@@ -245,9 +245,11 @@ fi
 
 _MKCONFIG_RUNTESTDIR=`pwd`
 export _MKCONFIG_RUNTESTDIR
+MKC_FILES=${MKC_FILES:-mkc_files}
+export MKC_FILES
 
 if [ $SUBDIR = F ]; then
-  _MKCONFIG_RUNTMPDIR=$_MKCONFIG_RUNTOPDIR/_mkconfig_runtests
+  _MKCONFIG_RUNTMPDIR=$_MKCONFIG_RUNTOPDIR/${MKC_FILES}/_mkconfig_runtests
   export _MKCONFIG_RUNTMPDIR
 
   CC=${CC:-cc}
@@ -256,9 +258,11 @@ if [ $SUBDIR = F ]; then
   export DC
 else
   btestdir=`echo $testdir | sed 's,.*/,,'`
-  _MKCONFIG_RUNTMPDIR=$_MKCONFIG_RUNTOPDIR/_mkconfig_runtests/$btestdir
+  _MKCONFIG_RUNTMPDIR=$_MKCONFIG_RUNTOPDIR/${MKC_FILES}/_mkconfig_runtests/$btestdir
   export _MKCONFIG_RUNTMPDIR
 fi
+d=`dirname $_MKCONFIG_RUNTMPDIR`
+test -d $d || mkdir -p $d
 
 TMPORDER=test_order.tmp
 > $TMPORDER

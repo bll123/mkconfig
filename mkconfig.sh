@@ -31,9 +31,10 @@ export _MKCONFIG_DIR
 
 doshelltest $0 $@
 
-LOG="mkconfig.log"
-_MKCONFIG_TMP="_tmp_mkconfig"
-CACHEFILE="mkconfig.cache"
+MKC_FILES=${MKC_FILES:-mkc_files}
+LOG="${MKC_FILES}/mkconfig.log"
+_MKCONFIG_TMP="${MKC_FILES}/_tmp_mkconfig"
+CACHEFILE="${MKC_FILES}/mkconfig.cache"
 OPTIONFILE="options.dat"
 _MKCONFIG_PREFIX=mkc    # need a default in case no units loaded
 optionsloaded=F
@@ -626,7 +627,7 @@ main_process () {
     /*)
       ;;
     *)
-      configfile="../${configfile}"
+      configfile="../../${configfile}"
       ;;
   esac
   # save stdin in fd 7.
@@ -834,7 +835,7 @@ main_process () {
                 OPTIONFILE=${file}
                 ;;
               *)
-                OPTIONFILE="../${file}"
+                OPTIONFILE="../../${file}"
                 ;;
             esac
             puts "option-file: ${file}" >&1
@@ -877,7 +878,7 @@ main_process () {
                 CONFH=${file}
                 ;;
               *)
-                CONFH="../${file}"
+                CONFH="../../${file}"
                 ;;
             esac
             puts "output-file: ${file}" >&1
@@ -987,21 +988,21 @@ if [ $# -ne 1 ] || [ ! -f $configfile  ]; then
   usage
   exit 1
 fi
-if [ -d $_MKCONFIG_TMP -a $_MKCONFIG_TMP != _tmp_mkconfig ]; then
+if [ -d $_MKCONFIG_TMP -a $_MKCONFIG_TMP != ${MKC_FILES}/_tmp_mkconfig ]; then
   puts "$_MKCONFIG_TMP must not exist."
   usage
   exit 1
 fi
 
 test -d $_MKCONFIG_TMP && rm -rf $_MKCONFIG_TMP > /dev/null 2>&1
-mkdir $_MKCONFIG_TMP
+mkdir -p $_MKCONFIG_TMP
 cd $_MKCONFIG_TMP
 
-LOG="../$LOG"
-REQLIB="../$REQLIB"
-CACHEFILE="../$CACHEFILE"
-VARSFILE="../$VARSFILE"
-OPTIONFILE="../$OPTIONFILE"
+LOG="../../$LOG"
+REQLIB="../../$REQLIB"
+CACHEFILE="../../$CACHEFILE"
+VARSFILE="../../$VARSFILE"
+OPTIONFILE="../../$OPTIONFILE"
 CONFH=none
 CONFHTAG=none
 CONFHTAGUC=NONE
@@ -1019,9 +1020,12 @@ puts "# Start: $dt " >&9
 puts "# $0 ($shell) using $configfile " >&9
 puts "#### " >&9
 puts "shell: $shell" >&9
+puts "has printf: ${shhasprintf}" >&9
 puts "has append: ${shhasappend}" >&9
 puts "has math: ${shhasmath}" >&9
 puts "has upper: ${shhasupper}" >&9
+puts "has lower: ${shhaslower}" >&9
+puts "read raw req: ${shreqreadraw}" >&9
 
 locatecmd awkcmd awk
 locatecmd nawkcmd nawk

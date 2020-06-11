@@ -10,6 +10,7 @@
 7 c-include
 7 c-keyword
 7 c-size
+7 c-size-cross
 8 c-header
 8 c-syshdr
 9 c-args

@@ -1,6 +1,6 @@
 output out.h
 loadunit c-main
 
-grep test1a test1a ../gfile
-grep test1b test1b ../gfile
-grep test1c ^t.*1[ab] ../gfile
+grep test1a test1a ../../gfile
+grep test1b test1b ../../gfile
+grep test1c ^t.*1[ab] ../../gfile

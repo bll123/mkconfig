@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# check the cross-compiling size directive
+MKC_CROSS=Y
+export MKC_CROSS
+
 . $_MKCONFIG_DIR/bin/testfuncs.sh
 
 maindodisplay $1 size

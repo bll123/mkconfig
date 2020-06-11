@@ -59,7 +59,7 @@ sed -e '/^#define _key_/d' \
     -e '/Created on: /,/Using: mkc/ d' \
     out.h > out.h.n
 chkdiff c-multlib.ctmp out.h.n
-chkdiff ${_MKCONFIG_RUNTESTDIR}/c-multlib.reqlibs mkconfig.reqlibs
+chkdiff ${_MKCONFIG_RUNTESTDIR}/c-multlib.reqlibs ${MKC_FILES}/mkconfig.reqlibs
 
 testcleanup out.h.n
 

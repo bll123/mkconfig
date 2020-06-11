@@ -125,6 +125,8 @@ chkgrep () {
   arg=$3
   arg2=$4
 
+echo "chkgrep: pwd: `pwd`"
+echo "chkgrep: fn: $fn"
   if [ "$arg" = "wc" ]; then
     tl=`egrep -l "$pat" ${fn} 2>/dev/null | wc -l`
     rc=$?
@@ -160,7 +162,7 @@ chkoutd () {
 chkcache () {
   xp=$1
   shift
-  chkgrep "$xp" mkconfig.cache $@
+  chkgrep "$xp" ${MKC_FILES}/mkconfig.cache $@
 }
 
 chkenv () {
@@ -171,12 +173,10 @@ chkenv () {
 
 testcleanup () {
   if [ "$stag" != "none" ]; then
-    for x in out.h out.d testouth.c opts test.env mkconfig.log \
-        mkconfig.cache mkconfig.reqlibs c.env \
-	mkc_none_mkc.vars mkc_none_c.vars mkc_out_c.vars mkc_out_d.vars \
-	mkc_none_env.vars \
+    for x in out.h out.d testouth.c opts test.env c.env \
+	mkc_files \
 	$@; do
-      test -f ${x} && mv ${x} ${x}${stag}
+      test -e ${x} && mv ${x} ${x}${stag}
     done
   fi
 }

@@ -17,7 +17,8 @@ libnm=""
 objects=""
 grc=0
 doecho=F
-logfile=mkc_compile.log
+MKC_FILES=${MKC_FILES:-mkc_files}
+logfile=${MKC_FILES}/mkc_compile.log
 while test $# -gt 0; do
   case $1 in
     -e)

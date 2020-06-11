@@ -14,8 +14,8 @@ for i in 1 2 3 4; do
 done
 chkdiff test1.env.n test3.env.n
 chkdiff test2.env.n test4.env.n
-chkdiff mkc_test1_env.vars mkc_test3_env.vars
-chkdiff mkc_test2_env.vars mkc_test4_env.vars
+chkdiff ${MKC_FILES}/mkc_test1_env.vars ${MKC_FILES}/mkc_test3_env.vars
+chkdiff ${MKC_FILES}/mkc_test2_env.vars ${MKC_FILES}/mkc_test4_env.vars
 
 testcleanup
 

@@ -16,8 +16,9 @@ test:	tests.done
 .PHONY: clean
 clean:
 	@-$(RM) -rf tests.done tests.d/chksh* tests.d/c.d/chksh* \
-		tests.d/d.d/chksh* mkconfig.cache mkconfig.log \
-		mkc*.vars *~ */*~ */*/*~ \
+		tests.d/d.d/chksh* mkc_files/mkconfig.cache \
+		mkc_files/mkconfig.log \
+		mkc_files/mkc*.vars *~ */*~ */*/*~ \
 		*.orig */*.orig \
 		*/test_order.tmp */*/test_order.tmp > /dev/null 2>&1
 	@cd examples/helloworld; $(MAKE) clean
@@ -25,7 +26,7 @@ clean:
 .PHONY: realclean
 realclean:
 	@$(MAKE) clean > /dev/null 2>&1
-	@-$(RM) -rf checktests _tmp_mkconfig _mkconfig_runtests \
+	@-$(RM) -rf checktests mkc_files \
 		> /dev/null 2>&1
 
 .PHONY: distclean

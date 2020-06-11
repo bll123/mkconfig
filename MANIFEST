@@ -7,6 +7,7 @@ bin/mkreqlib.sh		required link libraries
 bin/mkstaticlib.sh	create a static library
 bin/shellfuncs.sh	mkconfig functions
 bin/testfuncs.sh	test suite functions
+ChangeLog
 examples/           examples
 examples/dtcltk/    example c-d code conversion
 examples/dtcltk/env.dat
@@ -20,9 +21,11 @@ examples/dtcltk/x.dat
 examples/helloworld/	example hello world program
 examples/helloworld/hello.mkc
 examples/helloworld/hello.c
+examples/helloworld/hello.h
 examples/helloworld/Makefile
-examples/helloworld/env.mkc
+examples/helloworld/hello-env.mkc
 LICENSE			LICENSE
+Makefile.inc		mkc makefile
 man/
 man/mkconfig.7		manual page
 man/mkconfig_c.7	manual page
