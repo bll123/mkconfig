@@ -1,15 +1,18 @@
 CHANGES
 
-    2.4                                     --
+    2.4                                     2020-6-13
       Added 'standard_cc' (env-cc), 'standard_system' (env-system) commands.
       Fixed 'defined', 'size' directives so that they will
         work with a cross-compile (MKC_CROSS=Y must be defined).
       Added examples/helloworld.
       Added Makefile.inc for simple builds.
       Made easier to use.
-      Move most files to a sub-directory.
+      Move most work files to a sub-directory.
       Fixed AIX shared library linking (xlc and gcc).
       Fixed HP-UX shared library linking.
+      Fixed OSF1 (Tru64) shared library linking (cc and gcc).
+      Fixed Msys2 and Cygwin shared library linking (clang).
+      Tested on 23 platforms.
 
     2.3                                     [2020-6-3]
       Fixed an issue propogating LDFLAGS_SHARED.
