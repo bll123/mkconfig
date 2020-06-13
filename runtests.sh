@@ -1,6 +1,7 @@
 #!/bin/sh
 #
 # Copyright 1994-2018 Brad Lanam, Walnut Creek, CA
+# Copyright 2020 Brad Lanam Pleasant Hill CA
 #
 
 #

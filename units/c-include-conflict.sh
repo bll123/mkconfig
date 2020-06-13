@@ -1,6 +1,7 @@
 #!/bin/sh
 #
 # Copyright 2010-2018 Brad Lanam Walnut Creek CA USA
+# Copyright 2020 Brad Lanam Pleasant Hill CA
 #
 #
 # check and see if there is a conflict between include files.

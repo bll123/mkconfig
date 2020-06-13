@@ -1,6 +1,7 @@
 #!/bin/sh
 #
 # Copyright 2009-2018 Brad Lanam Walnut Creek, CA USA
+# Copyright 2020 Brad Lanam Pleasant Hill CA
 #
 
 # this is a workaround for ksh93 on solaris

@@ -1,6 +1,7 @@
 #!/bin/sh
 #
 # Copyright 2020 Brad Lanam Pleasant Hill CA USA
+# Copyright 2020 Brad Lanam Pleasant Hill CA
 #
 
 if [ "${_MKCONFIG_DIR}" = "" ]; then
