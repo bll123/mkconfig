@@ -181,6 +181,8 @@ if [ $rc -ne 0 ]; then grc=$rc; fi
 testcleanup mkct6a${EXE_EXT} \
     mkct1${OBJ_EXT} mkct2${OBJ_EXT} mkct3${OBJ_EXT} \
     mkct4${OBJ_EXT} mkct5${OBJ_EXT} mkct6${OBJ_EXT} \
-    mkct1.c mkct2.c mkct3.c mkct4.c mkct5.c mkct6.c
+    mkct1.c mkct2.c mkct3.c mkct4.c mkct5.c mkct6.c \
+    libmkct1${SHLIB_EXT} libmkct2${SHLIB_EXT} \
+    libmkct3${SHLIB_EXT} libmkct4${SHLIB_EXT} libmkct5${SHLIB_EXT}
 
 exit $grc

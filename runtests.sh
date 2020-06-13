@@ -294,19 +294,7 @@ if [ $SUBDIR = F ]; then
   getlistofshells
 fi
 
-locatecmd awkcmd awk
-locatecmd nawkcmd nawk
-locatecmd gawkcmd gawk
-locatecmd mawkcmd mawk
-if [ "$nawkcmd" != "" ]; then
-  awkcmd=$nawkcmd
-fi
-if [ "$mawkcmd" != "" ]; then
-  awkcmd=$mawkcmd
-fi
-if [ "$gawkcmd" != "" ]; then
-  awkcmd=$gawkcmd
-fi
+locateawkcmd
 echo "awk: $awkcmd" >&8
 
 export shelllist
@@ -337,7 +325,7 @@ while read tline; do
   if [ -d "$tbase" ]; then
     ocwd=`pwd`
     cd $_MKCONFIG_DIR
-    TMPOUT=${_MKCONFIG_TSTRUNTMPDIR}/${tbase}.out
+    TMPOUT=${_MKCONFIG_RUNTMPDIR}/${tbase}.out
     ${_MKCONFIG_SHELL} ./runtests.sh -s "$CC" "$DC" "$shelllist" "$_pthlist" $TMPOUT $testdir/$tbase
     retvals=`tail -1 $TMPOUT`
     rm -f $TMPOUT > /dev/null 2>&1
@@ -459,6 +447,10 @@ while read tline; do
   fi
   domath count "$count + 1"
 
+  if [ $src -eq 0 -a "$MKC_CLEAN_RUN_TMP" = Y ]; then
+    test -d "$_MKCONFIG_TSTRUNTMPDIR" && rm -rf "$_MKCONFIG_TSTRUNTMPDIR"
+  fi
+
   # for some reason, unixware can't handle this if it is split into
   # multiple lines.
   if [ "$DOPERL" = T -a \( $runshpl -eq $_MKC_PL -o $runshpl -eq $_MKC_SH_PL \) ]; then
@@ -507,6 +499,10 @@ while read tline; do
       echo " success" >&8
     fi
     domath count "$count + 1"
+
+    if [ $rc -eq 0 -a "$MKC_CLEAN_RUN_TMP" = Y ]; then
+      test -d "$_MKCONFIG_TSTRUNTMPDIR" && rm -rf "$_MKCONFIG_TSTRUNTMPDIR"
+    fi
   fi
 
   lastpass=$pass

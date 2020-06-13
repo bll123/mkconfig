@@ -47,8 +47,3 @@ tests.done: runtests.sh
 .PHONY: tar
 tar:
 	./util/mktar.sh
-.PHONY: alltar
-alltar:
-	$(MAKE) distclean
-	tar -c -z --exclude=*.gz --exclude=Archive --exclude=TODO \
-		-f mkconfig.tar.gz *

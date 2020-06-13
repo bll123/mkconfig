@@ -8,6 +8,8 @@ CHANGES
       Added Makefile.inc for simple builds.
       Made easier to use.
       Move most files to a sub-directory.
+      Fixed AIX shared library linking (xlc and gcc).
+      Fixed HP-UX shared library linking.
 
     2.3                                     [2020-6-3]
       Fixed an issue propogating LDFLAGS_SHARED.

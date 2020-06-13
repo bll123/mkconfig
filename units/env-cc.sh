@@ -124,11 +124,11 @@ check_using_gcc () {
   printlabel _MKCONFIG_USING_GCC "Using gcc/g++"
 
   # check for gcc...
-  ${CC} -v 2>&1 | grep 'gcc version' > /dev/null 2>&1
+  ${CC} -v 2>&1 | grep 'gcc version' >/dev/null 2>&1
   rc=$?
   if [ $rc -eq 0 ]; then
-      puts "found gcc" >&9
-      usinggcc="Y"
+    puts "found gcc" >&9
+    usinggcc="Y"
   fi
 
   case ${CC} in
@@ -574,6 +574,9 @@ check_ldflags_shared () {
       AIX)
         doappend ldflags_shared_liblink " -G"
         ;;
+      Darwin)
+        doappend ldflags_shared_liblink " -dynamiclib"
+        ;;
       HP-UX)
         doappend ldflags_shared_liblink " -b"
         ;;
@@ -600,12 +603,6 @@ check_ldflags_shared () {
   else
     doappend ldflags_shared_liblink " -shared"
   fi
-
-  case ${_MKCONFIG_SYSTYPE} in
-    Darwin)
-      doappend ldflags_shared_liblink " -dynamiclib"
-      ;;
-  esac
 
   _read_option LDFLAGS_SHARED ""
   if [ "z$LDFLAGS_SHARED" != z ]; then
@@ -638,6 +635,9 @@ check_sharednameflag () {
       SunOS)
         SHLDNAMEFLAG="-Wl,-h "
         ;;
+      *)
+        SHLDNAMEFLAG=""
+        ;;
     esac
   fi
 
@@ -649,30 +649,30 @@ check_shareexeclinkflag () {
   printlabel LDFLAGS_EXEC_LINK "shared executable link flag "
 
   LDFLAGS_EXEC_LINK="-Bdynamic "
-  if [ "$_MKCONFIG_USING_GCC" != Y ]; then
+  if [ "$_MKCONFIG_USING_GNU_LD" != Y ]; then
     case ${_MKCONFIG_SYSTYPE} in
       AIX)
         LDFLAGS_EXEC_LINK="-brtl -bdynamic "
         ;;
-      Darwin)
-        LDFLAGS_EXEC_LINK=
-        ;;
       HP-UX)
-        LDFLAGS_EXEC_LINK="+Z"
+        LDFLAGS_EXEC_LINK=""
         ;;
       OSF1)
         LDFLAGS_EXEC_LINK="-msym -no_archive "
         ;;
-      SCO_SV)
-        LDFLAGS_EXEC_LINK=
-        ;;
       SunOS)
         # -Bdynamic
         ;;
-      UnixWare)
-        LDFLAGS_EXEC_LINK=
+      *)
+        LDFLAGS_EXEC_LINK=""
         ;;
     esac
+    if [ "$_MKCONFIG_USING_GCC" = Y ]; then
+      # this is a bit simplistic, and may need to be changed
+      # in the future.
+      LDFLAGS_EXEC_LINK=`echo $LDFLAGS_EXEC_LINK |
+          sed -e 's/-/-Wl,-/g' -e 's/\+/-Wl,+/g'`
+    fi
   fi
 
   printyesno_val LDFLAGS_EXEC_LINK "$LDFLAGS_EXEC_LINK"
@@ -685,12 +685,6 @@ check_sharerunpathflag () {
   LDFLAGS_RUNPATH="-Wl,-rpath="
   if [ "$_MKCONFIG_USING_GNU_LD" != Y ]; then
     case ${_MKCONFIG_SYSTYPE} in
-      AIX)
-        LDFLAGS_RUNPATH=
-        ;;
-      Darwin)
-        LDFLAGS_RUNPATH=
-        ;;
       HP-UX)
         LDFLAGS_RUNPATH="-Wl,+b "
         ;;
@@ -708,6 +702,9 @@ check_sharerunpathflag () {
         ;;
       UnixWare)
         LDFLAGS_RUNPATH="-Wl,-R "
+        ;;
+      *)
+        LDFLAGS_RUNPATH=""
         ;;
     esac
   fi

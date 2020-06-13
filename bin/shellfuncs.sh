@@ -341,6 +341,30 @@ locatecmd () {
   eval $lvar=$lcmd
 }
 
+mkverscomp () {
+  v=$1
+
+  # put a 1 in front to avoid any octal constant issue.
+  echo $v | $awkcmd -F. '{ printf("1%03d%03d%03d\n", $1,$2,$3); }'
+}
+
+# rc = 0 : same version
+# rc = 1 : smaller version
+# rc = 2 : greater version
+versioncompare () {
+  v1=`mkverscomp $1`
+  v2=`mkverscomp $2`
+
+  rc=0
+  if [ $v1 -lt $v2 ]; then
+    rc=1
+  fi
+  if [ $v1 -gt $v2 ]; then
+    rc=2
+  fi
+  return $rc
+}
+
 # function to make sure the shell has
 # some basic capabilities w/o weirdness.
 chkshell () {
@@ -357,7 +381,9 @@ chkshell () {
       # reject older versions of yash
       # I do not know in what version the quoting/backquoting issues
       # got fixed.
-      rc=`echo "$YASH_VERSION < 2.48" | bc -l`
+      locateawkcmd
+      versioncompare $YASH_VERSION 2.48
+      rc=$?
       if [ $rc -eq 1 ]; then
         chkmsg="${chkmsg}
   older versions of yash are not supported"
@@ -482,4 +508,20 @@ boolclean () {
   dosubst $nm ' not ' ' ! ' ' and ' ' -a ' ' or ' ' -o '
   dosubst $nm '!' ' ! ' '&&' ' -a ' '||' ' -o '
   dosubst $nm ' \+' ' ' '^ *' '' ' *$' ''
+}
+
+locateawkcmd () {
+  locatecmd awkcmd awk
+  locatecmd nawkcmd nawk
+  locatecmd gawkcmd gawk
+  locatecmd mawkcmd mawk
+  if [ "$nawkcmd" != "" ]; then
+    awkcmd=$nawkcmd
+  fi
+  if [ "$mawkcmd" != "" ]; then
+    awkcmd=$mawkcmd
+  fi
+  if [ "$gawkcmd" != "" ]; then
+    awkcmd=$gawkcmd
+  fi
 }
