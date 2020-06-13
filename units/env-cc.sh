@@ -1,6 +1,7 @@
 #!/bin/sh
 #
 # Copyright 2001-2018 Brad Lanam, Walnut Creek, California USA
+# Copyright 2020 Brad Lanam Pleasant Hill CA
 #
 
 #
@@ -170,7 +171,8 @@ check_using_gnu_ld () {
   printlabel _MKCONFIG_USING_GNU_LD "Using gnu ld"
 
   # check for gnu ld...
-  ld -v 2>&1 | grep 'GNU ld' > /dev/null 2>&1
+  # dragonfly bsd 5.8.1 gcc8 reports 'GNU gold' rather than 'GNU ld'.
+  ld -v 2>&1 | grep 'GNU' > /dev/null 2>&1
   rc=$?
   if [ $rc -eq 0 ]; then
       puts "found gnu ld" >&9
