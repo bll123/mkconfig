@@ -101,6 +101,8 @@ test_echo () {
   # have to test against the original in order to catch the change
   # if echo and printf do not match each other, it is very likely
   # that the read/echo/printf mismatches also occur.
+  # osh does some odd stuff internally according to the output here,
+  # but echo and printf still seem to work.
   if [ \( "$tz" != "$t1" \) -o \( "$tz" != "$t2" \) ]; then
     shhasprintf=0
     shhasprintferr=mismatch
@@ -177,15 +179,9 @@ test_math () {
   (eval 'x=1;y=$(($x+1)); test z$y = z2') 2>/dev/null
   rc=$?
   if [ $rc -eq 0 ]; then
-    (eval 'w=0+1;v=$(($w)); test z$v = z1 ') 2>/dev/null
-    rc=$?
-    if [ $rc -eq 0 ]; then
-      shhasmath=1
-      shhasmatherr=""
-      eval 'domath () { mthvar=$1; mthval=$(($2)); eval $mthvar=$mthval; }'
-    else
-      shhasmatherr=heval
-    fi
+    shhasmath=1
+    shhasmatherr=""
+    eval 'domath () { mthvar=$1; mthval=\$\(\($2\)\); eval $mthvar=$mthval; }'
   fi
   if [ $shhasmath -eq 0 ]; then
     eval 'domath () { mthvar=$1; mthval=`expr $2`; eval $mthvar=$mthval; }'
@@ -526,3 +522,8 @@ locateawkcmd () {
     awkcmd=$gawkcmd
   fi
 }
+
+locatepkgconfigcmd () {
+  locatecmd pkgconfigcmd pkg-config
+}
+

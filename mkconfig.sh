@@ -1030,6 +1030,8 @@ puts "read raw req: ${shreqreadraw}" >&9
 
 locateawkcmd
 puts "awk: $awkcmd" >&9
+locatepkgconfigcmd
+echo "pkg-config: $pkgconfigcmd" >&9
 
 puts "$0 ($shell) using $configfile"
 

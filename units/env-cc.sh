@@ -318,28 +318,63 @@ check_addcflag () {
 
   printlabel CFLAGS_APPLICATION "Add C flag: ${flag}"
 
-  puts "#include <stdio.h>
-int main () { return 0; }" > t.c
-  puts "# test ${flag}" >&9
-  # need to set w/all cflags; gcc doesn't always error out otherwise
-  TMPF=t$$.txt
-  setcflags
-  ${CC} ${CFLAGS} ${flag} t.c > $TMPF 2>&1
-  rc=$?
-  if [ $rc -ne 0 ]; then
-    flag=0
-  fi
-  grep -i "warning.*${flag}" $TMPF > /dev/null 2>&1
-  rc=$?
-  if [ $rc -eq 0 ]; then
-    flag=0
-  fi
-  cat $TMPF >&9
-  rm -f $TMPF > /dev/null 2>&1
-  printyesno $name ${flag}
+  test_cflag "$flag"
+  printyesno $name "${flag}"
   if [ $flag != 0 ]; then
     doappend CFLAGS_APPLICATION " $flag"
     setdata ${_MKCONFIG_PREFIX} CFLAGS_APPLICATION "$CFLAGS_APPLICATION"
+  fi
+}
+
+check_pkg_cflags () {
+  name=$1
+  pkgname=$2
+  pkgpath=$3
+
+  OPKG_CONFIG_PATH=$PKG_CONFIG_PATH
+  if [ "$pkgpath" != "" ]; then
+    if [ "$PKG_CONFIG_PATH" != "" ]; then
+      doappend PKG_CONFIG_PATH :
+    fi
+    doappend PKG_CONFIG_PATH $pkgpath
+    export PKG_CONFIG_PATH
+  fi
+  tcflags=`${pkgconfigcmd} --cflags $pkgname`
+  unset PKG_CONFIG_PATH
+  if [ "$OPKG_CONFIG_PATH" != "" ]; then
+    PKG_CONFIG_PATH=$OPKG_CONFIG_PATH
+  fi
+  test_cflag "$tcflags"
+  printyesno_val $name "${flag}"
+  if [ "$flag" != 0 ]; then
+    doappend CFLAGS_APPLICATION " $flag"
+    setdata ${_MKCONFIG_PREFIX} CFLAGS_APPLICATION "$CFLAGS_APPLICATION"
+  fi
+}
+
+check_pkg_libs () {
+  name=$1
+  pkgname=$2
+  pkgpath=$3
+
+  OPKG_CONFIG_PATH=$PKG_CONFIG_PATH
+  if [ "$pkgpath" != "" ]; then
+    if [ "$PKG_CONFIG_PATH" != "" ]; then
+      doappend PKG_CONFIG_PATH :
+    fi
+    doappend PKG_CONFIG_PATH $pkgpath
+    export PKG_CONFIG_PATH
+  fi
+  tldflags=`${pkgconfigcmd} --libs $pkgname`
+  unset PKG_CONFIG_PATH
+  if [ "$OPKG_CONFIG_PATH" != "" ]; then
+    PKG_CONFIG_PATH=$OPKG_CONFIG_PATH
+  fi
+  test_ldflags "$tldflags"
+  printyesno_val $name "$flag"
+  if [ "$flag" != 0 ]; then
+    doappend LDFLAGS_APPLICATION " $flag"
+    setdata ${_MKCONFIG_PREFIX} LDFLAGS_APPLICATION "$LDFLAGS_APPLICATION"
   fi
 }
 
@@ -349,27 +384,8 @@ check_addldflag () {
 
   printlabel LDFLAGS_APPLICATION "Add LD flag: ${flag}"
 
-  setcflags
-  setldflags
-  setlibs
-  puts "#include <stdio.h>
-int main () { return 0; }" > t.c
-  puts "# test ${flag}" >&9
-  # need to set w/all cflags/ldflags; gcc doesn't always error out otherwise
-  TMPF=t$$.txt
-  ${CC} ${CFLAGS} ${LDFLAGS} ${flag} -o t t.c > $TMPF 2>&1
-  rc=$?
-  if [ $rc -ne 0 ]; then
-    flag=0
-  fi
-  grep -i "warning.*${flag}" $TMPF > /dev/null 2>&1
-  rc=$?
-  if [ $rc -eq 0 ]; then
-    flag=0
-  fi
-  cat $TMPF >&9
-  rm -f $TMPF > /dev/null 2>&1
-  printyesno $name ${flag}
+  test_ldflags "$flag"
+  printyesno $name "$flag"
   if [ $flag != 0 ]; then
     doappend ldflags_application " $flag"
     _setflags ldflags_application LDFLAGS_APPLICATION

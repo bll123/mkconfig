@@ -297,6 +297,8 @@ fi
 
 locateawkcmd
 echo "awk: $awkcmd" >&8
+locatepkgconfigcmd
+echo "pkg-config: $pkgconfigcmd" >&8
 
 export shelllist
 grc=0
@@ -522,7 +524,11 @@ if [ $SUBDIR = F ]; then
   echo "$count tests $fcount failures"
   if [ $fcount -eq 0 ]; then
     if [ "$MKC_KEEP_RUN_TMP" = "" ]; then
-      test -d "$_MKCONFIG_RUNTMPDIR" && rm -rf "$_MKCONFIG_RUNTMPDIR"
+      (
+        cd $_MKCONFIG_RUNTMPDIR/../..
+        test -d "$_MKCONFIG_RUNTMPDIR" && rm -rf "$_MKCONFIG_RUNTMPDIR"
+        test -d "${MKC_FILES}" && rmdir "${MKC_FILES}" > /dev/null 2>&1
+      )
     fi
   fi
 else

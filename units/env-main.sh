@@ -103,3 +103,106 @@ check_test_multword () {
 new_output_file () {
   return 0
 }
+
+check_pkg () {
+  type=$2
+  pkgname=$3
+  pkgpath=$4
+  name=_pkg_${type}_${pkgname}
+  dosubst name '\.' '' '-' ''
+
+  puts "pkg $type: $pkgname $pkgpath" >&9
+  printlabel $name "pkg ${type}: ${pkgname}"
+
+  check_pkg_exists $name $pkgname $pkgpath
+  trc=$?
+  if [ $trc -eq 0 ]; then
+    return $trc
+  fi
+  check_pkg_$type $name $pkgname $pkgpath
+  trc=$?
+  return $trc
+}
+
+check_pkg_exists () {
+  name=$1
+  pkgname=$2
+  pkgpath=$3
+
+  trc=0
+  if [ "${pkgconfigcmd}" = "" ]; then
+    printyesno $name $trc "(no pkg-config)"
+    return $trc
+  fi
+
+  OPKG_CONFIG_PATH=$PKG_CONFIG_PATH
+  if [ "$pkgpath" != "" ]; then
+    if [ "$PKG_CONFIG_PATH" != "" ]; then
+      doappend PKG_CONFIG_PATH :
+    fi
+    doappend PKG_CONFIG_PATH $pkgpath
+    export PKG_CONFIG_PATH
+  fi
+  ${pkgconfigcmd} --exists $pkgname
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    printyesno $name $trc "(no such package)"
+  else
+    trc=1
+  fi
+
+  unset PKG_CONFIG_PATH
+  if [ "$OPKG_CONFIG_PATH" != "" ]; then
+    PKG_CONFIG_PATH=$OPKG_CONFIG_PATH
+  fi
+
+  return $trc
+}
+
+test_cflag () {
+  flag=$1
+
+  puts "#include <stdio.h>
+int main () { return 0; }" > t.c
+  puts "# test ${flag}" >&9
+  # need to set w/all cflags; gcc doesn't always error out otherwise
+  TMPF=t$$.txt
+  setcflags
+  ${CC} ${CFLAGS} ${flag} t.c > $TMPF 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    flag=0
+  fi
+  grep -i "warning.*${flag}" $TMPF > /dev/null 2>&1
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    flag=0
+  fi
+  cat $TMPF >&9
+  rm -f $TMPF > /dev/null 2>&1
+}
+
+test_ldflags () {
+  flag=$1
+
+  setcflags
+  setldflags
+  setlibs
+  puts "#include <stdio.h>
+int main () { return 0; }" > t.c
+  puts "# test ${flag}" >&9
+  # need to set w/all cflags/ldflags; gcc doesn't always error out otherwise
+  TMPF=t$$.txt
+  ${CC} ${CFLAGS} ${LDFLAGS} ${flag} -o t t.c > $TMPF 2>&1
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    flag=0
+  fi
+  grep -i "warning.*${flag}" $TMPF > /dev/null 2>&1
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    flag=0
+  fi
+  cat $TMPF >&9
+  rm -f $TMPF > /dev/null 2>&1
+}

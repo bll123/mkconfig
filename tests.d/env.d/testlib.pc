@@ -1,0 +1,13 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+sharedlibdir=${libdir}
+includedir=${prefix}/include
+
+Name: testlib
+Description: testlib
+Version: 1.0
+
+Requires:
+Libs: -ltestlib
+Cflags: -I..

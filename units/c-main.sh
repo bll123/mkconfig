@@ -738,7 +738,7 @@ check_lib () {
   dosubst rfunc '_dollar_' '$'
   if [ "${otherlibs}" != "" ]; then
     printlabel $name "function: ${rfunc} [${otherlibs}]"
-    # code to check the cache for which libraries is not written
+    # code to check the cache for which libraries are specified is not written
   else
     printlabel $name "function: ${rfunc}"
     checkcache ${_MKCONFIG_PREFIX} $name
@@ -780,7 +780,7 @@ return 1;
   rc=$?
   dlibs=$_retdlibs
   if [ $rc -eq 0 ]; then
-      trc=1
+    trc=1
   fi
 
   tag=""

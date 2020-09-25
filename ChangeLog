@@ -1,5 +1,11 @@
 CHANGES
 
+    2.6                                     2020-9-25
+      Add support for pkg-config --cflags and pkg-config --libs
+
+    2.5                                     2020-7
+      Rework domath function so that it can be used with osh.
+
     2.4                                     2020-6-13
       Added 'standard_cc' (env-cc), 'standard_system' (env-system) commands.
       Fixed 'defined', 'size' directives so that they will
