@@ -141,8 +141,8 @@ check_pkg_exists () {
       doappend PKG_CONFIG_PATH :
     fi
     doappend PKG_CONFIG_PATH $pkgpath
-    export PKG_CONFIG_PATH
   fi
+  export PKG_CONFIG_PATH
   ${pkgconfigcmd} --exists $pkgname
   rc=$?
   if [ $rc -ne 0 ]; then

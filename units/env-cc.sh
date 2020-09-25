@@ -337,8 +337,8 @@ check_pkg_cflags () {
       doappend PKG_CONFIG_PATH :
     fi
     doappend PKG_CONFIG_PATH $pkgpath
-    export PKG_CONFIG_PATH
   fi
+  export PKG_CONFIG_PATH
   tcflags=`${pkgconfigcmd} --cflags $pkgname`
   unset PKG_CONFIG_PATH
   if [ "$OPKG_CONFIG_PATH" != "" ]; then
@@ -365,6 +365,7 @@ check_pkg_libs () {
     doappend PKG_CONFIG_PATH $pkgpath
     export PKG_CONFIG_PATH
   fi
+  export PKG_CONFIG_PATH
   tldflags=`${pkgconfigcmd} --libs $pkgname`
   unset PKG_CONFIG_PATH
   if [ "$OPKG_CONFIG_PATH" != "" ]; then
