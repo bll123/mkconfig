@@ -1,4 +1,4 @@
-mkconfig - configuration tool (version 2.6)
+mkconfig - configuration tool (version 2.6.1)
 
 Website: https://gentoo.com/di/mkconfig.html
 SourceForge: https://sourceforge.net/projects/mkconfig/
