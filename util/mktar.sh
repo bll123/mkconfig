@@ -2,6 +2,8 @@
 
 ver=`cat VERSION`
 
+find . -name '*~' -print0 | xargs -0 rm -f
+
 PKG=mkconfig
 dir="${PKG}-${ver}"
 for dir in "${PKG}-${ver}-src" "${PKG}-${ver}"; do
@@ -20,7 +22,7 @@ for dir in "${PKG}-${ver}-src" "${PKG}-${ver}"; do
     fi
   done
   if [ $dir = "${PKG}-${ver}-src" ]; then
-    for d in tests.d features util; do
+    for d in tests.d features util web; do
       cp -pr ${d} ${dir}
       chmod 755 ${dir}/${d}
     done
