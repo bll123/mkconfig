@@ -1,4 +1,4 @@
-mkconfig - configuration tool (version 2.6.1)
+mkconfig - configuration tool (version 2.6.3)
 
 Website: https://mkconfig.sourceforge.io/
 SourceForge: https://sourceforge.net/projects/mkconfig/
