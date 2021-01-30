@@ -352,6 +352,32 @@ check_pkg_cflags () {
   fi
 }
 
+check_pkg_include () {
+  name=$1
+  pkgname=$2
+  pkgpath=$3
+
+  OPKG_CONFIG_PATH=$PKG_CONFIG_PATH
+  if [ "$pkgpath" != "" ]; then
+    if [ "$PKG_CONFIG_PATH" != "" ]; then
+      doappend PKG_CONFIG_PATH :
+    fi
+    doappend PKG_CONFIG_PATH $pkgpath
+  fi
+  export PKG_CONFIG_PATH
+  tcflags=`${pkgconfigcmd} --cflags-only-I $pkgname`
+  unset PKG_CONFIG_PATH
+  if [ "$OPKG_CONFIG_PATH" != "" ]; then
+    PKG_CONFIG_PATH=$OPKG_CONFIG_PATH
+  fi
+  test_cflag "$tcflags"
+  printyesno_val $name "${flag}"
+  if [ "$flag" != 0 ]; then
+    doappend CFLAGS_APPLICATION " $flag"
+    setdata ${_MKCONFIG_PREFIX} CFLAGS_APPLICATION "$CFLAGS_APPLICATION"
+  fi
+}
+
 check_pkg_libs () {
   name=$1
   pkgname=$2
