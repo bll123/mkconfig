@@ -400,8 +400,8 @@ check_pkg_libs () {
   test_ldflags "$tldflags"
   printyesno_val $name "$flag"
   if [ "$flag" != 0 ]; then
-    doappend LDFLAGS_APPLICATION " $flag"
-    setdata ${_MKCONFIG_PREFIX} LDFLAGS_APPLICATION "$LDFLAGS_APPLICATION"
+    doappend LDFLAGS_LIBS_APPLICATION " $flag"
+    setdata ${_MKCONFIG_PREFIX} LDFLAGS_LIBS_APPLICATION "$LDFLAGS_LIBS_APPLICATION"
   fi
 }
 
