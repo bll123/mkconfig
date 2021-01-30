@@ -1,6 +1,6 @@
 mkconfig - configuration tool (version 2.6.1)
 
-Website: https://gentoo.com/di/mkconfig.html
+Website: https://mkconfig.sourceforge.io/
 SourceForge: https://sourceforge.net/projects/mkconfig/
 
 mkconfig is a build configuration utility. It creates an output file
@@ -17,7 +17,6 @@ See: examples/helloworld for a simple example.
 
 Another example of mkconfig in use can be seen in the
 'di' program at https://sourceforge.net/projects/diskinfo-di/
-As of 2020-6-11, the 'di' program version 4.48 is using mkconfig version 2.3.
 
 mkconfig works with most any bourne shell compatible shell.  Modern
 shells that are not bourne shell compatible are:

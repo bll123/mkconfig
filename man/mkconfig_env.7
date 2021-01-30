@@ -147,12 +147,12 @@ Locates the config\-file (someConfig.sh) and loads it.
 .TP
 \fBfindpc\fP pkgconfig\-file
 .RS
-Locates the pkgconfig\-file (someConfig.pc) and loads it.
+Deprecated. Locates the pkgconfig\-file (someConfig.pc) and loads it.
 .RE
 .TP
 \fBaddconfig\fP env\-var mkconfig\-var
 .RS
-After a configuration or pkgconfig file is loaded,
+Deprecated. After a configuration or pkgconfig file is loaded,
 the environment variables contained
 therein can be loaded into mkconfig variables.  Typical mkconfig variables
 are: \fIcflags_include\fP, \fIldflags_lib_application\fP, etc.
@@ -190,6 +190,19 @@ as appropriate to the operating system and compiler.
 .RS
 Sets the LDFLAGS_SHARED_LIBLINK environment variable for building a
 shared library as appropriate to the operating system and compiler.
+.RE
+.TP
+\fBpkg\fP {cflags|include|libs} name\-of\-package [package-path]
+.RS
+Use the PKG_CONFIG_PATH environment variable if the package you want to
+load is in a non-standard location.  Or specify package-path in the \fIpkg\fP
+directive.
+.PP
+With the \fIcflags\fP and \fIinclude\fP directive, adds the package's CFLAGS
+to CFLAGS_APPLICATION.
+.PP
+With the \fIlibs\fP directive, adds the package's LDFLAGS to
+LDFLAGS_APPLICATION.
 .RE
 .TP
 \fBshareexeclinkflag\fP

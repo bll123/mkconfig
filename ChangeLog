@@ -1,5 +1,9 @@
 CHANGES
 
+    2.6.2                                   2021-1-30
+      Add 'pkg include' directive.
+      Update documentation.
+
     2.6.1                                   2020-9-25
       Fix PKG_CONFIG_PATH handling.
 
