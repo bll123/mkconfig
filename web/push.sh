@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # requirements: sshpass
 #
@@ -32,7 +32,7 @@ read -s SSHPASS
 echo ""
 export SSHPASS
 
-sshpass -e rsync -e "$ssh" -aS \
+sshpass -e rsync -e "$ssh" -aSv \
     ../mkconfig*.tar.gz ../README.txt \
     ${remuser}@${server}:${wwwpath}
 
