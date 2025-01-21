@@ -55,11 +55,6 @@ case $1 in
     ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/bin/mkstaticlib.sh -d `pwd` "$@"
     rc=$?
     ;;
-  -setopt)
-    shift
-    ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/bin/mkcsetopt.sh -d `pwd` "$@"
-    rc=$?
-    ;;
   -reqlib)
     shift
     ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/bin/mkreqlib.sh -d `pwd` "$@"
@@ -74,7 +69,7 @@ case $1 in
 esac
 
 if [ $found = F ]; then
-  echo "Usage: $0 {-compile|-link|-setopt|-reqlib|-shared} <args>"
+  echo "Usage: $0 {-compile|-link|-reqlib|-shared} <args>"
   exit 1
 fi
 exit $rc
