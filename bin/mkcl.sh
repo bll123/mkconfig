@@ -45,6 +45,21 @@ addlibpath () {
   fi
 }
 
+addrunpath () {
+  lp=$1
+
+  found=F
+  for tp in $runpathnames; do
+    if [ $lp = $tp ]; then
+      found=T   # a match will be kept.
+      break
+    fi
+  done
+  if [ $found = F ]; then
+    doappend runpathnames " ${lp}"
+  fi
+}
+
 compile=F
 link=F
 shared=F
@@ -132,6 +147,9 @@ while test $# -gt 0; do
       doappend CFLAGS_USER " $1"
       shift
       ;;
+    -Wc*)
+      doappend CFLAGS_APPLICATION " $1"
+      ;;
     --)
       shift
       break
@@ -167,14 +185,16 @@ files=
 objects=
 libnames=
 libpathnames=
+runpathnames=
 islib=0
 ispath=0
+isrpath=0
 olibs=
 havesource=F
 
 if [ "$reqlibfiles" != "" ]; then
   for rf in $reqlibfiles; do
-    doappend olibs "`cat $rf`"
+    doappend olibs "`cat $rf` "
   done
 fi
 
@@ -193,15 +213,29 @@ for f in $@ $olibs; do
       dosubst tf '-L' ''
       if [ ! -d "$tf" ]; then
         puts "## unable to locate dir $tf"
-        grc=1
       else
         addlibpath $tf
+      fi
+      ;;
+    -R|-rpath)
+      isrpath=1
+      ;;
+    -R*|-rpath*)
+      tf=$f
+      dosubst tf '-rpath' ''
+      if [ ! -d "$tf" ]; then
+        puts "## unable to locate dir $tf"
+      else
+        addrunpath $tf
       fi
       ;;
     -l)
       islib=1
       ;;
     -l*)
+      addlib $f
+      ;;
+    -Wl*)
       addlib $f
       ;;
     lib*)
@@ -215,7 +249,7 @@ for f in $@ $olibs; do
         doappend objects " $f"
       fi
       ;;
-    *.c|*.d|*.m)
+    *.c|*.d|*.m|*.cpp|*.res)
       if [ ! -f "$f" ]; then
         puts "## unable to locate $f"
         grc=1
@@ -233,6 +267,13 @@ for f in $@ $olibs; do
     *)
       if [ $islib -eq 1 ]; then
         addlib "-l$f"
+      elif [ $isrpath -eq 1 ]; then
+        if [ ! -d "$f" ]; then
+          puts "## unable to locate dir $f"
+          grc=1
+        else
+          addrunpath $f
+        fi
       elif [ $ispath -eq 1 ]; then
         if [ ! -d "$f" ]; then
           puts "## unable to locate dir $f"
@@ -243,6 +284,7 @@ for f in $@ $olibs; do
       fi
       islib=0
       ispath=0
+      isrpath=0
       ;;
   esac
 done
@@ -252,11 +294,16 @@ for lfn in $libnames; do
   doappend libs " ${DC_LINK}${lfn}"
 done
 
+LDFLAGS_LIBPATH=-L
 libpath=
 for lp in $libpathnames; do
-  doappend libpath ":${lp}"
+  doappend libpath " ${DC_LINK}${LDFLAGS_LIBPATH}${lp}"
 done
-dosubst libpath '^:' ''
+
+runpath=
+for lp in $runpathnames; do
+  doappend runpath " ${LDFLAGS_RUNPATH}${lp}"
+done
 
 outflags=""
 if [ "$outfile" = "" ]; then
@@ -295,6 +342,7 @@ if [ $havesource = T ]; then
 fi
 
 allldflags=
+ldflags_libpath=
 ldflags_runpath=
 ldflags_shared_libs=
 ldflags_exec_link=
@@ -316,15 +364,18 @@ if [ $link = T -a $shared = T ]; then
   doappend allldflags " ${LDFLAGS_SHARED_USER}"
 fi
 if [ \( $shared = T \) -o \( $mkexec = T \) ]; then
-  ldflags_runpath=""
-  if [ "${libpath}" != "" -a "${LDFLAGS_RUNPATH}" != "" ]; then
-    dosubst libpath '^:' ''
-    ldflags_runpath="${LDFLAGS_RUNPATH}${libpath}"
+  ldflags_libpath=""
+  if [ "${libpath}" != "" -a "${LDFLAGS_LIBPATH}" != "" ]; then
+    ldflags_libpath="${libpath}"
   fi
+  ldflags_runpath=""
+  if [ "${runpath}" != "" -a "${LDFLAGS_RUNPATH}" != "" ]; then
+    ldflags_runpath="${runpath}"
+  fi
+
   ldflags_shared_libs=""
   if [ "${libs}" != "" -a "${libpath}" != "" ]; then
-    ### is this right???
-    ldflags_shared_libs="${DC_LINK}-L${libpath}"
+    ldflags_shared_libs="${libpath}"
   fi
 
   ldflags_exec_link=""
@@ -351,7 +402,8 @@ LDFLAGS=
 LIBS=
 cmd="${comp} ${allcflags} ${flags} ${allldflags} ${ldflags_exec_link} \
     $outflags $objects \
-    ${files} ${ldflags_runpath} ${ldflags_shared_libs} ${alllibs} ${libs}"
+    ${files} ${ldflags_libpath} ${ldflags_runpath} \
+    ${ldflags_shared_libs} ${alllibs} ${libs}"
 disp=""
 if [ $compile = T ]; then
   disp="${disp}COMPILE ${files} ... "
@@ -377,6 +429,11 @@ if [ "$logfile" != "" ]; then
   out=`eval $cmd 2>&1`
   rc=$?
   puts "$out" >&9
+  if [ $doecho = F -a $rc -ne 0 ]; then
+    puts ""
+    puts "    $cmd"
+    puts "$out"
+  fi
   if [ $doecho = T ]; then
     puts "$out"
   fi
@@ -388,6 +445,11 @@ if [ $rc -eq 0 ]; then
   puts "$out" | grep -i warning: >/dev/null 2>&1
   rc=$?
   if [ $rc -eq 0 ]; then
+    if [ $doecho = F ]; then
+      puts ""
+      puts "    $cmd"
+      puts "$out"
+    fi
     disp="${disp} warnings"
   else
     disp="${disp} ok"

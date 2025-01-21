@@ -23,18 +23,9 @@
 #       #  define const
 #       # endif
 #       # if ! _key_void || ! _param_void_star
-#          typedef char *_pvoid;
-#       # else
-#          typedef void *_pvoid;
+#          typedef char void;
 #       # endif
 #
-#       # ifndef _
-#       #  if _proto_stdc
-#       #   define _(args) args
-#       #  else
-#       #   define _(args) ()
-#       #  endif
-#       # endif
 #       #endif /* MKC_STANDARD_DEFS */
 #
 
@@ -59,9 +50,7 @@ PH_ALL=F
 
 precc='
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
-# define _(x) x
 #else
-# define _(x) ()
 # define void char
 #endif
 #if defined(__cplusplus) || defined (c_plusplus)
@@ -113,21 +102,12 @@ stdconfigfile () {
 #  define void int
 # endif
 # if ! _key_void || ! _param_void_star
-   typedef char *_pvoid;
-# else
-   typedef void *_pvoid;
+   typedef char void;
 # endif
 # if ! _key_const
 #  define const
 # endif
 
-# ifndef _
-#  if _proto_stdc
-#   define _(args) args
-#  else
-#   define _(args) ()
-#  endif
-# endif
 #endif /* MKC_STANDARD_DEFS */
 '
 }
@@ -154,6 +134,12 @@ standard_checks () {
   check_param_void_star
   check_proto "_proto_stdc"
   PH_ALL=T
+}
+
+check_header_reset () {
+  printlabel "" "reset headers"
+  out="${PH_PREFIX}all"
+  rm -f $out
 }
 
 check_hdr () {
@@ -726,6 +712,12 @@ CPP_EXTERNS_END
   do_c_check_compile ${name} "${code}" all
 }
 
+check_staticlib () {
+  staticlib=T
+  check_lib "$@"
+  unset staticlib
+}
+
 check_lib () {
   func=$2
   shift;shift
@@ -785,6 +777,9 @@ return 1;
 
   tag=""
   if [ $rc -eq 0 -a "$dlibs" != "" ]; then
+    if [ "$staticlib" = "T" ]; then
+      dlibs="$LDFLAGS_STATIC_LIB_LINK $dlibs $LDFLAGS_SHARED_LIB_LINK"
+    fi
     tag=" with ${dlibs}"
     cmd="mkc_${_MKCONFIG_PREFIX}_lib_${name}=\"${dlibs}\""
     eval $cmd

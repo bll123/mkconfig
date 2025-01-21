@@ -145,11 +145,6 @@ if ok, adds it to the CFLAGS environment variable.
 Locates the config\-file (someConfig.sh) and loads it.
 .RE
 .TP
-\fBfindpc\fP pkgconfig\-file
-.RS
-Deprecated. Locates the pkgconfig\-file (someConfig.pc) and loads it.
-.RE
-.TP
 \fBaddconfig\fP env\-var mkconfig\-var
 .RS
 After a configuration or pkgconfig file is loaded,
@@ -220,53 +215,6 @@ as appropriate to the operating system and compiler.
 .RE
 .RE
 .PP
-.TP
-.B env-dc
-.br
-The dc environment unit determines basic flags needed to run the
-D compiler.  The D compiler may also be dependent on the C compiler,
-so the env-cc unit should also be loaded and the C compiler environment
-should be set up.
-The DC and DFLAGS
-environment variables may be set in the options file.  Any value set
-in the environment will override the settings in the options file.
-.RS
-.TP
-\fBdc\fP
-.br
-Determines the D compiler being used.  Sets the DC environment variable.
-Due to major differences in compiler command line options, the
-following environment variables are also set:
-.br
-DC_OPT \- Optimizer option for the compiler.
-.br
-DC_OF \- Option prepended to the output file (e.g. -ofoutname or -ooutname).
-Must be used w/o a space due to the dmd compiler usage.
-.br
-DC_RELEASE \- Option for release code.
-.br
-DC_INLINE \- Option for inline code generation.
-.br
-DC_UNITTEST \- Option for unittest code generation.
-.br
-DC_DEBUG \- Option for debug code generation.
-.br
-DC_INTFC \- Option for interface file generation.
-.br
-DC_COV \- Option for code coverage generation.
-.br
-DC_LINK \- Option to prepend to linker commands.  This should be
-prepended without a space.  Needed for the dmd compiler.  e.g.
-${DC_LINK}-L/somepath ${DC_LINK}-lmylib
-.br
-.TP
-\fBdflags\fP
-.br
-Sets the DFLAGS environment variable.
-.RE
-.TP
-.B env-extension
-.RS
 .TP
 \fBextension\fP {obj|exe|shlib}
 .br

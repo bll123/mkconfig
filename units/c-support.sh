@@ -224,6 +224,11 @@ _c_chk_link () {
   cmd="${CC} ${CFLAGS} -o ${clname}.exe ${clname}.c "
   cmd="${cmd} ${LDFLAGS} ${LIBS} "
   _clotherlibs=$otherlibs
+  if [ "$staticlib" = "T" ]; then
+    _tolibs=${_clotherlibs}
+    _clotherlibs="$LDFLAGS_STATIC_LIB_LINK ${_tolibs} $LDFLAGS_SHARED_LIB_LINK "
+    unset _tolibs
+  fi
   if [ "${_clotherlibs}" != "" ]; then
     cmd="${cmd} ${_clotherlibs} "
   fi

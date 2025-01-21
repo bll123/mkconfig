@@ -126,12 +126,11 @@ chkgrep () {
   arg=$3
   arg2=$4
 
-echo "chkgrep: pwd: `pwd`"
-echo "chkgrep: fn: $fn"
   if [ "$arg" = "wc" ]; then
     tl=`egrep -l "$pat" ${fn} 2>/dev/null | wc -l`
     rc=$?
     if [ ${tl} -ne ${arg2} ]; then
+      echo "chkgrep: fail wc"
       grc=1
     fi
   else
@@ -139,10 +138,12 @@ echo "chkgrep: fn: $fn"
     rc=$?
   fi
   if [ "$arg" = "" -a $rc -ne 0 ]; then
+    echo "chkgrep: pattern match fail"
     grc=$rc
     echo "## ${fn}: grep for '$pat' failed"
   fi
   if [ "$arg" = "neg" -a $rc -eq 0 ]; then
+    echo "chkgrep: neg test fail"
     grc=$rc
     echo "## ${fn}: grep for '$pat' succeeded when it should not"
   fi

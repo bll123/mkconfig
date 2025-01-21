@@ -170,8 +170,6 @@ command sed
 .B Output:
 #define _command_sed 1 /* C */
 #define _cmd_loc_sed "/bin/sed" /* C */
-enum bool _command_sed = true; /* D */
-enum string _cmd_loc_sed = "/bin/sed"; /* D */
 .Ve
 .RE
 .TP
@@ -184,7 +182,6 @@ Searches filename for pattern.  tag is used for naming and display purposes.
 grep mysearch root /etc/passwd
 .B Output:
 #define _grep_mysearch 1  /* C */
-enum bool _grep_mysearch = true; /* D */
 .Ve
 .RE
 .TP
@@ -308,10 +305,6 @@ See mkconfig_env(7).
 The C language units create an include file for C programs.
 .PP
 See mkconfig_c(7).
-.SH D Language Units
-The D language units create an import file for D programs.
-.PP
-See mkconfig_d(7).
 .SH Tests (runtests.sh)
 The test directory contains shell scripts that are executed
 by \fIruntests.sh\fP.  If a 'test_order' file exists in the test

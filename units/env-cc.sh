@@ -204,7 +204,8 @@ check_cflags () {
         fi
         ;;
     esac
-    doappend cflags_compiler " $gccflags"
+    doappend cflags_compiler " "
+    doappend cflags_compiler $gccflags
   fi
   if [ "${_MKCONFIG_USING_CLANG}" = Y ]; then
     puts "set clang flags" >&9
@@ -277,7 +278,8 @@ check_cflags () {
   _dogetconf
 
   # largefile flags
-  doappend cflags_system " $lfccflags"
+  doappend cflags_system " "
+  doappend cflags_system $lfccflags
 
   # plain CFLAGS will be interpreted as the user's cflags
   _read_option CFLAGS ""
@@ -291,8 +293,10 @@ check_cflags () {
     cflags_optimize="$CFLAGS_OPTIMIZE"
   fi
   _read_option CFLAGS_INCLUDE ""
-  doappend cflags_include " $CFLAGS_INCLUDE"
-  doappend cflags_include " $CPPFLAGS"
+  doappend cflags_include " "
+  doappend cflags_include $CFLAGS_INCLUDE
+  doappend cflags_include " "
+  doappend cflags_include $CPPFLAGS
 
   puts "cflags_debug:${cflags_debug}" >&9
   puts "cflags_optimize:${cflags_optimize}" >&9
@@ -314,14 +318,35 @@ check_cflags () {
 
 check_addcflag () {
   name=$1
-  flag=$2
+  shift
+  flag=$*
 
   printlabel CFLAGS_APPLICATION "Add C flag: ${flag}"
 
   test_cflag "$flag"
   printyesno $name "${flag}"
-  if [ $flag != 0 ]; then
-    doappend CFLAGS_APPLICATION " $flag"
+  if [ "$flag" != 0 ]; then
+    doappend CFLAGS_APPLICATION " "
+    doappend CFLAGS_APPLICATION "$flag"
+    setdata ${_MKCONFIG_PREFIX} CFLAGS_APPLICATION "$CFLAGS_APPLICATION"
+  fi
+}
+
+check_addincpath () {
+  name=$1
+  flag=$2
+
+  printlabel CFLAGS_APPLICATION "Add Include Path: ${flag}"
+
+  test_incpath "$flag"
+  printyesno $name "${flag}"
+  if [ "$flag" != 0 ]; then
+    dosubst flag ' ' '\\\\\\\\\ '
+    doappend CFLAGS_APPLICATION " "
+    initifs
+    setifs
+    doappend CFLAGS_APPLICATION $flag
+    resetifs
     setdata ${_MKCONFIG_PREFIX} CFLAGS_APPLICATION "$CFLAGS_APPLICATION"
   fi
 }
@@ -347,8 +372,10 @@ check_pkg_cflags () {
   test_cflag "$tcflags"
   printyesno_val $name "${flag}"
   if [ "$flag" != 0 ]; then
-    doappend CFLAGS_APPLICATION " $flag"
+    doappend CFLAGS_APPLICATION " "
+    doappend CFLAGS_APPLICATION "$flag"
     setdata ${_MKCONFIG_PREFIX} CFLAGS_APPLICATION "$CFLAGS_APPLICATION"
+    setdata ${_MKCONFIG_PREFIX} ${name} "$flag"
   fi
 }
 
@@ -373,8 +400,10 @@ check_pkg_include () {
   test_cflag "$tcflags"
   printyesno_val $name "${flag}"
   if [ "$flag" != 0 ]; then
-    doappend CFLAGS_APPLICATION " $flag"
+    doappend CFLAGS_APPLICATION " "
+    doappend CFLAGS_APPLICATION "$flag"
     setdata ${_MKCONFIG_PREFIX} CFLAGS_APPLICATION "$CFLAGS_APPLICATION"
+    setdata ${_MKCONFIG_PREFIX} ${name} "$flag"
   fi
 }
 
@@ -400,21 +429,59 @@ check_pkg_libs () {
   test_ldflags "$tldflags"
   printyesno_val $name "$flag"
   if [ "$flag" != 0 ]; then
-    doappend LDFLAGS_LIBS_APPLICATION " $flag"
+    doappend LDFLAGS_LIBS_APPLICATION " "
+    doappend LDFLAGS_LIBS_APPLICATION "$flag"
     setdata ${_MKCONFIG_PREFIX} LDFLAGS_LIBS_APPLICATION "$LDFLAGS_LIBS_APPLICATION"
+    setdata ${_MKCONFIG_PREFIX} ${name} "$flag"
   fi
 }
 
 check_addldflag () {
   name=$1
-  flag=$2
+  shift
+  flag=$*
 
   printlabel LDFLAGS_APPLICATION "Add LD flag: ${flag}"
 
   test_ldflags "$flag"
   printyesno $name "$flag"
-  if [ $flag != 0 ]; then
-    doappend ldflags_application " $flag"
+  if [ "$flag" != 0 ]; then
+    doappend ldflags_application " "
+    doappend ldflags_application "\"$flag\""
+    _setflags ldflags_application LDFLAGS_APPLICATION
+  fi
+}
+
+check_addlibs () {
+  name=$1
+  shift
+  flag=$*
+
+  printlabel LDFLAGS_LIBS_APPLICATION "Add Library: ${flag}"
+
+  test_ldflags "$flag"
+  printyesno $name "$flag"
+  if [ "$flag" != 0 ]; then
+    doappend ldflags_libs_application " "
+    doappend ldflags_libs_application "\"$flag\""
+    _setflags ldflags_libs_application LDFLAGS_LIBS_APPLICATION
+  fi
+}
+
+check_addldsrchpath () {
+  name=$1
+  flag=$2
+
+  printlabel LDFLAGS_APPLICATION "Add LD Search Path: ${flag}"
+
+  test_ldsrchpath "$flag"
+  printyesno $name "$flag"
+  if [ "$flag" != 0 ]; then
+    doappend ldflags_application " "
+    initifs
+    setifs
+    doappend ldflags_application "\"$flagi\""
+    resetifs
     _setflags ldflags_application LDFLAGS_APPLICATION
   fi
 }
@@ -432,7 +499,8 @@ check_ldflags () {
   ldflags_system=${LDFLAGS_SYSTEM:-}
   ldflags_application=${LDFLAGS_APPLICATION:-}
 
-  doappend ldflags_system " $lfldflags"
+  doappend ldflags_system " "
+  doappend ldflags_system $lfldflags
 
   case ${_MKCONFIG_SYSTYPE} in
       FreeBSD)
@@ -535,10 +603,12 @@ check_libs () {
   esac
 
   # largefile flags
-  doappend ldflags_libs_system " $lflibs"
+  doappend ldflags_libs_system " "
+  doappend ldflags_libs_system $lflibs
 
   _read_option LIBS ""
-  doappend ldflags_libs_user " $LIBS"
+  doappend ldflags_libs_user " "
+  doappend ldflags_libs_user $LIBS
 
   puts "ldflags_libs_user:${ldflags_libs_user}" >&9
   puts "ldflags_libs_application:${ldflags_libs_application}" >&9
@@ -691,6 +761,70 @@ check_sharednameflag () {
   setdata ${_MKCONFIG_PREFIX} SHLDNAMEFLAG "$SHLDNAMEFLAG"
 }
 
+check_sharedliblinkflag () {
+  printlabel LDFLAGS_SHARED_LIB_LINK "link flag for shared libraries "
+
+  LDFLAGS_SHARED_LIB_LINK="-Wl,-Bdynamic"
+  if [ "$_MKCONFIG_USING_GNU_LD" != Y ]; then
+    case ${_MKCONFIG_SYSTYPE} in
+      AIX)
+        LDFLAGS_SHARED_LIB_LINK=""
+        ;;
+      HP-UX)
+        LDFLAGS_SHARED_LIB_LINK=""
+        ;;
+      OSF1)
+        LDFLAGS_SHARED_LIB_LINK=""
+        ;;
+      SunOS)
+        # -Bdynamic
+        ;;
+      *)
+        LDFLAGS_SHARED_LIB_LINK=""
+        ;;
+    esac
+    if [ "$_MKCONFIG_USING_GCC" = Y ]; then
+      LDFLAGS_SHARED_LIB_LINK=`echo "$LDFLAGS_SHARED_LIB_LINK" |
+          sed -e 's/^-/-Wl,-/' -e 's/^\+/-Wl,+/' -e 's/  */ -Wl,/g'`
+    fi
+  fi
+
+  printyesno_val LDFLAGS_SHARED_LIB_LINK "$LDFLAGS_SHARED_LIB_LINK"
+  setdata ${_MKCONFIG_PREFIX} LDFLAGS_SHARED_LIB_LINK "$LDFLAGS_SHARED_LIB_LINK"
+}
+
+check_staticliblinkflag () {
+  printlabel LDFLAGS_STATIC_LIB_LINK "link flag for static libraries "
+
+  LDFLAGS_STATIC_LIB_LINK="-Wl,-Bstatic"
+  if [ "$_MKCONFIG_USING_GNU_LD" != Y ]; then
+    case ${_MKCONFIG_SYSTYPE} in
+      AIX)
+        LDFLAGS_STATIC_LIB_LINK=""
+        ;;
+      HP-UX)
+        LDFLAGS_STATIC_LIB_LINK=""
+        ;;
+      OSF1)
+        LDFLAGS_STATIC_LIB_LINK=""
+        ;;
+      SunOS)
+        # -Bdynamic
+        ;;
+      *)
+        LDFLAGS_STATIC_LIB_LINK=""
+        ;;
+    esac
+    if [ "$_MKCONFIG_USING_GCC" = Y ]; then
+      LDFLAGS_STATIC_LIB_LINK=`echo "$LDFLAGS_STATIC_LIB_LINK" |
+          sed -e 's/^-/-Wl,-/' -e 's/^\+/-Wl,+/' -e 's/  */ -Wl,/g'`
+    fi
+  fi
+
+  printyesno_val LDFLAGS_STATIC_LIB_LINK "$LDFLAGS_STATIC_LIB_LINK"
+  setdata ${_MKCONFIG_PREFIX} LDFLAGS_STATIC_LIB_LINK "$LDFLAGS_STATIC_LIB_LINK"
+}
+
 check_shareexeclinkflag () {
   printlabel LDFLAGS_EXEC_LINK "shared executable link flag "
 
@@ -771,7 +905,8 @@ check_addconfig () {
   eval _tvar="\$$evar"
   if [ "z$_tvar" != z ]; then
     printyesno_val $name yes
-    doappend $addto " $_tvar"
+    doappend $addto " "
+    doappend $addto $_tvar
     puts "got: ${evar} ${_tvar}" >&9
     eval puts "\"$addto: \$$addto\"" >&9
     ucaddto=$addto
@@ -816,43 +951,6 @@ check_findconfig () {
   fi
 }
 
-check_findpc () {
-  name=$1
-  cfile=$2
-  printlabel FINDPC "Search for: ${cfile}"
-  sp=
-  incchk=
-  pp=`puts $PATH | sed 's/:/ /g'`
-  for p in $pp $HOME/local/lib /usr/local/lib \
-      /opt/local/lib /usr/lib/x86_64-linux-gnu; do
-    td=$p
-    case $p in
-      */bin)
-        dosubst td '/bin$' '/lib'
-        ;;
-    esac
-
-    doappend td /pkgconfig
-    if [ -d $td ]; then
-      if [ -f "$td/$cfile.sh" ]; then
-        puts "found: ${td}" >&9
-        sp=$td
-        break
-      fi
-    fi
-  done
-
-  if [ z$sp != z ]; then
-    printyesno_val $name yes
-    setdata ${_MKCONFIG_PREFIX} pc_${cfile} Y
-    setdata ${_MKCONFIG_PREFIX} pc_path_${cfile} $sp/$cfile
-    . $sp/$cfile.sh ; # load the environment variables
-  else
-    printyesno_val $name no
-    setdata ${_MKCONFIG_PREFIX} pc_${cfile} N
-  fi
-}
-
 check_standard_cc () {
   check_cc
   check_using_gcc
@@ -861,4 +959,14 @@ check_standard_cc () {
   check_using_cplusplus
   check_cflags
   check_ldflags
+}
+
+check_shared_flags () {
+  check_cflags_shared
+  check_ldflags_shared
+  check_sharednameflag
+  check_shareexeclinkflag
+  check_sharerunpathflag
+  check_sharedliblinkflag
+  check_staticliblinkflag
 }
