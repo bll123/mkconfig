@@ -139,37 +139,37 @@ grc=0
 
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -link -shared \
     -log mkc_compile.log${stag} \
-    -e -o libmkct1${SHLIB_EXT} mkct1${OBJ_EXT} -L.
+    -e -o libmkct1${SHLIB_EXT} mkct1${OBJ_EXT} -R.
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -link -shared \
     -log mkc_compile.log${stag} \
-    -e -o libmkct2${SHLIB_EXT} mkct2${OBJ_EXT} -L. -lmkct1
+    -e -o libmkct2${SHLIB_EXT} mkct2${OBJ_EXT} -L. -lmkct1 -R.
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -link -shared \
     -log mkc_compile.log${stag} \
-    -e -o libmkct3${SHLIB_EXT} mkct3${OBJ_EXT} -L. -lmkct2
+    -e -o libmkct3${SHLIB_EXT} mkct3${OBJ_EXT} -L. -lmkct2 -R.
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -link -shared \
     -log mkc_compile.log${stag} \
-    -e -o libmkct4${SHLIB_EXT} mkct4${OBJ_EXT} -L. -lmkct3
+    -e -o libmkct4${SHLIB_EXT} mkct4${OBJ_EXT} -L. -lmkct3 -R.
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -link -shared \
     -log mkc_compile.log${stag} \
-    -e -o libmkct5${SHLIB_EXT} mkct5${OBJ_EXT} -L. -lmkct4
+    -e -o libmkct5${SHLIB_EXT} mkct5${OBJ_EXT} -L. -lmkct4 -R.
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -link -exec \
     -log mkc_compile.log${stag} -e -c ${CC} \
-    -o mkct6a${EXE_EXT} -- mkct6${OBJ_EXT} -L. -lmkct5
+    -o mkct6a${EXE_EXT} -- mkct6${OBJ_EXT} -L. -lmkct5 -R.
 eval $cmd
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi

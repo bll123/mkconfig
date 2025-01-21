@@ -1,12 +1,8 @@
 1 c-compiler
 2 c-outfile
-3 c-option
 3 c-set
 3 c-substitute
 4 c-if
-6 c-ifoption
-6 c-nooption
-6 c-nooptfile
 7 c-include
 7 c-keyword
 7 c-size

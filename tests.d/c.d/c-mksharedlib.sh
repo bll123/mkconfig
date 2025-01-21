@@ -79,14 +79,14 @@ grc=0
 set +f
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -link -shared \
     -log mkc_compile.log${stag} \
-    -e -o libmkct${SHLIB_EXT} mkct[51234]${OBJ_EXT} -L.
+    -e -o libmkct${SHLIB_EXT} mkct[51234]${OBJ_EXT} -R.
 set -f
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
 ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -link -exec \
     -log mkc_compile.log${stag} \
-    -e -o mkct6a${EXE_EXT} mkct6${OBJ_EXT} -L. -lmkct
+    -e -o mkct6a${EXE_EXT} mkct6${OBJ_EXT} -L. -lmkct -R.
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 

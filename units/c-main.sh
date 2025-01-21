@@ -23,9 +23,8 @@
 #       #  define const
 #       # endif
 #       # if ! _key_void || ! _param_void_star
-#          typedef char void;
+#       #  define void char
 #       # endif
-#
 #       #endif /* MKC_STANDARD_DEFS */
 #
 
@@ -49,9 +48,6 @@ PH_STD=F
 PH_ALL=F
 
 precc='
-#if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
-# define void char
-#endif
 #if defined(__cplusplus) || defined (c_plusplus)
 # define CPP_EXTERNS_BEG extern "C" {
 # define CPP_EXTERNS_END }
@@ -87,8 +83,8 @@ preconfigfile () {
   puts "    From: ${configfile}"
   puts "    Using: mkconfig-${_MKCONFIG_VERSION} */"
   puts ''
-  puts "#ifndef MKC_INC_${CONFHTAGUC}_H
-#define MKC_INC_${CONFHTAGUC}_H 1
+  puts "#ifndef INC_${CONFHTAGUC}_H
+#define INC_${CONFHTAGUC}_H 1
 "
 }
 
@@ -101,12 +97,13 @@ stdconfigfile () {
 #  define void int
 # endif
 # if ! _key_void || ! _param_void_star
-   typedef char void;
+   typedef char *pvoid;
+# else
+   typedef void *pvoid;
 # endif
 # if ! _key_const
 #  define const
 # endif
-
 #endif /* MKC_STANDARD_DEFS */
 '
 }
@@ -114,7 +111,7 @@ stdconfigfile () {
 postconfigfile () {
   pc_configfile=$1
   puts "
-#endif /* MKC_INC_${CONFHTAGUC}_H */"
+#endif /* INC_${CONFHTAGUC}_H */"
 }
 
 standard_checks () {
@@ -892,9 +889,9 @@ output_item () {
       dosubst tname '_setint_' ''
       puts "#define ${tname} ${val}"
       ;;
-    _setstr_*|_opt_*|_cmd_loc_*)
+    _setstr_*|_cmd_loc_*)
       tname=$name
-      dosubst tname '_setstr_' '' '_opt_' ''
+      dosubst tname '_setstr_' ''
       puts "#define ${tname} \"${val}\""
       ;;
     _hdr_*|_sys_*|_command_*)

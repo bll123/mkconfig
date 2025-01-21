@@ -18,16 +18,12 @@ mkdir $MKC_FILES, 0777;
 
 my $LOG = "../../${MKC_FILES}/mkconfig.log";
 my $_MKCONFIG_TMP = "${MKC_FILES}/_tmp_mkconfig";
-my $OPTIONFILE = "../../options.dat";
 my $VARSFILE = "../../${MKC_FILES}/mkc_none_c.vars";
 my $CACHEFILE = "../../${MKC_FILES}/mkconfig.cache";
 my $REQLIB = "../../${MKC_FILES}/mkconfig.reqlibs";
 my $_MKCONFIG_DIR = "invalid";
 
 my $precc = <<'_HERE_';
-#if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
-# define void char
-#endif
 #if defined(__cplusplus) || defined (c_plusplus)
 # define CPP_EXTERNS_BEG extern "C" {
 # define CPP_EXTERNS_END }
@@ -48,8 +44,6 @@ my $postcc = <<'_HERE_';
 #define __restrict
 _HERE_
 
-my $optionsloaded = 0;
-my %optionshash;
 my $iflevels = '';
 
 my $awkcmd = 'awk';
@@ -181,24 +175,6 @@ checkcache
     $rc = 0;
   }
   return $rc;
-}
-
-sub
-loadoptions
-{
-  if ($optionsloaded == 0 && open (OPTS, "<$OPTIONFILE")) {
-    while (my $o = <OPTS>) {
-      chomp $o;
-      if ($o =~ /^$/o || $o =~ /^#/o) {
-        next;
-      }
-      my ($onm, $val) = split (/=/, $o);
-      printf LOGFH "## load: $onm = $val\n";
-      $optionshash{$onm} = $val;
-    }
-    $optionsloaded = 1;
-    close (OPTS);
-  }
 }
 
 sub
@@ -721,52 +697,6 @@ check_grep
 }
 
 sub
-check_ifoption
-{
-    my ($ifcount, $type, $name, $opt, $r_clist, $r_config) = @_;
-
-    printlabel $name, "$type ($ifcount): $opt";
-
-    loadoptions ();
-
-    my $trc = 0;
-
-    my $found = 'F';
-    if ($optionsloaded && defined ($optionshash{$opt})) {
-      $found = 'T';
-      $trc = lc $optionshash{$opt};
-      print LOGFH "##  found: $opt => $trc\n";
-      if ($trc eq 't') { $trc = 1; }
-      if ($trc eq 'enable') { $trc = 1; }
-      if ($trc eq 'f') { $trc = 0; }
-      if ($trc eq 'disable') { $trc = 0; }
-      if ($trc eq 'true') { $trc = 1; }
-      if ($trc eq 'false') { $trc = 0; }
-      if ($trc eq 'yes') { $trc = 1; }
-      if ($trc eq 'no') { $trc = 0; }
-    }
-
-    if (! $optionsloaded) {
-      $trc = 0;
-    } elsif ($found eq 'F') {
-      $trc = 0;
-    }
-
-    if ($type eq 'ifnotoption') {
-      $trc = $trc == 0 ? 1 : 0;
-    }
-
-    if (! $optionsloaded) {
-      printyesno_actual $name, "no options file";
-    } elsif ($found eq 'F') {
-      printyesno_actual $name, "option not found";
-    } else {
-      printyesno $name, $trc;
-    }
-    return $trc;
-}
-
-sub
 check_if
 {
     my ($iflabel, $ifcount, $ifline, $r_clist, $r_config) = @_;
@@ -873,26 +803,6 @@ check_set
       $r_config->{$name} = $val;
       printyesno_actual $name, $r_config->{$name};
     }
-}
-
-sub
-check_option
-{
-    my ($name, $onm, $def, $r_clist, $r_config) = @_;
-
-    printlabel $name, "option: $onm";
-
-    loadoptions ();
-    my $oval = $def;
-
-    if ($optionsloaded && defined ($optionshash{$onm})) {
-      $oval = $optionshash{$onm};
-      print LOGFH "##  found: $onm => $oval\n";
-    }
-
-    setlist $r_clist, $name;
-    $r_config->{$name} = $oval;
-    printyesno_actual $name, $r_config->{$name};
 }
 
 sub
@@ -1479,8 +1389,8 @@ create_output
     From: ${configfile}
     Using: mkconfig-${_MKCONFIG_VERSION} (perl) */
 
-#ifndef MKC_INC_${CONFHTAGUC}_H
-#define MKC_INC_${CONFHTAGUC}_H 1
+#ifndef INC_${CONFHTAGUC}_H
+#define INC_${CONFHTAGUC}_H 1
 
 _HERE_
 
@@ -1491,17 +1401,23 @@ _HERE_
     }
     my $tval = 0;
     if ($r_config->{$val} ne "0") {
-        $tval = 1;
+      $tval = 1;
     }
     if ($val =~ m#^_setint_#o) {
       $tnm = $val;
       $tnm =~ s/^_setint_//;
       print CCOFH "#define $tnm " . $r_config->{$val} . "\n";
     } elsif ($val =~ m#^(_setstr_|_opt_|_cmd_loc_)#o) {
+      my $isopt = 0;
+      if ($val =~ m#^_opt_#o) {
+        $isopt = 1;
+      }
       $tnm = $val;
       $tnm =~ s/^_setstr_//;
       $tnm =~ s/^_opt_//;
-      print CCOFH "#define $tnm \"" . $r_config->{$val} . "\"\n";
+      if (! $isopt || ($isopt && $r_config->{$val} != "")) {
+        print CCOFH "#define $tnm \"" . $r_config->{$val} . "\"\n";
+      }
     } elsif ($val =~ m#^(_hdr|_sys|_command)#o) {
       print CCOFH "#define $val $tval\n";
     } else {
@@ -1518,7 +1434,9 @@ _HERE_
 #  define void int
 # endif
 # if ! _key_void || ! _param_void_star
-   typedef char void;
+   typedef char *pvoid;
+# else
+   typedef void *pvoid;
 # endif
 # if ! _key_const
 #  define const
@@ -1531,7 +1449,7 @@ _HERE_
 
   print CCOFH <<"_HERE_";
 
-#endif /* MKC_INC_${CONFHTAGUC}_H */
+#endif /* INC_${CONFHTAGUC}_H */
 _HERE_
   close CCOFH;
 }
@@ -1685,17 +1603,6 @@ main_process
             $clist{'vars'} = ();
             $clist{'vhash'} = {};
         }
-        elsif ($line =~ m#^\s*option\-file\s+([^\s]+)#o)
-        {
-            print "option-file: $1\n";
-            my $tfile = $1;
-            if ($tfile =~ m#^/#o) {
-              $OPTIONFILE = $tfile;
-            } else {
-              $OPTIONFILE = "../../$tfile";
-            }
-            print LOGFH "options file: $OPTIONFILE\n";
-        }
         elsif ($line =~ m#^\s*standard#o)
         {
             check_standard (\%clist, \%config);
@@ -1777,19 +1684,6 @@ main_process
         {
             check_grep ('', $1, \%clist, \%config);
         }
-        elsif ($line =~ m#^\s*(if(not)?option)\s+([^\s]+)#o)
-        {
-            my $type = $1;
-            my $opt = $3;
-            my $nm = "_${type}_${opt}";
-            ++$ifstmtcount;
-            my $rc = check_ifoption ($ifstmtcount, $type, $nm, $opt, \%clist, \%config);
-            $iflevels .= "+$ifstmtcount ";
-            unshift @doproclist, $doproc;
-            $doproc = $rc;
-            print LOGFH "## ifoption: doproclist: " . join (' ', @doproclist) . "\n";
-            print LOGFH "## ifoption: doproc: $doproc\n";
-        }
         elsif ($line =~ m#^\s*if\s+([^\s]+)\s+(.*)#o)
         {
             my $iflabel = $1;
@@ -1826,13 +1720,6 @@ main_process
             }
             my $val = $4;
             check_set ($nm, $type, $val, \%clist, \%config);
-        }
-        elsif ($line =~ m#^\s*option\s+([^\s]+)\s*(.*)#o)
-        {
-            my $nm = "_opt_$1";
-            my $onm = $1;
-            my $def = $2;
-            check_option ($nm, $onm, $def, \%clist, \%config);
         }
         elsif ($line =~ m#^\s*npt\s+([^\s]*)\s*(.*)#o)
         {
@@ -1979,12 +1866,11 @@ sub
 usage
 {
   print STDOUT "Usage: $0 [-c <cache-file>] [-L <log-file>]\n";
-  print STDOUT "       [-o <option-file>] [-C] <config-file>\n";
+  print STDOUT "       [-C] <config-file>\n";
   print STDOUT "  -C : clear cache-file\n";
   print STDOUT "defaults:\n";
   print STDOUT "  <cache-file> : mkconfig.cache\n";
   print STDOUT "  <log-file>   : mkconfig.log\n";
-  print STDOUT "  <option-file>: options.dat\n";
 }
 
 # main
@@ -2007,12 +1893,6 @@ while ($#ARGV > 0)
   {
       shift @ARGV;
       $LOG = $ARGV[0];
-      shift @ARGV;
-  }
-  if ($ARGV[0] eq "-o")
-  {
-      shift @ARGV;
-      $OPTIONFILE = $ARGV[0];
       shift @ARGV;
   }
 }

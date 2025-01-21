@@ -202,6 +202,7 @@ for f in $@ $olibs; do
       ;;
     -R*|-rpath*)
       tf=$f
+      dosubst tf '-R' ''
       dosubst tf '-rpath' ''
       if [ ! -d "$tf" ]; then
         puts "## unable to locate dir $tf"

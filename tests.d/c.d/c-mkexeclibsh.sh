@@ -88,7 +88,7 @@ ${_MKCONFIG_SHELL} ${_MKCONFIG_DIR}/mkc.sh -d `pwd` -link -exec \
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 
-./mkct6a.exe
+LD_LIBRARY_PATH=. ./mkct6a.exe
 rc=$?
 if [ $rc -ne 0 ]; then grc=$rc; fi
 

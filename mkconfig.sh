@@ -37,9 +37,7 @@ MKC_FILES=${MKC_FILES:-mkc_files}
 LOG="${MKC_FILES}/mkconfig.log"
 _MKCONFIG_TMP="${MKC_FILES}/_tmp_mkconfig"
 CACHEFILE="${MKC_FILES}/mkconfig.cache"
-OPTIONFILE="options.dat"
 _MKCONFIG_PREFIX=mkc    # need a default in case no units loaded
-optionsloaded=F
 allchglist=""
 
 INC="mkcinclude.txt"                   # temporary
@@ -136,15 +134,10 @@ setdata () {
       _doexport $sdname "$sdval"
     fi
 
-    oprefix=$prefix
-    if [ "$prefix" = none ]; then
-      prefix=""
-    fi
-
     cmd="mkc_${prefix}_${sdname}=\"${sdval}\""
     eval $cmd
     puts "   setdata: $cmd" >&9
-    setvariable $oprefix $sdname
+    setvariable $prefix $sdname
 }
 
 getdata () {
@@ -244,28 +237,6 @@ checkcache () {
   return $rc
 }
 
-_loadoptions () {
-  if [ $optionsloaded = F -a -f "${OPTIONFILE}" ]; then
-    exec 6<&0 < ${OPTIONFILE}
-    while read o; do
-      case $o in
-        "")
-          continue
-          ;;
-        \#*)
-          continue
-          ;;
-      esac
-
-      topt=`puts "$o" | sed 's/=.*//'`
-      tval=`puts "$o" | sed 's/.*=//'`
-      eval "mkc__opt_${topt}=\"${tval}\""
-    done
-    exec <&6 6<&-
-    optionsloaded=T
-  fi
-}
-
 check_command () {
     name=$1
     shift
@@ -314,57 +285,6 @@ check_grep () {
 
   printyesno $name $trc
   setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
-}
-
-check_ifoption () {
-    ifdispcount=$1
-    type=$2
-    name=$3
-    oopt=$4
-
-    printlabel $name "$type ($ifdispcount): ${oopt}"
-
-    _loadoptions
-    trc=0  # if option is not set, it's false
-
-    found=F
-
-    eval tval=\$mkc__opt_${oopt}
-    # override the option value with the environment variable
-    eval tenvval=\$${oopt}
-    if [ "$tenvval" != "" ]; then
-      tval=$tenvval
-    fi
-    if [ "$tval" != "" ]; then
-      found=T
-      trc=$tval
-      tolower trc
-      puts "  found option: $oopt $trc" >&9
-      if [ "$trc" = t ]; then trc=1; fi
-      if [ "$trc" = f ]; then trc=0; fi
-      if [ "$trc" = enable ]; then trc=1; fi
-      if [ "$trc" = disable ]; then trc=0; fi
-      if [ "$trc" = true ]; then trc=1; fi
-      if [ "$trc" = false ]; then trc=0; fi
-      if [ "$trc" = yes ]; then trc=1; fi
-      if [ "$trc" = no ]; then trc=0; fi
-    fi
-
-    # these must be set before ifnotoption processing
-    if [ "$found" = F ]; then
-      trc=0
-    fi
-
-    if [ $type = ifnotoption ]; then
-      if [ $trc -eq 0 ]; then trc=1; else trc=0; fi
-    fi
-
-    if [ "$found" = F ]; then
-      printyesno_actual $name "option not found"
-    else
-      printyesno $name $trc
-    fi
-    return $trc
 }
 
 check_if () {
@@ -483,41 +403,6 @@ check_set () {
     printyesno_actual $nm "${sval}"
     setdata ${_MKCONFIG_PREFIX} ${nm} "${sval}"
   fi
-}
-
-_read_option () {
-  onm=$1
-  def=$2
-
-  _loadoptions
-
-  oval=$def
-  if [ $optionsloaded = T ]; then
-    eval tval=\$mkc__opt_${onm}
-    if [ "$tval" != "" ]; then
-      found=T
-      puts "  found option: $onm $tval" >&9
-      oval="$tval"
-    fi
-  fi
-}
-
-check_option () {
-  nm=$1
-  onm=$2
-  def=$3
-
-  name=$nm
-
-  printlabel $name "option: ${onm}"
-
-  _read_option $onm "$def"
-
-  printyesno_actual $nm "$oval"
-  # options always have a null prefix
-set -x
-  setdata none ${nm} "${oval}"
-set +x
 }
 
 check_echo () {
@@ -707,7 +592,7 @@ main_process () {
             puts "## else: ifcurrlvl: $ifcurrlvl doif: $doif doproc:$doproc" >&9
           fi
           ;;
-        "if "*|"ifoption"*|"ifnotoption"*)
+        "if "*)
           if [ $doproc -eq 0 ]; then
             domath ifcurrlvl "$ifcurrlvl + 1"
             puts "## if: ifcurrlvl: $ifcurrlvl doif: $doif" >&9
@@ -774,23 +659,6 @@ main_process () {
             ;;
           endinclude)
             ;;
-          ifoption*|ifnotoption*)
-            _chkconfigfname
-            set $tdatline
-            type=$1
-            opt=$2
-            nm="_${type}_${opt}"
-            puts "## if: ifcurrlvl: $ifcurrlvl" >&9
-            domath ifstmtcount "$ifstmtcount + 1"
-            check_ifoption $ifstmtcount $type ${nm} ${opt}
-            rc=$?
-            iflevels="+$ifstmtcount $iflevels"
-            _setifleveldisp
-            puts "## ifopt iflevels: $iflevels" >&9
-            doproclist="$doproc $doproclist"
-            doproc=$rc
-            puts "## doproc: $doproc doproclist: $doproclist" >&9
-            ;;
           "if "*)
             _chkconfigfname
             set $tdatline
@@ -834,30 +702,6 @@ main_process () {
             if [ "${_MKCONFIG_PREFIX}" != "" ]; then
               VARSFILE="../mkc_${CONFHTAG}_${_MKCONFIG_PREFIX}.vars"
             fi
-            ;;
-          option-file*)
-            set $tdatline
-            type=$1
-            file=$2
-            case ${file} in
-              /*)
-                OPTIONFILE=${file}
-                ;;
-              *)
-                OPTIONFILE="../../${file}"
-                ;;
-            esac
-            puts "option-file: ${file}" >&1
-            puts "   option file name: ${OPTIONFILE}" >&9
-            ;;
-          option*)
-            _chkconfigfname
-            set $tdatline
-            optnm=$2
-            shift; shift
-            tval=$@
-            nm="_opt_${optnm}"
-            check_option ${nm} $optnm "${tval}"
             ;;
           output*)
             newout=F
@@ -946,8 +790,7 @@ main_process () {
 }
 
 usage () {
-  puts "Usage: $0 [-C] [-c <cache-file>] [-o <options-file>]
-           [-L <log-file>] <config-file>
+  puts "Usage: $0 [-C] [-c <cache-file>] [-L <log-file>] <config-file>
   -C : clear cache-file
 defaults:
   <cache-file> : mkconfig.cache
@@ -983,11 +826,6 @@ while test $# -gt 1; do
       LOG=$1
       shift
       ;;
-    -o)
-      shift
-      OPTIONFILE=$1
-      shift
-      ;;
   esac
 done
 
@@ -1011,7 +849,6 @@ LOG="../../$LOG"
 REQLIB="../../$REQLIB"
 CACHEFILE="../../$CACHEFILE"
 VARSFILE="../../$VARSFILE"
-OPTIONFILE="../../$OPTIONFILE"
 CONFH=none
 CONFHTAG=none
 CONFHTAGUC=NONE

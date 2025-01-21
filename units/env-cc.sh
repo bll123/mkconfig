@@ -73,7 +73,6 @@ check_32bitflags () {
 }
 
 check_cc () {
-  _read_option CC cc
   CC=${CC:-${oval}}
 
   printlabel CC "C compiler"
@@ -282,17 +281,13 @@ check_cflags () {
   doappend cflags_system $lfccflags
 
   # plain CFLAGS will be interpreted as the user's cflags
-  _read_option CFLAGS ""
   cflags_user=$CFLAGS
-  _read_option CFLAGS_DEBUG ""
   if [ "z$CFLAGS_DEBUG" != z ]; then
     cflags_debug="$CFLAGS_DEBUG"
   fi
-  _read_option CFLAGS_OPTIMIZE ""
   if [ "z$CFLAGS_OPTIMIZE" != z ]; then
     cflags_optimize="$CFLAGS_OPTIMIZE"
   fi
-  _read_option CFLAGS_INCLUDE ""
   doappend cflags_include " "
   doappend cflags_include $CFLAGS_INCLUDE
   doappend cflags_include " "
@@ -545,23 +540,18 @@ check_ldflags () {
   _dogetconf
 
   # plain LDFLAGS will be interpreted as the user's ldflags
-  _read_option LDFLAGS ""
   ldflags_user=$LDFLAGS
-  _read_option LDFLAGS_DEBUG ""
   if [ "z$LDFLAGS_DEBUG" != z ]; then
     ldflags_debug="$LDFLAGS_DEBUG"
   else
-    _read_option CFLAGS_DEBUG ""
     if [ "z$CFLAGS_DEBUG" != z ]; then
       ldflags_debug="$CFLAGS_DEBUG"
     fi
   fi
 
-  _read_option LDFLAGS_OPTIMIZE ""
   if [ "z$LDFLAGS_OPTIMIZE" != z ]; then
     ldflags_optimize="$LDFLAGS_OPTIMIZE"
   else
-    _read_option CFLAGS_OPTIMIZE ""
     if [ "z$CFLAGS_OPTIMIZE" != z ]; then
       ldflags_optimize="$CFLAGS_OPTIMIZE"
     fi
@@ -606,7 +596,6 @@ check_libs () {
   doappend ldflags_libs_system " "
   doappend ldflags_libs_system $lflibs
 
-  _read_option LIBS ""
   doappend ldflags_libs_user " "
   doappend ldflags_libs_user $LIBS
 
@@ -666,7 +655,6 @@ check_cflags_shared () {
     doappend cflags_shared " -fPIC"
   fi
 
-  _read_option CFLAGS_SHARED ""
   if [ "z$CFLAGS_SHARED" != z ]; then
     cflags_shared_user="${CFLAGS_SHARED}"
   fi
@@ -720,7 +708,6 @@ check_ldflags_shared () {
     doappend ldflags_shared_liblink " -shared"
   fi
 
-  _read_option LDFLAGS_SHARED ""
   if [ "z$LDFLAGS_SHARED" != z ]; then
     ldflags_shared_user="${LDFLAGS_SHARED}"
   fi

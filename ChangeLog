@@ -8,11 +8,9 @@ CHANGES
       Env: Added 'sharedliblinkflag' and 'staticliblinkflag'.
       Env: Added 'shared_flags' directive that runs all shared options.
       Env: Remove non-working cache checks.
-      Options: Fix mismatched naming.
-      Options: Fix option test so it does not require an options file.
+      Options: Removed.
       mkcl.sh: Handle runpath.
       mkcl.sh: Fix ldpaths/runpath generation.
-      units/c-main.sh: Change pvoid.
       units/c-main.sh: Remove define of _ for ancient C compilers.
       Remove D language.
 
