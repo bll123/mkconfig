@@ -1,8 +1,0 @@
-output test.env
-option-file opts
-loadunit env-main
-standard
-
-option TEST_OPT_DEF default
-option TEST_OPT_SET default
-option TEST_OPT_SET_SPACE default

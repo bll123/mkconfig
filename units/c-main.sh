@@ -50,7 +50,6 @@ PH_ALL=F
 
 precc='
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
-#else
 # define void char
 #endif
 #if defined(__cplusplus) || defined (c_plusplus)

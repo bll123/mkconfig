@@ -515,7 +515,9 @@ check_option () {
 
   printyesno_actual $nm "$oval"
   # options always have a null prefix
+set -x
   setdata none ${nm} "${oval}"
+set +x
 }
 
 check_echo () {
@@ -854,7 +856,7 @@ main_process () {
             optnm=$2
             shift; shift
             tval=$@
-            nm="opt_${optnm}"
+            nm="_opt_${optnm}"
             check_option ${nm} $optnm "${tval}"
             ;;
           output*)

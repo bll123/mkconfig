@@ -26,9 +26,6 @@ my $_MKCONFIG_DIR = "invalid";
 
 my $precc = <<'_HERE_';
 #if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
-# define _(x) x
-#else
-# define _(x) ()
 # define void char
 #endif
 #if defined(__cplusplus) || defined (c_plusplus)

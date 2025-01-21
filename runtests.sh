@@ -31,10 +31,10 @@ if [ "$1" = -s ]; then
   SUBDIR=T
   shift
   CC="$1"
-  shelllist="$3"
-  _pthlist="$4"
-  TMPOUT="$5"
-  shift; shift; shift; shift; shift
+  shelllist="$2"
+  _pthlist="$3"
+  TMPOUT="$4"
+  shift; shift; shift; shift
 fi
 
 if [ $# -lt 1 ]; then

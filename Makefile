@@ -3,7 +3,6 @@
 #
 
 RM = rm
-DC = gdc
 SHELL = /bin/sh
 
 ###
@@ -41,7 +40,7 @@ checktests:
 
 tests.done: runtests.sh
 	@echo "## running mkconfig tests"
-	CC=$(CC) DC=$(DC) $(_MKCONFIG_SHELL) ./runtests.sh tests.d
+	CC=$(CC) $(_MKCONFIG_SHELL) ./runtests.sh tests.d
 	touch tests.done
 
 .PHONY: tar
