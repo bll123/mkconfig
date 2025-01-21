@@ -13,7 +13,6 @@
 .\"    mkconfig config file - file where mkconfig check commands are read from
 .\"       not to be confused with "config.h".
 .\"    output file - file to which language units output is written
-.\"    options file -
 .\"    cache file -
 .\"    lib file - output libraries file created by mkreqlib.sh
 .\"
@@ -33,7 +32,7 @@
 mkconfig \- build configuration utilities
 .SH Synopsis
 .\" mkconfig.sh [-C] [-c <cache-file>]
-.\"       [-o <option-file>] [-L <log-file>] config-file
+.\"       [-L <log-file>] config-file
 .\" runtests.sh <tests-dir> [test1, ...]
 .\" mkc.sh {-compile|-link} [-shared] [-exec]
 .\"   [-c <compiler>] [-e] [-o execname|-o objname]
@@ -41,13 +40,11 @@ mkconfig \- build configuration utilities
 .\"   [sourcefile ...] [objectfile ...] [compile-or-link-flags ...]
 .\"   [-L <lib-path>] [-l <lib>]
 .\" mkc.sh -reqlib [-c <cache-file>] [-o <lib-file>] input-file
-.\" mkc.sh -setopt [-o <option-file>] option value
 .\" mkc.sh -staticlib [-e] -o libname.a objectfile ...
 .B mkconfig.sh
 [\fB\-C\fP]
 [\fB\-c\fP <cache\-file>]
 [\fB\-L\fP <log\-file>]
-[\fB\-o\fP <option\-file>]
 config\-file
 .PP
 The \-C option clears any cache file before processing the units.
@@ -55,8 +52,6 @@ The \-C option clears any cache file before processing the units.
 cache\-file defaults to 'mkconfig.cache'.
 .PP
 log\-file defaults to 'mkconfig.log'.
-.PP
-option\-file defaults to 'options.dat'.
 .PP
 config\-file is a file containing a list of mkconfig directives.
 .PP
@@ -83,14 +78,6 @@ cache\-file defaults to 'mkconfig.cache'.
 output\-file defaults to 'mkconfig.reqlibs'.
 .PP
 input\-file is the C/C++ output\-file created by mkconfig.sh.
-.PP
-.B mkc.sh \-setopt
-[\fB\-o\fP <option\-file>]
-option value
-.PP
-Is used to change the value of the options in the option file.
-.PP
-option\-file defaults to 'options.dat'.
 .PP
 .B mkc.sh \-staticlib
 [-e] -o libname.a object\-file [...]
@@ -145,12 +132,6 @@ This command may be included multiple times in the mkconfig
 configuration file to output multiple files.
 .RE
 .TP
-\fBoption\-file\fP file\-name
-.RS
-Specify the name of the options file.  The options file can also be
-specified on the command line with the \-o option.
-.RE
-.TP
 \fBloadunit\fP unit\-name
 .RS
 Include a mkconfig unit for testing.
@@ -185,20 +166,6 @@ grep mysearch root /etc/passwd
 .Ve
 .RE
 .TP
-\fBifoption\fP option\-name ... [else ...] endif
-.TP
-\fBifnotoption\fP option\-name ... [else ...] endif
-.RS
-The \fIifoption\fP and \fIifnotoption\fP statements check the options
-set in the options file and process the appropriate block of statements.
-.PP
-If there is no options file, or the option does not exist, both
-\fIifoption\fP and \fIifnotoption\fP will return a false return.
-.PP
-The \fIifoption\fP, \fIifnotoption\fP and \fIif\fP statements may be
-nested.
-.RE
-.TP
 \fBif\fP label if\-statement ... [\fBelse\fP ...] \fBendif\fP
 .RS
 The \fIif\fP statement is a combination of check variables, &&, ||,
@@ -224,8 +191,7 @@ endif
 .Ve
 .RE
 .PP
-The \fIifoption\fP, \fIifnotoption\fP and \fIif\fP statements may be
-nested.
+\fIif\fP statements may be nested.
 .RE
 .TP
 .B include endinclude
@@ -235,15 +201,6 @@ in the output file.  Backslashes must
 be escaped with a backslash.  Note that the included text
 is only output at the end of the output\-file, not inline
 with the directive output.
-.RE
-.TP
-\fBoption\fP option\-name default\-value
-.RS
-Set \fIoption\-name\fP specified to default\-value.  The option\-file is
-checked for \fIoption\-name\fP, and if present, the value in the
-option\-file is used.
-.PP
-For use in if statements, the check variable is named _opt_option\-name.
 .RE
 .TP
 \fBset\fP check\-variable value
@@ -335,8 +292,8 @@ output_item, stdconfigfile, postconfigfile, output_other.
 .PP
 \fImkconfig.sh\fP
 provides the following generic checks: command, include/endinclude,
-ifoption, ifnotoption, if, set, setint, setstr, and option.  The set,
-setint, setstr and option commands will execute the \fIoutput_item\fP
+if, set, setint, setstr.  The set,
+setint and setstr commands will execute the \fIoutput_item\fP
 function from the current unit.  Any other unrecognized
 commands will be passed on
 to the language unit that has been loaded.

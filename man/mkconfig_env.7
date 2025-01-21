@@ -13,7 +13,6 @@
 .\"    mkconfig config file - file where mkconfig check commands are read from
 .\"       not to be confused with "config.h".
 .\"    output file - file to which language units output is written
-.\"    options file -
 .\"    cache file -
 .\"    lib file - output libraries file created by mkreqlib.sh
 .\"
@@ -80,10 +79,6 @@ The checks are interdependent on each other and
 should be configured in the order: 32bitflags, cc, using_gcc,
 using_clang, using_cplusplus.
 cflags, ldflags, and libs.
-.PP
-The CC, CFLAGS, LDFLAGS, LIBS, CFLAGS_SHARED, and LDFLAGS_SHARED
-environment variables may be set in the options file.  Any value set
-in the environment will override the settings in the options file.
 .RS
 .TP
 \fBstandard_cc\fP
