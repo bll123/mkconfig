@@ -1,6 +1,0 @@
-output out.d
-loadunit d-main
-standard
-import mlib1
-import mlib2
-lib mlib1_f -lmlib1, -lmlib2, -lmlib1 -lmlib2

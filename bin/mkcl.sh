@@ -106,12 +106,6 @@ while test $# -gt 0; do
       shift
       comp=$1
       shift
-      case ${comp} in
-        *gdc*|*ldc*|*dmd*)
-          d=T
-          c=F
-          ;;
-      esac
       ;;
     -d)
       shift
@@ -164,21 +158,7 @@ if [ "$logfile" != "" ]; then
   puts "# `date`" >&9
 fi
 
-# DC_LINK should be in environment already.
 OUTFLAG="-o "
-DC_LINK=
-case ${comp} in
-  *dmd*|*ldc*)   # catches ldmd, ldmd2 also
-    OUTFLAG=${DC_OF:-"-of"}
-    DC_LINK=-L
-    ;;
-  *gdc*)
-    OUTFLAG=${DC_OF:-"-o "}
-    ;;
-  *gcc*|*cc*)
-    DC_LINK=
-    ;;
-esac
 
 flags=
 files=
@@ -291,13 +271,13 @@ done
 
 libs=
 for lfn in $libnames; do
-  doappend libs " ${DC_LINK}${lfn}"
+  doappend libs " ${lfn}"
 done
 
 LDFLAGS_LIBPATH=-L
 libpath=
 for lp in $libpathnames; do
-  doappend libpath " ${DC_LINK}${LDFLAGS_LIBPATH}${lp}"
+  doappend libpath " ${LDFLAGS_LIBPATH}${lp}"
 done
 
 runpath=

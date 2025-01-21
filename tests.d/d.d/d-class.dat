@@ -1,6 +1,0 @@
-output out.d
-loadunit d-main
-standard
-
-import classtst
-class a ../classtst.o

@@ -1,5 +1,0 @@
-output out.d
-loadunit d-main
-standard
-import slib1
-lib slib1_f -lslib1

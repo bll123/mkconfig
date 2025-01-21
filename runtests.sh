@@ -31,7 +31,6 @@ if [ "$1" = -s ]; then
   SUBDIR=T
   shift
   CC="$1"
-  DC="$2"
   shelllist="$3"
   _pthlist="$4"
   TMPOUT="$5"
@@ -255,8 +254,6 @@ if [ $SUBDIR = F ]; then
 
   CC=${CC:-cc}
   export CC
-  DC=${DC:-gdc}
-  export DC
 else
   btestdir=`echo $testdir | sed 's,.*/,,'`
   _MKCONFIG_RUNTMPDIR=$_MKCONFIG_RUNTOPDIR/${MKC_FILES}/_mkconfig_runtests/$btestdir
@@ -329,7 +326,7 @@ while read tline; do
     ocwd=`pwd`
     cd $_MKCONFIG_DIR
     TMPOUT=${_MKCONFIG_RUNTMPDIR}/${tbase}.out
-    ${_MKCONFIG_SHELL} ./runtests.sh -s "$CC" "$DC" "$shelllist" "$_pthlist" $TMPOUT $testdir/$tbase
+    ${_MKCONFIG_SHELL} ./runtests.sh -s "$CC" "$shelllist" "$_pthlist" $TMPOUT $testdir/$tbase
     retvals=`tail -1 $TMPOUT`
     rm -f $TMPOUT > /dev/null 2>&1
     set $retvals
@@ -351,9 +348,6 @@ while read tline; do
 
   tprefix=`echo $tbase | sed 's/-.*//'`
   if [ "${CC}" = "" -a "$tprefix" = c ]; then
-    continue
-  fi
-  if [ "${DC}" = "" -a "$tprefix" = d ]; then
     continue
   fi
   tf="${tbase}.sh"
@@ -430,10 +424,6 @@ while read tline; do
     grc=1
     if [ $tbase = c-compiler -a $grc -ne 0 ]; then
       CC=""
-      grc=0
-    fi
-    if [ $tbase = d-compiler -a $grc -ne 0 ]; then
-      DC=""
       grc=0
     fi
     if [ $grc -eq 0 ]; then

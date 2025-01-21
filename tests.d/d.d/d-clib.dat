@@ -1,8 +1,0 @@
-output out.d
-loadunit d-main
-standard
-import std.string
-import stdc.string
-csizes
-clib printf
-clib prinft

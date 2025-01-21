@@ -1,5 +1,0 @@
-output out.d
-loadunit d-main
-standard
-
-module test.test

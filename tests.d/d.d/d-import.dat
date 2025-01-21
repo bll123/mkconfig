@@ -1,9 +1,0 @@
-output out.d
-loadunit d-main
-standard
-
-if hastangolib _d_tango_lib
- import tango.io.Stdout
-else
- import std.conv
-endif

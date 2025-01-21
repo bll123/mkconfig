@@ -25,13 +25,6 @@ chkccompiler () {
   fi
 }
 
-chkdcompiler () {
-  if [ "${DC}" = "" ]; then
-    echo " no D compiler; skipped" >&5
-    exit 0
-  fi
-}
-
 getsname () {
   tsnm=$1
   tsnm=`echo $tsnm | sed -e 's,.*/,,' -e 's,\.sh$,,'`
@@ -90,20 +83,6 @@ chkouthcompile () {
 int main () { return 0; }
 '
     chkccompile testouth.c
-  fi
-}
-
-chkdcompile () {
-  fn=$1
-
-  bfn=$fn
-  bfn=`echo $fn | sed 's/\.d$//'`
-  cmd="${_MKCONFIG_DIR}/mkc.sh -d `pwd` -complink -e -c ${DC} \
-      -o ${bfn}${OBJ_EXT} -- ${DFLAGS} ${fn} "
-  eval ${cmd}
-  if [ $? -ne 0 ]; then
-    echo "## compile of ${fn} failed"
-    grc=1
   fi
 }
 
