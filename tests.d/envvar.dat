@@ -1,0 +1,15 @@
+output out.h
+loadunit c-main
+
+# exists, no default, quoted
+env TEST_E quote
+# does not exist, no default
+env TEST_NE
+# exists, default
+env TEST_E_D def-e
+# exists, default w/space, quoted
+env TEST_E2_D quote "def e2"
+# does not exist, default
+env TEST_NE_D def-ne
+# does not exist, default w/space, quoted
+env TEST_NE2_D quote "def ne"

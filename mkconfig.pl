@@ -669,6 +669,30 @@ check_command
 }
 
 sub
+check_env
+{
+    my ($name, $envvar, $val, $r_clist, $r_config) = @_;
+
+    $name = "_env_${envvar}";
+
+    printlabel $name, "env: $envvar";
+    # do not check cache
+
+    setlist $r_clist, $name;
+    if ($ENV{$envvar} ne '') {
+      $val = $ENV{$envvar};
+    }
+    $val =~ s/^"//;
+    $val =~ s/"$//;
+    if ($val ne "") {
+      setclist $r_clist, $name;
+      $r_config->{$name} = $val;
+    }
+
+    printyesno_val $name, $r_config->{$name};
+}
+
+sub
 check_grep
 {
     my ($name, $args, $r_clist, $r_config) = @_;
@@ -1403,7 +1427,9 @@ _HERE_
     if ($r_config->{$val} ne "0") {
       $tval = 1;
     }
-    if ($val =~ m#^_setint_#o) {
+    if ($val =~ m#^_envquote_#o) {
+      ;
+    } elsif ($val =~ m#^_setint_#o) {
       $tnm = $val;
       $tnm =~ s/^_setint_//;
       print CCOFH "#define $tnm " . $r_config->{$val} . "\n";
@@ -1420,6 +1446,16 @@ _HERE_
       }
     } elsif ($val =~ m#^(_hdr|_sys|_command)#o) {
       print CCOFH "#define $val $tval\n";
+    } elsif ($val =~ m#^(_env_)#o) {
+      my $envvar = $val;
+      $envvar =~ s/^_env_//;
+      my $qnm = "_envquote_${envvar}";
+      my $data = $r_config->{$val};
+      if (defined ($r_config->{$qnm}) && $r_config->{$qnm} eq '1') {
+        print CCOFH "#define $envvar \"$data\"\n";
+      } else {
+        print CCOFH "#define $envvar $data\n";
+      }
     } else {
       print CCOFH "#define $val " . $r_config->{$val} . "\n";
     }
@@ -1840,6 +1876,20 @@ main_process
             {
                 check_size ($nm, $typ, \%clist, \%config);
             }
+        }
+        elsif ($line =~ m#^\s*env\s+(\w+)(\s+(quote))?(\s+(.*))?#o)
+        {
+            my $envvar = $1;
+            my $qnm = "_envquote_" . $envvar;
+            my $nm = "_env_" . $envvar;
+            my $val = '';
+            setclist \%clist, $qnm;
+            $config{$qnm} = '0';
+            if ($3 eq "quote") {
+              $config{$qnm} = '1';
+            }
+            $val = $5;
+            check_env ($nm, $envvar, $val, \%clist, \%config);
         }
         else
         {

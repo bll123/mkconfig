@@ -154,6 +154,26 @@ command sed
 .Ve
 .RE
 .TP
+\fBenv\fP envvar [quote] [default]
+.RS
+Defines the variable \fIenvvar\fP in the output file.
+The value of the environment variable \fIenvvar\fP is used, otherwise
+the \fIdefault\fP is used.  If the \fIquote\fP specifier is included,
+the value is quoted.
+.RS
+.Vb
+.B e.g.
+env HOME quote
+env COUNTER 5
+env STUFF STUFF_A
+env UNKNOWN
+.B Output:
+#define HOME "/home/bll"
+#define COUNTER 5
+#define STUFF STUFF_A
+.Ve
+.RE
+.TP
 \fBgrep\fP tag pattern filename
 .RS
 Searches filename for pattern.  tag is used for naming and display purposes.

@@ -405,6 +405,32 @@ check_set () {
   fi
 }
 
+check_env () {
+  type=$1
+  envvar=$2
+  dflt=$3
+  quoted=0
+  if [ "x$dflt" = xquote ]; then
+    quoted=1
+    dflt=$4
+  fi
+
+  name="_${type}_${envvar}"
+  qname="_${type}quote_${envvar}"
+  printlabel $name "env: ${envvar}"
+  # do not check the cache
+
+  eval "${envvar}=\${${envvar}:-${dflt}}"
+  eval val="\$${envvar}"
+  trc=0
+  if [ "x$val" != x ]; then
+    trc=1
+  fi
+  printyesno_val $name "$val"
+  setdata ${_MKCONFIG_PREFIX} ${name} "${val}"
+  setdata ${_MKCONFIG_PREFIX} ${qname} $quoted
+}
+
 check_echo () {
   val=$1
 
@@ -628,6 +654,10 @@ main_process () {
 
       if [ $doproc -eq 1 ]; then
         case ${tdatline} in
+          \#*)
+            ;;
+          ^$)
+            ;;
           command*)
             _chkconfigfname
             set $tdatline

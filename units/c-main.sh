@@ -889,6 +889,20 @@ output_item () {
       dosubst tname '_setint_' ''
       puts "#define ${tname} ${val}"
       ;;
+    _envquote_*)
+      ;;
+    _env_*)
+      if [ "x${val}" != x ]; then
+        tname=$name
+        dosubst tname '_env_' ''
+        eval q=\${mkc_c__envquote_${tname}}
+        if [ $q -eq 1 ]; then
+          puts "#define ${tname} \"${val}\""
+        else
+          puts "#define ${tname} ${val}"
+        fi
+      fi
+      ;;
     _setstr_*|_cmd_loc_*)
       tname=$name
       dosubst tname '_setstr_' ''
