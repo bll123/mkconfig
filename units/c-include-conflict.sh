@@ -57,10 +57,10 @@ check_include_conflict () {
 
     printlabel $name "header: include both ${oi1} & ${oi2}"
 
-    getdata h1 ${_MKCONFIG_PREFIX} $i1
-    getdata h2 ${_MKCONFIG_PREFIX} $i2
+    getdata h1 $i1
+    getdata h2 $i2
     if [ "${h1}" != "0" -a "${h2}" != "0" ]; then
-      checkcache ${_MKCONFIG_PREFIX} $name
+      checkcache $name
       if [ $rc -eq 0 ]; then return; fi
 
       code="#include <${h1}>
@@ -69,7 +69,7 @@ int main () { return 0; }
 "
       do_c_check_compile "${name}" "${code}" std
     else
-      setdata ${_MKCONFIG_PREFIX} "${name}" "${trc}"
+      setdata "${name}" "${trc}"
       printyesno "${name}" $trc ""
     fi
 }

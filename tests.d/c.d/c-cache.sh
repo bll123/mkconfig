@@ -28,8 +28,8 @@ if [ ${ccache_count} -eq 1 ]; then
   ccclear=""
   sed -e '/Created on:/d' out.h > ${_MKCONFIG_RUNTMPDIR}/c-cache.out.h
   # keep mkconfig.cache
-  cp -f ${MKC_FILES}/mkconfig.cache ${_MKCONFIG_RUNTMPDIR}/c-cache.mkconfig_c.cache
-  mv -f ${MKC_FILES}/mkc_out_c.vars ${_MKCONFIG_RUNTMPDIR}/c-cache.mkc_out_c.vars
+  cp -f ${MKC_FILES}/mkconfig.cache ${_MKCONFIG_RUNTMPDIR}/c-cache.mkconfig.cache
+  mv -f ${MKC_FILES}/mkc_out.vars ${_MKCONFIG_RUNTMPDIR}/c-cache.mkc_out.vars
 
   # re-run this script for this shell
   ${_MKCONFIG_SHELL} $0 $stag $script
@@ -38,12 +38,12 @@ if [ ${ccache_count} -eq 1 ]; then
 fi
 
 sed -e '/Created on:/d' out.h > out.h.${ccache_count}
-mv -f ${MKC_FILES}/mkc_out_c.vars ${MKC_FILES}/mkc_out_c.vars.${ccache_count}
+mv -f ${MKC_FILES}/mkc_out.vars ${MKC_FILES}/mkc_out.vars.${ccache_count}
 
 c=2
 while test $c -lt $ccache_count; do
   chkdiff ${_MKCONFIG_RUNTMPDIR}/c-cache.out.h out.h.${c}
-  chkdiff ${_MKCONFIG_RUNTMPDIR}/c-cache.mkc_out_c.vars ${MKC_FILES}/mkc_out_c.vars.${c}
+  chkdiff ${_MKCONFIG_RUNTMPDIR}/c-cache.mkc_out.vars ${MKC_FILES}/mkc_out.vars.${c}
   domath c "$c + 1"
 done
 

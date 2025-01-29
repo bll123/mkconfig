@@ -212,6 +212,26 @@ test_lower () {
   fi
 }
 
+test_egrep () {
+  hasgrepe=0
+  hasegrep=0
+  tfn=egreptest
+  echo "a b c" > ${tfn}
+  # use grep -E by preference
+  (eval 'grep -E "a|b" ${tfn}') >/dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    hasgrepe=1
+    grepcmd="grep -E"
+  else
+    (eval 'egrep "a|b" ${tfn}') >/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+      hasegrep=1
+      grepcmd="egrep"
+    fi
+  fi
+  rm -f ${tfn}
+}
+
 testshcapability () {
   test_echo
   test_append
@@ -219,6 +239,7 @@ testshcapability () {
   test_math
   test_upper
   test_lower
+  test_egrep
 }
 
 getshelltype () {

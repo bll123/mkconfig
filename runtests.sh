@@ -401,6 +401,7 @@ while read tline; do
       dispshell=$1
       _MKCONFIG_SHELL=$s
       export _MKCONFIG_SHELL
+      test_egrep
 
       runshelltest
       rc=$?

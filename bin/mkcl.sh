@@ -192,7 +192,8 @@ for f in $@ $olibs; do
       tf=$f
       dosubst tf '-L' ''
       if [ ! -d "$tf" ]; then
-        puts "## unable to locate dir $tf"
+        # puts "## unable to locate dir $tf (-L)"
+        :
       else
         addlibpath $tf
       fi
@@ -204,11 +205,7 @@ for f in $@ $olibs; do
       tf=$f
       dosubst tf '-R' ''
       dosubst tf '-rpath' ''
-      if [ ! -d "$tf" ]; then
-        puts "## unable to locate dir $tf"
-      else
-        addrunpath $tf
-      fi
+      addrunpath $tf
       ;;
     -l)
       islib=1
@@ -249,15 +246,10 @@ for f in $@ $olibs; do
       if [ $islib -eq 1 ]; then
         addlib "-l$f"
       elif [ $isrpath -eq 1 ]; then
-        if [ ! -d "$f" ]; then
-          puts "## unable to locate dir $f"
-          grc=1
-        else
-          addrunpath $f
-        fi
+        addrunpath $f
       elif [ $ispath -eq 1 ]; then
         if [ ! -d "$f" ]; then
-          puts "## unable to locate dir $f"
+          puts "## unable to locate dir $f (ispath)"
           grc=1
         else
           addlibpath $f
@@ -316,9 +308,6 @@ if [ $havesource = T ]; then
       doappend allcflags " ${CFLAGS_COMPILER}"     # compiler flags
       doappend allcflags " ${CFLAGS_SYSTEM}"       # needed for this system
     fi
-  fi
-  if [ $d = T ];then
-    doappend allcflags " ${DFLAGS}"
   fi
 fi
 

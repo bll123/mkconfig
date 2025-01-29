@@ -28,7 +28,7 @@ getlibdata () {
     gdname=$2
     lang=$3
 
-    cmd="${var}=\${mkc_${lang}_lib_${gdname}}"
+    cmd="${var}=\${mkc_lnk_${gdname}}"
     eval $cmd
 }
 
@@ -83,32 +83,12 @@ while read cline; do
     "#define _lib_"*1)
       lang=c
       ;;
-    "enum bool _clib_"*" = true;")
-      lang=d
-      dver=2
-      ;;
-    "enum bool _lib_"*" = true;")
-      lang=d
-      dver=2
-      ;;
-    "enum : bool { _clib_"*" = true };")
-      lang=d
-      dver=1
-      ;;
-    "enum : bool { _lib_"*" = true };")
-      lang=d
-      dver=1
-      ;;
     *)
       continue
       ;;
   esac
 
-  # bash2 can't handle # in subst
-  if [ $lang = "d" -a $dver -eq 1 ]; then
-    dosubst cline ': ' '' '{ ' '' ' }' ''
-  fi
-  dosubst cline '#define ' '' ' 1' '' ' = true;' '' 'enum bool ' ''
+  dosubst cline '#define ' '' ' 1' ''
   getlibdata var $cline $lang
   if [ $debug = T ]; then
     echo "cline:$cline:lang:$lang:var:$var:"

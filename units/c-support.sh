@@ -51,7 +51,7 @@ _c_print_hdrs () {
 
   if [ "${incheaders}" = "all" -o "${incheaders}" = "std" ]; then
     for tnm in '_hdr_stdio' '_hdr_stdlib' '_sys_types' '_sys_param'; do
-      getdata tval ${_MKCONFIG_PREFIX} ${tnm}
+      getdata tval ${tnm}
       if [ "${tval}" != "0" -a "${tval}" != "" ]; then
         puts "#include <${tval}>"
         # for cygwin/gcc
@@ -66,13 +66,13 @@ _c_print_hdrs () {
     # save stdin in fd 6; open stdin
     exec 6<&0 < ${VARSFILE}
     while read cfgvar; do
-      getdata hdval ${_MKCONFIG_PREFIX} ${cfgvar}
+      getdata hdval ${cfgvar}
       case ${cfgvar} in
         _hdr_stdio|_hdr_stdlib|_sys_types|_sys_param)
           ;;
         _hdr_linux_quota)
           if [ "${hdval}" != "0" ]; then
-            getdata iqval ${_MKCONFIG_PREFIX} '_inc_conflict__sys_quota__hdr_linux_quota'
+            getdata iqval '_inc_conflict__sys_quota__hdr_linux_quota'
             if [ "${iqval}" = "1" ]; then
               puts "#include <${hdval}>"
             fi
@@ -80,7 +80,7 @@ _c_print_hdrs () {
           ;;
         _sys_time)
           if [ "${hdval}" != "0" ]; then
-            getdata itval ${_MKCONFIG_PREFIX} '_inc_conflict__hdr_time__sys_time'
+            getdata itval '_inc_conflict__hdr_time__sys_time'
             if [ "${itval}" = "1" ]; then
               puts "#include <${hdval}>"
             fi
@@ -243,6 +243,7 @@ _c_chk_link () {
   if [ $rc -eq 0 ]; then
     if [ ! -x "${clname}.exe" ]; then  # not executable
       rc=1
+      puts "##      _link test: not executable $rc" >&9
     fi
   fi
   return $rc
@@ -286,6 +287,6 @@ do_c_check_compile () {
     try=1
   fi
   printyesno $dccname $try
-  setdata ${_MKCONFIG_PREFIX} ${dccname} ${try}
+  setdata ${dccname} ${try}
 }
 

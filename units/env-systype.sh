@@ -58,7 +58,7 @@ check_system () {
     puts "type: ${_MKCONFIG_SYSTYPE}" >&9
 
     printyesno_val _MKCONFIG_SYSTYPE "${_MKCONFIG_SYSTYPE}"
-    setdata ${_MKCONFIG_PREFIX} _MKCONFIG_SYSTYPE "${_MKCONFIG_SYSTYPE}"
+    setdata _MKCONFIG_SYSTYPE "${_MKCONFIG_SYSTYPE}"
   fi
 
   if [ "$arg" = "rev" ]; then
@@ -109,7 +109,7 @@ check_system () {
 
     puts "rev: ${_MKCONFIG_SYSREV}" >&9
     printyesno_val _MKCONFIG_SYSREV "${_MKCONFIG_SYSREV}"
-    setdata ${_MKCONFIG_PREFIX} _MKCONFIG_SYSREV "${_MKCONFIG_SYSREV}"
+    setdata _MKCONFIG_SYSREV "${_MKCONFIG_SYSREV}"
   fi
 
   if [ "$arg" = "arch" ]; then
@@ -132,7 +132,7 @@ check_system () {
     puts "arch: ${_MKCONFIG_SYSARCH}" >&9
 
     printyesno_val _MKCONFIG_SYSARCH "${_MKCONFIG_SYSARCH}"
-    setdata ${_MKCONFIG_PREFIX} _MKCONFIG_SYSARCH "${_MKCONFIG_SYSARCH}"
+    setdata _MKCONFIG_SYSARCH "${_MKCONFIG_SYSARCH}"
   fi
 }
 

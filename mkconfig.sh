@@ -37,7 +37,6 @@ MKC_FILES=${MKC_FILES:-mkc_files}
 LOG="${MKC_FILES}/mkconfig.log"
 _MKCONFIG_TMP="${MKC_FILES}/_tmp_mkconfig"
 CACHEFILE="${MKC_FILES}/mkconfig.cache"
-_MKCONFIG_PREFIX=mkc    # need a default in case no units loaded
 allchglist=""
 
 INC="mkcinclude.txt"                   # temporary
@@ -96,8 +95,7 @@ _savecache () {
 }
 
 setvariable () {
-    prefix=$1
-    svname=$2
+    svname=$1
 
     if [ $varsfileopen = F ]; then
       for v in `set | grep "^mkv_" | sed -e 's/=.*$//'`; do
@@ -108,11 +106,7 @@ setvariable () {
       exec 8>>$VARSFILE
     fi
 
-    if [ "$prefix" = none ]; then
-      prefix=""
-    fi
-
-    cmd="test \"X\$mkv_${prefix}_${svname}\" != X > /dev/null 2>&1"
+    cmd="test \"X\$mkv_${svname}\" != X > /dev/null 2>&1"
     eval $cmd
     rc=$?
     # if already in the list of vars, don't add it to the file again.
@@ -120,32 +114,30 @@ setvariable () {
       puts ${svname} >&8
     fi
 
-    cmd="mkv_${prefix}_${svname}=T"
+    cmd="mkv_${svname}=T"
     eval $cmd
     puts "   setvariable: $cmd" >&9
 }
 
 setdata () {
-    prefix=$1
-    sdname=$2
-    sdval=$3
+    sdname=$1
+    sdval=$2
 
     if [ "$_MKCONFIG_EXPORT" = T ]; then
       _doexport $sdname "$sdval"
     fi
 
-    cmd="mkc_${prefix}_${sdname}=\"${sdval}\""
+    cmd="mkc_${sdname}=\"${sdval}\""
     eval $cmd
     puts "   setdata: $cmd" >&9
-    setvariable $prefix $sdname
+    setvariable $sdname
 }
 
 getdata () {
     var=$1
-    prefix=$2
-    gdname=$3
+    gdname=$2
 
-    cmd="${var}=\${mkc_${prefix}_${gdname}}"
+    cmd="${var}=\${mkc_${gdname}}"
     eval $cmd
 }
 
@@ -210,13 +202,12 @@ printyesno () {
 }
 
 checkcache_val () {
-  prefix=$1
-  tname=$2
+  tname=$1
 
-  getdata tval ${prefix} ${tname}
+  getdata tval ${tname}
   rc=1
   if [ "$tval" != "" ]; then
-    setvariable $prefix $tname
+    setvariable $tname
     printyesno_actual $tname "$tval" " (cached)"
     rc=0
   fi
@@ -224,13 +215,12 @@ checkcache_val () {
 }
 
 checkcache () {
-  prefix=$1
-  tname=$2
+  tname=$1
 
-  getdata tval ${prefix} ${tname}
+  getdata tval ${tname}
   rc=1
   if [ "$tval" != "" ]; then
-    setvariable $prefix $tname
+    setvariable $tname
     printyesno $tname $tval " (cached)"
     rc=0
   fi
@@ -245,7 +235,7 @@ check_command () {
     locnm=_cmd_loc_${ccmd}
 
     printlabel $name "command: ${ccmd}"
-    checkcache ${_MKCONFIG_PREFIX} $name
+    checkcache $name
     if [ $rc -eq 0 ]; then return; fi
 
     trc=0
@@ -261,9 +251,9 @@ check_command () {
     done
 
     printyesno_val $name $val
-    setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
+    setdata ${name} ${trc}
     if [ $trc -eq 1 ]; then
-      setdata ${_MKCONFIG_PREFIX} ${locnm} ${val}
+      setdata ${locnm} ${val}
     fi
 }
 
@@ -276,15 +266,15 @@ check_grep () {
   locnm=_grep_${name}
 
   printlabel $name "grep: ${tag}"
-  checkcache ${_MKCONFIG_PREFIX} $name
+  checkcache $name
   if [ $rc -eq 0 ]; then return; fi
 
-  grep -l ${pat} ${fn} > /dev/null 2>&1
+  ${grepcmd} -l ${pat} ${fn} > /dev/null 2>&1
   rc=$?
   if [ $rc -eq 0 ]; then trc=1; else trc=0; fi
 
   printyesno $name $trc
-  setdata ${_MKCONFIG_PREFIX} ${name} ${trc}
+  setdata ${name} ${trc}
 }
 
 check_if () {
@@ -338,7 +328,7 @@ check_if () {
 
       if [ $ineq -eq 1 ]; then
         ineq=2
-        getdata tvar ${_MKCONFIG_PREFIX} $token
+        getdata tvar $token
       elif [ $ineq -eq 2 ]; then
         doappend nline " ( '$tvar' = '$token' )"
         ineq=0
@@ -351,7 +341,7 @@ check_if () {
             doappend nline " $token"
             ;;
           *)
-            getdata tvar ${_MKCONFIG_PREFIX} $token
+            getdata tvar $token
             if [ "$tvar" != 0 -a "$tvar" != "" ]; then tvar=1; else tvar=0; fi
             tvar="( $tvar = 1 )"
             doappend nline " $tvar"
@@ -392,16 +382,16 @@ check_set () {
     getdata tval ${prefix} ${nm}
     if [ "$tval" != "" ]; then
       printyesno $nm "${sval}"
-      setdata ${_MKCONFIG_PREFIX} ${nm} "${sval}"
+      setdata ${nm} "${sval}"
     else
       printyesno_actual $nm "no such variable"
     fi
   elif [ "$type" = setint ]; then
     printyesno_actual $nm "${sval}"
-    setdata ${_MKCONFIG_PREFIX} ${nm} "${sval}"
+    setdata ${nm} "${sval}"
   else
     printyesno_actual $nm "${sval}"
-    setdata ${_MKCONFIG_PREFIX} ${nm} "${sval}"
+    setdata ${nm} "${sval}"
   fi
 }
 
@@ -427,8 +417,8 @@ check_env () {
     trc=1
   fi
   printyesno_val $name "$val"
-  setdata ${_MKCONFIG_PREFIX} ${name} "${val}"
-  setdata ${_MKCONFIG_PREFIX} ${qname} $quoted
+  setdata ${name} "${val}"
+  setdata ${qname} $quoted
 }
 
 check_echo () {
@@ -503,7 +493,7 @@ _create_output () {
     if [ -f $VARSFILE ]; then
       exec 6<&0 < $VARSFILE
       while read cfgvar; do
-        getdata val ${_MKCONFIG_PREFIX} $cfgvar
+        getdata val $cfgvar
         output_item ${CONFH} ${cfgvar} "${val}" >&8
       done
       exec <&6 6<&-
@@ -559,8 +549,8 @@ main_process () {
   # a main loadunit will override this.
   # but don't open it unless it is needed.
   varsfileopen=F
-  if [ "$VARSFILE" = "" -a "${_MKCONFIG_PREFIX}" != "" ]; then
-    VARSFILE="../mkc_none_${_MKCONFIG_PREFIX}.vars"
+  if [ "$VARSFILE" = "" ]; then
+    VARSFILE="../mkc_none.vars"
   fi
 
   # ksh93 93u 'read' changed.  Need the raw read for 'include'.
@@ -656,7 +646,7 @@ main_process () {
         case ${tdatline} in
           \#*)
             ;;
-          ^$)
+          "")
             ;;
           command*)
             _chkconfigfname
@@ -729,9 +719,7 @@ main_process () {
               exec 8>&-
               varsfileopen=F
             fi
-            if [ "${_MKCONFIG_PREFIX}" != "" ]; then
-              VARSFILE="../mkc_${CONFHTAG}_${_MKCONFIG_PREFIX}.vars"
-            fi
+            VARSFILE="../mkc_${CONFHTAG}.vars"
             ;;
           output*)
             newout=F
@@ -771,9 +759,7 @@ main_process () {
             CONFHTAG=$file
             CONFHTAGUC=$file
             toupper CONFHTAGUC
-            if [ "${_MKCONFIG_PREFIX}" != "" ]; then
-              VARSFILE="../mkc_${CONFHTAG}_${_MKCONFIG_PREFIX}.vars"
-            fi
+            VARSFILE="../mkc_${CONFHTAG}.vars"
             inproc=1
             ;;
           standard)

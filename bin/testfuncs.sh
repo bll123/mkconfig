@@ -106,14 +106,14 @@ chkgrep () {
   arg2=$4
 
   if [ "$arg" = "wc" ]; then
-    tl=`egrep -l "$pat" ${fn} 2>/dev/null | wc -l`
+    tl=`${grepcmd} -l "$pat" ${fn} 2>/dev/null | wc -l`
     rc=$?
     if [ ${tl} -ne ${arg2} ]; then
       echo "chkgrep: fail wc"
       grc=1
     fi
   else
-    egrep -l "$pat" ${fn} >/dev/null 2>&1
+    ${grepcmd} -l "$pat" ${fn} >/dev/null 2>&1
     rc=$?
   fi
   if [ "$arg" = "" -a $rc -ne 0 ]; then
@@ -163,3 +163,9 @@ testcleanup () {
     done
   fi
 }
+
+if [ x${grepcmd} = x ]; then
+  . $_MKCONFIG_DIR/bin/shellfuncs.sh
+  test_egrep
+fi
+

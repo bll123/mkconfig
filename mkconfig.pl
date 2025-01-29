@@ -18,7 +18,7 @@ mkdir $MKC_FILES, 0777;
 
 my $LOG = "../../${MKC_FILES}/mkconfig.log";
 my $_MKCONFIG_TMP = "${MKC_FILES}/_tmp_mkconfig";
-my $VARSFILE = "../../${MKC_FILES}/mkc_none_c.vars";
+my $VARSFILE = "../../${MKC_FILES}/mkc_none.vars";
 my $CACHEFILE = "../../${MKC_FILES}/mkconfig.cache";
 my $REQLIB = "../../${MKC_FILES}/mkconfig.reqlibs";
 my $_MKCONFIG_DIR = "invalid";
@@ -132,12 +132,12 @@ savecache
     open (MKCC, ">$CACHEFILE");
     foreach my $val (@{$r_clist->{'clist'}})
     {
-      if ($val =~ /^lib__lib_/o) {
+      if ($val =~ /^lnk__lib_/o) {
         $tval = $val;
-        $tval =~ s/^lib_//o;
-        print MKCC "mkc_c_lib_${tval}='" . $r_config->{$val} . "'\n";
+        $tval =~ s/^lnk_//o;
+        print MKCC "mkc_lnk__lib_${tval}='" . $r_config->{$val} . "'\n";
       } else {
-        print MKCC "mkc_c_${val}='" . $r_config->{$val} . "'\n";
+        print MKCC "mkc_${val}='" . $r_config->{$val} . "'\n";
       }
     }
     close (MKCC);
@@ -678,14 +678,13 @@ check_env
     printlabel $name, "env: $envvar";
     # do not check cache
 
-    setlist $r_clist, $name;
     if ($ENV{$envvar} ne '') {
       $val = $ENV{$envvar};
     }
     $val =~ s/^"//;
     $val =~ s/"$//;
     if ($val ne "") {
-      setclist $r_clist, $name;
+      setlist $r_clist, $name;
       $r_config->{$name} = $val;
     }
 
@@ -1507,7 +1506,7 @@ main_process
       open (MKCC, "<$CACHEFILE");
       while (my $line = <MKCC>) {
         chomp $line;
-        if ($line =~ m/^mkc_c_(.*)=\$?'?(.*)'?/o) {
+        if ($line =~ m/^mkc(.*)=\$?'?(.*)'?/o) {
           my $name = $1;
           my $val = $2;
           $config{$name} = $val;
@@ -1635,7 +1634,7 @@ main_process
             $CONFHTAGUC = uc $CONFHTAG;
             print LOGFH "config file: $CONFH\n";
             $inproc = 1;
-            $VARSFILE = "../../${MKC_FILES}/mkc_${CONFHTAG}_c.vars";
+            $VARSFILE = "../../${MKC_FILES}/mkc_${CONFHTAG}.vars";
             $clist{'vars'} = ();
             $clist{'vhash'} = {};
         }

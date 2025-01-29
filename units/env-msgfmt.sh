@@ -42,5 +42,5 @@ check_cmd_msgfmt () {
   fi
 
   printyesno_val XMSGFMT $xmsgfmt
-  setdata ${_MKCONFIG_PREFIX} "XMSGFMT" "${xmsgfmt}"
+  setdata "XMSGFMT" "${xmsgfmt}"
 }

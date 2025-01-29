@@ -26,4 +26,6 @@ puts "math: $shhasmath ($shhasmatherr)"
 puts "typeset -u: $shhasupper"
 puts "typeset -l: $shhaslower"
 puts "readraw required: $shreqreadraw"
+puts "hasgrepe: $hasgrepe"
+puts "hasegrep: $hasegrep"
 

@@ -15,7 +15,6 @@
 #    5 - temporary for c-main.sh    (c-main.sh)
 #
 
-_MKCONFIG_PREFIX=env
 _MKCONFIG_HASEMPTY=T
 _MKCONFIG_EXPORT=T
 
@@ -61,7 +60,7 @@ check_source () {
     val=$fn
   fi
   printyesno $name $trc
-  setdata ${_MKCONFIG_PREFIX} ${name} $val
+  setdata ${name} $val
 }
 
 output_item () {
@@ -95,7 +94,7 @@ check_test_multword () {
   printlabel $name "test: multiword"
   val="word1 word2"
   printyesno_val $name "$val"
-  setdata ${_MKCONFIG_PREFIX} $name "$val"
+  setdata $name "$val"
 }
 
 new_output_file () {
@@ -182,6 +181,13 @@ int main () { return 0; }" > t.c
   if [ $rc -eq 0 ]; then
     flag=0
   fi
+  # AIX
+  grep -i "Option.*incorrectly specified" $TMPF > /dev/null 2>&1
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    flag=0
+  fi
+
   cat $TMPF >&9
   rm -f $TMPF > /dev/null 2>&1
 }

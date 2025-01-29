@@ -1,9 +1,12 @@
-syntax: glob
+syntax: regex
 
-Archive/*
-Platforms
-*.tar.gz
-*.zip
-*~
-Test/*
-TODO
+^Archive/
+^Platforms$
+\.tar\.gz$
+\.zip$
+~$
+^mkc_files/
+^Test/
+^TODO$
+^w$
+^ww$

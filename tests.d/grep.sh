@@ -17,9 +17,9 @@ dorunmkc
 chkouth '^#define _grep_test1a 1$'
 chkouth '^#define _grep_test1b 0$'
 chkouth '^#define _grep_test1c 1$'
-chkcache "^mkc_c__grep_test1a='1'$"
-chkcache "^mkc_c__grep_test1b='0'$"
-chkcache "^mkc_c__grep_test1c='1'$"
+chkcache "^mkc__grep_test1a='1'$"
+chkcache "^mkc__grep_test1b='0'$"
+chkcache "^mkc__grep_test1c='1'$"
 
 testcleanup
 

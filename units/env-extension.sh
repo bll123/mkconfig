@@ -50,7 +50,7 @@ int main ()
   fi
 
   printyesno_val $name "${OBJ_EXT}"
-  setdata ${_MKCONFIG_PREFIX} $name "${OBJ_EXT}"
+  setdata $name "${OBJ_EXT}"
 }
 
 check_exeext () {
@@ -81,7 +81,7 @@ int main ()
   fi
 
   printyesno_val $name "${EXE_EXT}"
-  setdata ${_MKCONFIG_PREFIX} $name "${EXE_EXT}"
+  setdata $name "${EXE_EXT}"
 }
 
 check_shlibext () {
@@ -105,7 +105,7 @@ check_shlibext () {
   esac
 
   printyesno_val $name "$SHLIB_EXT"
-  setdata ${_MKCONFIG_PREFIX} $name "$SHLIB_EXT"
+  setdata $name "$SHLIB_EXT"
 }
 
 

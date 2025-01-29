@@ -1,7 +1,7 @@
 1 compperl
 1 compsh
-2 multword
-2 command
 2 grep
-2 env
+3 multword
+3 command
+3 envvar
 4 c.d

@@ -28,7 +28,7 @@ _setflags () {
     shift;shift
     eval _tval=\$$_tvar
     dosubst _tval '^ *' ''
-    setdata ${_MKCONFIG_PREFIX} ${_tenm} "$_tval"
+    setdata ${_tenm} "$_tval"
   done
 }
 
@@ -69,7 +69,7 @@ check_32bitflags () {
 
   printlabel _MKCONFIG_32BIT_FLAGS "32 bit flags"
   printyesno_val _MKCONFIG_32BIT_FLAGS "${_MKCONFIG_32BIT_FLAGS}"
-  setdata ${_MKCONFIG_PREFIX} _MKCONFIG_32BIT_FLAGS "${_MKCONFIG_32BIT_FLAGS}"
+  setdata _MKCONFIG_32BIT_FLAGS "${_MKCONFIG_32BIT_FLAGS}"
 }
 
 check_cc () {
@@ -97,9 +97,9 @@ check_cc () {
   puts "cc:${CC}" >&9
 
   printyesno_val CC "${CC}"
-  setdata ${_MKCONFIG_PREFIX} CC "${CC}"
+  setdata CC "${CC}"
   if [ ${_MKCONFIG_32BIT_FLAGS} = F ]; then
-    setdata ${_MKCONFIG_PREFIX} _MKCONFIG_32BIT_FLAGS "${_MKCONFIG_32BIT_FLAGS}"
+    setdata _MKCONFIG_32BIT_FLAGS "${_MKCONFIG_32BIT_FLAGS}"
   fi
 }
 
@@ -115,7 +115,7 @@ check_using_cplusplus () {
   esac
 
   printyesno_val _MKCONFIG_USING_CPLUSPLUS "${usingcplusplus}"
-  setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_CPLUSPLUS "${usingcplusplus}"
+  setdata _MKCONFIG_USING_CPLUSPLUS "${usingcplusplus}"
 }
 
 check_using_gcc () {
@@ -138,7 +138,7 @@ check_using_gcc () {
   esac
 
   printyesno_val _MKCONFIG_USING_GCC "${usinggcc}"
-  setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_GCC "${usinggcc}"
+  setdata _MKCONFIG_USING_GCC "${usinggcc}"
 }
 
 check_using_clang () {
@@ -161,7 +161,7 @@ check_using_clang () {
   esac
 
   printyesno_val _MKCONFIG_USING_CLANG "${usingclang}"
-  setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_CLANG "${usingclang}"
+  setdata _MKCONFIG_USING_CLANG "${usingclang}"
 }
 
 check_using_gnu_ld () {
@@ -179,7 +179,7 @@ check_using_gnu_ld () {
   fi
 
   printyesno_val _MKCONFIG_USING_GNU_LD "${usinggnuld}"
-  setdata ${_MKCONFIG_PREFIX} _MKCONFIG_USING_GNU_LD "${usinggnuld}"
+  setdata _MKCONFIG_USING_GNU_LD "${usinggnuld}"
 }
 
 check_cflags () {
@@ -323,7 +323,7 @@ check_addcflag () {
   if [ "$flag" != 0 ]; then
     doappend CFLAGS_APPLICATION " "
     doappend CFLAGS_APPLICATION "$flag"
-    setdata ${_MKCONFIG_PREFIX} CFLAGS_APPLICATION "$CFLAGS_APPLICATION"
+    setdata CFLAGS_APPLICATION "$CFLAGS_APPLICATION"
   fi
 }
 
@@ -342,7 +342,7 @@ check_addincpath () {
     setifs
     doappend CFLAGS_APPLICATION $flag
     resetifs
-    setdata ${_MKCONFIG_PREFIX} CFLAGS_APPLICATION "$CFLAGS_APPLICATION"
+    setdata CFLAGS_APPLICATION "$CFLAGS_APPLICATION"
   fi
 }
 
@@ -369,8 +369,8 @@ check_pkg_cflags () {
   if [ "$flag" != 0 ]; then
     doappend CFLAGS_APPLICATION " "
     doappend CFLAGS_APPLICATION "$flag"
-    setdata ${_MKCONFIG_PREFIX} CFLAGS_APPLICATION "$CFLAGS_APPLICATION"
-    setdata ${_MKCONFIG_PREFIX} ${name} "$flag"
+    setdata CFLAGS_APPLICATION "$CFLAGS_APPLICATION"
+    setdata ${name} "$flag"
   fi
 }
 
@@ -397,8 +397,8 @@ check_pkg_include () {
   if [ "$flag" != 0 ]; then
     doappend CFLAGS_APPLICATION " "
     doappend CFLAGS_APPLICATION "$flag"
-    setdata ${_MKCONFIG_PREFIX} CFLAGS_APPLICATION "$CFLAGS_APPLICATION"
-    setdata ${_MKCONFIG_PREFIX} ${name} "$flag"
+    setdata CFLAGS_APPLICATION "$CFLAGS_APPLICATION"
+    setdata ${name} "$flag"
   fi
 }
 
@@ -426,8 +426,8 @@ check_pkg_libs () {
   if [ "$flag" != 0 ]; then
     doappend LDFLAGS_LIBS_APPLICATION " "
     doappend LDFLAGS_LIBS_APPLICATION "$flag"
-    setdata ${_MKCONFIG_PREFIX} LDFLAGS_LIBS_APPLICATION "$LDFLAGS_LIBS_APPLICATION"
-    setdata ${_MKCONFIG_PREFIX} ${name} "$flag"
+    setdata LDFLAGS_LIBS_APPLICATION "$LDFLAGS_LIBS_APPLICATION"
+    setdata ${name} "$flag"
   fi
 }
 
@@ -619,7 +619,7 @@ check_cflags_shared () {
 
   cflags_shared=""
 
-  if [ "$_MKCONFIG_USING_GCC" != Y ]; then
+  if [ "$_MKCONFIG_USING_GCC" != Y -a "$_MKCONFIG_USING_CLANG" != Y ]; then
     case ${_MKCONFIG_SYSTYPE} in
       CYGWIN*|MSYS*|MINGW*)
         # apparently, clang does not need this any more.
@@ -673,7 +673,7 @@ check_shldflags () {
 check_ldflags_shared () {
   printlabel LDFLAGS_SHARED_LIBLINK "shared library ldflags"
 
-  if [ "$_MKCONFIG_USING_GCC" != Y ]; then
+  if [ "$_MKCONFIG_USING_GCC" != Y -a "$_MKCONFIG_USING_CLANG" != Y ]; then
     case ${_MKCONFIG_SYSTYPE} in
       AIX)
         doappend ldflags_shared_liblink " -G"
@@ -745,7 +745,7 @@ check_sharednameflag () {
   fi
 
   printyesno_val SHLDNAMEFLAG "$SHLDNAMEFLAG"
-  setdata ${_MKCONFIG_PREFIX} SHLDNAMEFLAG "$SHLDNAMEFLAG"
+  setdata SHLDNAMEFLAG "$SHLDNAMEFLAG"
 }
 
 check_sharedliblinkflag () {
@@ -770,14 +770,14 @@ check_sharedliblinkflag () {
         LDFLAGS_SHARED_LIB_LINK=""
         ;;
     esac
-    if [ "$_MKCONFIG_USING_GCC" = Y ]; then
+    if [ "$_MKCONFIG_USING_GCC" = Y -o "$_MKCONFIG_USING_CLANG" = Y ]; then
       LDFLAGS_SHARED_LIB_LINK=`echo "$LDFLAGS_SHARED_LIB_LINK" |
           sed -e 's/^-/-Wl,-/' -e 's/^\+/-Wl,+/' -e 's/  */ -Wl,/g'`
     fi
   fi
 
   printyesno_val LDFLAGS_SHARED_LIB_LINK "$LDFLAGS_SHARED_LIB_LINK"
-  setdata ${_MKCONFIG_PREFIX} LDFLAGS_SHARED_LIB_LINK "$LDFLAGS_SHARED_LIB_LINK"
+  setdata LDFLAGS_SHARED_LIB_LINK "$LDFLAGS_SHARED_LIB_LINK"
 }
 
 check_staticliblinkflag () {
@@ -802,14 +802,14 @@ check_staticliblinkflag () {
         LDFLAGS_STATIC_LIB_LINK=""
         ;;
     esac
-    if [ "$_MKCONFIG_USING_GCC" = Y ]; then
+    if [ "$_MKCONFIG_USING_GCC" = Y -o "$_MKCONFIG_USING_CLANG" = Y ]; then
       LDFLAGS_STATIC_LIB_LINK=`echo "$LDFLAGS_STATIC_LIB_LINK" |
           sed -e 's/^-/-Wl,-/' -e 's/^\+/-Wl,+/' -e 's/  */ -Wl,/g'`
     fi
   fi
 
   printyesno_val LDFLAGS_STATIC_LIB_LINK "$LDFLAGS_STATIC_LIB_LINK"
-  setdata ${_MKCONFIG_PREFIX} LDFLAGS_STATIC_LIB_LINK "$LDFLAGS_STATIC_LIB_LINK"
+  setdata LDFLAGS_STATIC_LIB_LINK "$LDFLAGS_STATIC_LIB_LINK"
 }
 
 check_shareexeclinkflag () {
@@ -834,14 +834,14 @@ check_shareexeclinkflag () {
         LDFLAGS_EXEC_LINK=""
         ;;
     esac
-    if [ "$_MKCONFIG_USING_GCC" = Y ]; then
+    if [ "$_MKCONFIG_USING_GCC" = Y -o "$_MKCONFIG_USING_CLANG" = Y ]; then
       LDFLAGS_EXEC_LINK=`echo "$LDFLAGS_EXEC_LINK" |
           sed -e 's/^-/-Wl,-/' -e 's/^\+/-Wl,+/' -e 's/  */ -Wl,/g'`
     fi
   fi
 
   printyesno_val LDFLAGS_EXEC_LINK "$LDFLAGS_EXEC_LINK"
-  setdata ${_MKCONFIG_PREFIX} LDFLAGS_EXEC_LINK "$LDFLAGS_EXEC_LINK"
+  setdata LDFLAGS_EXEC_LINK "$LDFLAGS_EXEC_LINK"
 }
 
 check_sharerunpathflag () {
@@ -872,7 +872,7 @@ check_sharerunpathflag () {
         LDFLAGS_RUNPATH=""
         ;;
     esac
-    if [ "$_MKCONFIG_USING_GCC" = Y ]; then
+    if [ "$_MKCONFIG_USING_GCC" = Y -o "$_MKCONFIG_USING_CLANG" = Y ]; then
       # the trailing space will be converted to ' -Wl,' and
       # the library runpath will be appended by mkcl.sh
       LDFLAGS_RUNPATH=`echo "$LDFLAGS_RUNPATH" |
@@ -881,7 +881,7 @@ check_sharerunpathflag () {
   fi
 
   printyesno_val LDFLAGS_RUNPATH "$LDFLAGS_RUNPATH"
-  setdata ${_MKCONFIG_PREFIX} LDFLAGS_RUNPATH "$LDFLAGS_RUNPATH"
+  setdata LDFLAGS_RUNPATH "$LDFLAGS_RUNPATH"
 }
 
 check_addconfig () {
@@ -929,12 +929,12 @@ check_findconfig () {
 
   if [ z$sp != z ]; then
     printyesno_val $name yes
-    setdata ${_MKCONFIG_PREFIX} config_${cfile} Y
-    setdata ${_MKCONFIG_PREFIX} config_path_${cfile} $sp/$cfile
+    setdata config_${cfile} Y
+    setdata config_path_${cfile} $sp/$cfile
     . $sp/$cfile.sh ; # load the environment variables
   else
     printyesno_val $name no
-    setdata ${_MKCONFIG_PREFIX} config_${cfile} N
+    setdata config_${cfile} N
   fi
 }
 
