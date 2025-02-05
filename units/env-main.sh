@@ -161,7 +161,7 @@ test_cflag () {
   quoted=$2
 
   puts "#include <stdio.h>
-int main () { return 0; }" > t.c
+int main (int argc, char *argv []) { return 0; }" > t.c
   puts "# test ${flag}" >&9
   # need to set w/all cflags; gcc doesn't always error out otherwise
   TMPF=t$$.txt
@@ -177,6 +177,11 @@ int main () { return 0; }" > t.c
     flag=0
   fi
   grep -i "warning.*${flag}" $TMPF > /dev/null 2>&1
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    flag=0
+  fi
+  grep -i "error.*${flag}" $TMPF > /dev/null 2>&1
   rc=$?
   if [ $rc -eq 0 ]; then
     flag=0
@@ -200,7 +205,9 @@ test_ldflags () {
   setldflags
   setlibs
   puts "#include <stdio.h>
-int main () { return 0; }" > t.c
+int main (int argc, char *argv []) {
+  return 0;
+}" > t.c
   puts "# test ${flag}" >&9
   # need to set w/all cflags/ldflags; gcc doesn't always error out otherwise
   TMPF=t$$.txt
@@ -215,6 +222,11 @@ int main () { return 0; }" > t.c
     flag=0
   fi
   grep -i "warning.*${flag}" $TMPF > /dev/null 2>&1
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    flag=0
+  fi
+  grep -i "error.*${flag}" $TMPF > /dev/null 2>&1
   rc=$?
   if [ $rc -eq 0 ]; then
     flag=0

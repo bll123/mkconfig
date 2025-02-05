@@ -178,7 +178,7 @@ check_hdr () {
   fi
   doappend code "
 #include <$file>
-int main () { return (0); }
+int main (int argc, char *argv []) { return 0; }
 "
   rc=1
   _c_chk_compile ${name} "${code}" std
@@ -222,7 +222,10 @@ check_const () {
       done
   fi
   doappend code "
-int main () { if (${constant} == 0) { 1; } return (0); }
+int main (int argc, char *argv []) {
+if (${constant} == 0) { 1; }
+return 0;
+}
 "
   do_c_check_compile ${name} "${code}" all
 }
@@ -235,7 +238,11 @@ check_key () {
   checkcache $name
   if [ $rc -eq 0 ]; then return; fi
 
-  code="int main () { int ${keyword}; ${keyword} = 1; return (0); }"
+  code="int main (int argc, char *argv []) {
+int ${keyword};
+${keyword} = 1;
+return 0;
+}"
 
   _c_chk_compile ${name} "${code}" std
   rc=$?
@@ -280,7 +287,10 @@ check_typ () {
 struct xxx { ${type} mem; };
 static struct xxx v;
 struct xxx* f() { return &v; }
-int main () { struct xxx *tmp; tmp = f(); return (0); }
+int main (int argc, char *argv []) {
+struct xxx *tmp; tmp = f();
+return 0;
+}
 "
 
   do_c_check_compile ${name} "${code}" all
@@ -296,13 +306,14 @@ check_define () {
   checkcache $name
   if [ $rc -eq 0 ]; then return; fi
 
-  code="int main () {
+  code="int main (int argc, char *argv []) {
 #if defined(${def})
 # define MKC_DEFINED 1
 #endif
 #ifdef MKC_DEFINED
 printf (\"mkc_defined ${def}\");
 #endif
+return 0;
 }"
 
   trc=0
@@ -361,7 +372,12 @@ check_member () {
   checkcache $name
   if [ $rc -eq 0 ]; then return; fi
 
-  code="int main () { ${struct} s; int i; i = sizeof (s.${member}); }"
+  code="int main (int argc, char *argv []) {
+${struct} s;
+int i;
+i = sizeof (s.${member});
+return 0;
+}"
 
   do_c_check_compile ${name} "${code}" all
 }
@@ -419,7 +435,10 @@ check_size () {
 
   if [ "$MKC_CROSS" = Y ]; then
     puts "## size: cross compiling is active" >&9
-    code="int main () { printf(\"%u\", sizeof(${type})); return (0); }"
+    code="int main (int argc, char *argv []) {
+printf(\"%u\", sizeof(${type}));
+return 0;
+}"
     _c_chk_compile ${name} "${code}" all
     rc=$?
     if [ $rc -eq 0 ]; then
@@ -463,7 +482,10 @@ main () {
     fi
   else
     puts "## size: cross compiling is NOT active" >&9
-    code="int main () { printf(\"%u\", sizeof(${type})); return (0); }"
+    code="int main (int argc, char *argv []) {
+printf(\"%u\", sizeof(${type}));
+return 0;
+}"
     _c_chk_run ${name} "${code}" all
     rc=$?
   fi
@@ -626,7 +648,11 @@ check_int_declare () {
   checkcache $name
   if [ $rc -eq 0 ]; then return; fi
 
-  code="int main () { int x; x = ${function}; }"
+  code="int main (int argc, char *argv []) {
+int x;
+x = ${function};
+return 0;
+}"
   do_c_check_compile ${name} "${code}" all
 }
 
@@ -638,7 +664,12 @@ check_ptr_declare () {
   checkcache $name
   if [ $rc -eq 0 ]; then return; fi
 
-  code="int main () { void *x; x = ${function}; }"
+  code="
+int main (int argc, char *argv []) {
+  void *x;
+  x = ${function};
+  return 0;
+}"
   do_c_check_compile ${name} "${code}" all
 }
 
@@ -711,9 +742,11 @@ typedef char (*test_func)();
 char $rfunc();
 test_func f = (test_func) $rfunc;
 CPP_EXTERNS_END
-int main () {
-if (f == (test_func) $rfunc) { return 0; }
-return 1;
+int main (int argc, char *argv []) {
+  if (f == (test_func) $rfunc) {
+    return 0;
+  }
+  return 1;
 }
 "
   else
@@ -723,9 +756,12 @@ CPP_EXTERNS_BEG
 typedef char (*test_func)();
 test_func f = (test_func) $rfunc;
 CPP_EXTERNS_END
-int main () {
-f(); if (f == (test_func) $rfunc) { return 0; }
-return 1;
+int main (int argc, char *argv []) {
+  f();
+  if (f == (test_func) $rfunc) {
+    return 0;
+  }
+  return 1;
 }
 "
   fi
@@ -757,9 +793,11 @@ typedef char (*test_func)();
 char $rfunc();
 test_func f = (test_func) $rfunc;
 CPP_EXTERNS_END
-int main () {
-if (f == (test_func) $rfunc) { return 0; }
-return 1;
+int main (int argc, char *argv []) {
+  if (f == (test_func) $rfunc) {
+    return 0;
+  }
+  return 1;
 }
 "
     else
@@ -776,9 +814,12 @@ extern int ${func}();
 typedef char (*test_func)();
 test_func f = (test_func) $rfunc;
 CPP_EXTERNS_END
-int main () {
-f(); if (f == (test_func) $rfunc) { return 0; }
-return 1;
+int main (int argc, char *argv []) {
+  f();
+  if (f == (test_func) $rfunc) {
+    return 0;
+  }
+  return 1;
 }
 "
     fi
@@ -813,7 +854,10 @@ check_class () {
   name=$nm
 
   trc=0
-  code=" int main () { ${class} testclass; } "
+  code=" int main (int argc, char *argv []) {
+${class} testclass;
+return 0;
+} "
 
   if [ "$otherlibs" != "" ]; then
       printlabel $name "class: ${class} [${otherlibs}]"

@@ -1,6 +1,6 @@
 CHANGES
 
-    2.6.4                                   2025-x-x
+    2.6.4                                   2025-2-5
       CC: Added 'staticlib' directive.
       CC: Added 'header_reset' directive.
       Env: Added 'addincpath' and 'addldsrchpath' directives.
@@ -13,8 +13,9 @@ CHANGES
       mkcl.sh: Handle runpath.
       mkcl.sh: Fix ldpaths/runpath generation.
       units/c-main.sh: Remove define of _ for ancient C compilers.
-      units/env-cc.sh: AIX: Correctly check cflags.
-      units/env-cc.sh: Fixed clang issue for shared linking.
+      units/env-cc: AIX: Correctly check cflags.
+      units/env-cc: Fixed clang issue for shared linking.
+      units/env-cc: Fixed test for C flags.
       capabilities: test for grep -E / egrep.
       Remove D language.
       Merge env/c namespaces.

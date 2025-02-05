@@ -48,15 +48,15 @@ _dogetconf () {
   if [ z${xgetconf} != z ]
   then
       puts "using flags from getconf" >&9
-      lfccflags="`${xgetconf} LFS_CFLAGS 2>/dev/null`"
+      lfccflags=`${xgetconf} LFS_CFLAGS 2>/dev/null`
       if [ "$lfccflags" = undefined ]; then
         lfccflags=
       fi
-      lfldflags="`${xgetconf} LFS_LDFLAGS 2>/dev/null`"
+      lfldflags=`${xgetconf} LFS_LDFLAGS 2>/dev/null`
       if [ "$lfldflags" = undefined ]; then
         lfldflags=
       fi
-      lflibs="`${xgetconf} LFS_LIBS 2>/dev/null`"
+      lflibs=`${xgetconf} LFS_LIBS 2>/dev/null`
       if [ "$lflibs" = undefined ]; then
         lflibs=
       fi
