@@ -1,5 +1,8 @@
 CHANGES
 
+    2.6.5 2025-2-8
+      Env: Fixed cflags processing.
+
     2.6.4                                   2025-2-5
       CC: Added 'staticlib' directive.
       CC: Added 'header_reset' directive.

@@ -203,8 +203,7 @@ check_cflags () {
         fi
         ;;
     esac
-    doappend cflags_compiler " "
-    doappend cflags_compiler $gccflags
+    doappend cflags_compiler " $gccflags"
   fi
   if [ "${_MKCONFIG_USING_CLANG}" = Y ]; then
     puts "set clang flags" >&9
@@ -277,8 +276,7 @@ check_cflags () {
   _dogetconf
 
   # largefile flags
-  doappend cflags_system " "
-  doappend cflags_system $lfccflags
+  doappend cflags_system " $lfccflags"
 
   # plain CFLAGS will be interpreted as the user's cflags
   cflags_user=$CFLAGS
@@ -288,10 +286,8 @@ check_cflags () {
   if [ "z$CFLAGS_OPTIMIZE" != z ]; then
     cflags_optimize="$CFLAGS_OPTIMIZE"
   fi
-  doappend cflags_include " "
-  doappend cflags_include $CFLAGS_INCLUDE
-  doappend cflags_include " "
-  doappend cflags_include $CPPFLAGS
+  doappend cflags_include " $CFLAGS_INCLUDE"
+  doappend cflags_include " $CPPFLAGS"
 
   puts "cflags_debug:${cflags_debug}" >&9
   puts "cflags_optimize:${cflags_optimize}" >&9
@@ -321,8 +317,7 @@ check_addcflag () {
   test_cflag "$flag"
   printyesno $name "${flag}"
   if [ "$flag" != 0 ]; then
-    doappend CFLAGS_APPLICATION " "
-    doappend CFLAGS_APPLICATION "$flag"
+    doappend CFLAGS_APPLICATION " $flag"
     setdata CFLAGS_APPLICATION "$CFLAGS_APPLICATION"
   fi
 }
@@ -367,8 +362,7 @@ check_pkg_cflags () {
   test_cflag "$tcflags"
   printyesno_val $name "${flag}"
   if [ "$flag" != 0 ]; then
-    doappend CFLAGS_APPLICATION " "
-    doappend CFLAGS_APPLICATION "$flag"
+    doappend CFLAGS_APPLICATION " $flag"
     setdata CFLAGS_APPLICATION "$CFLAGS_APPLICATION"
     setdata ${name} "$flag"
   fi
@@ -395,8 +389,7 @@ check_pkg_include () {
   test_cflag "$tcflags"
   printyesno_val $name "${flag}"
   if [ "$flag" != 0 ]; then
-    doappend CFLAGS_APPLICATION " "
-    doappend CFLAGS_APPLICATION "$flag"
+    doappend CFLAGS_APPLICATION " $flag"
     setdata CFLAGS_APPLICATION "$CFLAGS_APPLICATION"
     setdata ${name} "$flag"
   fi
@@ -424,8 +417,7 @@ check_pkg_libs () {
   test_ldflags "$tldflags"
   printyesno_val $name "$flag"
   if [ "$flag" != 0 ]; then
-    doappend LDFLAGS_LIBS_APPLICATION " "
-    doappend LDFLAGS_LIBS_APPLICATION "$flag"
+    doappend LDFLAGS_LIBS_APPLICATION " $flag"
     setdata LDFLAGS_LIBS_APPLICATION "$LDFLAGS_LIBS_APPLICATION"
     setdata ${name} "$flag"
   fi
@@ -495,7 +487,7 @@ check_ldflags () {
   ldflags_application=${LDFLAGS_APPLICATION:-}
 
   doappend ldflags_system " "
-  doappend ldflags_system $lfldflags
+  doappend ldflags_system " $lfldflags"
 
   case ${_MKCONFIG_SYSTYPE} in
       FreeBSD)
@@ -593,11 +585,9 @@ check_libs () {
   esac
 
   # largefile flags
-  doappend ldflags_libs_system " "
-  doappend ldflags_libs_system $lflibs
+  doappend ldflags_libs_system " $lflibs"
 
-  doappend ldflags_libs_user " "
-  doappend ldflags_libs_user $LIBS
+  doappend ldflags_libs_user " $LIBS"
 
   puts "ldflags_libs_user:${ldflags_libs_user}" >&9
   puts "ldflags_libs_application:${ldflags_libs_application}" >&9
@@ -892,8 +882,7 @@ check_addconfig () {
   eval _tvar="\$$evar"
   if [ "z$_tvar" != z ]; then
     printyesno_val $name yes
-    doappend $addto " "
-    doappend $addto $_tvar
+    doappend $addto " $_tvar"
     puts "got: ${evar} ${_tvar}" >&9
     eval puts "\"$addto: \$$addto\"" >&9
     ucaddto=$addto

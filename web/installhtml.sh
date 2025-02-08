@@ -34,22 +34,22 @@ echo ""
 export SSHPASS
 
 
-ver=$(cat ../VERSION)
+ver=$(cat VERSION)
 if [[ $ver != "" ]] ; then
-  cp -pf index.html rindex.html
-  sed -i -e "s/#VERSION#/${ver}/g" index.html
+  cp -pf web/index.html web/rindex.html
+  sed -i -e "s/#VERSION#/${ver}/g" web/index.html
 
-  for f in ../man/*.7; do
-    groff -man -Thtml $f > $(basename -s.7 $f).html
+  for f in man/*.7; do
+    groff -man -Thtml $f > web/$(basename -s.7 $f).html
   done
 
   sshpass -e rsync -e "$ssh" -aSv \
-      *.html ${remuser}@${server}:${wwwpath}
-  mv -f rindex.html index.html
+      web/*.html ${remuser}@${server}:${wwwpath}
+  mv -f web/rindex.html web/index.html
 fi
 
-for f in ../man/*.7; do
-  fn=$(basename -s.7 $f).html
+for f in man/*.7; do
+  fn=web/$(basename -s.7 $f).html
   test -f $fn && rm -f $fn
 done
 

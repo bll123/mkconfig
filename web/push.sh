@@ -33,7 +33,7 @@ echo ""
 export SSHPASS
 
 sshpass -e rsync -e "$ssh" -aSv \
-    ../mkconfig*.tar.gz ../README.txt \
+    mkconfig*.tar.gz README.txt \
     ${remuser}@${server}:${wwwpath}
 
 unset SSHPASS
