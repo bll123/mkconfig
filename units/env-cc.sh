@@ -226,9 +226,20 @@ check_cflags () {
           esac
         fi
         ;;
+      Darwin)
+        if [ -d /opt/local/include ]; then
+          doappend cflags_include " -I/opt/local/include"
+        fi
+        if [ -d /opt/homebrew/include ]; then
+          doappend cflags_include " -I/opt/homebrew/include"
+        fi
+        ;;
       DragonFly|FreeBSD|OpenBSD)
         # *BSD has many packages that get installed in /usr/local
         doappend cflags_include " -I/usr/local/include"
+        ;;
+      NetBSD)
+        doappend cflags_include " -I/usr/pkg/include"
         ;;
       HP-UX)
         if [ "z${lfccflags}" = z -a "${_MKCONFIG_32BIT_FLAGS}" = F ]; then
@@ -490,9 +501,21 @@ check_ldflags () {
   doappend ldflags_system " $lfldflags"
 
   case ${_MKCONFIG_SYSTYPE} in
-      FreeBSD)
-        # FreeBSD has many packages that get installed in /usr/local
+      Darwin)
+        if [ -d /opt/local/include ]; then
+          doappend ldflags_system " -L/opt/local/lib"
+        fi
+        if [ -d /opt/homebrew/include ]; then
+          doappend ldflags_system " -L/opt/homebrew/lib"
+        fi
         doappend ldflags_system " -L/usr/local/lib"
+        ;;
+      DragonFly|FreeBSD|OpenBSD)
+        # *BSD has many packages that get installed in /usr/local
+        doappend ldflags_system " -L/usr/local/lib"
+        ;;
+      NetBSD)
+        doappend ldflags_system " -L/usr/pkg/lib"
         ;;
       HP-UX)
         # check for libintl in other places...
@@ -900,7 +923,7 @@ check_findconfig () {
   sp=
   incchk=
   pp=`puts $PATH | sed 's/:/ /g'`
-  for p in $pp $HOME/local/lib /usr/local/lib /opt/local/lib; do
+  for p in $pp $HOME/local/lib /usr/local/lib /opt/local/lib /opt/homebrew/lib /usr/pkg/lib; do
     td=$p
     case $p in
       */bin)
