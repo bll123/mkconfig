@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# requirements: sshpass, groff
+# requirements: groff
 #
 
 tserver=web.sourceforge.net
@@ -28,12 +28,6 @@ esac
 ssh="ssh -p $port"
 export ssh
 
-echo -n "Remote Password: "
-read -s SSHPASS
-echo ""
-export SSHPASS
-
-
 ver=$(cat VERSION)
 if [[ $ver != "" ]] ; then
   cp -pf web/index.html web/rindex.html
@@ -43,7 +37,7 @@ if [[ $ver != "" ]] ; then
     groff -man -Thtml $f > web/$(basename -s.7 $f).html
   done
 
-  sshpass -e rsync -e "$ssh" -aSv \
+  rsync -e "$ssh" -aSv \
       web/*.html ${remuser}@${server}:${wwwpath}
   mv -f web/rindex.html web/index.html
 fi
@@ -53,5 +47,4 @@ for f in man/*.7; do
   test -f $fn && rm -f $fn
 done
 
-unset SSHPASS
 exit 0
