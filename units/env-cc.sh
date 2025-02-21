@@ -252,6 +252,11 @@ check_cflags () {
                 doappend cflags_system " +DAportable"
                 ;;
             esac
+            case ${_MKCONFIG_SYSARCH} in
+              ia64)
+                doappend cflags_system " +DD64"
+                ;;
+            esac
             cc -v 2>&1 | grep -l Bundled > /dev/null 2>&1
             rc=$?
             if [ $rc -ne 0 ]; then
@@ -522,7 +527,9 @@ check_ldflags () {
         if [ -d /usr/local/include -a \
             -d /usr/local/lib ]; then
           doappend ldflags_system " -L/usr/local/lib"
-          if [ -d /usr/local/lib/hpux32 ]; then
+          if [ -d /usr/local/lib/hpux64 ]; then
+            doappend ldflags_system " -L/usr/local/lib/hpux64"
+          elif [ -d /usr/local/lib/hpux32 ]; then
             doappend ldflags_system " -L/usr/local/lib/hpux32"
           fi
         fi
@@ -923,7 +930,8 @@ check_findconfig () {
   sp=
   incchk=
   pp=`puts $PATH | sed 's/:/ /g'`
-  for p in $pp $HOME/local/lib /usr/local/lib /opt/local/lib /opt/homebrew/lib /usr/pkg/lib; do
+  for p in $pp $HOME/local/lib /usr/local/lib \
+      /opt/local/lib /opt/homebrew/lib /usr/pkg/lib /usr/local/lib/hpux64; do
     td=$p
     case $p in
       */bin)

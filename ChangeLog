@@ -1,5 +1,8 @@
 CHANGES
 
+    2.6.7 2025-2---
+      Env: Add flags and paths for HP-UX ia64.
+
     2.6.6 2025-2-18
       Env: Add some additional paths to check for pkg-config files.
       Env: Update paths for MacOS, NetBSD.

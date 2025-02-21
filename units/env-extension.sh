@@ -91,7 +91,13 @@ check_shlibext () {
   SHLIB_EXT=".so"
   case ${_MKCONFIG_SYSTYPE} in
     HP-UX)
-      SHLIB_EXT=".sl"
+      case ${_MKCONFIG_SYSARCH} in
+        ia64)
+          ;;
+        *)
+          SHLIB_EXT=".sl"
+          ;;
+      esac
       ;;
     AIX)
       SHLIB_EXT=".a"
