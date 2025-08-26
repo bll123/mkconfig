@@ -915,7 +915,6 @@ check_sharerunpathflag () {
 #          sed -e 's/^-/-Wl,-/' -e 's/^\+/-Wl,+/' -e 's/  */ -Wl,/g'`
 #    fi
   fi
-set +x
 
   printyesno_val LDFLAGS_RUNPATH "$LDFLAGS_RUNPATH"
   setdata LDFLAGS_RUNPATH "$LDFLAGS_RUNPATH"
@@ -940,6 +939,53 @@ check_addconfig () {
   fi
 }
 
+check_libname () {
+  name=_MKCONFIG_LIBNAME
+
+  puts "libname" >&9
+  printlabel _MKCONFIG_LIBNAME "Library Name"
+
+  _MKCONFIG_LIBNAME=lib
+
+  tlibrc=1
+  if [ -f /etc/os-release ]; then
+    if [ $tlibrc -ne 0 ]; then
+      grep -l openSUSE /etc/os-release > /dev/null 2>&1
+      tlibrc=$?
+    fi
+    # there is another os that uses lib64, but I don't recall which one
+    # at the moment...
+    if [ $tlibrc -ne 0 ]; then
+      grep -l 'Calculate Linux' /etc/os-release > /dev/null 2>&1
+      tlibrc=$?
+    fi
+    # arch has lib64->lib, don't even bother testing
+  fi
+
+  if [ $tlibrc -eq 0 ]; then
+    libnm=lib64
+    if [ -h /usr/lib64 -a "`readlink /usr/lib64`" = lib ]; then
+      # /usr/lib64 points to /usr/lib
+      libnm=lib
+    fi
+  fi
+
+  # HP-UX ia64 uses lib/hpux64
+  case ${_MKCONFIG_SYSTYPE} in
+    HP-UX)
+      case ${_MKCONFIG_SYSARCH} in
+        ia64)
+          libnm=lib/hpux64
+          ;;
+      esac
+      ;;
+  esac
+
+  puts "libname: ${_MKCONFIG_LIBNAME}" >&9
+  printyesno_val _MKCONFIG_LIBNAME "${_MKCONFIG_LIBNAME}"
+  setdata _MKCONFIG_LIBNAME "${_MKCONFIG_LIBNAME}"
+}
+
 check_standard_cc () {
   check_cc
   check_using_gcc
@@ -948,6 +994,7 @@ check_standard_cc () {
   check_using_cplusplus
   check_cflags
   check_ldflags
+  check_libname
 }
 
 check_shared_flags () {

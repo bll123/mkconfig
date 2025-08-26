@@ -1,5 +1,8 @@
 CHANGES
 
+    2.6.9 2025-8-26
+      Env: libname
+
     2.6.8 2025-2-23
       Env: NetBSD Fix.
       Env: pkg-config cleanup.

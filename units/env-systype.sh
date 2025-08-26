@@ -29,7 +29,7 @@ _dolocuname () {
 }
 
 check_system () {
-  name="_MKCONFIG_SYS"
+  name=_MKCONFIG_SYS
   arg=$2
   uarg=$arg
   toupper uarg

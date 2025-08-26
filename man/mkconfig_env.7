@@ -83,14 +83,19 @@ cflags, ldflags, and libs.
 .TP
 \fBstandard_cc\fP
 .RS
-Runs the cc, using_gcc, using_gnu_ld, using_clang and
-using_cplusplus tests.
+Runs the cc, using_gcc, using_gnu_ld, using_clang,
+using_cplusplus and libname tests.
 .RE
 .TP
 \fB32bitflags\fP
 .RS
 If used, this directive must appear before the cc, cflags, etc. commands.
 It turns off use of the 'getconf' command and other 64-bit flags.
+.RE
+.TP
+\fBlibname\fP
+.RS
+Sets _MKCONFIG_LIBNAME to either \fIlib\fP or \fIlib64\fP.
 .RE
 .TP
 \fBcc\fP
