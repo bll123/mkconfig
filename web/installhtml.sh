@@ -28,23 +28,22 @@ esac
 ssh="ssh -p $port"
 export ssh
 
+TMP=web/htdocs
+test -d $TMP && rm -rf $TMP
+mkdir $TMP
+
 ver=$(cat VERSION)
 if [[ $ver != "" ]] ; then
-  cp -pf web/index.html web/rindex.html
-  sed -i -e "s/#VERSION#/${ver}/g" web/index.html
+  sed -e "s/#VERSION#/${ver}/g" web/index.html > $TMP/index.html
 
   for f in man/*.7; do
-    groff -man -Thtml $f > web/$(basename -s.7 $f).html
+    groff -man -Thtml $f > $TMP/$(basename -s.7 $f).html
   done
 
-  rsync -e "$ssh" -aSv \
-      web/*.html ${remuser}@${server}:${wwwpath}
-  mv -f web/rindex.html web/index.html
+  rsync -e "$ssh" -aSv --delete \
+      $TMP/ ${remuser}@${server}:${wwwpath}
 fi
 
-for f in man/*.7; do
-  fn=web/$(basename -s.7 $f).html
-  test -f $fn && rm -f $fn
-done
+rm -rf $TMP
 
 exit 0
