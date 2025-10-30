@@ -161,31 +161,52 @@ test_cflag () {
   quoted=$2
 
   puts "#include <stdio.h>
-int main (int argc, char *argv []) { return 0; }" > t.c
+int main (int argc, char *argv [])
+{
+  /* prevent unused-argument warnings */
+  if (argc == 0) { return 0; }
+  if (argv == NULL) { return 0; }
+  return 0;
+}" > t.c
   puts "# test ${flag}" >&9
+
+  _tcflag="$flag"
+  # for -Wno- flags, check the actual flag
+  case "${_tcflag}" in
+    -Wno-poison-system-directories)
+        # this one has to be tested as-is
+        ;;
+    -Wno-*)
+        dosubst _tcflag 'Wno-' 'W'
+        ;;
+  esac
+
   # need to set w/all cflags; gcc doesn't always error out otherwise
   TMPF=t$$.txt
   setcflags
   if [ "$quoted" != "" ]; then
-    ${CC} ${CFLAGS} "${flag}" t.c > $TMPF 2>&1
+    ${CC} ${CFLAGS} "${_tcflag}" t.c > $TMPF 2>&1
     rc=$?
   else
-    ${CC} ${CFLAGS} ${flag} t.c > $TMPF 2>&1
+    ${CC} ${CFLAGS} ${_tcflag} t.c > $TMPF 2>&1
     rc=$?
   fi
   if [ $rc -ne 0 ]; then
     flag=0
   fi
-  grep -i "warning.*${flag}" $TMPF > /dev/null 2>&1
+
+  grep -i "warning.*${_tcflag}" $TMPF > /dev/null 2>&1
   rc=$?
   if [ $rc -eq 0 ]; then
     flag=0
   fi
-  grep -i "error.*${flag}" $TMPF > /dev/null 2>&1
+
+  grep -i "error.*${_tcflag}" $TMPF > /dev/null 2>&1
   rc=$?
   if [ $rc -eq 0 ]; then
     flag=0
   fi
+
   # AIX
   grep -i "Option.*incorrectly specified" $TMPF > /dev/null 2>&1
   rc=$?

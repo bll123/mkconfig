@@ -330,7 +330,7 @@ check_addcflag () {
 
   printlabel CFLAGS_APPLICATION "Add C flag: ${flag}"
 
-  test_cflag "$flag"
+  test_cflag "${flag}"
   printyesno $name "${flag}"
   if [ "$flag" != 0 ]; then
     doappend CFLAGS_APPLICATION " $flag"
@@ -945,7 +945,7 @@ check_libname () {
   puts "libname" >&9
   printlabel _MKCONFIG_LIBNAME "Library Name"
 
-  _MKCONFIG_LIBNAME=lib
+  tlibnm=lib
 
   tlibrc=1
   if [ -f /etc/os-release ]; then
@@ -963,11 +963,7 @@ check_libname () {
   fi
 
   if [ $tlibrc -eq 0 ]; then
-    libnm=lib64
-    if [ -h /usr/lib64 -a "`readlink /usr/lib64`" = lib ]; then
-      # /usr/lib64 points to /usr/lib
-      libnm=lib
-    fi
+    tlibnm=lib64
   fi
 
   # HP-UX ia64 uses lib/hpux64
@@ -975,11 +971,13 @@ check_libname () {
     HP-UX)
       case ${_MKCONFIG_SYSARCH} in
         ia64)
-          libnm=lib/hpux64
+          tlibnm=lib/hpux64
           ;;
       esac
       ;;
   esac
+
+  _MKCONFIG_LIBNAME=${tlibnm}
 
   puts "libname: ${_MKCONFIG_LIBNAME}" >&9
   printyesno_val _MKCONFIG_LIBNAME "${_MKCONFIG_LIBNAME}"
