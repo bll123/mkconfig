@@ -326,7 +326,6 @@ if [ $link = T ]; then
     doappend allldflags " ${LDFLAGS_USER}"         # specified by the user
     doappend allldflags " ${LDFLAGS_APPLICATION}"  # added by the config process
     doappend allldflags " ${LDFLAGS_COMPILER}"     # link flags
-    doappend allldflags " ${LDFLAGS_SYSTEM}"       # needed for this system
   fi
 fi
 if [ $link = T -a $shared = T ]; then
@@ -362,6 +361,7 @@ if [ $link = T ]; then
     doappend alllibs " ${LDFLAGS_LIBS_USER}"
     doappend alllibs " ${LDFLAGS_LIBS_APPLICATION}"
     doappend alllibs " ${LDFLAGS_LIBS_SYSTEM}"
+    doappend alllibs " ${LDFLAGS_SYSTEM}"       # needed for this system
   fi
 fi
 

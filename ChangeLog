@@ -1,5 +1,8 @@
 CHANGES
 
+    2.6.11 2025-11-10
+      Link: move system libraries to late in the link.
+
     2.6.10 2025-10-29
       Env: libname: fix.
       Env: libname: do not revert lib64 to lib if symlink.
